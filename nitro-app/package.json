@@ -1,0 +1,27 @@
+{
+	"name": "nitro-app",
+	"private": true,
+	"scripts": {
+		"build": "nitro build",
+		"dev": "nitro dev",
+		"preview": "node .output/server/index.mjs",
+		"migrate": "bunx --bun prisma migrate dev --name init",
+		"generate": "bunx --bun prisma generate",
+		"db:seed": "tsx prisma/seed.ts"
+	},
+	"devDependencies": {
+		"@types/node": "^25.9.2",
+		"@types/pg": "^8.20.0",
+		"h3": "^1.15.4",
+		"nitropack": "^2.12.4",
+		"prisma": "^7.8.0"
+	},
+	"dependencies": {
+		"@prisma/adapter-pg": "^7.8.0",
+		"@prisma/client": "^7.8.0",
+		"dotenv": "^17.4.2",
+		"hyparquet": "^1.26.2",
+		"hyparquet-compressors": "^1.1.1",
+		"pg": "^8.21.0"
+	}
+}

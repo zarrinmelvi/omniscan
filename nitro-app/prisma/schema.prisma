@@ -1,0 +1,351 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../server/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ActivityLog {
+	id Int @id @default(autoincrement())
+	type String
+	message String
+	occurred_at DateTime @default(now())
+
+	user User @relation(fields: [user_id], references: [id])
+	user_id Int
+	product Product? @relation(fields: [product_id], references: [id])
+	product_id Int?
+	pantry_item PantryItem? @relation(fields: [pantry_item_id], references: [id])
+	pantry_item_id Int?
+
+	created_at DateTime @default(now())
+	updated_at DateTime @updatedAt
+	deleted_at DateTime?
+}
+
+model User { 
+  id    Int     @id @default(autoincrement()) 
+  name String 
+  email String  @unique 
+  password String 
+  last_active DateTime
+  status String
+  avatar_base64 String? 
+
+  notifications Notification[]
+  dietary_prof DietaryProfile[]
+  allergens Allergen[] @relation("user_allergens")
+  pantry_item PantryItem[]
+  scan Scan[]
+  activityLog ActivityLog[]
+  recipe_interactions RecipeInteraction[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+} 
+
+model DietaryProfile {
+	id Int @id @default(autoincrement())
+	user_id Int
+	halal_pref Boolean @default(false)
+	custom_preferences String[] @default([]) // NEW — freeform lifestyle tags (Keto, Nut-Free, etc.)
+
+	user User @relation(fields: [user_id], references: [id])
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+}
+
+model Notification {
+	id Int @id @default(autoincrement())
+	user User @relation(fields: [user_id], references: [id])
+	user_id Int
+	type String
+	message String
+	is_read Boolean @default(false)
+
+	pantry_item PantryItem? @relation(fields: [pantry_item_id], references: [id])
+	pantry_item_id Int?
+	product Product? @relation(fields: [product_id], references: [id])
+	product_id Int?
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+}
+
+model Allergen {
+	id Int @id @default(autoincrement())
+	name String @unique
+	scientific_name String
+	is_predefined Boolean @default(false)
+
+	users User[] @relation("user_allergens")
+	ingredient_mapping IngredientMapping[]
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+}
+
+model IngredientMapping {
+	id Int @id @default(autoincrement())
+	scientific_term String @unique
+	simplified_term String
+
+	allergen Allergen @relation(fields: [allergen_id], references: [id])
+	allergen_id Int
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+}
+ 
+model Recipe {
+	id Int @id @default(autoincrement())
+	name String
+	instructions String
+	portions_guide Json
+
+	// "kaggle" (bulk-imported, generic ingredients) | "ai_generated" (future:
+	// personalized recipes produced directly by deepseek-v4-flash:cloud).
+	source String @default("kaggle")
+	// Dedup key for re-running the import script safely, e.g. "foodcom:12345".
+	// Null for non-imported (future ai_generated) rows.
+	external_id String? @unique
+
+	// Kaggle ingredients are generic ("onion", "soy sauce") and don't map to
+	// any specific branded Product row, so they're deliberately NOT forced
+	// into the Ingredient join table below (which requires a product_id).
+	// Shape: [{ name: string, quantity: number | null, unit: string | null }]
+	raw_ingredients Json @default("[]")
+	// Lowercase, space-joined ingredient names, populated at import time —
+	// exists purely as the target column for the pg_trgm GIN index used by
+	// /api/recipes/suggest's fuzzy pantry-overlap search. Not shown to users.
+	ingredient_search_text String @default("")
+
+	ingredients Ingredient[]
+	recipe_interactions RecipeInteraction[]
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+}
+
+// Per-user "Liked" and "Made" status for a recipe — deliberately a separate
+// table from Recipe itself, since Recipe rows are shared/global (Kaggle-
+// imported) while liking/making a recipe is a per-user fact. `made_at` is
+// set automatically by /api/recipes/make on a successful adaptation call,
+// not via a separate "mark as made" action.
+model RecipeInteraction {
+	id Int @id @default(autoincrement())
+	liked Boolean @default(false)
+	made_at DateTime?
+
+	user User @relation(fields: [user_id], references: [id])
+	user_id Int
+	recipe Recipe @relation(fields: [recipe_id], references: [id])
+	recipe_id Int
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+
+	@@unique([user_id, recipe_id])
+}
+
+model Ingredient {
+	id Int @id @default(autoincrement())
+	quantity_needed Decimal
+	unit String
+
+	recipe Recipe @relation(fields: [recipe_id], references: [id])
+	recipe_id Int
+	product Product @relation(fields: [product_id], references: [id])
+	product_id Int 
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+}
+
+model Product {
+	id Int @id @default(autoincrement())
+	brand_name String
+	product_name String
+	ingredient_text String
+	simplified_ingredients String
+	is_verified Boolean @default(false)
+	image_base64 String?
+	// Back-of-package photo (ingredients list, nutrition facts, certification
+	// marks). Optional — older scans and the "skip back photo" flow only have
+	// a front image, so this stays nullable rather than becoming required.
+	image_base64_back String?
+
+	halal_logo HalalLogo? @relation(fields: [halal_logo_id], references: [id])
+	halal_logo_id Int?
+	pantry_item PantryItem[]
+	scan Scan[]
+	ingredients Ingredient[]
+	activityLog ActivityLog[]
+	notification Notification[]
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+}
+
+model HalalLogo {
+	id Int @id @default(autoincrement())
+	certifying_body String
+	logo_image String @unique
+	is_accredited Boolean @default(false)
+	product Product []
+	catalog_product CatalogProduct []
+}
+
+model PantryItem {
+	id Int @id @default(autoincrement())
+	expiration_date DateTime?
+	best_before_date DateTime?
+	storage_location String
+	quantity Decimal
+	portion_unit String
+	added_date DateTime
+	is_archived Boolean @default(false)
+
+	user User @relation(fields: [user_id], references: [id])
+	user_id Int
+	product Product @relation(fields: [product_id], references: [id])
+	product_id Int
+
+	activityLog ActivityLog[]
+	notification Notification[]
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+}
+
+model Scan {
+	id Int @id @default(autoincrement())
+	image_url String
+	// Mirrors image_url for the optional back-of-package photo. Null when the
+	// user skipped the back photo (front-only scan).
+	image_url_back String?
+	scan_time DateTime
+	ai_confidence_score Decimal
+	safety_verdict String
+	flag_reason String
+
+	user User @relation(fields: [user_id], references: [id])
+	user_id Int
+	product Product @relation(fields: [product_id], references: [id])
+	product_id Int
+	flagged_scan FlaggedScan[]
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+}
+
+model FlaggedScan {
+	id Int @id @default(autoincrement())
+	flag_reason String
+	status String @default("pending")
+	admin_correction String?
+
+	scan Scan @relation(fields: [scan_id], references: [id])
+	scan_id Int
+	admin Admin? @relation(fields: [admin_id], references: [id])
+	admin_id Int?
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+}
+
+// --- Alternatives feature: reference catalog (separate from Product) ---
+//
+// Deliberately NOT reusing `Product`: Product rows represent things a real
+// user actually scanned or put in their pantry (Scan.product_id and
+// PantryItem.product_id both point there). Mixing in ~108 reference-only
+// catalog rows with no discriminator field would mean any query for "the
+// user's scanned/pantry products" could accidentally surface catalog
+// entries nobody ever scanned. This mirrors the existing 108-row seed
+// (brand_name/product_name/ingredient_text/simplified_ingredients/
+// is_verified/match_key), now moved to its own table plus a structured
+// ingredient relationship for genuine AI-driven Alternative matching
+// (allowed/disallowed ingredient reasoning), rather than plain-text
+// filtering.
+
+model CatalogProduct {
+	id Int @id @default(autoincrement())
+	brand_name String
+	product_name String
+	ingredient_text String
+	simplified_ingredients String
+	is_verified Boolean @default(false)
+	// Lowercased, variant-stripped name — carried over from
+	// omniscan_product_dataset.json's match_key field, for a future
+	// exact/fuzzy match step against a scanned product.
+	match_key String @unique
+
+	halal_logo HalalLogo? @relation(fields: [halal_logo_id], references: [id])
+	halal_logo_id Int?
+	ingredients CatalogProductIngredient[]
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+}
+
+// Normalized ingredient dictionary for the catalog — distinct from the
+// existing `Ingredient` model, which is recipe-scoped (quantity_needed/unit
+// tied to one Recipe+Product pair) and not a general ingredient list.
+model CatalogIngredient {
+	id Int @id @default(autoincrement())
+	name String @unique
+
+	products CatalogProductIngredient[]
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+}
+
+// Join table: which catalog products contain which catalog ingredients.
+// This is what the AI reasoning step queries once it has determined a
+// user's allowed/disallowed ingredient set.
+model CatalogProductIngredient {
+	id Int @id @default(autoincrement())
+
+	catalog_product CatalogProduct @relation(fields: [catalog_product_id], references: [id])
+	catalog_product_id Int
+	catalog_ingredient CatalogIngredient @relation(fields: [catalog_ingredient_id], references: [id])
+	catalog_ingredient_id Int
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+
+	@@unique([catalog_product_id, catalog_ingredient_id])
+}
+
+model Admin {
+	id Int @id @default(autoincrement())
+	full_name String
+	username String @unique
+	password String
+	role String
+	flagged_scan FlaggedScan[] 
+}

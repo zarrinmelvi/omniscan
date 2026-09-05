@@ -1,0 +1,7 @@
+{
+  "name": "omniscan-ui",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}

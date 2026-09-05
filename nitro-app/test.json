@@ -1,0 +1,6 @@
+{
+  "model": "gemma4:cloud",
+  "stream": false,
+  "format": "json",
+  "messages": [{"role": "user", "content": "Say hello in JSON as {\"greeting\": string}"}]
+}

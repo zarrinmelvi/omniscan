@@ -1,0 +1,51 @@
+export const halalLogoSeeder = () => [
+	{
+		certifier: 'IDCP',
+		full_name: "Islamic Da'wah Council of the Philippines",
+		image_path: 'reference-logos/idcp.png',
+		source_url: 'https://www.idcphalal.org/',
+		scraped_date: new Date('2026-09-05'),
+	},
+	{
+		certifier: 'NCMF',
+		full_name: 'National Commission on Muslim Filipinos',
+		image_path: 'reference-logos/ncmf.png',
+		source_url: 'https://www.ncmf.ph/',
+		scraped_date: new Date('2026-09-05'),
+	},
+	{
+		certifier: 'HDIP',
+		full_name: 'Halal Development Institute of the Philippines',
+		image_path: 'reference-logos/hdip.png',
+		source_url: 'https://www.hdiphilippineshalal.com/',
+		scraped_date: new Date('2026-09-05'),
+	},
+	{
+		certifier: 'MASLAHA',
+		full_name: 'Maslaha Halal Certification Board Inc.',
+		image_path: 'reference-logos/maslaha.png',
+		source_url: 'https://site.maslahahalal.com/',
+		scraped_date: new Date('2026-09-05'),
+	},
+	{
+		certifier: 'HICCIP',
+		full_name: 'Halal International Chamber of Commerce and Industries of the Philippines',
+		image_path: 'reference-logos/hiccip.png',
+		source_url: 'https://halalchamber.com.ph/',
+		scraped_date: new Date('2026-09-05'),
+	},
+	{
+		certifier: 'BPJPH',
+		full_name: 'Badan Penyelenggara Jaminan Produk Halal',
+		image_path: 'reference-logos/bpjph.png',
+		source_url: 'https://bpjph.halal.go.id/read/tentang-bpjph',
+		scraped_date: new Date('2026-09-05'),
+	},
+	{
+		certifier: 'JAKIM',
+		full_name: 'Jabatan Kemajuan Islam Malaysia',
+		image_path: 'reference-logos/jakim.png',
+		source_url: 'https://www.halal.gov.my/',
+		scraped_date: new Date('2026-09-05'),
+	},
+]

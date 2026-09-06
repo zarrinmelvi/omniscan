@@ -4,8 +4,9 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
 import userSeeder from './seeders/user.seeder'
 import allergenSeeder from './seeders/allergen.seeder'
+import { halalLogoSeeder } from './seeders/halalLogo.seeder'
 
-const connectionString = `${process.env.DATABASE_URL}`
+const connectionString = `${process.env.DIRECT_URL}`
 const pool = new Pool({ connectionString })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
@@ -33,21 +34,10 @@ async function main() {
 
 		console.log('Cleared existing data.')
 
-		// ---------------------------------------------------------------
-		// 2. Seed a default HalalLogo (Product.halal_logo_id needs one)
-		// ---------------------------------------------------------------
-		const halalLogo = await tx.halalLogo.create({
-			data: {
-				certifying_body: 'JAKIM',
-				logo_image: 'https://placehold.co/200x200?text=JAKIM',
-				is_accredited: true,
-			},
-		})
-		console.log(`Seeded default halal logo (id: ${halalLogo.id}).`)
+		const halalLogo = halalLogoSeeder()
+		const result = await tx.halalLogo.createMany({ data: halalLogo })
+		console.log(`Seeded ${result.count} halal logos.`)
 
-		// ---------------------------------------------------------------
-		// 3. Seed the default demo user (id 1, assuming a fresh database)
-		// ---------------------------------------------------------------
 		const user = await userSeeder()
 		const defaultUser = await tx.user.create({
 			data: user,
@@ -62,9 +52,6 @@ async function main() {
 			)
 		}
 
-		// ---------------------------------------------------------------
-		// 4. Seed Allergens
-		// ---------------------------------------------------------------
 		const allergen = allergenSeeder()
 		await tx.allergen.createMany({ data: allergen })
 		console.log('Seeded 5 allergens.')

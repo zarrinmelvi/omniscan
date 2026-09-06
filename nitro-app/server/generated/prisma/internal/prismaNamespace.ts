@@ -1944,8 +1944,11 @@ export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeo
 
 export const HalalLogoScalarFieldEnum = {
   id: 'id',
-  certifying_body: 'certifying_body',
-  logo_image: 'logo_image',
+  certifier: 'certifier',
+  full_name: 'full_name',
+  image_path: 'image_path',
+  source_url: 'source_url',
+  scraped_date: 'scraped_date',
   is_accredited: 'is_accredited'
 } as const
 

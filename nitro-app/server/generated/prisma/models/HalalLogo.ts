@@ -36,22 +36,31 @@ export type HalalLogoSumAggregateOutputType = {
 
 export type HalalLogoMinAggregateOutputType = {
   id: number | null
-  certifying_body: string | null
-  logo_image: string | null
+  certifier: string | null
+  full_name: string | null
+  image_path: string | null
+  source_url: string | null
+  scraped_date: Date | null
   is_accredited: boolean | null
 }
 
 export type HalalLogoMaxAggregateOutputType = {
   id: number | null
-  certifying_body: string | null
-  logo_image: string | null
+  certifier: string | null
+  full_name: string | null
+  image_path: string | null
+  source_url: string | null
+  scraped_date: Date | null
   is_accredited: boolean | null
 }
 
 export type HalalLogoCountAggregateOutputType = {
   id: number
-  certifying_body: number
-  logo_image: number
+  certifier: number
+  full_name: number
+  image_path: number
+  source_url: number
+  scraped_date: number
   is_accredited: number
   _all: number
 }
@@ -67,22 +76,31 @@ export type HalalLogoSumAggregateInputType = {
 
 export type HalalLogoMinAggregateInputType = {
   id?: true
-  certifying_body?: true
-  logo_image?: true
+  certifier?: true
+  full_name?: true
+  image_path?: true
+  source_url?: true
+  scraped_date?: true
   is_accredited?: true
 }
 
 export type HalalLogoMaxAggregateInputType = {
   id?: true
-  certifying_body?: true
-  logo_image?: true
+  certifier?: true
+  full_name?: true
+  image_path?: true
+  source_url?: true
+  scraped_date?: true
   is_accredited?: true
 }
 
 export type HalalLogoCountAggregateInputType = {
   id?: true
-  certifying_body?: true
-  logo_image?: true
+  certifier?: true
+  full_name?: true
+  image_path?: true
+  source_url?: true
+  scraped_date?: true
   is_accredited?: true
   _all?: true
 }
@@ -175,8 +193,11 @@ export type HalalLogoGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 
 export type HalalLogoGroupByOutputType = {
   id: number
-  certifying_body: string
-  logo_image: string
+  certifier: string
+  full_name: string
+  image_path: string
+  source_url: string
+  scraped_date: Date
   is_accredited: boolean
   _count: HalalLogoCountAggregateOutputType | null
   _avg: HalalLogoAvgAggregateOutputType | null
@@ -205,8 +226,11 @@ export type HalalLogoWhereInput = {
   OR?: Prisma.HalalLogoWhereInput[]
   NOT?: Prisma.HalalLogoWhereInput | Prisma.HalalLogoWhereInput[]
   id?: Prisma.IntFilter<"HalalLogo"> | number
-  certifying_body?: Prisma.StringFilter<"HalalLogo"> | string
-  logo_image?: Prisma.StringFilter<"HalalLogo"> | string
+  certifier?: Prisma.StringFilter<"HalalLogo"> | string
+  full_name?: Prisma.StringFilter<"HalalLogo"> | string
+  image_path?: Prisma.StringFilter<"HalalLogo"> | string
+  source_url?: Prisma.StringFilter<"HalalLogo"> | string
+  scraped_date?: Prisma.DateTimeFilter<"HalalLogo"> | Date | string
   is_accredited?: Prisma.BoolFilter<"HalalLogo"> | boolean
   product?: Prisma.ProductListRelationFilter
   catalog_product?: Prisma.CatalogProductListRelationFilter
@@ -214,8 +238,11 @@ export type HalalLogoWhereInput = {
 
 export type HalalLogoOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  certifying_body?: Prisma.SortOrder
-  logo_image?: Prisma.SortOrder
+  certifier?: Prisma.SortOrder
+  full_name?: Prisma.SortOrder
+  image_path?: Prisma.SortOrder
+  source_url?: Prisma.SortOrder
+  scraped_date?: Prisma.SortOrder
   is_accredited?: Prisma.SortOrder
   product?: Prisma.ProductOrderByRelationAggregateInput
   catalog_product?: Prisma.CatalogProductOrderByRelationAggregateInput
@@ -223,20 +250,26 @@ export type HalalLogoOrderByWithRelationInput = {
 
 export type HalalLogoWhereUniqueInput = Prisma.AtLeast<{
   id?: number
-  logo_image?: string
+  certifier?: string
   AND?: Prisma.HalalLogoWhereInput | Prisma.HalalLogoWhereInput[]
   OR?: Prisma.HalalLogoWhereInput[]
   NOT?: Prisma.HalalLogoWhereInput | Prisma.HalalLogoWhereInput[]
-  certifying_body?: Prisma.StringFilter<"HalalLogo"> | string
+  full_name?: Prisma.StringFilter<"HalalLogo"> | string
+  image_path?: Prisma.StringFilter<"HalalLogo"> | string
+  source_url?: Prisma.StringFilter<"HalalLogo"> | string
+  scraped_date?: Prisma.DateTimeFilter<"HalalLogo"> | Date | string
   is_accredited?: Prisma.BoolFilter<"HalalLogo"> | boolean
   product?: Prisma.ProductListRelationFilter
   catalog_product?: Prisma.CatalogProductListRelationFilter
-}, "id" | "logo_image">
+}, "id" | "certifier">
 
 export type HalalLogoOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  certifying_body?: Prisma.SortOrder
-  logo_image?: Prisma.SortOrder
+  certifier?: Prisma.SortOrder
+  full_name?: Prisma.SortOrder
+  image_path?: Prisma.SortOrder
+  source_url?: Prisma.SortOrder
+  scraped_date?: Prisma.SortOrder
   is_accredited?: Prisma.SortOrder
   _count?: Prisma.HalalLogoCountOrderByAggregateInput
   _avg?: Prisma.HalalLogoAvgOrderByAggregateInput
@@ -250,14 +283,20 @@ export type HalalLogoScalarWhereWithAggregatesInput = {
   OR?: Prisma.HalalLogoScalarWhereWithAggregatesInput[]
   NOT?: Prisma.HalalLogoScalarWhereWithAggregatesInput | Prisma.HalalLogoScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"HalalLogo"> | number
-  certifying_body?: Prisma.StringWithAggregatesFilter<"HalalLogo"> | string
-  logo_image?: Prisma.StringWithAggregatesFilter<"HalalLogo"> | string
+  certifier?: Prisma.StringWithAggregatesFilter<"HalalLogo"> | string
+  full_name?: Prisma.StringWithAggregatesFilter<"HalalLogo"> | string
+  image_path?: Prisma.StringWithAggregatesFilter<"HalalLogo"> | string
+  source_url?: Prisma.StringWithAggregatesFilter<"HalalLogo"> | string
+  scraped_date?: Prisma.DateTimeWithAggregatesFilter<"HalalLogo"> | Date | string
   is_accredited?: Prisma.BoolWithAggregatesFilter<"HalalLogo"> | boolean
 }
 
 export type HalalLogoCreateInput = {
-  certifying_body: string
-  logo_image: string
+  certifier: string
+  full_name: string
+  image_path: string
+  source_url: string
+  scraped_date: Date | string
   is_accredited?: boolean
   product?: Prisma.ProductCreateNestedManyWithoutHalal_logoInput
   catalog_product?: Prisma.CatalogProductCreateNestedManyWithoutHalal_logoInput
@@ -265,16 +304,22 @@ export type HalalLogoCreateInput = {
 
 export type HalalLogoUncheckedCreateInput = {
   id?: number
-  certifying_body: string
-  logo_image: string
+  certifier: string
+  full_name: string
+  image_path: string
+  source_url: string
+  scraped_date: Date | string
   is_accredited?: boolean
   product?: Prisma.ProductUncheckedCreateNestedManyWithoutHalal_logoInput
   catalog_product?: Prisma.CatalogProductUncheckedCreateNestedManyWithoutHalal_logoInput
 }
 
 export type HalalLogoUpdateInput = {
-  certifying_body?: Prisma.StringFieldUpdateOperationsInput | string
-  logo_image?: Prisma.StringFieldUpdateOperationsInput | string
+  certifier?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.StringFieldUpdateOperationsInput | string
+  image_path?: Prisma.StringFieldUpdateOperationsInput | string
+  source_url?: Prisma.StringFieldUpdateOperationsInput | string
+  scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   product?: Prisma.ProductUpdateManyWithoutHalal_logoNestedInput
   catalog_product?: Prisma.CatalogProductUpdateManyWithoutHalal_logoNestedInput
@@ -282,8 +327,11 @@ export type HalalLogoUpdateInput = {
 
 export type HalalLogoUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  certifying_body?: Prisma.StringFieldUpdateOperationsInput | string
-  logo_image?: Prisma.StringFieldUpdateOperationsInput | string
+  certifier?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.StringFieldUpdateOperationsInput | string
+  image_path?: Prisma.StringFieldUpdateOperationsInput | string
+  source_url?: Prisma.StringFieldUpdateOperationsInput | string
+  scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   product?: Prisma.ProductUncheckedUpdateManyWithoutHalal_logoNestedInput
   catalog_product?: Prisma.CatalogProductUncheckedUpdateManyWithoutHalal_logoNestedInput
@@ -291,21 +339,30 @@ export type HalalLogoUncheckedUpdateInput = {
 
 export type HalalLogoCreateManyInput = {
   id?: number
-  certifying_body: string
-  logo_image: string
+  certifier: string
+  full_name: string
+  image_path: string
+  source_url: string
+  scraped_date: Date | string
   is_accredited?: boolean
 }
 
 export type HalalLogoUpdateManyMutationInput = {
-  certifying_body?: Prisma.StringFieldUpdateOperationsInput | string
-  logo_image?: Prisma.StringFieldUpdateOperationsInput | string
+  certifier?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.StringFieldUpdateOperationsInput | string
+  image_path?: Prisma.StringFieldUpdateOperationsInput | string
+  source_url?: Prisma.StringFieldUpdateOperationsInput | string
+  scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type HalalLogoUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  certifying_body?: Prisma.StringFieldUpdateOperationsInput | string
-  logo_image?: Prisma.StringFieldUpdateOperationsInput | string
+  certifier?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.StringFieldUpdateOperationsInput | string
+  image_path?: Prisma.StringFieldUpdateOperationsInput | string
+  source_url?: Prisma.StringFieldUpdateOperationsInput | string
+  scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
@@ -316,8 +373,11 @@ export type HalalLogoNullableScalarRelationFilter = {
 
 export type HalalLogoCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  certifying_body?: Prisma.SortOrder
-  logo_image?: Prisma.SortOrder
+  certifier?: Prisma.SortOrder
+  full_name?: Prisma.SortOrder
+  image_path?: Prisma.SortOrder
+  source_url?: Prisma.SortOrder
+  scraped_date?: Prisma.SortOrder
   is_accredited?: Prisma.SortOrder
 }
 
@@ -327,15 +387,21 @@ export type HalalLogoAvgOrderByAggregateInput = {
 
 export type HalalLogoMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  certifying_body?: Prisma.SortOrder
-  logo_image?: Prisma.SortOrder
+  certifier?: Prisma.SortOrder
+  full_name?: Prisma.SortOrder
+  image_path?: Prisma.SortOrder
+  source_url?: Prisma.SortOrder
+  scraped_date?: Prisma.SortOrder
   is_accredited?: Prisma.SortOrder
 }
 
 export type HalalLogoMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  certifying_body?: Prisma.SortOrder
-  logo_image?: Prisma.SortOrder
+  certifier?: Prisma.SortOrder
+  full_name?: Prisma.SortOrder
+  image_path?: Prisma.SortOrder
+  source_url?: Prisma.SortOrder
+  scraped_date?: Prisma.SortOrder
   is_accredited?: Prisma.SortOrder
 }
 
@@ -376,16 +442,22 @@ export type HalalLogoUpdateOneWithoutCatalog_productNestedInput = {
 }
 
 export type HalalLogoCreateWithoutProductInput = {
-  certifying_body: string
-  logo_image: string
+  certifier: string
+  full_name: string
+  image_path: string
+  source_url: string
+  scraped_date: Date | string
   is_accredited?: boolean
   catalog_product?: Prisma.CatalogProductCreateNestedManyWithoutHalal_logoInput
 }
 
 export type HalalLogoUncheckedCreateWithoutProductInput = {
   id?: number
-  certifying_body: string
-  logo_image: string
+  certifier: string
+  full_name: string
+  image_path: string
+  source_url: string
+  scraped_date: Date | string
   is_accredited?: boolean
   catalog_product?: Prisma.CatalogProductUncheckedCreateNestedManyWithoutHalal_logoInput
 }
@@ -407,31 +479,43 @@ export type HalalLogoUpdateToOneWithWhereWithoutProductInput = {
 }
 
 export type HalalLogoUpdateWithoutProductInput = {
-  certifying_body?: Prisma.StringFieldUpdateOperationsInput | string
-  logo_image?: Prisma.StringFieldUpdateOperationsInput | string
+  certifier?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.StringFieldUpdateOperationsInput | string
+  image_path?: Prisma.StringFieldUpdateOperationsInput | string
+  source_url?: Prisma.StringFieldUpdateOperationsInput | string
+  scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   catalog_product?: Prisma.CatalogProductUpdateManyWithoutHalal_logoNestedInput
 }
 
 export type HalalLogoUncheckedUpdateWithoutProductInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  certifying_body?: Prisma.StringFieldUpdateOperationsInput | string
-  logo_image?: Prisma.StringFieldUpdateOperationsInput | string
+  certifier?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.StringFieldUpdateOperationsInput | string
+  image_path?: Prisma.StringFieldUpdateOperationsInput | string
+  source_url?: Prisma.StringFieldUpdateOperationsInput | string
+  scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   catalog_product?: Prisma.CatalogProductUncheckedUpdateManyWithoutHalal_logoNestedInput
 }
 
 export type HalalLogoCreateWithoutCatalog_productInput = {
-  certifying_body: string
-  logo_image: string
+  certifier: string
+  full_name: string
+  image_path: string
+  source_url: string
+  scraped_date: Date | string
   is_accredited?: boolean
   product?: Prisma.ProductCreateNestedManyWithoutHalal_logoInput
 }
 
 export type HalalLogoUncheckedCreateWithoutCatalog_productInput = {
   id?: number
-  certifying_body: string
-  logo_image: string
+  certifier: string
+  full_name: string
+  image_path: string
+  source_url: string
+  scraped_date: Date | string
   is_accredited?: boolean
   product?: Prisma.ProductUncheckedCreateNestedManyWithoutHalal_logoInput
 }
@@ -453,16 +537,22 @@ export type HalalLogoUpdateToOneWithWhereWithoutCatalog_productInput = {
 }
 
 export type HalalLogoUpdateWithoutCatalog_productInput = {
-  certifying_body?: Prisma.StringFieldUpdateOperationsInput | string
-  logo_image?: Prisma.StringFieldUpdateOperationsInput | string
+  certifier?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.StringFieldUpdateOperationsInput | string
+  image_path?: Prisma.StringFieldUpdateOperationsInput | string
+  source_url?: Prisma.StringFieldUpdateOperationsInput | string
+  scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   product?: Prisma.ProductUpdateManyWithoutHalal_logoNestedInput
 }
 
 export type HalalLogoUncheckedUpdateWithoutCatalog_productInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  certifying_body?: Prisma.StringFieldUpdateOperationsInput | string
-  logo_image?: Prisma.StringFieldUpdateOperationsInput | string
+  certifier?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.StringFieldUpdateOperationsInput | string
+  image_path?: Prisma.StringFieldUpdateOperationsInput | string
+  source_url?: Prisma.StringFieldUpdateOperationsInput | string
+  scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   product?: Prisma.ProductUncheckedUpdateManyWithoutHalal_logoNestedInput
 }
@@ -509,8 +599,11 @@ export type HalalLogoCountOutputTypeCountCatalog_productArgs<ExtArgs extends run
 
 export type HalalLogoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  certifying_body?: boolean
-  logo_image?: boolean
+  certifier?: boolean
+  full_name?: boolean
+  image_path?: boolean
+  source_url?: boolean
+  scraped_date?: boolean
   is_accredited?: boolean
   product?: boolean | Prisma.HalalLogo$productArgs<ExtArgs>
   catalog_product?: boolean | Prisma.HalalLogo$catalog_productArgs<ExtArgs>
@@ -519,26 +612,35 @@ export type HalalLogoSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
 
 export type HalalLogoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  certifying_body?: boolean
-  logo_image?: boolean
+  certifier?: boolean
+  full_name?: boolean
+  image_path?: boolean
+  source_url?: boolean
+  scraped_date?: boolean
   is_accredited?: boolean
 }, ExtArgs["result"]["halalLogo"]>
 
 export type HalalLogoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  certifying_body?: boolean
-  logo_image?: boolean
+  certifier?: boolean
+  full_name?: boolean
+  image_path?: boolean
+  source_url?: boolean
+  scraped_date?: boolean
   is_accredited?: boolean
 }, ExtArgs["result"]["halalLogo"]>
 
 export type HalalLogoSelectScalar = {
   id?: boolean
-  certifying_body?: boolean
-  logo_image?: boolean
+  certifier?: boolean
+  full_name?: boolean
+  image_path?: boolean
+  source_url?: boolean
+  scraped_date?: boolean
   is_accredited?: boolean
 }
 
-export type HalalLogoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "certifying_body" | "logo_image" | "is_accredited", ExtArgs["result"]["halalLogo"]>
+export type HalalLogoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "certifier" | "full_name" | "image_path" | "source_url" | "scraped_date" | "is_accredited", ExtArgs["result"]["halalLogo"]>
 export type HalalLogoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.HalalLogo$productArgs<ExtArgs>
   catalog_product?: boolean | Prisma.HalalLogo$catalog_productArgs<ExtArgs>
@@ -555,8 +657,11 @@ export type $HalalLogoPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
-    certifying_body: string
-    logo_image: string
+    certifier: string
+    full_name: string
+    image_path: string
+    source_url: string
+    scraped_date: Date
     is_accredited: boolean
   }, ExtArgs["result"]["halalLogo"]>
   composites: {}
@@ -984,8 +1089,11 @@ export interface Prisma__HalalLogoClient<T, Null = never, ExtArgs extends runtim
  */
 export interface HalalLogoFieldRefs {
   readonly id: Prisma.FieldRef<"HalalLogo", 'Int'>
-  readonly certifying_body: Prisma.FieldRef<"HalalLogo", 'String'>
-  readonly logo_image: Prisma.FieldRef<"HalalLogo", 'String'>
+  readonly certifier: Prisma.FieldRef<"HalalLogo", 'String'>
+  readonly full_name: Prisma.FieldRef<"HalalLogo", 'String'>
+  readonly image_path: Prisma.FieldRef<"HalalLogo", 'String'>
+  readonly source_url: Prisma.FieldRef<"HalalLogo", 'String'>
+  readonly scraped_date: Prisma.FieldRef<"HalalLogo", 'DateTime'>
   readonly is_accredited: Prisma.FieldRef<"HalalLogo", 'Boolean'>
 }
     

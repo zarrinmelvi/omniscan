@@ -204,14 +204,20 @@ model Product {
   	deleted_at DateTime?
 }
 
-model HalalLogo {
-	id Int @id @default(autoincrement())
-	certifying_body String
-	logo_image String @unique
-	is_accredited Boolean @default(false)
-	product Product []
-	catalog_product CatalogProduct []
+model HalalLogo {	
+  id              Int      @id @default(autoincrement())
+  certifier       String   @unique
+  full_name       String
+  image_path      String
+  source_url      String
+  scraped_date    DateTime
+
+  is_accredited   Boolean  @default(false)
+
+  product         Product[]
+  catalog_product CatalogProduct[]
 }
+
 
 model PantryItem {
 	id Int @id @default(autoincrement())

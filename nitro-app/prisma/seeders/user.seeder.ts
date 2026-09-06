@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt'
 
 export default async () => {
-	const hashedPassword = await bcrypt.hash('password123', 10)
+	const hashedPassword = await bcrypt.hash('OmniscanPass1!', 10)
 
 	return {
 		name: 'Demo User',

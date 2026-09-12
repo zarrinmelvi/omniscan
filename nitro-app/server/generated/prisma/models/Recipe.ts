@@ -38,6 +38,7 @@ export type RecipeMinAggregateOutputType = {
   id: number | null
   name: string | null
   instructions: string | null
+  image_url: string | null
   source: string | null
   external_id: string | null
   ingredient_search_text: string | null
@@ -50,6 +51,7 @@ export type RecipeMaxAggregateOutputType = {
   id: number | null
   name: string | null
   instructions: string | null
+  image_url: string | null
   source: string | null
   external_id: string | null
   ingredient_search_text: string | null
@@ -63,6 +65,7 @@ export type RecipeCountAggregateOutputType = {
   name: number
   instructions: number
   portions_guide: number
+  image_url: number
   source: number
   external_id: number
   raw_ingredients: number
@@ -86,6 +89,7 @@ export type RecipeMinAggregateInputType = {
   id?: true
   name?: true
   instructions?: true
+  image_url?: true
   source?: true
   external_id?: true
   ingredient_search_text?: true
@@ -98,6 +102,7 @@ export type RecipeMaxAggregateInputType = {
   id?: true
   name?: true
   instructions?: true
+  image_url?: true
   source?: true
   external_id?: true
   ingredient_search_text?: true
@@ -111,6 +116,7 @@ export type RecipeCountAggregateInputType = {
   name?: true
   instructions?: true
   portions_guide?: true
+  image_url?: true
   source?: true
   external_id?: true
   raw_ingredients?: true
@@ -212,6 +218,7 @@ export type RecipeGroupByOutputType = {
   name: string
   instructions: string
   portions_guide: runtime.JsonValue
+  image_url: string | null
   source: string
   external_id: string | null
   raw_ingredients: runtime.JsonValue
@@ -249,6 +256,7 @@ export type RecipeWhereInput = {
   name?: Prisma.StringFilter<"Recipe"> | string
   instructions?: Prisma.StringFilter<"Recipe"> | string
   portions_guide?: Prisma.JsonFilter<"Recipe">
+  image_url?: Prisma.StringNullableFilter<"Recipe"> | string | null
   source?: Prisma.StringFilter<"Recipe"> | string
   external_id?: Prisma.StringNullableFilter<"Recipe"> | string | null
   raw_ingredients?: Prisma.JsonFilter<"Recipe">
@@ -265,6 +273,7 @@ export type RecipeOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   instructions?: Prisma.SortOrder
   portions_guide?: Prisma.SortOrder
+  image_url?: Prisma.SortOrderInput | Prisma.SortOrder
   source?: Prisma.SortOrder
   external_id?: Prisma.SortOrderInput | Prisma.SortOrder
   raw_ingredients?: Prisma.SortOrder
@@ -285,6 +294,7 @@ export type RecipeWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Recipe"> | string
   instructions?: Prisma.StringFilter<"Recipe"> | string
   portions_guide?: Prisma.JsonFilter<"Recipe">
+  image_url?: Prisma.StringNullableFilter<"Recipe"> | string | null
   source?: Prisma.StringFilter<"Recipe"> | string
   raw_ingredients?: Prisma.JsonFilter<"Recipe">
   ingredient_search_text?: Prisma.StringFilter<"Recipe"> | string
@@ -300,6 +310,7 @@ export type RecipeOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   instructions?: Prisma.SortOrder
   portions_guide?: Prisma.SortOrder
+  image_url?: Prisma.SortOrderInput | Prisma.SortOrder
   source?: Prisma.SortOrder
   external_id?: Prisma.SortOrderInput | Prisma.SortOrder
   raw_ingredients?: Prisma.SortOrder
@@ -322,6 +333,7 @@ export type RecipeScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Recipe"> | string
   instructions?: Prisma.StringWithAggregatesFilter<"Recipe"> | string
   portions_guide?: Prisma.JsonWithAggregatesFilter<"Recipe">
+  image_url?: Prisma.StringNullableWithAggregatesFilter<"Recipe"> | string | null
   source?: Prisma.StringWithAggregatesFilter<"Recipe"> | string
   external_id?: Prisma.StringNullableWithAggregatesFilter<"Recipe"> | string | null
   raw_ingredients?: Prisma.JsonWithAggregatesFilter<"Recipe">
@@ -335,6 +347,7 @@ export type RecipeCreateInput = {
   name: string
   instructions: string
   portions_guide: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: string | null
   source?: string
   external_id?: string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -351,6 +364,7 @@ export type RecipeUncheckedCreateInput = {
   name: string
   instructions: string
   portions_guide: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: string | null
   source?: string
   external_id?: string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -366,6 +380,7 @@ export type RecipeUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   instructions?: Prisma.StringFieldUpdateOperationsInput | string
   portions_guide?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -382,6 +397,7 @@ export type RecipeUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   instructions?: Prisma.StringFieldUpdateOperationsInput | string
   portions_guide?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -398,6 +414,7 @@ export type RecipeCreateManyInput = {
   name: string
   instructions: string
   portions_guide: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: string | null
   source?: string
   external_id?: string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -411,6 +428,7 @@ export type RecipeUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   instructions?: Prisma.StringFieldUpdateOperationsInput | string
   portions_guide?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -425,6 +443,7 @@ export type RecipeUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   instructions?: Prisma.StringFieldUpdateOperationsInput | string
   portions_guide?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -439,6 +458,7 @@ export type RecipeCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   instructions?: Prisma.SortOrder
   portions_guide?: Prisma.SortOrder
+  image_url?: Prisma.SortOrder
   source?: Prisma.SortOrder
   external_id?: Prisma.SortOrder
   raw_ingredients?: Prisma.SortOrder
@@ -456,6 +476,7 @@ export type RecipeMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   instructions?: Prisma.SortOrder
+  image_url?: Prisma.SortOrder
   source?: Prisma.SortOrder
   external_id?: Prisma.SortOrder
   ingredient_search_text?: Prisma.SortOrder
@@ -468,6 +489,7 @@ export type RecipeMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   instructions?: Prisma.SortOrder
+  image_url?: Prisma.SortOrder
   source?: Prisma.SortOrder
   external_id?: Prisma.SortOrder
   ingredient_search_text?: Prisma.SortOrder
@@ -517,6 +539,7 @@ export type RecipeCreateWithoutRecipe_interactionsInput = {
   name: string
   instructions: string
   portions_guide: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: string | null
   source?: string
   external_id?: string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -532,6 +555,7 @@ export type RecipeUncheckedCreateWithoutRecipe_interactionsInput = {
   name: string
   instructions: string
   portions_guide: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: string | null
   source?: string
   external_id?: string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -562,6 +586,7 @@ export type RecipeUpdateWithoutRecipe_interactionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   instructions?: Prisma.StringFieldUpdateOperationsInput | string
   portions_guide?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -577,6 +602,7 @@ export type RecipeUncheckedUpdateWithoutRecipe_interactionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   instructions?: Prisma.StringFieldUpdateOperationsInput | string
   portions_guide?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -591,6 +617,7 @@ export type RecipeCreateWithoutIngredientsInput = {
   name: string
   instructions: string
   portions_guide: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: string | null
   source?: string
   external_id?: string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -606,6 +633,7 @@ export type RecipeUncheckedCreateWithoutIngredientsInput = {
   name: string
   instructions: string
   portions_guide: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: string | null
   source?: string
   external_id?: string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -636,6 +664,7 @@ export type RecipeUpdateWithoutIngredientsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   instructions?: Prisma.StringFieldUpdateOperationsInput | string
   portions_guide?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -651,6 +680,7 @@ export type RecipeUncheckedUpdateWithoutIngredientsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   instructions?: Prisma.StringFieldUpdateOperationsInput | string
   portions_guide?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   raw_ingredients?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -706,6 +736,7 @@ export type RecipeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name?: boolean
   instructions?: boolean
   portions_guide?: boolean
+  image_url?: boolean
   source?: boolean
   external_id?: boolean
   raw_ingredients?: boolean
@@ -723,6 +754,7 @@ export type RecipeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   name?: boolean
   instructions?: boolean
   portions_guide?: boolean
+  image_url?: boolean
   source?: boolean
   external_id?: boolean
   raw_ingredients?: boolean
@@ -737,6 +769,7 @@ export type RecipeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   name?: boolean
   instructions?: boolean
   portions_guide?: boolean
+  image_url?: boolean
   source?: boolean
   external_id?: boolean
   raw_ingredients?: boolean
@@ -751,6 +784,7 @@ export type RecipeSelectScalar = {
   name?: boolean
   instructions?: boolean
   portions_guide?: boolean
+  image_url?: boolean
   source?: boolean
   external_id?: boolean
   raw_ingredients?: boolean
@@ -760,7 +794,7 @@ export type RecipeSelectScalar = {
   deleted_at?: boolean
 }
 
-export type RecipeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "instructions" | "portions_guide" | "source" | "external_id" | "raw_ingredients" | "ingredient_search_text" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["recipe"]>
+export type RecipeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "instructions" | "portions_guide" | "image_url" | "source" | "external_id" | "raw_ingredients" | "ingredient_search_text" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["recipe"]>
 export type RecipeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ingredients?: boolean | Prisma.Recipe$ingredientsArgs<ExtArgs>
   recipe_interactions?: boolean | Prisma.Recipe$recipe_interactionsArgs<ExtArgs>
@@ -780,6 +814,7 @@ export type $RecipePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     name: string
     instructions: string
     portions_guide: runtime.JsonValue
+    image_url: string | null
     source: string
     external_id: string | null
     raw_ingredients: runtime.JsonValue
@@ -1216,6 +1251,7 @@ export interface RecipeFieldRefs {
   readonly name: Prisma.FieldRef<"Recipe", 'String'>
   readonly instructions: Prisma.FieldRef<"Recipe", 'String'>
   readonly portions_guide: Prisma.FieldRef<"Recipe", 'Json'>
+  readonly image_url: Prisma.FieldRef<"Recipe", 'String'>
   readonly source: Prisma.FieldRef<"Recipe", 'String'>
   readonly external_id: Prisma.FieldRef<"Recipe", 'String'>
   readonly raw_ingredients: Prisma.FieldRef<"Recipe", 'Json'>

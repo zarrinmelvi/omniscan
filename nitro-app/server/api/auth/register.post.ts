@@ -45,7 +45,6 @@ export default defineEventHandler(async (event) => {
 				select: { id: true, name: true, email: true },
 			})
 
-			// One-to-one relation (user_id is @unique on DietaryProfile)
 			await tx.dietaryProfile.create({
 				data: {
 					user_id: user.id,

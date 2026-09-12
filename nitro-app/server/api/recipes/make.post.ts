@@ -3,7 +3,8 @@ import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 import { OLLAMA_ENDPOINT, GENERATION_MODEL } from '../../lib/ollama-models'
 import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens } from '../../lib/allergen-matching'
-import { matchIngredientsToPantry, findNonHalalKeywords, type RawIngredient } from '../../lib/recipe-matching'
+import { matchIngredientsToPantryForDeduction, findNonHalalKeywords, type RawIngredient } from '../../lib/recipe-matching'
+import { convertIngredientToPantryUnit } from '../../lib/unit-conversion'
 import { stripCodeFences } from '../../lib/ai-json'
 
 interface MakeRecipeBody {
@@ -32,12 +33,6 @@ function coerceRawIngredients(value: unknown): RawIngredient[] {
 		.filter((i) => i.name.trim().length > 0)
 }
 
-// One deepseek-v4-flash:cloud call — adapts the base (Kaggle) recipe to what
-// the user actually has: scales/keeps the original quantities, calls out
-// missing ingredients with a reasonable substitution where one exists, and
-// leaves it out where it doesn't rather than inventing one. Falls back to
-// the unadapted base recipe if the call fails, so "Make Recipe" degrades to
-// "here's the original recipe" instead of a hard error.
 async function generateAdaptedRecipe(
 	recipeName: string,
 	baseInstructions: string,
@@ -126,7 +121,7 @@ export default defineEventHandler(async (event) => {
 		const [pantryItems, userWithProfile] = await Promise.all([
 			prisma.pantryItem.findMany({
 				where: { user_id: authUser.id, is_archived: false },
-				select: { id: true, product: { select: { product_name: true } } },
+				select: { id: true, quantity: true, portion_unit: true, product: { select: { product_name: true } } },
 			}),
 			prisma.user.findUnique({
 				where: { id: authUser.id },
@@ -144,12 +139,6 @@ export default defineEventHandler(async (event) => {
 			}),
 		])
 
-		// Re-verify safety here rather than trusting that /api/recipes/suggest
-		// already filtered this recipe out — the recipe DB, the user's
-		// allergen profile, or their Halal preference could all have changed
-		// since the suggestion list was last loaded. Same "deterministic always
-		// runs, semantic is additive" pattern as scan/index.post.ts: a failed
-		// semantic call degrades to deterministic-only, never to no check.
 		const userAllergens = userWithProfile?.allergens ?? []
 		const stringMatches = findMatchedUserAllergens(combinedText, userAllergens)
 		const semanticMatches = await matchUserAllergensSemantically(combinedText, userAllergens)
@@ -173,8 +162,13 @@ export default defineEventHandler(async (event) => {
 			}
 		}
 
-		const pantryProducts = pantryItems.map((p) => ({ id: p.id, product_name: p.product.product_name }))
-		const { matchedPantryItemIds, missingIngredientNames } = matchIngredientsToPantry(ingredients, pantryProducts)
+		const pantryProducts = pantryItems.map((p) => ({
+			id: p.id,
+			product_name: p.product.product_name,
+			quantity: Number(p.quantity),
+			portion_unit: p.portion_unit,
+		}))
+		const { deductions, missingIngredientNames } = matchIngredientsToPantryForDeduction(ingredients, pantryProducts)
 
 		const baseServings =
 			recipe.portions_guide && typeof recipe.portions_guide === 'object' && 'base_servings' in (recipe.portions_guide as object)
@@ -183,23 +177,71 @@ export default defineEventHandler(async (event) => {
 
 		const adapted = await generateAdaptedRecipe(recipe.name, recipe.instructions, ingredients, missingIngredientNames, baseServings)
 
-		let archivedCount = 0
-		if (matchedPantryItemIds.length > 0) {
-			const result = await prisma.pantryItem.updateMany({
-				where: { id: { in: matchedPantryItemIds } },
-				data: { is_archived: true },
-			})
-			archivedCount = result.count
+		const pantryProductsById = new Map(pantryProducts.map((p) => [p.id, p]))
+
+		interface ItemAdjustment {
+			deductAmount: number
+			needsFullArchiveFallback: boolean
+		}
+		const adjustmentsByItem = new Map<number, ItemAdjustment>()
+
+		for (const deduction of deductions) {
+			const pantryItem = pantryProductsById.get(deduction.pantryItemId)
+			if (!pantryItem) continue
+
+			let adjustment = adjustmentsByItem.get(deduction.pantryItemId)
+			if (!adjustment) {
+				adjustment = { deductAmount: 0, needsFullArchiveFallback: false }
+				adjustmentsByItem.set(deduction.pantryItemId, adjustment)
+			}
+			if (adjustment.needsFullArchiveFallback) continue
+
+			if (deduction.neededQuantity === null) {
+				adjustment.needsFullArchiveFallback = true
+				continue
+			}
+
+			const converted = convertIngredientToPantryUnit(deduction.neededQuantity, deduction.neededUnit, pantryItem.portion_unit)
+			if (!converted) {
+				adjustment.needsFullArchiveFallback = true
+				continue
+			}
+
+			adjustment.deductAmount += converted.comparable_quantity
 		}
 
-		// "Made" is set automatically here, on a successful adaptation, rather
-		// than via a separate explicit user action — reaching this point means
-		// the recipe passed the allergen/Halal safety checks above and the
-		// adaptation call (or its fallback) completed. Upsert rather than
-		// update since this may be the user's first interaction with this
-		// recipe (no row yet). `liked` is left untouched if a row already
-		// exists — this endpoint should never flip a like the user set
-		// separately via /api/recipes/[id]/like.
+		let archivedCount = 0
+		let deductedCount = 0
+
+		for (const [pantryItemId, adjustment] of adjustmentsByItem) {
+			const pantryItem = pantryProductsById.get(pantryItemId)!
+
+			if (adjustment.needsFullArchiveFallback) {
+				await prisma.pantryItem.update({
+					where: { id: pantryItemId },
+					data: { is_archived: true, quantity: 0 },
+				})
+				archivedCount++
+				continue
+			}
+
+			const remaining = pantryItem.quantity - adjustment.deductAmount
+
+			if (remaining <= 0) {
+				await prisma.pantryItem.update({
+					where: { id: pantryItemId },
+					data: { is_archived: true, quantity: 0 },
+				})
+				archivedCount++
+			} else {
+				await prisma.pantryItem.update({
+					where: { id: pantryItemId },
+					data: { quantity: remaining },
+				})
+				deductedCount++
+			}
+		}
+
 		const interaction = await prisma.recipeInteraction.upsert({
 			where: { user_id_recipe_id: { user_id: authUser.id, recipe_id: recipe.id } },
 			create: { user_id: authUser.id, recipe_id: recipe.id, made_at: new Date() },
@@ -217,6 +259,7 @@ export default defineEventHandler(async (event) => {
 				notes: adapted.notes,
 			},
 			archived_count: archivedCount,
+			deducted_count: deductedCount,
 			liked: interaction.liked,
 			made: true,
 		}

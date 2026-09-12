@@ -1,4 +1,4 @@
-export const halalLogoSeeder = () => [
+export default () => [
 	{
 		certifier: 'IDCP',
 		full_name: "Islamic Da'wah Council of the Philippines",

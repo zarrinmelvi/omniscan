@@ -1,27 +1,3 @@
-// server/lib/alternative-reasoning.ts
-//
-// The AI-reasoning half of Alternatives (see alternative-matching.ts for
-// the deterministic half it feeds into). Turns a user's DietaryProfile
-// (allergens, halal_pref, custom_preferences) into a list of disallowed
-// CatalogIngredient names, ready to pass straight into
-// findAlternativeProducts(disallowedIngredientNames).
-//
-// Follows the same layered pattern already established in
-// allergen-matching.ts: a deterministic baseline that never depends on the
-// AI succeeding, with the AI call as a genuinely additive layer on top —
-// never the other way around. A failed/slow AI call degrades to
-// "deterministic matches only," never to "no restrictions applied."
-//
-// IMPORTANT — grounding against real ingredient names, not free text:
-// alternative-matching.ts does exact-string matching against
-// CatalogIngredient.name (already lowercased/trimmed). If the AI were
-// asked to freely generate disallowed ingredient names, "peanut" vs.
-// "peanuts" would silently fail to match anything. To avoid that entirely,
-// the AI is given the actual catalog ingredient list and told to choose
-// ONLY from those exact names — never to invent new ones. Anything it
-// returns that isn't a real, case-insensitive match to the catalog is
-// dropped rather than trusted (see validateAgainstCatalog below).
-
 import { prisma } from './prisma'
 import { OLLAMA_ENDPOINT, GENERATION_MODEL } from './ollama-models'
 import { stripCodeFences } from './ai-json'
@@ -35,27 +11,20 @@ export interface DietaryProfileInput {
 }
 
 export interface DisallowedIngredient {
-	name: string // exact CatalogIngredient.name value
+	name: string
 	reason: string
 	source: 'allergen' | 'halal' | 'preference' | 'ai'
 }
 
 export interface DisallowedIngredientsResult {
-	disallowedIngredientNames: string[] // flat list, ready for findAlternativeProducts()
-	details: DisallowedIngredient[] // same data, with reasoning — for UI/debugging
+	disallowedIngredientNames: string[]
+	details: DisallowedIngredient[]
 }
 
 interface OllamaChatResponse {
 	message: { content: string }
 }
 
-// ---------- Deterministic baseline ----------
-
-// Reuses the exact same matchers already trusted for scanning/recipes —
-// each catalog ingredient name is checked individually rather than as one
-// blob of text, since these functions are designed to check "does this
-// text contain a match," and we specifically need to know WHICH catalog
-// ingredient(s) matched, not just whether something in the whole list did.
 function findDeterministicDisallowed(catalogIngredientNames: string[], profile: DietaryProfileInput): DisallowedIngredient[] {
 	const results: DisallowedIngredient[] = []
 
@@ -68,7 +37,7 @@ function findDeterministicDisallowed(catalogIngredientNames: string[], profile: 
 					reason: `Matches your allergen: ${allergenHits.map((a) => a.name).join(', ')}`,
 					source: 'allergen',
 				})
-				continue // already disallowed, no need to also check halal for this one
+				continue
 			}
 		}
 
@@ -87,10 +56,6 @@ function findDeterministicDisallowed(catalogIngredientNames: string[], profile: 
 	return results
 }
 
-// ---------- AI reasoning layer ----------
-
-// Builds the case-insensitive lookup used to validate the AI's response —
-// it must choose from real catalog names, never invent its own.
 function buildCatalogNameLookup(catalogIngredientNames: string[]): Map<string, string> {
 	const lookup = new Map<string, string>()
 	for (const name of catalogIngredientNames) {
@@ -99,12 +64,6 @@ function buildCatalogNameLookup(catalogIngredientNames: string[]): Map<string, s
 	return lookup
 }
 
-// Handles everything the deterministic pass structurally can't: freeform
-// custom_preferences (e.g. "Keto", "Nut-Free") have no lookup table at all
-// — this is the part of Alternatives the adviser specifically asked for
-// genuine AI reasoning on, not a fixed keyword list. Also catches subtler
-// allergen/Halal cases the deterministic pass's exact-term matching missed
-// (e.g. a derivative or synonym not yet in IngredientMapping).
 async function findAiDisallowed(
 	catalogIngredientNames: string[],
 	alreadyDisallowed: Set<string>,
@@ -165,11 +124,6 @@ async function findAiDisallowed(
 
 			if (typeof ingredient !== 'string') continue
 
-			// Validate against the real catalog rather than trusting the AI's
-			// casing/spelling — this is the guard against exactly the
-			// "peanut" vs. "peanuts" mismatch problem described at the top of
-			// this file. Anything that doesn't exactly match (case-insensitive)
-			// a real CatalogIngredient is silently dropped, not passed through.
 			const realName = catalogLookup.get(ingredient.toLowerCase())
 			if (!realName) {
 				console.warn(`Alternatives AI reasoning proposed a non-catalog ingredient name, dropped: "${ingredient}"`)
@@ -190,23 +144,6 @@ async function findAiDisallowed(
 	}
 }
 
-// ---------- Public entry point ----------
-
-/**
- * Determines the full disallowed-ingredient list for a user, combining:
- * 1. Deterministic allergen matching (reused from allergen-matching.ts)
- * 2. Deterministic Halal keyword matching (reused from recipe-matching.ts)
- * 3. AI reasoning for freeform custom_preferences + subtler cases
- *
- * The deterministic passes (1-2) always run and never depend on the AI
- * call succeeding — if the AI call fails or the user has no
- * custom_preferences worth reasoning about, this still returns a safe,
- * real disallowed list from (1-2) alone.
- *
- * Returns early with an empty result (no AI call made) if the user has no
- * allergens, no Halal preference, and no custom preferences — there is
- * nothing to reason about.
- */
 export async function determineDisallowedCatalogIngredients(profile: DietaryProfileInput): Promise<DisallowedIngredientsResult> {
 	const hasAnyRestriction = profile.allergens.length > 0 || profile.halalPref || profile.customPreferences.length > 0
 

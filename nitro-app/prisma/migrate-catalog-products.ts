@@ -1,39 +1,3 @@
-// prisma/migrate-catalog-products.ts
-//
-// One-off migration: moves the 108 reference-catalog products that were
-// seeded into `Product` (via seed-product-catalog.ts) over to the new
-// `CatalogProduct` table.
-//
-// Reads from prisma/seed_products.json — the original omniscan_product_
-// dataset.json (which had a pre-computed match_key per entry) couldn't be
-// located, so match_key is generated here instead, straight from
-// brand_name + product_name. NOTE: this is a fresh normalization, not
-// necessarily identical to whatever the original file used — it lowercases
-// and strips punctuation but deliberately does NOT strip parenthetical
-// text (e.g. "Regular / Hot"), since the dataset counts label variants as
-// distinct products and over-normalizing risks collapsing two real
-// products onto the same key. Any collision that does occur is flagged
-// and skipped rather than silently overwritten (see duplicate handling
-// below) — check the summary output for any if this run reports them.
-//
-// SAFETY NOTE — read before running:
-// The old seed script's idempotency check (findFirst by brand_name +
-// product_name before creating) means it's possible a real user's scan or
-// pantry item ended up pointing at one of these 108 catalog rows, if the
-// app's own product-matching logic found the pre-existing seeded row
-// instead of creating a fresh one. This script checks for that on every
-// row. If a catalog row has ANY real reference (Scan, PantryItem,
-// ActivityLog, or Notification pointing at it), it is copied into
-// CatalogProduct but NOT deleted from Product — deleting it would either
-// violate the FK constraint or silently orphan real user history. Only
-// unreferenced rows get deleted from Product after a confirmed copy.
-//
-// Run: bun run prisma/migrate-catalog-products.ts [path-to-seed-json]
-// Default path: prisma/seed_products.json
-//
-// Idempotent: re-running is safe. CatalogProduct.match_key is unique, so
-// already-migrated rows are upserted rather than duplicated.
-
 import 'dotenv/config'
 import { readFileSync } from 'node:fs'
 import { prisma } from '../server/lib/prisma'
@@ -44,16 +8,11 @@ type SeedProductEntry = {
 	ingredient_text: string
 	simplified_ingredients: string
 	is_verified: boolean
-	// Non-DB reference fields that may still be present in the raw seed
-	// file even though they were stripped before the original DB insert —
-	// ignored here, only listed so TypeScript doesn't complain if present.
+
 	_allergens_declared_on_label?: unknown
 	_review_notes?: unknown
 }
 
-// Lowercase, strip punctuation, collapse whitespace. Deliberately keeps
-// variant wording (e.g. "Regular / Hot" -> "regular hot") instead of
-// stripping it, so distinct label variants don't collide onto one key.
 function generateMatchKey(brandName: string, productName: string): string {
 	return `${brandName} ${productName}`
 		.toLowerCase()
@@ -71,9 +30,7 @@ async function main() {
 
 	console.log(`Loaded ${rawEntries.length} dataset entries.\n`)
 
-	// Generate match_key for every entry up front and detect collisions
-	// before touching the DB at all.
-	const seenMatchKeys = new Map<string, string>() // match_key -> label of first entry that claimed it
+	const seenMatchKeys = new Map<string, string>()
 	const entries: (SeedProductEntry & { match_key: string })[] = []
 	const collisions: string[] = []
 
@@ -108,7 +65,6 @@ async function main() {
 		const label = `${entry.brand_name} — ${entry.product_name}`
 
 		try {
-			// Find the corresponding row in Product (seeded by the old script).
 			const productRow = await prisma.product.findFirst({
 				where: {
 					brand_name: entry.brand_name,
@@ -122,7 +78,6 @@ async function main() {
 				continue
 			}
 
-			// Check if any real user activity references this Product row.
 			const [scanCount, pantryCount, activityCount, notificationCount] = await Promise.all([
 				prisma.scan.count({ where: { product_id: productRow.id } }),
 				prisma.pantryItem.count({ where: { product_id: productRow.id } }),
@@ -131,7 +86,6 @@ async function main() {
 			])
 			const totalReferences = scanCount + pantryCount + activityCount + notificationCount
 
-			// Check whether this row was already migrated on a previous run.
 			const existingCatalogRow = await prisma.catalogProduct.findUnique({
 				where: { match_key: entry.match_key },
 			})
@@ -139,7 +93,6 @@ async function main() {
 				alreadyMigrated++
 			}
 
-			// Upsert into CatalogProduct — safe to re-run.
 			await prisma.catalogProduct.upsert({
 				where: { match_key: entry.match_key },
 				update: {
@@ -169,7 +122,6 @@ async function main() {
 				continue
 			}
 
-			// No real references — safe to remove the now-duplicate Product row.
 			await prisma.product.delete({ where: { id: productRow.id } })
 			migratedAndDeleted++
 			console.log(`  [MIGRATED] ${label} — copied to CatalogProduct, removed from Product.`)

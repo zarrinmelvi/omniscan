@@ -71,13 +71,10 @@ export default defineEventHandler(async (event) => {
 					simplified_ingredients: 'Unknown',
 					image_base64: image_base64 || null,
 					is_verified: false,
-					halal_logo_id: 1,
+					halal_logo_id: null,
 				},
 			})
 		} else if (image_base64 && !product.image_base64) {
-			// Existing product (e.g. created earlier via a scan with the same
-			// name) doesn't have a photo yet — backfill it from this upload
-			// rather than leaving it stuck on the initial-letter placeholder.
 			product = await prisma.product.update({
 				where: { id: product.id },
 				data: { image_base64 },

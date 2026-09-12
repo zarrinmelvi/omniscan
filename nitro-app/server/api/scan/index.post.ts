@@ -5,8 +5,6 @@ import { OLLAMA_ENDPOINT, SCAN_VISION_MODEL } from '../../lib/ollama-models'
 import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens } from '../../lib/allergen-matching'
 import { stripCodeFences } from '../../lib/ai-json'
 
-// ---------- Types ----------
-
 type SafetyVerdict = 'Red' | 'Yellow' | 'Green'
 
 interface OllamaChatMessage {
@@ -33,6 +31,7 @@ interface OllamaChatResponse {
 }
 
 interface ScanAiExtraction {
+	is_food_product: boolean
 	product_name: string
 	brand: string
 	ingredients_text: string
@@ -43,34 +42,44 @@ interface ScanAiExtraction {
 
 interface HalalLogoRecord {
 	id: number
-	certifying_body: string
+	certifier: string
 	is_accredited: boolean
 }
 
-// ---------- Config ----------
-
-// OLLAMA_ENDPOINT and SCAN_VISION_MODEL now come from ../../lib/ollama-models
-// so every AI call site in the app stays in sync on model tags.
+interface CatalogProductRecord {
+	id: number
+	brand_name: string
+	product_name: string
+	ingredient_text: string
+	simplified_ingredients: string
+	halal_logo_id: number | null
+}
 
 const RED_KEYWORDS = ['milk', 'wheat', 'soy']
 const YELLOW_KEYWORDS = ['sugar', 'salt']
 
-// ---------- Helpers ----------
-
 function buildPrompt(): string {
 	return [
 		'You are a food-label OCR and ingredient-extraction assistant.',
+		'First, determine whether the attached photo(s) show FOOD OR BEVERAGE packaging',
+		'(something meant to be eaten or drunk) as opposed to a non-food product such as',
+		'cosmetics, toiletries, cleaning supplies, electronics, clothing, footwear, or any',
+		'other non-edible item.',
 		"You will be given either one or two photos of the SAME product's packaging.",
 		'If two images are attached, the first is the FRONT of the package (branding, product name)',
 		'and the second is the BACK of the package (ingredients list, nutrition facts, and any',
 		'certification marks) — treat them as one combined source of truth about this single product,',
 		'not as two different products. If only one image is attached, extract everything visible in',
 		'that single image.',
-		'Look at the attached product packaging photo(s) and extract the following fields.',
 		'Respond with ONLY a single JSON object, no prose, no markdown code fences,',
 		'matching exactly this shape:',
-		'{"product_name": string, "brand": string, "ingredients_text": string, "simplified_ingredients": string,',
-		'"halal_logo_detected": boolean, "certifying_body": string}.',
+		'{"is_food_product": boolean, "product_name": string, "brand": string, "ingredients_text": string,',
+		'"simplified_ingredients": string, "halal_logo_detected": boolean, "certifying_body": string}.',
+		'"is_food_product" must be false for anything that is not meant for human consumption',
+		'(e.g. lotion, shampoo, shoes, electronics, toys, stationery) — when false, you may leave the',
+		'other string fields as empty strings and halal_logo_detected as false, since ingredient',
+		'extraction does not apply to a non-food item.',
+		'When is_food_product is true, extract the remaining fields as follows:',
 		'"ingredients_text" should be the raw ingredient list as printed on the label.',
 		'"simplified_ingredients" should restate that list in plain, easy-to-understand language',
 		'for someone checking for allergens, without adding health claims.',
@@ -81,7 +90,7 @@ function buildPrompt(): string {
 		'"certifying_body" should be the name or initials of the certifying body as printed near/on the logo,',
 		'exactly as it appears, or an empty string if no logo was detected or the certifying body text is not legible.',
 		'If a field cannot be read from the image, use an empty string (or false for the boolean field).',
-		'Do not invent ingredients or certifications that are not visibly printed on the packaging.',
+		'Do not invent ingredients, certifications, or product identity that are not visibly present.',
 	].join(' ')
 }
 
@@ -97,15 +106,12 @@ function normalizeToString(value: unknown): string {
 	return ''
 }
 
-// minicpm-v has been observed returning ingredients_text/simplified_ingredients
-// as either a single string or an array of strings across different scans.
-// Rather than hard-failing on the array shape, normalize both cases into the
-// flat string shape the rest of the app expects.
 function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 	if (!value || typeof value !== 'object') return null
 	const candidate = value as Record<string, unknown>
 
 	return {
+		is_food_product: normalizeToBoolean(candidate.is_food_product),
 		product_name: normalizeToString(candidate.product_name),
 		brand: normalizeToString(candidate.brand),
 		ingredients_text: normalizeToString(candidate.ingredients_text),
@@ -115,10 +121,6 @@ function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 	}
 }
 
-// Accepts 1 or 2 base64-encoded images (front only, or [front, back]) and
-// sends them to gemma4:cloud in a single chat message — gemma4:cloud accepts
-// multiple images per message, so this is one round trip either way rather
-// than a separate call per image.
 async function extractProductInfoFromImage(base64Images: string[]): Promise<ScanAiExtraction> {
 	const requestPayload: OllamaChatRequestBody = {
 		model: SCAN_VISION_MODEL,
@@ -138,7 +140,6 @@ async function extractProductInfoFromImage(base64Images: string[]): Promise<Scan
 	let ollamaResponse: OllamaChatResponse
 
 	try {
-		// $fetch is auto-imported by Nitro.
 		ollamaResponse = await $fetch<OllamaChatResponse>(OLLAMA_ENDPOINT, {
 			method: 'POST',
 			body: requestPayload,
@@ -205,27 +206,60 @@ function determineVerdict(text: string): { verdict: SafetyVerdict; reasons: stri
 	return { verdict: 'Green', reasons: ['No flagged ingredients detected'] }
 }
 
-// Matches the certifying body text the vision model read off the packaging
-// against the app's known HalalLogo records. Deliberately loose (case-
-// insensitive, substring both ways) because packaging text and our DB
-// entries won't always match exactly — e.g. the model may read "JAKIM" off
-// the logo while the DB stores "Department of Islamic Development Malaysia
-// (JAKIM)". A false negative here just means the product isn't linked to a
-// known logo (halal_logo_id stays null); it never fabricates a match.
 function resolveHalalLogoMatch(certifyingBodyText: string, logos: HalalLogoRecord[]): HalalLogoRecord | null {
 	const normalized = certifyingBodyText.trim().toLowerCase()
 	if (!normalized) return null
 
 	return (
 		logos.find((logo) => {
-			const known = logo.certifying_body.trim().toLowerCase()
+			const known = logo.certifier.trim().toLowerCase()
 			if (!known) return false
 			return known.includes(normalized) || normalized.includes(known)
 		}) ?? null
 	)
 }
 
-// ---------- Handler ----------
+function normalizeForCatalogMatch(text: string): string {
+	return text
+		.toLowerCase()
+		.replace(/[^a-z0-9\s]/g, '')
+		.replace(/\s+/g, ' ')
+		.trim()
+}
+
+function tokenize(text: string): Set<string> {
+	return new Set(
+		normalizeForCatalogMatch(text)
+			.split(' ')
+			.filter((w) => w.length > 1),
+	)
+}
+
+const CATALOG_MATCH_OVERLAP_THRESHOLD = 0.5
+
+function matchCatalogProduct(extraction: ScanAiExtraction, catalog: CatalogProductRecord[]): CatalogProductRecord | null {
+	const extractedBrand = normalizeForCatalogMatch(extraction.brand)
+	const extractedTokens = tokenize(`${extraction.brand} ${extraction.product_name}`)
+	if (!extractedBrand || extractedTokens.size === 0) return null
+
+	let best: { record: CatalogProductRecord; score: number } | null = null
+
+	for (const cp of catalog) {
+		const knownBrand = normalizeForCatalogMatch(cp.brand_name)
+		if (!knownBrand) continue
+		if (!(knownBrand.includes(extractedBrand) || extractedBrand.includes(knownBrand))) continue
+
+		const knownTokens = tokenize(`${cp.brand_name} ${cp.product_name}`)
+		const overlapCount = [...extractedTokens].filter((t) => knownTokens.has(t)).length
+		const score = overlapCount / Math.max(extractedTokens.size, knownTokens.size)
+
+		if (score > (best?.score ?? 0)) {
+			best = { record: cp, score }
+		}
+	}
+
+	return best && best.score >= CATALOG_MATCH_OVERLAP_THRESHOLD ? best.record : null
+}
 
 export default defineEventHandler(async (event) => {
 	const authUser = requireAuth(event)
@@ -242,27 +276,16 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Missing image file.' })
 	}
 
-	// Encoded once, reused in two forms: the raw base64 Ollama expects for
-	// its `images` array, and the data-URI form the frontend expects for
-	// direct <img :src> rendering (PantryPage.vue and HomePage.vue read
-	// product.image_base64 as a ready-to-render src, not a bare base64 blob).
 	const base64Raw = imageField.data.toString('base64')
 	const mimeType = imageField.type || 'image/jpeg'
 	const imageDataUri = `data:${mimeType};base64,${base64Raw}`
 
-	// Optional back-of-package photo (ingredients list, nutrition facts,
-	// certification marks). ScanPage.vue lets the user skip this step, so
-	// it's genuinely optional here too — everything below degrades to the
-	// original front-only behavior when it's absent.
 	const imageBackField = form.find((f) => f.name === 'image_back')
 	const hasBackImage = Boolean(imageBackField?.filename)
 
 	const base64RawBack = hasBackImage ? imageBackField!.data.toString('base64') : null
 	const imageDataUriBack = hasBackImage ? `data:${imageBackField!.type || 'image/jpeg'};base64,${base64RawBack}` : null
 
-	// Optional hidden text field to bypass the AI call during testing —
-	// send a form field named "mock_ingredients" (e.g. "Milk, Sugar") to
-	// control the verdict without needing Ollama running locally.
 	const mockTextField = form.find((f) => f.name === 'mock_ingredients')
 
 	let extraction: ScanAiExtraction
@@ -270,12 +293,11 @@ export default defineEventHandler(async (event) => {
 	if (mockTextField?.data) {
 		const mockText = mockTextField.data.toString('utf-8')
 		extraction = {
+			is_food_product: true,
 			product_name: imageField.filename,
 			brand: 'Scanned Product',
 			ingredients_text: mockText,
 			simplified_ingredients: mockText,
-			// Mock runs bypass the vision call entirely, so there's no image to
-			// read a logo off — always "not detected" rather than guessing.
 			halal_logo_detected: false,
 			certifying_body: '',
 		}
@@ -284,12 +306,14 @@ export default defineEventHandler(async (event) => {
 		extraction = await extractProductInfoFromImage(imagesForAi)
 	}
 
-	let { verdict, reasons } = determineVerdict(extraction.ingredients_text)
-
-	// Pull the logged-in user's real allergen profile (not the hardcoded
-	// demo user used elsewhere) and the app's known Halal certifying bodies
-	// in parallel — neither depends on the other.
-	const [userWithAllergens, halalLogos] = await Promise.all([
+	if (!extraction.is_food_product) {
+		throw createError({
+			statusCode: 422,
+			statusMessage:
+				"This doesn't look like a food or beverage product. OmniScan only tracks food items — try scanning the packaging of something edible or drinkable.",
+		})
+	}
+	const [userWithAllergens, halalLogos, catalogProducts] = await Promise.all([
 		prisma.user.findUnique({
 			where: { id: authUser.id },
 			select: {
@@ -304,36 +328,46 @@ export default defineEventHandler(async (event) => {
 			},
 		}),
 		prisma.halalLogo.findMany({
-			select: { id: true, certifying_body: true, is_accredited: true },
+			select: { id: true, certifier: true, is_accredited: true },
+		}),
+		prisma.catalogProduct.findMany({
+			where: { is_verified: true },
+			select: {
+				id: true,
+				brand_name: true,
+				product_name: true,
+				ingredient_text: true,
+				simplified_ingredients: true,
+				halal_logo_id: true,
+			},
 		}),
 	])
 
-	// Only try to resolve a known logo if the model actually saw a logo on
-	// the packaging — a legible certifying_body with halal_logo_detected
-	// false shouldn't happen per the prompt, but guard against it anyway.
-	const matchedHalalLogo = extraction.halal_logo_detected ? resolveHalalLogoMatch(extraction.certifying_body, halalLogos) : null
+	const catalogMatch = matchCatalogProduct(extraction, catalogProducts)
+
+	if (catalogMatch && !extraction.ingredients_text.trim() && !extraction.simplified_ingredients.trim()) {
+		extraction.ingredients_text = catalogMatch.ingredient_text
+		extraction.simplified_ingredients = catalogMatch.simplified_ingredients
+	}
+
+	let { verdict, reasons } = determineVerdict(extraction.ingredients_text)
+
+	let matchedHalalLogo = extraction.halal_logo_detected ? resolveHalalLogoMatch(extraction.certifying_body, halalLogos) : null
+
+	if (!matchedHalalLogo && catalogMatch?.halal_logo_id) {
+		matchedHalalLogo = halalLogos.find((l) => l.id === catalogMatch.halal_logo_id) ?? null
+	}
 
 	const combinedIngredientText = `${extraction.ingredients_text} ${extraction.simplified_ingredients}`
 
-	// Deterministic check always runs — this is the safety-net baseline.
 	const stringMatches = findMatchedUserAllergens(combinedIngredientText, userWithAllergens?.allergens ?? [])
 
-	// Semantic check runs in addition, catching matches the fixed
-	// IngredientMapping table doesn't have yet. Skipped for mock-ingredient
-	// test runs to avoid burning an AI call on synthetic data.
 	const semanticMatches = mockTextField?.data
 		? []
 		: await matchUserAllergensSemantically(combinedIngredientText, userWithAllergens?.allergens ?? [])
 
-	// Merge by allergen id — a string-match hit is always kept as confidence
-	// 1 even if the semantic pass also found it (or found it with lower
-	// confidence); an allergen only found by the semantic pass keeps the
-	// AI's own confidence score. (Shared with the recipes routes so both
-	// score/merge allergen matches identically.)
 	const matchedUserAllergens = mergeMatchedAllergens(stringMatches, semanticMatches)
 
-	// A personal allergen match always wins over the generic keyword verdict —
-	// this is a real health risk for this specific user, not a general caution.
 	if (matchedUserAllergens.length > 0) {
 		verdict = 'Red'
 		reasons = [
@@ -356,12 +390,7 @@ export default defineEventHandler(async (event) => {
 				image_base64: imageDataUri,
 				image_base64_back: imageDataUriBack ?? undefined,
 				is_verified: false,
-				// Conditionally spread rather than `halal_logo_id: matchedHalalLogo?.id ?? undefined` —
-				// with the relation now optional, TS can't disambiguate the checked
-				// (relation-object) vs. unchecked (scalar-FK) create-input variants
-				// when the key is present but possibly `undefined`. Omitting the key
-				// entirely when there's no match sidesteps that, and still inserts
-				// NULL since halal_logo_id has no @default.
+
 				...(matchedHalalLogo ? { halal_logo_id: matchedHalalLogo.id } : {}),
 			},
 		})
@@ -371,11 +400,7 @@ export default defineEventHandler(async (event) => {
 				image_url: `uploads/${imageField.filename}`,
 				image_url_back: hasBackImage ? `uploads/${imageBackField!.filename}` : undefined,
 				scan_time: new Date(),
-				// If any allergen matched, use the lowest confidence among matches —
-				// that's the weakest link in the Red verdict, so it's the honest
-				// number to show the user and to compare against the admin's
-				// auto-flag threshold later. Otherwise fall back to the prior
-				// placeholder (no per-scan OCR confidence signal exists yet).
+
 				ai_confidence_score:
 					matchedUserAllergens.length > 0 ? Math.min(...matchedUserAllergens.map((a) => a.confidence)) : mockTextField?.data ? 0.75 : 0.9,
 				safety_verdict: verdict,
@@ -394,14 +419,6 @@ export default defineEventHandler(async (event) => {
 			},
 		})
 
-		// Two independent triggers, either of which flags this scan for admin
-		// review: a Red safety verdict (covers both the generic keyword check
-		// and any matched user allergen, since both already set verdict to
-		// 'Red' above), or a Halal logo that was visibly detected on the
-		// packaging but couldn't be matched to a known certifying body in the
-		// HalalLogo table — an unverifiable claim, not necessarily a false
-		// one, which is exactly the kind of judgment call that should go to
-		// a human rather than be silently trusted or silently rejected.
 		const halalUnverified = extraction.halal_logo_detected && matchedHalalLogo === null
 		const shouldAutoFlag = verdict === 'Red' || halalUnverified
 
@@ -419,9 +436,6 @@ export default defineEventHandler(async (event) => {
 				)
 			}
 
-			// Best-effort — a failure here shouldn't break the scan response
-			// the user is actively waiting on. admin_id/status default to
-			// null/"pending" until an admin resolves it via approve/dismiss.
 			await prisma.flaggedScan
 				.create({
 					data: {
@@ -436,7 +450,6 @@ export default defineEventHandler(async (event) => {
 
 		setResponseStatus(event, 201)
 
-		// Shape matches what ScanPage.vue's handleUpload() reads via `result.scan`.
 		return {
 			success: true,
 			scan: {
@@ -456,9 +469,7 @@ export default defineEventHandler(async (event) => {
 				halal: {
 					logo_detected: extraction.halal_logo_detected,
 					certifying_body: extraction.certifying_body || null,
-					// null = logo detected but not one of our known certifying bodies
-					// (unverifiable, not necessarily untrustworthy). false/true only
-					// when we actually matched it to a known HalalLogo record.
+					known_certifier: matchedHalalLogo?.certifier ?? null,
 					is_accredited: matchedHalalLogo?.is_accredited ?? null,
 					matched_known_logo: matchedHalalLogo !== null,
 				},

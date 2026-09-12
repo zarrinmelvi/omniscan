@@ -1,7 +1,3 @@
-// server/tasks/notifications/check-expiring.ts
-// Nitro derives the task name from the folder/file path, joined with ':' —
-// this file becomes task "notifications:check-expiring", matching the
-// scheduledTasks entry in nitro.config.ts.
 import { defineTask } from 'nitropack/runtime'
 import { prisma } from '../../lib/prisma'
 
@@ -24,12 +20,6 @@ export default defineTask({
 		const now = new Date()
 		const windowEnd = new Date(now.getTime() + WINDOW_MS)
 
-		// --- Step 1: auto-archive anything already past its date ---
-		// Matches the proposal's own Figure 13 caption ("automatically archiving
-		// expired products") — previously this task only ever *notified* about
-		// expiring items and never actually archived them once expired, so
-		// expired items sat in the Active list indefinitely until a user
-		// manually archived them.
 		const expiredItems = await prisma.pantryItem.findMany({
 			where: {
 				deleted_at: null,
@@ -49,10 +39,6 @@ export default defineTask({
 				data: { is_archived: true },
 			})
 
-			// Mirrors the "consumed" ActivityLog entry make.post.ts already
-			// creates — same log, different type, so the archive/activity
-			// history stays consistent regardless of *why* an item left the
-			// active pantry (used in a recipe vs. simply expired).
 			await prisma.activityLog.create({
 				data: {
 					type: 'expired',
@@ -70,10 +56,6 @@ export default defineTask({
 			console.log(`[notifications:check-expiring] Auto-archived ${archivedCount} expired pantry item(s).`)
 		}
 
-		// --- Step 2: notify about what's still upcoming (unchanged logic) ---
-		// Items just archived above are already excluded here (is_archived:
-		// false in the query), so nothing gets both archived AND a fresh
-		// "expiring soon" notification in the same run.
 		const expiringItems = await prisma.pantryItem.findMany({
 			where: {
 				deleted_at: null,
@@ -88,12 +70,6 @@ export default defineTask({
 		let createdCount = 0
 
 		for (const item of expiringItems) {
-			// Skip if we've already notified about this specific pantry item —
-			// otherwise this job would create a fresh duplicate notification
-			// every single day the item stays inside the window.
-			// NOTE: relies on Notification.pantry_item_id (added in schema.prisma
-			// alongside this task — Notification previously had no FK back to
-			// the pantry item it concerned).
 			const alreadyNotified = await prisma.notification.findFirst({
 				where: {
 					pantry_item_id: item.id,

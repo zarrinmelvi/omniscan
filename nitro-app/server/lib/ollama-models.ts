@@ -1,14 +1,3 @@
-// server/lib/ollama-models.ts
-//
-// Single source of truth for which Ollama Cloud model each AI touchpoint
-// uses. Tags verified directly against ollama.com/library as of this
-// writing — if a tag is ever renamed/retired, this is the one file to edit
-// instead of hunting through every route that calls Ollama.
-//
-// All three route through the same local endpoint (localhost:11434/api/chat)
-// once signed in via `ollama signin` — the :cloud suffix is what routes the
-// request to Ollama's hosted infrastructure instead of a local pull.
-
 export const OLLAMA_ENDPOINT = 'http://localhost:11434/api/chat'
 
 // Vision + text. Used for: scan photo -> ingredient extraction (OCR),

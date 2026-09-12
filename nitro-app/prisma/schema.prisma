@@ -56,7 +56,7 @@ model DietaryProfile {
 	id Int @id @default(autoincrement())
 	user_id Int
 	halal_pref Boolean @default(false)
-	custom_preferences String[] @default([]) // NEW — freeform lifestyle tags (Keto, Nut-Free, etc.)
+	custom_preferences String[] @default([])
 
 	user User @relation(fields: [user_id], references: [id])
 
@@ -116,36 +116,21 @@ model Recipe {
 	instructions String
 	portions_guide Json
 
-	// "kaggle" (bulk-imported, generic ingredients) | "ai_generated" (future:
-	// personalized recipes produced directly by deepseek-v4-flash:cloud).
-	source String @default("kaggle")
-	// Dedup key for re-running the import script safely, e.g. "foodcom:12345".
-	// Null for non-imported (future ai_generated) rows.
-	external_id String? @unique
+	image_url String?
 
-	// Kaggle ingredients are generic ("onion", "soy sauce") and don't map to
-	// any specific branded Product row, so they're deliberately NOT forced
-	// into the Ingredient join table below (which requires a product_id).
-	// Shape: [{ name: string, quantity: number | null, unit: string | null }]
+	source String @default("kaggle")
+	external_id String? @unique
 	raw_ingredients Json @default("[]")
-	// Lowercase, space-joined ingredient names, populated at import time —
-	// exists purely as the target column for the pg_trgm GIN index used by
-	// /api/recipes/suggest's fuzzy pantry-overlap search. Not shown to users.
 	ingredient_search_text String @default("")
 
 	ingredients Ingredient[]
 	recipe_interactions RecipeInteraction[]
 
 	created_at DateTime @default(now())
-  	updated_at DateTime @updatedAt
-  	deleted_at DateTime?
+	updated_at DateTime @updatedAt
+	deleted_at DateTime?
 }
 
-// Per-user "Liked" and "Made" status for a recipe — deliberately a separate
-// table from Recipe itself, since Recipe rows are shared/global (Kaggle-
-// imported) while liking/making a recipe is a per-user fact. `made_at` is
-// set automatically by /api/recipes/make on a successful adaptation call,
-// not via a separate "mark as made" action.
 model RecipeInteraction {
 	id Int @id @default(autoincrement())
 	liked Boolean @default(false)
@@ -231,6 +216,7 @@ model PantryItem {
 
 	user User @relation(fields: [user_id], references: [id])
 	user_id Int
+
 	product Product @relation(fields: [product_id], references: [id])
 	product_id Int
 
@@ -245,8 +231,7 @@ model PantryItem {
 model Scan {
 	id Int @id @default(autoincrement())
 	image_url String
-	// Mirrors image_url for the optional back-of-package photo. Null when the
-	// user skipped the back photo (front-only scan).
+
 	image_url_back String?
 	scan_time DateTime
 	ai_confidence_score Decimal

@@ -1,8 +1,6 @@
 import { OLLAMA_ENDPOINT, ALLERGEN_MATCH_MODEL } from './ollama-models'
 import { stripCodeFences } from './ai-json'
 
-// ---------- Types ----------
-
 interface OllamaChatMessage {
 	role: 'user' | 'assistant' | 'system'
 	content: string
@@ -40,7 +38,7 @@ export interface UserAllergenRecord {
 export interface MatchedAllergen {
 	id: number
 	name: string
-	confidence: number // 1 = exact string/mapping hit; <1 = AI semantic inference
+	confidence: number
 	matched_term?: string
 }
 
@@ -51,15 +49,6 @@ interface SemanticAllergenMatch {
 	confidence: number
 }
 
-// ---------- Deterministic (string/mapping) matching ----------
-
-// Checks arbitrary ingredient text (scan OCR output, or a recipe's plain
-// ingredient list — anything) against a user's real allergen profile
-// (User.allergens), including each allergen's IngredientMapping entries
-// (scientific_term/simplified_term) so e.g. "casein" still matches a user
-// allergic to "Milk". This is the deterministic baseline — always run this
-// regardless of whether a semantic AI pass also runs, so a failed/slow AI
-// call never silently disables allergen safety checking.
 export function findMatchedUserAllergens(text: string, allergens: UserAllergenRecord[]): MatchedAllergen[] {
 	const normalized = text.toLowerCase()
 
@@ -78,15 +67,6 @@ export function findMatchedUserAllergens(text: string, allergens: UserAllergenRe
 		.map((allergen) => ({ id: allergen.id, name: allergen.name, confidence: 1 }))
 }
 
-// ---------- Semantic (AI) matching ----------
-
-// Catches allergen matches the deterministic check above can't, because
-// IngredientMapping doesn't (yet) have every scientific synonym, derivative,
-// or "may contain" disclaimer for every allergen. Additive, not a
-// replacement — findMatchedUserAllergens() always runs regardless of
-// whether this call succeeds or is even attempted, so a failed/slow/skipped
-// AI call degrades to "keyword/mapping matching only" rather than skipping
-// allergen safety checking entirely.
 export async function matchUserAllergensSemantically(ingredientsText: string, allergens: UserAllergenRecord[]): Promise<SemanticAllergenMatch[]> {
 	if (allergens.length === 0 || !ingredientsText.trim()) {
 		return []
@@ -146,13 +126,6 @@ export async function matchUserAllergensSemantically(ingredientsText: string, al
 	}
 }
 
-// ---------- Merge helper ----------
-
-// Merges deterministic + semantic results by allergen id — a string-match
-// hit is always kept as confidence 1 even if the semantic pass also found
-// it (or found it with lower confidence); an allergen only found by the
-// semantic pass keeps the AI's own confidence score. Shared so scan and
-// recipes routes score/merge matches identically.
 export function mergeMatchedAllergens(stringMatches: MatchedAllergen[], semanticMatches: SemanticAllergenMatch[]): MatchedAllergen[] {
 	const matchedById = new Map<number, MatchedAllergen>()
 	for (const m of stringMatches) {

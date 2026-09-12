@@ -1,41 +1,7 @@
-// prisma/parse-catalog-ingredients.ts
-//
-// Parses each CatalogProduct.ingredient_text into individual ingredient
-// phrases and populates CatalogIngredient (a deduplicated dictionary) plus
-// CatalogProductIngredient (the product<->ingredient join table used by
-// the Alternatives AI-matching step).
-//
-// The original v14-session parser (server/lib/ingredient-parsing.ts) no
-// longer exists in the project (confirmed missing, same as the
-// MarketIngredient/ProductComposition models it fed) — this is a fresh
-// implementation of the same approach described in the handoff reports:
-// split on top-level commas while respecting nested parentheses/brackets,
-// so e.g. "Spices (Onion, Garlic)" stays one ingredient entry instead of
-// being split into three.
-//
-// Design notes:
-// - CatalogIngredient.name is stored lowercased + trimmed, since it's a
-//   deduplicated dictionary key — "Water" and "water" from two different
-//   labels should be the same ingredient row, not two.
-// - No stemming/synonym merging: "Sugar" and "Refined Sugar" are stored as
-//   two distinct ingredients. OCR'd label text is inconsistent enough that
-//   auto-merging risked silently conflating genuinely different things.
-// - Per project convention (no silent auto-correction), this does NOT try
-//   to fix garbled OCR text — it parses ingredient_text as it currently
-//   sits in CatalogProduct. If any of the 25 originally-flagged rows still
-//   need their is_verified/ingredient_text corrected, do that BEFORE
-//   running this, or re-run it after — it's idempotent either way.
-//
-// Run: bun run prisma/parse-catalog-ingredients.ts
-// Idempotent: safe to re-run after correcting ingredient_text on any row —
-// existing CatalogIngredient/CatalogProductIngredient rows are reused via
-// upsert, not duplicated.
-
 import 'dotenv/config'
+import { pathToFileURL } from 'url'
 import { prisma } from '../server/lib/prisma'
 
-// Splits on top-level commas only — commas inside (), [], or {} are
-// treated as part of the enclosing phrase, not a split point.
 function splitTopLevelIngredients(ingredientText: string): string[] {
 	const parts: string[] = []
 	let current = ''
@@ -64,104 +30,112 @@ function normalizeIngredientName(rawPhrase: string): string {
 	return rawPhrase.toLowerCase().replace(/\s+/g, ' ').trim()
 }
 
-async function main() {
+/**
+ * Parses CatalogProduct.ingredient_text into CatalogIngredient rows and
+ * CatalogProductIngredient links.
+ *
+ * Rewritten from a per-phrase sequential-query version — which issued up
+ * to 4 round trips per ingredient phrase (thousands of individual queries
+ * against Neon for the full 108-product catalog) — into three bulk
+ * operations, so it stays fast regardless of catalog size.
+ *
+ * Safe to re-run: relies on CatalogIngredient.name being @unique and
+ * CatalogProductIngredient's @@unique([catalog_product_id,
+ * catalog_ingredient_id]), via skipDuplicates on both createMany calls.
+ */
+export default async function parseCatalogIngredients() {
 	const catalogProducts = await prisma.catalogProduct.findMany()
 	console.log(`Found ${catalogProducts.length} catalog products to parse.\n`)
 
-	let totalIngredientPhrases = 0
-	let uniqueIngredientsCreated = 0
-	let uniqueIngredientsReused = 0
-	let linksCreated = 0
-	let linksAlreadyExisted = 0
 	const emptyParseWarnings: string[] = []
-	const errors: string[] = []
+	let totalIngredientPhrases = 0
+
+	// product.id -> normalized ingredient names (deduped within the product)
+	const productIngredientNames = new Map<number, Set<string>>()
+	const allNames = new Set<string>()
 
 	for (const product of catalogProducts) {
 		const label = `${product.brand_name} — ${product.product_name}`
+		const rawPhrases = splitTopLevelIngredients(product.ingredient_text)
 
-		try {
-			const rawPhrases = splitTopLevelIngredients(product.ingredient_text)
+		if (rawPhrases.length === 0) {
+			emptyParseWarnings.push(label)
+			console.warn(`  [EMPTY PARSE] ${label} — ingredient_text produced zero phrases, skipping.`)
+			continue
+		}
 
-			if (rawPhrases.length === 0) {
-				emptyParseWarnings.push(label)
-				console.warn(`  [EMPTY PARSE] ${label} — ingredient_text produced zero phrases, skipping.`)
-				continue
-			}
+		const names = new Set<string>()
+		for (const rawPhrase of rawPhrases) {
+			totalIngredientPhrases++
+			const normalizedName = normalizeIngredientName(rawPhrase)
+			if (normalizedName.length === 0) continue
+			names.add(normalizedName)
+			allNames.add(normalizedName)
+		}
 
-			for (const rawPhrase of rawPhrases) {
-				totalIngredientPhrases++
-				const normalizedName = normalizeIngredientName(rawPhrase)
+		productIngredientNames.set(product.id, names)
+		console.log(`  [PARSED] ${label} — ${rawPhrases.length} ingredient phrases.`)
+	}
 
-				if (normalizedName.length === 0) continue
+	// Bulk-insert every distinct ingredient name seen across the whole catalog
+	// in one query, instead of one upsert per phrase.
+	const ingredientResult = await prisma.catalogIngredient.createMany({
+		data: [...allNames].map((name) => ({ name })),
+		skipDuplicates: true,
+	})
 
-				const existingIngredient = await prisma.catalogIngredient.findUnique({
-					where: { name: normalizedName },
-				})
+	// Fetch the id for every name we need (existing + newly created) in one query.
+	const ingredients = await prisma.catalogIngredient.findMany({
+		where: { name: { in: [...allNames] } },
+		select: { id: true, name: true },
+	})
+	const idByName = new Map(ingredients.map((i) => [i.name, i.id]))
 
-				const ingredient = await prisma.catalogIngredient.upsert({
-					where: { name: normalizedName },
-					update: {},
-					create: { name: normalizedName },
-				})
-
-				if (existingIngredient) {
-					uniqueIngredientsReused++
-				} else {
-					uniqueIngredientsCreated++
-				}
-
-				const existingLink = await prisma.catalogProductIngredient.findUnique({
-					where: {
-						catalog_product_id_catalog_ingredient_id: {
-							catalog_product_id: product.id,
-							catalog_ingredient_id: ingredient.id,
-						},
-					},
-				})
-
-				if (existingLink) {
-					linksAlreadyExisted++
-					continue
-				}
-
-				await prisma.catalogProductIngredient.create({
-					data: {
-						catalog_product_id: product.id,
-						catalog_ingredient_id: ingredient.id,
-					},
-				})
-				linksCreated++
-			}
-
-			console.log(`  [PARSED] ${label} — ${rawPhrases.length} ingredient phrases.`)
-		} catch (err) {
-			const message = err instanceof Error ? err.message : String(err)
-			errors.push(`${label}: ${message}`)
-			console.error(`  [ERROR] ${label} — ${message}`)
+	// Build every (product, ingredient) link and bulk-insert in one call.
+	const linkData: { catalog_product_id: number; catalog_ingredient_id: number }[] = []
+	for (const [productId, names] of productIngredientNames) {
+		for (const name of names) {
+			const ingredientId = idByName.get(name)
+			if (ingredientId === undefined) continue // shouldn't happen — guards against a lookup mismatch
+			linkData.push({ catalog_product_id: productId, catalog_ingredient_id: ingredientId })
 		}
 	}
+
+	const linkResult = await prisma.catalogProductIngredient.createMany({
+		data: linkData,
+		skipDuplicates: true,
+	})
 
 	console.log('\n--- Parsing summary ---')
 	console.log(`Catalog products processed: ${catalogProducts.length}`)
 	console.log(`Total ingredient phrases seen: ${totalIngredientPhrases}`)
-	console.log(`Unique CatalogIngredient rows created: ${uniqueIngredientsCreated}`)
-	console.log(`Unique CatalogIngredient rows reused (already existed): ${uniqueIngredientsReused}`)
-	console.log(`CatalogProductIngredient links created: ${linksCreated}`)
-	console.log(`CatalogProductIngredient links already existed: ${linksAlreadyExisted}`)
+	console.log(`Distinct ingredient names in this run: ${allNames.size}`)
+	console.log(`New CatalogIngredient rows created: ${ingredientResult.count}`)
+	console.log(`CatalogIngredient rows already existed: ${allNames.size - ingredientResult.count}`)
+	console.log(`Product-ingredient links attempted: ${linkData.length}`)
+	console.log(`New CatalogProductIngredient links created: ${linkResult.count}`)
+	console.log(`Links already existed: ${linkData.length - linkResult.count}`)
 	console.log(`Products with empty parse result: ${emptyParseWarnings.length}`)
 	if (emptyParseWarnings.length > 0) {
 		emptyParseWarnings.forEach((line) => console.log(`    - ${line}`))
 	}
-	console.log(`Errors: ${errors.length}`)
-	if (errors.length > 0) {
-		errors.forEach((line) => console.log(`    - ${line}`))
-	}
-
-	await prisma.$disconnect()
 }
 
-main().catch(async (err) => {
-	console.error('Ingredient parsing script failed:', err)
-	await prisma.$disconnect()
-	process.exit(1)
-})
+// Still runnable directly: `tsx prisma/parse-catalog-ingredients.ts`
+// (uses pathToFileURL rather than string-concatenating "file://" onto
+// process.argv[1] — that concatenation never matches import.meta.url on
+// Windows, since argv[1] is a backslash path and import.meta.url is a
+// proper file:// URL with forward slashes, which silently skipped
+// running main() entirely.)
+const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href
+if (isMainModule) {
+	parseCatalogIngredients()
+		.then(async () => {
+			await prisma.$disconnect()
+		})
+		.catch(async (err) => {
+			console.error('Ingredient parsing script failed:', err)
+			await prisma.$disconnect()
+			process.exit(1)
+		})
+}

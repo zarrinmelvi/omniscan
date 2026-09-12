@@ -3,7 +3,7 @@ import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 
 export default defineEventHandler(async (event) => {
-	const authUser = requireAuth(event) // throws 401 if not authenticated
+	const authUser = requireAuth(event)
 
 	const user = await prisma.user.findUnique({
 		where: { id: authUser.id },

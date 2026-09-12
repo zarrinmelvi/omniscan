@@ -1,38 +1,3 @@
-// prisma/seed-product-catalog.ts
-//
-// Seeds the `Product` table from the 100-product OCR'd ingredient-label dataset.
-// Run with Bun: `bun run prisma/seed-product-catalog.ts`
-//
-// ASSUMPTIONS (adjust if wrong for this repo's actual layout):
-//   1. This file lives at `prisma/seed-product-catalog.ts`.
-//   2. Reuses the existing shared Prisma singleton at
-//      `server/lib/prisma.ts`, which already wires up the PrismaPg driver
-//      adapter with DATABASE_URL from .env - don't construct a separate
-//      bare `new PrismaClient()` here, that fails to initialize (the
-//      newer "prisma-client" generator's output needs the adapter, it
-//      won't silently read DATABASE_URL on its own like the old
-//      prisma-client-js client did).
-//   3. `seed_products.json` sits next to this script (same folder). Move the
-//      JSON file here, or change `dataPath` below.
-//
-// WHAT THIS DOES NOT DO (on purpose, rather than guessing):
-//   - Does NOT touch Allergen / IngredientMapping. The source labels list
-//     declared allergens per product, but this schema has no per-product
-//     allergen field — Allergen/IngredientMapping is a shared, global
-//     scientific-term dictionary, not tied to a single Product row. Folding
-//     108 products' worth of declared allergens into that shared dictionary
-//     without knowing its existing term conventions (see
-//     server/lib/allergen-matching.ts, which this session hasn't seen) risks
-//     creating duplicate or conflicting terms. The declared-allergen data is
-//     preserved in `seed_products.json` under `_allergens_declared_on_label`
-//     (ignored below, not written to the DB) and in the companion review
-//     spreadsheet, for whoever makes that call.
-//   - Does NOT set halal_logo_id or image_base64 — out of scope here.
-//   - Does NOT add a DB-level unique constraint on (brand_name, product_name).
-//     That's a schema/migration decision for your team, not something to slip
-//     in silently. Dedup below is done in application code instead, which
-//     makes this script safe to re-run.
-
 import { prisma } from '../server/lib/prisma'
 import { readFileSync } from 'fs'
 import path from 'path'

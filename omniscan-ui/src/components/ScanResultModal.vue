@@ -1,4 +1,3 @@
-<!-- src/components/ScanResultModal.vue -->
 <template>
 	<ion-modal :is-open="isOpen" :breakpoints="[0, 0.5, 0.92]" :initial-breakpoint="0.92" :backdrop-dismiss="true" @didDismiss="handleDismiss">
 		<ion-content class="sheet-ion-content">
@@ -27,10 +26,14 @@
 					</button>
 				</div>
 
-				<div v-if="isHalalCertified || allergenTags.length" class="badge-row">
+				<div v-if="isHalalCertified || isHalalUnverified || allergenTags.length" class="badge-row">
 					<span v-if="isHalalCertified" class="badge badge-halal">
 						<ion-icon :icon="checkmarkCircleOutline" />
-						Halal Certified
+						{{ halalCertifiedLabel }}
+					</span>
+					<span v-else-if="isHalalUnverified" class="badge badge-halal-pending">
+						<ion-icon :icon="warningOutline" />
+						Halal Mark Detected — Pending Verification
 					</span>
 					<span
 						v-for="tag in allergenTags"
@@ -142,29 +145,6 @@ import {
 	imageOutline,
 } from 'ionicons/icons'
 
-/**
- * Expected `data` shape (matches analysisResult built in ScanPage.vue's handleUpload):
- * {
- *   product: {
- *     id: string,
- *     brand_name: string,
- *     product_name: string,
- *     ingredients_text: string,
- *     simplified_ingredients: string,
- *     halal_logo_id: number | null,
- *     image_base64: string | null,
- *   },
- *   safety_verdict: 'Red' | 'Yellow' | 'Green',
- *   reasons: string[],
- *   scanned_at: string,
- *   matched_user_allergens: string[], // NEW — names of the logged-in user's
- *     real allergens found in this product, computed server-side in
- *     scan/index.post.ts against User.allergens + IngredientMapping.
- *     ScanPage.vue must forward `result.scan.matched_user_allergens` into
- *     this object when it builds the modal's `data` prop, or this will
- *     always be empty here.
- * }
- */
 const props = defineProps({
 	isOpen: { type: Boolean, default: false },
 	data: { type: Object, default: () => null },
@@ -176,16 +156,15 @@ const TOKEN_KEY = 'omniscan_token'
 
 const product = computed(() => props.data?.product || null)
 
-// -------- Personal allergen alert (real, server-computed match) --------
-// Comes from scan/index.post.ts checking this user's actual allergen
-// profile — distinct from the generic client-side keyword heuristic below.
 const personalAllergenAlerts = computed(() => props.data?.matched_user_allergens || [])
+const halalInfo = computed(() => props.data?.halal || null)
+const isHalalCertified = computed(() => !!halalInfo.value?.matched_known_logo)
+const isHalalUnverified = computed(() => !!halalInfo.value?.logo_detected && !halalInfo.value?.matched_known_logo)
 
-// -------- Halal badge --------
-// NOTE: the backend currently hardcodes halal_logo_id = 1 on every scanned
-// product (no real certification-detection step yet), so this badge will
-// show on every scan until that's wired up to real logo/label detection.
-const isHalalCertified = computed(() => !!product.value?.halal_logo_id)
+const halalCertifiedLabel = computed(() => {
+	const certifier = halalInfo.value?.known_certifier
+	return certifier ? `${certifier} Certified` : 'Halal Certified'
+})
 
 // -------- Allergen detection (derived client-side from ingredients_text) --------
 // Placeholder heuristic — keyword matching against the AI-extracted ingredient
@@ -232,9 +211,6 @@ const allergenTags = computed(() =>
 	matchedAllergens.value.map((rule) => ({
 		key: rule.key,
 		label: rule.label,
-		// True when this keyword-detected allergen also matches the user's
-		// real, server-verified allergen profile — used to render it red
-		// instead of the default orange "possible allergen" color.
 		isPersonal: personalAllergenAlerts.value.some((name) => name.toLowerCase() === rule.label.toLowerCase()),
 	})),
 )
@@ -265,7 +241,6 @@ const alternatives = computed(() => {
 	return hasDairy ? ALTERNATIVE_CATALOG.dairy : []
 })
 
-// -------- Ingredients dropdown --------
 const ingredientsOpen = ref(false)
 
 watch(
@@ -278,7 +253,6 @@ watch(
 	},
 )
 
-// -------- Add to Pantry form --------
 const unitOptions = ['pc', 'pack', 'g', 'kg', 'ml', 'L']
 const storageOptions = ['Fridge', 'Freezer', 'Cupboard']
 
@@ -431,6 +405,11 @@ function handleDismiss() {
 	border-radius: 999px;
 	font-size: 0.78rem;
 	font-weight: 600;
+}
+
+.badge-halal-pending {
+	background: #fef7e0;
+	color: #92680a;
 }
 
 .badge-halal {

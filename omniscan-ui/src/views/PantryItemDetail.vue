@@ -54,6 +54,20 @@
 
 				<!-- OVERVIEW -->
 				<template v-if="activeTab === 'overview'">
+					<div v-if="item.recipes_using_this.length > 0" class="info-card">
+						<h3 class="info-card__title">Used in Recipes</h3>
+						<div v-for="usage in item.recipes_using_this" :key="usage.recipe_id" class="recipe-usage-row">
+							<span class="recipe-usage-row__name">{{ usage.recipe_name }}</span>
+							<span class="recipe-usage-badge recipe-usage-badge--neutral">
+								{{
+									usage.used_quantity !== null
+										? `Used ${formatQuantity(usage.used_quantity)}${usage.used_unit ?? ''}`
+										: 'Used this item'
+								}}
+								· {{ formatMadeDate(usage.made_at) }}
+							</span>
+						</div>
+					</div>
 					<div class="info-card">
 						<h3 class="info-card__title">Halal Status</h3>
 						<div class="halal-row" :class="{ 'halal-row--certified': isHalalCertified }">
@@ -112,14 +126,12 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, Io
 import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, helpCircleOutline, constructOutline } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
-interface Product {
-	id: number
-	product_name: string
-	brand_name: string
-	image_base64: string | null
-	ingredient_text: string | null
-	simplified_ingredients: string | null
-	halal_logo_id: number | null
+interface RecipeUsage {
+	recipe_id: number
+	recipe_name: string
+	made_at: string
+	used_quantity: number | null
+	used_unit: string | null
 }
 
 interface PantryItemDetailDto {
@@ -132,6 +144,17 @@ interface PantryItemDetailDto {
 	is_archived: boolean
 	updated_at: string
 	product: Product
+	recipes_using_this: RecipeUsage[]
+}
+
+interface Product {
+	id: number
+	product_name: string
+	brand_name: string
+	image_base64: string | null
+	ingredient_text: string | null
+	simplified_ingredients: string | null
+	halal_logo_id: number | null
 }
 
 type Tab = 'overview' | 'ingredients' | 'alternatives'
@@ -143,6 +166,14 @@ const loadError = ref('')
 const activeTab = ref<Tab>('overview')
 
 const isHalalCertified = computed(() => !!item.value?.product.halal_logo_id)
+
+function formatQuantity(n: number): string {
+	return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, '')
+}
+
+function formatMadeDate(iso: string): string {
+	return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
 
 function daysBetween(from: Date, to: Date): number {
 	const msPerDay = 1000 * 60 * 60 * 24
@@ -199,6 +230,31 @@ onMounted(fetchItem)
 </script>
 
 <style scoped>
+.recipe-usage-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 0;
+	border-bottom: 1px solid #f3f4f6;
+	font-size: 0.85rem;
+}
+.recipe-usage-row:last-child {
+	border-bottom: none;
+}
+.recipe-usage-row__name {
+	color: #111827;
+	font-weight: 600;
+}
+.recipe-usage-badge {
+	font-size: 0.75rem;
+	font-weight: 600;
+	white-space: nowrap;
+}
+.recipe-usage-badge--neutral {
+	color: #6b7280;
+}
+
 .detail-content {
 	--background: #f9fafb;
 }

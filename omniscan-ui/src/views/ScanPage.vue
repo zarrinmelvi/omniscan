@@ -1,4 +1,3 @@
-<!-- src/views/ScanPage.vue -->
 <template>
 	<ion-page>
 		<ion-header>
@@ -29,11 +28,6 @@
 					<span v-else>Scan Item</span>
 				</ion-button>
 
-				<!-- NOTE: this opens PhotoPantryUploadModal, a separate component not
-				     reviewed in this change — its source wasn't provided, so it's left
-				     untouched rather than assumed to participate in the front/back
-				     capture flow below. Worth confirming separately whether it should
-				     also support a back photo. -->
 				<ion-button expand="block" size="large" fill="outline" class="upload-button" @click="isPhotoModalOpen = true">
 					<ion-icon :icon="cloudUploadOutline" slot="start"></ion-icon>
 					Upload a Photo
@@ -142,15 +136,18 @@ interface ScanResultDisplay {
 	reasons: string[]
 	scanned_at: string
 	matched_user_allergens: string[]
+	halal: {
+		logo_detected: boolean
+		certifying_body: string | null
+		is_accredited: boolean | null
+		matched_known_logo: boolean
+	}
 }
 
 const analysisResult = ref<ScanResultDisplay | null>(null)
 const isResultModalOpen = ref(false)
 
-function onPantryItemAdded(): void {
-	// Placeholder hook — wire up a toast/snackbar here if you want a
-	// confirmation after a successful Add to Pantry submit.
-}
+function onPantryItemAdded(): void {}
 
 const COOLDOWN_MS = 10_000
 const COOLDOWN_TICK_MS = 1_000
@@ -162,15 +159,6 @@ const remainingSeconds = ref(0)
 const lastFileName = ref<string | null>(null)
 const analysisStatus = ref<string>('Idle')
 
-// ============================================================
-// Front/back capture stage. Both capture sources (native file
-// picker and live camera) feed into processCapturedFile() below,
-// which branches on this to decide whether the file just captured
-// is the front (store it, prompt for back) or the back (upload
-// both). A user can also skip the back photo entirely via
-// skipBackPhoto() and submit front-only, same as scanning used to
-// work before this change.
-// ============================================================
 type CaptureStage = 'front' | 'back'
 const captureStage = ref<CaptureStage>('front')
 const frontFile = ref<File | null>(null)
@@ -198,13 +186,6 @@ async function onFileSelected(event: Event): Promise<void> {
 	await processCapturedFile(file)
 }
 
-/**
- * Shared entry point for both capture sources (native file picker and the
- * live camera overlay below). On the first call (captureStage 'front') this
- * just stores the file and flips to the 'back' stage instead of uploading —
- * the actual /api/scan call only happens once we have the back photo too
- * (or the user explicitly skips it via skipBackPhoto).
- */
 async function processCapturedFile(file: File): Promise<void> {
 	if (isCoolingDown.value) {
 		return
@@ -218,8 +199,6 @@ async function processCapturedFile(file: File): Promise<void> {
 		return
 	}
 
-	// captureStage is 'back' here, and frontFile.value must already be set —
-	// the only way to reach 'back' is via the branch above.
 	await submitScan(frontFile.value!, file)
 }
 
@@ -237,12 +216,9 @@ async function submitScan(front: File, back: File | null): Promise<void> {
 	try {
 		await handleUpload(front, back)
 	} catch (err) {
-		analysisStatus.value = 'Upload failed'
+		analysisStatus.value = err instanceof Error ? err.message : 'Upload failed'
 		console.error('Scan upload failed:', err)
 	} finally {
-		// Reset for the next scan regardless of success/failure — an errored
-		// upload shouldn't leave the UI stuck expecting a back photo for a
-		// front image that's already been (attempted to be) submitted.
 		frontFile.value = null
 		captureStage.value = 'front'
 	}
@@ -273,7 +249,8 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		if (response.status === 401) {
 			throw new Error('Your session has expired. Please log in again.')
 		}
-		throw new Error(`Scan failed with status: ${response.status}`)
+		const errorBody = await response.json().catch(() => null)
+		throw new Error(errorBody?.statusMessage || `Scan failed with status: ${response.status}`)
 	}
 
 	const result = await response.json()
@@ -294,6 +271,7 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		reasons: scan.flag_reason ? scan.flag_reason.split(', ') : [],
 		scanned_at: scan.scan_time,
 		matched_user_allergens: scan.matched_user_allergens ?? [],
+		halal: scan.halal,
 	}
 
 	analysisStatus.value = `Analysis complete — Verdict: ${scan.safety_verdict}`
@@ -334,13 +312,7 @@ function clearTimers(): void {
 	}
 }
 
-// ============================================================
-// Live camera viewfinder (feeds into the same processCapturedFile
-// pipeline as the native file picker — no separate endpoint, no
-// separate auth handling, no separate response mapping).
-// ============================================================
-
-const LOW_LIGHT_THRESHOLD = 60 // 0-255 luminance scale
+const LOW_LIGHT_THRESHOLD = 60
 const VERY_LOW_LIGHT_THRESHOLD = LOW_LIGHT_THRESHOLD / 2
 const BRIGHTNESS_SAMPLE_SIZE = 32
 
@@ -479,10 +451,7 @@ function handleCapture(): void {
 	)
 }
 
-onMounted(() => {
-	// Camera only starts when the user taps "Scan Item" (openCamera),
-	// not on page mount — keeps the file-picker flow untouched by default.
-})
+onMounted(() => {})
 
 onBeforeUnmount(() => {
 	clearTimers()
@@ -535,7 +504,6 @@ onBeforeUnmount(() => {
 	text-align: center;
 }
 
-/* ===== Live camera viewfinder overlay ===== */
 .camera-overlay {
 	position: fixed;
 	inset: 0;

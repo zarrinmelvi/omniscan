@@ -70,9 +70,10 @@
 					</div>
 					<div class="info-card">
 						<h3 class="info-card__title">Halal Status</h3>
-						<div class="halal-row" :class="{ 'halal-row--certified': isHalalCertified }">
-							<ion-icon :icon="isHalalCertified ? checkmarkCircleOutline : helpCircleOutline" />
-							{{ isHalalCertified ? 'Halal certified' : 'Not verified' }}
+						<div class="halal-row" :class="{ 'halal-row--certified': isHalalCertified, 'halal-row--not-halal': isConfirmedNotHalal }">
+							<ion-icon
+								:icon="isHalalCertified ? checkmarkCircleOutline : isConfirmedNotHalal ? closeCircleOutline : helpCircleOutline" />
+							{{ isHalalCertified ? 'Halal certified' : isConfirmedNotHalal ? 'Confirmed not Halal' : 'Not verified' }}
 						</div>
 					</div>
 
@@ -123,7 +124,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent, IonSpinner, IonIcon, IonButton } from '@ionic/vue'
-import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, helpCircleOutline, constructOutline } from 'ionicons/icons'
+import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, helpCircleOutline, constructOutline, closeCircleOutline } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
 interface RecipeUsage {
@@ -155,6 +156,7 @@ interface Product {
 	ingredient_text: string | null
 	simplified_ingredients: string | null
 	halal_logo_id: number | null
+	confirmed_not_halal: boolean
 }
 
 type Tab = 'overview' | 'ingredients' | 'alternatives'
@@ -166,6 +168,7 @@ const loadError = ref('')
 const activeTab = ref<Tab>('overview')
 
 const isHalalCertified = computed(() => !!item.value?.product.halal_logo_id)
+const isConfirmedNotHalal = computed(() => !!item.value?.product.confirmed_not_halal && !isHalalCertified.value)
 
 function formatQuantity(n: number): string {
 	return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, '')
@@ -368,6 +371,11 @@ onMounted(fetchItem)
 }
 .info-row strong {
 	color: #111827;
+}
+
+.halal-row--not-halal {
+	color: #b91c1c;
+	background: #fee2e2;
 }
 
 .halal-row {

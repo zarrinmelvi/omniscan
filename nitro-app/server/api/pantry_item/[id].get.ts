@@ -40,6 +40,7 @@ export default defineEventHandler(async (event) => {
 						ingredient_text: true,
 						simplified_ingredients: true,
 						halal_logo_id: true,
+						confirmed_not_halal: true,
 					},
 				},
 			},
@@ -104,6 +105,6 @@ export default defineEventHandler(async (event) => {
 	} catch (err: any) {
 		if (err?.statusCode) throw err
 		console.error('Failed to fetch pantry item:', err)
-		throw createError({ statusCode: 400, statusMessage: 'Failed to fetch pantry item.' })
+		throw createError({ statusCode: 400, statusMessage: err?.message || 'Failed to fetch pantry item.' })
 	}
 })

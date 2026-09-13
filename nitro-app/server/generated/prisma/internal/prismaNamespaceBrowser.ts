@@ -230,6 +230,7 @@ export const ProductScalarFieldEnum = {
   image_base64: 'image_base64',
   image_base64_back: 'image_base64_back',
   halal_logo_id: 'halal_logo_id',
+  confirmed_not_halal: 'confirmed_not_halal',
   created_at: 'created_at',
   updated_at: 'updated_at',
   deleted_at: 'deleted_at'
@@ -312,6 +313,7 @@ export const CatalogProductScalarFieldEnum = {
   is_verified: 'is_verified',
   match_key: 'match_key',
   halal_logo_id: 'halal_logo_id',
+  confirmed_not_halal: 'confirmed_not_halal',
   created_at: 'created_at',
   updated_at: 'updated_at',
   deleted_at: 'deleted_at'

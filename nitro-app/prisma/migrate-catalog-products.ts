@@ -11,6 +11,8 @@ type SeedProductEntry = {
 
 	_allergens_declared_on_label?: unknown
 	_review_notes?: unknown
+	_halal_status?: 'halal' | 'not_halal' | 'unknown'
+	_halal_certifying_body?: string
 }
 
 function generateMatchKey(brandName: string, productName: string): string {
@@ -93,6 +95,8 @@ async function main() {
 				alreadyMigrated++
 			}
 
+			const confirmedNotHalal = entry._halal_status === 'not_halal'
+
 			await prisma.catalogProduct.upsert({
 				where: { match_key: entry.match_key },
 				update: {
@@ -102,6 +106,7 @@ async function main() {
 					simplified_ingredients: entry.simplified_ingredients,
 					is_verified: entry.is_verified,
 					halal_logo_id: productRow.halal_logo_id,
+					confirmed_not_halal: confirmedNotHalal,
 				},
 				create: {
 					brand_name: entry.brand_name,
@@ -111,6 +116,7 @@ async function main() {
 					is_verified: entry.is_verified,
 					match_key: entry.match_key,
 					halal_logo_id: productRow.halal_logo_id,
+					confirmed_not_halal: confirmedNotHalal,
 				},
 			})
 

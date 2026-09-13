@@ -171,19 +171,18 @@ model Product {
 	simplified_ingredients String
 	is_verified Boolean @default(false)
 	image_base64 String?
-	// Back-of-package photo (ingredients list, nutrition facts, certification
-	// marks). Optional — older scans and the "skip back photo" flow only have
-	// a front image, so this stays nullable rather than becoming required.
 	image_base64_back String?
 
 	halal_logo HalalLogo? @relation(fields: [halal_logo_id], references: [id])
 	halal_logo_id Int?
+
 	pantry_item PantryItem[]
 	scan Scan[]
 	ingredients Ingredient[]
 	activityLog ActivityLog[]
 	notification Notification[]
 
+	confirmed_not_halal Boolean @default(false)
 	created_at DateTime @default(now())
   	updated_at DateTime @updatedAt
   	deleted_at DateTime?
@@ -286,23 +285,18 @@ model CatalogProduct {
 	ingredient_text String
 	simplified_ingredients String
 	is_verified Boolean @default(false)
-	// Lowercased, variant-stripped name — carried over from
-	// omniscan_product_dataset.json's match_key field, for a future
-	// exact/fuzzy match step against a scanned product.
 	match_key String @unique
 
 	halal_logo HalalLogo? @relation(fields: [halal_logo_id], references: [id])
 	halal_logo_id Int?
 	ingredients CatalogProductIngredient[]
 
+	confirmed_not_halal Boolean @default(false)
 	created_at DateTime @default(now())
   	updated_at DateTime @updatedAt
   	deleted_at DateTime?
 }
 
-// Normalized ingredient dictionary for the catalog — distinct from the
-// existing `Ingredient` model, which is recipe-scoped (quantity_needed/unit
-// tied to one Recipe+Product pair) and not a general ingredient list.
 model CatalogIngredient {
 	id Int @id @default(autoincrement())
 	name String @unique
@@ -314,9 +308,6 @@ model CatalogIngredient {
   	deleted_at DateTime?
 }
 
-// Join table: which catalog products contain which catalog ingredients.
-// This is what the AI reasoning step queries once it has determined a
-// user's allowed/disallowed ingredient set.
 model CatalogProductIngredient {
 	id Int @id @default(autoincrement())
 

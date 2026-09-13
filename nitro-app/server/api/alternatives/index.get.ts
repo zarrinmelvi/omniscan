@@ -4,15 +4,6 @@ import { requireAuth } from '../../utils/requireAuth'
 import { determineDisallowedCatalogIngredients } from '../../lib/alternative-reasoning'
 import { findAlternativeProducts } from '../../lib/alternative-matching'
 
-// GET /api/alternatives
-//
-// Returns CatalogProduct rows that are safe for the current user, given
-// their real allergens/halal_pref/custom_preferences — NOT yet scoped to
-// "alternatives for this specific scanned item" (that needs the
-// Product<->CatalogProduct linking decision, still open — see the v17
-// handoff report §5 item 5). This is the general "what's safe for me"
-// list, useful on its own and the foundation the per-item version will
-// build on once that linking exists.
 export default defineEventHandler(async (event) => {
 	const authUser = requireAuth(event)
 
@@ -32,20 +23,21 @@ export default defineEventHandler(async (event) => {
 			},
 		})
 
+		const halalPref = userWithProfile?.dietary_prof?.[0]?.halal_pref ?? false
+
 		const profile = {
 			allergens: userWithProfile?.allergens ?? [],
-			halalPref: userWithProfile?.dietary_prof?.[0]?.halal_pref ?? false,
+			halalPref,
 			customPreferences: userWithProfile?.dietary_prof?.[0]?.custom_preferences ?? [],
 		}
 
 		const { disallowedIngredientNames, details } = await determineDisallowedCatalogIngredients(profile)
-		const alternatives = await findAlternativeProducts(disallowedIngredientNames)
+
+		const alternatives = await findAlternativeProducts(disallowedIngredientNames, { requireHalalCertified: halalPref })
 
 		return {
 			success: true,
 			alternatives,
-			// Surfaced for transparency/debugging — not required by the
-			// frontend, but useful while this feature is still being verified.
 			disallowed_ingredients: details,
 		}
 	} catch (err: any) {

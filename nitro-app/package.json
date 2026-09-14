@@ -7,6 +7,7 @@
 		"preview": "node .output/server/index.mjs",
 		"migrate": "bunx --bun prisma migrate dev --name init",
 		"generate": "bunx --bun prisma generate",
+		"postinstall": "prisma generate",
 		"db:seed": "tsx prisma/seed.ts"
 	},
 	"devDependencies": {

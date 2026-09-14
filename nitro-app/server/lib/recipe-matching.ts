@@ -32,11 +32,37 @@ export interface IngredientPantryDeductionResult {
 	missingIngredientNames: string[]
 }
 
-// Same matching heuristic as matchIngredientsToPantry below, but keeps each
-// ingredient's quantity/unit against the specific pantry item it matched,
-// instead of collapsing everything down to a Set of ids. Needed for actually
-// deducting an amount on "Make Recipe" rather than just archiving whichever
-// pantry items got touched.
+function escapeRegExp(str: string): string {
+	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+// Basic stemming helper to convert plurals to singular base forms
+function stemWord(word: string): string {
+	return word
+		.trim()
+		.toLowerCase()
+		.replace(/(s|es|ies)$/i, '')
+}
+
+// Packaging/preparation phrases that should not trigger ingredient matches
+const PREPARATION_MODIFIERS = [
+	/\bin\s+oil\b/gi,
+	/\bin\s+water\b/gi,
+	/\bin\s+brine\b/gi,
+	/\bin\s+sauce\b/gi,
+	/\bin\s+sunflower\s+oil\b/gi,
+	/\bin\s+olive\s+oil\b/gi,
+	/\bwith\s+[\w\s]+\b/gi,
+]
+
+function cleanProductName(productName: string): string {
+	let cleaned = productName.trim().toLowerCase()
+	for (const modifier of PREPARATION_MODIFIERS) {
+		cleaned = cleaned.replace(modifier, '')
+	}
+	return cleaned.replace(/\s+/g, ' ').trim()
+}
+
 export function matchIngredientsToPantryForDeduction(
 	ingredients: RawIngredient[],
 	pantryItems: PantryProductRefWithQuantity[],
@@ -45,12 +71,35 @@ export function matchIngredientsToPantryForDeduction(
 	const missingIngredientNames: string[] = []
 
 	for (const ingredient of ingredients) {
-		const target = ingredient.name.trim().toLowerCase()
-		if (!target) continue
+		const rawTarget = ingredient.name.trim().toLowerCase()
+		if (!rawTarget) continue
+
+		// Normalized stemmed version of target (e.g. "eggs" -> "egg")
+		const targetStem = rawTarget
+			.split(/\s+/)
+			.map(stemWord)
+			.join(' ')
 
 		const hit = pantryItems.find((item) => {
-			const productName = item.product_name.trim().toLowerCase()
-			return productName.includes(target) || target.includes(productName)
+			const cleanedProduct = cleanProductName(item.product_name)
+			const productStem = cleanedProduct
+				.split(/\s+/)
+				.map(stemWord)
+				.join(' ')
+
+			// 1. Direct or Stemmed Exact Matches
+			if (cleanedProduct === rawTarget || productStem === targetStem) return true
+
+			// 2. Word Boundary Matches (Raw and Stemmed)
+			const rawRegex = new RegExp(`\\b${escapeRegExp(rawTarget)}\\b`, 'i')
+			const stemRegex = new RegExp(`\\b${escapeRegExp(targetStem)}\\b`, 'i')
+			const prodStemRegex = new RegExp(`\\b${escapeRegExp(productStem)}\\b`, 'i')
+
+			return (
+				rawRegex.test(cleanedProduct) ||
+				stemRegex.test(productStem) ||
+				prodStemRegex.test(targetStem)
+			)
 		})
 
 		if (hit) {
@@ -68,9 +117,6 @@ export function matchIngredientsToPantryForDeduction(
 	return { deductions, missingIngredientNames }
 }
 
-// Kept for suggest.get.ts, which only ever needed "which pantry items got
-// touched" — rebuilt on top of the quantity-aware matcher above instead of
-// duplicating the same matching heuristic a second time.
 export function matchIngredientsToPantry(ingredients: RawIngredient[], pantryItems: PantryProductRef[]): IngredientMatchResult {
 	const { deductions, missingIngredientNames } = matchIngredientsToPantryForDeduction(
 		ingredients,
@@ -157,14 +203,30 @@ export function extractPantryKeywords(productNames: string[], maxKeywords = 60):
 }
 
 export function findMatchingIngredientLine(productName: string, ingredients: RawIngredient[]): RawIngredient | null {
-	const target = productName.trim().toLowerCase()
-	if (!target) return null
+	const cleanedProduct = cleanProductName(productName)
+	if (!cleanedProduct) return null
+
+	const productStem = cleanedProduct
+		.split(/\s+/)
+		.map(stemWord)
+		.join(' ')
 
 	return (
 		ingredients.find((ing) => {
-			const name = ing.name.trim().toLowerCase()
-			if (!name) return false
-			return name.includes(target) || target.includes(name)
+			const rawName = ing.name.trim().toLowerCase()
+			if (!rawName) return false
+
+			const nameStem = rawName
+				.split(/\s+/)
+				.map(stemWord)
+				.join(' ')
+
+			if (rawName === cleanedProduct || nameStem === productStem) return true
+
+			const prodRegex = new RegExp(`\\b${escapeRegExp(productStem)}\\b`, 'i')
+			const nameRegex = new RegExp(`\\b${escapeRegExp(nameStem)}\\b`, 'i')
+
+			return prodRegex.test(nameStem) || nameRegex.test(productStem)
 		}) ?? null
 	)
 }

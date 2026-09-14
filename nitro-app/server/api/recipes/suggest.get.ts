@@ -103,6 +103,7 @@ export default defineEventHandler(async (event) => {
 			id: number
 			name: string
 			instructions: string
+			matched_ingredients: string[]
 			matched_count: number
 			total_count: number
 			missing_ingredients: string[]
@@ -123,16 +124,30 @@ export default defineEventHandler(async (event) => {
 
 			const { matchedIngredientNames, missingIngredientNames } = matchIngredientsToPantry(ingredients, pantryProducts)
 			const interaction = interactionByRecipeId.get(recipe.id)
+			const isMade = interaction?.made_at != null
+			const matchedCount = matchedIngredientNames.length
+			const totalCount = ingredients.length
+
+			// 1. Exclude recipes with 0 matching items in pantry
+			if (matchedCount === 0) {
+				continue
+			}
+
+			// 2. Exclude recipes marked as 'made' unless all required ingredients are present in pantry again
+			if (isMade && matchedCount < totalCount) {
+				continue
+			}
 
 			results.push({
 				id: recipe.id,
 				name: recipe.name,
 				instructions: recipe.instructions,
-				matched_count: matchedIngredientNames.length,
-				total_count: ingredients.length,
+				matched_ingredients: matchedIngredientNames,
+				matched_count: matchedCount,
+				total_count: totalCount,
 				missing_ingredients: missingIngredientNames,
 				liked: interaction?.liked ?? false,
-				made: interaction?.made_at != null,
+				made: isMade,
 			})
 
 			if (results.length >= RESULTS_LIMIT) break

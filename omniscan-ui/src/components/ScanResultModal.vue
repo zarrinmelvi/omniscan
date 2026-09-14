@@ -135,6 +135,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { IonModal, IonContent, IonIcon, IonButton, IonSpinner } from '@ionic/vue'
+import { apiFetch } from '@/utils/api'
 import {
 	closeOutline,
 	checkmarkCircleOutline,
@@ -158,8 +159,32 @@ const product = computed(() => props.data?.product || null)
 
 const personalAllergenAlerts = computed(() => props.data?.matched_user_allergens || [])
 const halalInfo = computed(() => props.data?.halal || null)
-const isHalalCertified = computed(() => !!halalInfo.value?.matched_known_logo)
-const isHalalUnverified = computed(() => !!halalInfo.value?.logo_detected && !halalInfo.value?.matched_known_logo)
+
+// Halal badges (both "certified" and "pending verification") only mean
+// anything to a user who actually has Halal as a dietary preference —
+// previously these showed identically for every user regardless of their
+// profile. Fetched fresh each time the modal opens (see the isOpen watcher
+// below) rather than cached, matching how ProfilePage.vue and the rest of
+// this app fetch dietary profile data — no shared store for it exists yet.
+const userHalalPref = ref(false)
+
+async function fetchHalalPref() {
+	try {
+		const data = await apiFetch('/api/users', { method: 'GET' })
+		userHalalPref.value = data?.user?.dietary_prof?.[0]?.halal_pref ?? false
+	} catch (err) {
+		// Fail closed on DISPLAY, not safety: if we can't confirm the
+		// user's preference, don't show a Halal badge that may not be
+		// relevant to them. This must never block the rest of the modal —
+		// Add to Pantry and everything else still needs to work even if
+		// this fetch fails.
+		console.error('Failed to fetch dietary profile for Halal badge gating:', err)
+		userHalalPref.value = false
+	}
+}
+
+const isHalalCertified = computed(() => userHalalPref.value && !!halalInfo.value?.matched_known_logo)
+const isHalalUnverified = computed(() => userHalalPref.value && !!halalInfo.value?.logo_detected && !halalInfo.value?.matched_known_logo)
 
 const halalCertifiedLabel = computed(() => {
 	const certifier = halalInfo.value?.known_certifier
@@ -249,6 +274,7 @@ watch(
 		if (open) {
 			ingredientsOpen.value = false
 			resetPantryForm()
+			fetchHalalPref()
 		}
 	},
 )
@@ -297,7 +323,7 @@ async function submitAddToPantry() {
 				Authorization: `Bearer ${token}`,
 			},
 			body: JSON.stringify({
-				product_name: product.value.product_name,
+				product_id: product.value.id,
 				quantity: quantity.value,
 				unit: unit.value,
 				storage_location: storageLocation.value,

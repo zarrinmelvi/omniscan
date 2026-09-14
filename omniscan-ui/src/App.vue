@@ -2,13 +2,6 @@
 	<ion-app v-if="!isAdminRoute">
 		<ion-router-outlet />
 	</ion-app>
-	<!-- Admin routes skip <ion-app>/<ion-router-outlet> entirely — they're a
-	     desktop verification/management UI, not a mobile app screen, so they
-	     use plain Vue components under views/admin/ instead of Ionic's
-	     mobile-oriented ones. Ionic's base CSS (normalize/structure/
-	     typography, imported globally in main.ts) still applies here, which
-	     is fine — it's a reasonable reset either way — but nothing under
-	     views/admin/ should import @ionic/vue components. -->
 	<router-view v-else />
 </template>
 

@@ -47,6 +47,10 @@
 						<span class="status-badge" :class="scan.status">{{ scan.status }}</span>
 					</td>
 					<td>
+						<select v-if="needsHalalPicker(scan)" v-model="selectedHalalLogoId[scan.id]" class="halal-picker">
+							<option :value="undefined">Select certifying body…</option>
+							<option v-for="logo in halalLogos" :key="logo.id" :value="logo.id">{{ logo.certifier }}</option>
+						</select>
 						<button :disabled="actingOnId === scan.id" @click="approve(scan.id)">Approve</button>
 						<button :disabled="actingOnId === scan.id" @click="dismiss(scan.id)">Dismiss</button>
 					</td>
@@ -74,10 +78,29 @@ interface FlaggedScansResponse {
 	flagged_scans: FlaggedScanRow[]
 }
 
+interface HalalLogoOption {
+	id: number
+	certifier: string
+}
+
 const flaggedScans = ref<FlaggedScanRow[]>([])
 const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
 const actingOnId = ref<number | null>(null)
+
+const halalLogos = ref<HalalLogoOption[]>([])
+// Per-row selection for the Halal-logo picker — keyed by flagged scan id,
+// only populated for rows where the admin actually needs to choose one
+// (see needsHalalPicker below).
+const selectedHalalLogoId = ref<Record<number, number | undefined>>({})
+
+// Matches the exact phrase scan/index.post.ts writes into flag_reason when
+// a Halal logo was detected on the packaging but couldn't be matched to a
+// known certifying body — this is the only case where Approve needs to
+// actually apply a correction rather than just record a review decision.
+function needsHalalPicker(scan: FlaggedScanRow): boolean {
+	return scan.flag_reason.includes('Halal logo detected on packaging but not matched')
+}
 
 // Computed from the currently-loaded list rather than a separate API call —
 // fine at this scale, and keeps the summary cards always in sync with what's
@@ -110,17 +133,39 @@ async function fetchFlaggedScans(): Promise<void> {
 	}
 }
 
+async function fetchHalalLogos(): Promise<void> {
+	try {
+		// halal_logo/index.get.ts's take/skip default via `?? 2` doesn't
+		// actually catch a missing query param (Number(undefined) is NaN,
+		// and `NaN ?? 2` stays NaN) — passing explicit values here sidesteps
+		// that rather than relying on its default.
+		const data = await apiFetch<{ halalLogo: HalalLogoOption[]; halalLogoCount: number }>('/api/halal_logo?take=100&skip=0', {
+			method: 'GET',
+			isAdmin: true,
+		})
+		halalLogos.value = data.halalLogo
+	} catch (err) {
+		console.error('Failed to fetch halal logos for the verification picker:', err)
+	}
+}
+
 async function resolve(id: number, action: 'approve' | 'dismiss'): Promise<void> {
 	actingOnId.value = id
 	try {
+		const body: { admin_correction?: string; halal_logo_id?: number } = {}
+		if (action === 'approve' && selectedHalalLogoId.value[id]) {
+			body.halal_logo_id = selectedHalalLogoId.value[id]
+		}
+
 		await apiFetch(`/api/admin/flagged-scans/${id}/${action}`, {
 			method: 'POST',
-			body: {},
+			body,
 			isAdmin: true,
 		})
 
 		// Refetch rather than patching locally — a resolved item may need to
 		// drop out of the current view depending on filtering added later.
+		delete selectedHalalLogoId.value[id]
 		await fetchFlaggedScans()
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : `Failed to ${action} flagged scan.`
@@ -133,7 +178,10 @@ async function resolve(id: number, action: 'approve' | 'dismiss'): Promise<void>
 const approve = (id: number) => resolve(id, 'approve')
 const dismiss = (id: number) => resolve(id, 'dismiss')
 
-onMounted(fetchFlaggedScans)
+onMounted(() => {
+	fetchFlaggedScans()
+	fetchHalalLogos()
+})
 </script>
 
 <style scoped>
@@ -257,6 +305,15 @@ th {
 .status-badge.dismissed {
 	background: #f3f4f6;
 	color: #6b7280;
+}
+
+.halal-picker {
+	display: block;
+	margin-bottom: 6px;
+	padding: 3px 6px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 0.8rem;
 }
 
 button {

@@ -4,6 +4,15 @@ const TOKEN_KEY = 'omniscan_token'
 const ADMIN_TOKEN_KEY = 'omniscan_admin_token'
 const AUTH_EXEMPT_ENDPOINTS = ['/api/auth/login', '/api/auth/register', '/api/admin/login']
 
+// In local dev, this is left empty and Vite's dev-server proxy (vite.config.ts)
+// forwards relative '/api/**' calls to http://localhost:3000 — nothing to
+// configure. In production (Vercel), there's no such proxy: omniscan-ui is
+// deployed as a separate static site from nitro-app, so a relative '/api/...'
+// fetch would hit omniscan-ui's own domain instead of the backend. Set
+// VITE_API_URL (e.g. to the nitro-app Vercel deployment's URL) in that
+// project's Environment Variables to fix this — leave it unset locally.
+const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || ''
+
 export interface ApiRequestOptions extends Omit<RequestInit, 'body'> {
 	body?: unknown
 	skipAuth?: boolean
@@ -87,7 +96,7 @@ export async function apiFetch<T = unknown>(endpoint: string, options: ApiReques
 	let response: Response
 
 	try {
-		response = await fetch(endpoint, {
+		response = await fetch(`${API_BASE_URL}${endpoint}`, {
 			...restOptions,
 			headers: finalHeaders,
 			body: body !== undefined ? JSON.stringify(body) : undefined,

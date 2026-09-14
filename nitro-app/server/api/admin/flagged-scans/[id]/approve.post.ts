@@ -12,9 +12,25 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'A valid flagged scan id is required.' })
 	}
 
-	const body = (await readBody(event).catch(() => null)) as { admin_correction?: string } | null
+	const body = (await readBody(event).catch(() => null)) as { admin_correction?: string; halal_logo_id?: number } | null
 
 	try {
+		const flaggedScan = await prisma.flaggedScan.findUnique({
+			where: { id: flaggedScanId },
+			include: { scan: { select: { product_id: true } } },
+		})
+
+		if (!flaggedScan) {
+			throw createError({ statusCode: 404, statusMessage: 'Flagged scan not found.' })
+		}
+
+		if (body?.halal_logo_id && flaggedScan.scan?.product_id) {
+			await prisma.product.update({
+				where: { id: flaggedScan.scan.product_id },
+				data: { halal_logo_id: body.halal_logo_id },
+			})
+		}
+
 		const updated = await prisma.flaggedScan.update({
 			where: { id: flaggedScanId },
 			data: {

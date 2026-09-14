@@ -3,6 +3,7 @@ import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 
 interface CreatePantryItemBody {
+	product_id?: number
 	product_name?: string
 	image_base64?: string
 	expiration_date?: string
@@ -23,8 +24,15 @@ export default defineEventHandler(async (event) => {
 
 	const { product_name, image_base64, expiration_date, best_before_date, storage_location, quantity, unit } = body
 
-	if (!product_name || typeof product_name !== 'string' || !product_name.trim()) {
-		throw createError({ statusCode: 400, statusMessage: 'product_name is required.' })
+	// product_name is only required for the manual-add path — when product_id
+	// is present (a scan's own product), that request never needs to send a
+	// name at all. Without this gate, the product_id fast path below was
+	// unreachable: this check ran first and rejected the request before it
+	// could ever be evaluated.
+	if (body.product_id === undefined) {
+		if (!product_name || typeof product_name !== 'string' || !product_name.trim()) {
+			throw createError({ statusCode: 400, statusMessage: 'product_name is required.' })
+		}
 	}
 
 	if (!expiration_date && !best_before_date) {
@@ -58,27 +66,55 @@ export default defineEventHandler(async (event) => {
 	}
 
 	try {
-		let product = await prisma.product.findFirst({
-			where: { product_name: product_name.trim() },
-		})
+		let product: { id: number; product_name: string } | null = null
 
-		if (!product) {
-			product = await prisma.product.create({
-				data: {
-					brand_name: 'Manually Added',
-					product_name: product_name.trim(),
-					ingredient_text: 'Unknown',
-					simplified_ingredients: 'Unknown',
-					image_base64: image_base64 || null,
-					is_verified: false,
-					halal_logo_id: null,
-				},
+		if (body.product_id !== undefined) {
+			// readBody's TS cast only asserts a shape, it doesn't coerce at
+			// runtime — a JSON payload with "product_id": "37" (string) still
+			// passes that cast, then fails Prisma's Int type check with a raw
+			// PrismaClientValidationError. Coerce explicitly rather than
+			// trusting the declared type.
+			const productId = typeof body.product_id === 'number' ? body.product_id : Number(body.product_id)
+			if (isNaN(productId)) {
+				throw createError({ statusCode: 400, statusMessage: 'product_id must be a valid number.' })
+			}
+
+			product = await prisma.product.findUnique({
+				where: { id: productId },
+				select: { id: true, product_name: true },
 			})
-		} else if (image_base64 && !product.image_base64) {
-			product = await prisma.product.update({
-				where: { id: product.id },
-				data: { image_base64 },
+			if (!product) {
+				throw createError({ statusCode: 404, statusMessage: 'Scanned product not found.' })
+			}
+		} else {
+			if (!product_name || typeof product_name !== 'string' || !product_name.trim()) {
+				throw createError({ statusCode: 400, statusMessage: 'product_name is required.' })
+			}
+
+			let existing = await prisma.product.findFirst({
+				where: { product_name: product_name.trim() },
 			})
+
+			if (!existing) {
+				existing = await prisma.product.create({
+					data: {
+						brand_name: 'Manually Added',
+						product_name: product_name.trim(),
+						ingredient_text: 'Unknown',
+						simplified_ingredients: 'Unknown',
+						image_base64: image_base64 || null,
+						is_verified: false,
+						halal_logo_id: null,
+					},
+				})
+			} else if (image_base64 && !existing.image_base64) {
+				existing = await prisma.product.update({
+					where: { id: existing.id },
+					data: { image_base64 },
+				})
+			}
+
+			product = existing
 		}
 
 		const newItem = await prisma.pantryItem.create({

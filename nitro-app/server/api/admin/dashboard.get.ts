@@ -13,8 +13,6 @@ export default defineEventHandler(async (event) => {
 		])
 
 		const totalFlags = pendingFlags + resolvedFlags
-		// Defaults to 100% when there's nothing to resolve yet, rather than
-		// dividing by zero or showing a misleading 0%.
 		const resolutionRate = totalFlags > 0 ? Math.round((resolvedFlags / totalFlags) * 100) : 100
 
 		return {

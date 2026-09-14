@@ -1,5 +1,7 @@
 import { defineNitroConfig } from 'nitropack/config'
 
+console.log('[DEBUG BUILD-TIME] process.env.CORS_ORIGIN =', JSON.stringify(process.env.CORS_ORIGIN))
+
 // https://nitro.build/config
 export default defineNitroConfig({
 	preset: 'vercel',

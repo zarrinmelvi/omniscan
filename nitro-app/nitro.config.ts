@@ -18,7 +18,7 @@ export default defineNitroConfig({
 		'/api/**': {
 			cors: true,
 			headers: {
-				'access-control-allow-origin': process.env.CORS_ORIGIN || 'http://localhost:5173',
+				'access-control-allow-origin': process.env.CORS_ORIGIN || 'https://omniscan-ui-eight.vercel.app',
 				'access-control-allow-methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
 				'access-control-allow-headers': 'Content-Type,Authorization',
 			},

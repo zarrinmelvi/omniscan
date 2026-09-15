@@ -30,17 +30,17 @@
 					</div>
 
 					<!-- Primary Action Button -->
-					<ion-button expand="block" class="btn-primary" :disabled="isUploading || isCoolingDown" @click="openCamera">
-						<ion-spinner v-if="isUploading || isCoolingDown" name="crescent" slot="start" />
+					<ion-button expand="block" class="btn-primary" :disabled="isUploading || isCoolingDown || isResultModalOpen" @click="openCamera">
+						<ion-spinner v-if="isCoolingDown" name="crescent" slot="start" />
 						<ion-icon v-else :icon="scanOutline" slot="start" />
-						<span v-if="isUploading || isCoolingDown">Processing… ({{ remainingSeconds }}s)</span>
-						<span v-else-if="hasScannedAtLeastOnce">Scan Again</span>
+						<span v-if="isCoolingDown">Processing… ({{ remainingSeconds }}s)</span>
+						<span v-else-if="hasScannedAtLeastOnce || isUploading">Scan Again</span>
 						<span v-else-if="captureStage === 'back'">Scan Back of Item</span>
 						<span v-else>Scan Product</span>
 					</ion-button>
 
 					<!-- Secondary Action Button (Updated to soft grayish styling) -->
-					<ion-button expand="block" class="btn-secondary" :disabled="isUploading || isCoolingDown" @click="isPhotoModalOpen = true">
+					<ion-button expand="block" class="btn-secondary" :disabled="isUploading || isCoolingDown || isResultModalOpen" @click="isPhotoModalOpen = true">
 						<ion-icon :icon="cameraOutline" slot="start" />
 						UPLOAD A PHOTO
 					</ion-button>
@@ -104,7 +104,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { IonPage, IonContent, IonButton, IonSpinner, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonSpinner, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, onIonViewWillEnter } from '@ionic/vue'
 
 import { API_BASE_URL } from '@/utils/api'
 
@@ -167,6 +167,23 @@ const frontFile = ref<File | null>(null)
 
 let cooldownTimeoutId: number | null = null
 let cooldownIntervalId: number | null = null
+
+function resetScanState(): void {
+	hasScannedAtLeastOnce.value = false
+	captureStage.value = 'front'
+	frontFile.value = null
+	isBackCaptured.value = false
+	isUploading.value = false
+	isCoolingDown.value = false
+	remainingSeconds.value = 0
+	clearTimers()
+	lastFileName.value = null
+	analysisStatus.value = 'Idle'
+}
+
+onIonViewWillEnter(() => {
+	resetScanState()
+})
 
 function triggerFileInput(): void {
 	if (isCoolingDown.value || isUploading.value) {

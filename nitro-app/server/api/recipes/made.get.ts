@@ -3,6 +3,10 @@ import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 import { matchIngredientsToPantry, type RawIngredient } from '../../lib/recipe-matching'
 
+// Mirrors liked.get.ts's approach – "recipes this user has made," ordered
+// most-recent-first by when they last made it. No allergen/Halal
+// re-filtering here either, for the same reason: this is a history list,
+// not a fresh suggestion.
 function coerceRawIngredients(value: unknown): RawIngredient[] {
 	if (!Array.isArray(value)) return []
 	return value

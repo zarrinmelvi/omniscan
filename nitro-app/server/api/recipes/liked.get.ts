@@ -3,6 +3,14 @@ import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 import { matchIngredientsToPantry, type RawIngredient } from '../../lib/recipe-matching'
 
+// Unlike suggest.get.ts, this isn't a pantry-driven search — it's just
+// "recipes this user has liked," full stop. Deliberately does not re-run the
+// allergen/Halal exclusion suggest.get.ts applies: liking something is a
+// user choice being listed back to them, not a new suggestion being made, so
+// this doesn't hide a previously-liked recipe just because the user's
+// profile changed since. Missing-ingredient info against the *current*
+// pantry is still computed, purely for consistent card display with the
+// other tabs.
 function coerceRawIngredients(value: unknown): RawIngredient[] {
 	if (!Array.isArray(value)) return []
 	return value

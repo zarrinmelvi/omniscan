@@ -63,6 +63,11 @@ function cleanProductName(productName: string): string {
 	return cleaned.replace(/\s+/g, ' ').trim()
 }
 
+// Same matching heuristic as matchIngredientsToPantry below, but keeps each
+// ingredient's quantity/unit against the specific pantry item it matched,
+// instead of collapsing everything down to a Set of ids. Needed for actually
+// deducting an amount on "Make Recipe" rather than just archiving whichever
+// pantry items got touched.
 export function matchIngredientsToPantryForDeduction(
 	ingredients: RawIngredient[],
 	pantryItems: PantryProductRefWithQuantity[],
@@ -117,6 +122,9 @@ export function matchIngredientsToPantryForDeduction(
 	return { deductions, missingIngredientNames }
 }
 
+// Kept for endpoints like suggest.get.ts, liked.get.ts, and made.get.ts that
+// only need item/ingredient lists — rebuilt on top of the quantity-aware matcher
+// above instead of duplicating the same matching heuristic a second time.
 export function matchIngredientsToPantry(ingredients: RawIngredient[], pantryItems: PantryProductRef[]): IngredientMatchResult {
 	const { deductions, missingIngredientNames } = matchIngredientsToPantryForDeduction(
 		ingredients,

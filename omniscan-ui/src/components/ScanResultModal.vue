@@ -1,15 +1,7 @@
 <template>
-	<ion-modal :is-open="isOpen" :breakpoints="[0, 0.5, 0.92]" :initial-breakpoint="0.92" :backdrop-dismiss="true" @didDismiss="handleDismiss">
-		<ion-content class="sheet-ion-content">
+	<ion-modal :is-open="isOpen" :breakpoints="[0, 0.5, 0.95]" :initial-breakpoint="0.95" :backdrop-dismiss="true" @didDismiss="handleDismiss">
+		<ion-content class="sheet-ion-content" scroll-y="true">
 			<div class="sheet-content">
-				<div v-if="personalAllergenAlerts.length" class="personal-allergen-alert">
-					<ion-icon :icon="warningOutline" />
-					<div>
-						<p class="personal-allergen-alert__title">Contains your allergen{{ personalAllergenAlerts.length > 1 ? 's' : '' }}</p>
-						<p class="personal-allergen-alert__list">{{ personalAllergenAlerts.join(', ') }}</p>
-					</div>
-				</div>
-
 				<div class="sheet-header">
 					<div class="product-thumb">
 						<img v-if="product?.image_base64" :src="product.image_base64" :alt="product?.product_name" class="product-thumb__img" />
@@ -18,12 +10,20 @@
 					<div class="product-title-block">
 						<h2 class="product-title">{{ product?.product_name || 'Unknown Product' }}</h2>
 						<p class="product-subtitle">
-							{{ product?.brand_name || 'Unknown Brand' }}<span v-if="product?.id"> · #{{ product.id }}</span>
+							{{ product?.brand_name || 'Unknown Brand' }}<span v-if="product?.id"> - #{{ product.id }}</span>
 						</p>
 					</div>
 					<button type="button" class="close-btn" aria-label="Close" @click="handleDismiss">
 						<ion-icon :icon="closeOutline" />
 					</button>
+				</div>
+
+				<div v-if="personalAllergenAlerts.length" class="personal-allergen-alert">
+					<ion-icon :icon="warningOutline" />
+					<div>
+						<p class="personal-allergen-alert__title">Contains your allergen{{ personalAllergenAlerts.length > 1 ? 's' : '' }}</p>
+						<p class="personal-allergen-alert__list">{{ personalAllergenAlerts.join(', ') }}</p>
+					</div>
 				</div>
 
 				<div v-if="isHalalCertified || isHalalUnverified || allergenTags.length" class="badge-row">
@@ -55,12 +55,15 @@
 					</ul>
 				</div>
 
-				<button type="button" class="ingredients-toggle" @click="ingredientsOpen = !ingredientsOpen">
-					<span>Ingredients</span>
-					<ion-icon :icon="chevronDownOutline" :class="{ 'is-rotated': ingredientsOpen }" />
-				</button>
-				<div v-if="ingredientsOpen" class="ingredients-content">
-					{{ product?.ingredients_text || product?.simplified_ingredients || 'No ingredient information available for this scan.' }}
+				<!-- Ingredients Card Layout matching Picture 1 -->
+				<div class="ingredients-card">
+					<button type="button" class="ingredients-card__header" @click="ingredientsOpen = !ingredientsOpen">
+						<span class="ingredients-card__title">Ingredients</span>
+						<ion-icon :icon="chevronDownOutline" :class="{ 'is-rotated': ingredientsOpen }" />
+					</button>
+					<div v-if="ingredientsOpen" class="ingredients-card__body">
+						{{ product?.ingredients_text || product?.simplified_ingredients || 'No ingredient information available for this scan.' }}
+					</div>
 				</div>
 
 				<div v-if="alternatives.length" class="alternatives-section">
@@ -100,24 +103,37 @@
 						</button>
 					</div>
 
-					<div class="info-box">
-						<ion-icon :icon="informationCircleOutline" />
-						<span>You must provide at least one date before adding to pantry.</span>
+					<!-- Blue Date Selection Box -->
+					<div class="date-selection-box">
+						<div class="info-box">
+							<ion-icon :icon="informationCircleOutline" />
+							<span>You must provide at least one date before adding to pantry.</span>
+						</div>
+
+						<div class="date-field">
+							<label class="date-field-label">Expiration Date</label>
+							<span class="field-hint">For packaged and processed products (e.g. canned goods, dairy, meat).</span>
+							<input
+								type="date"
+								class="date-input"
+								:class="{ 'date-input--has-value': !!expirationDate }"
+								v-model="expirationDate"
+							/>
+						</div>
+
+						<div class="or-divider"><span>OR</span></div>
+
+						<div class="date-field">
+							<label class="date-field-label">Best Before Date</label>
+							<span class="field-hint">For fresh stocks and produce (e.g. fruits, vegetables, dry goods).</span>
+							<input
+								type="date"
+								class="date-input"
+								:class="{ 'date-input--has-value': !!bestBeforeDate }"
+								v-model="bestBeforeDate"
+							/>
+						</div>
 					</div>
-
-					<label class="field-label">
-						Expiration Date
-						<span class="field-hint">For packaged and processed products (e.g. canned goods, dairy, meat).</span>
-					</label>
-					<input type="date" class="date-input" v-model="expirationDate" />
-
-					<div class="or-divider"><span>OR</span></div>
-
-					<label class="field-label">
-						Best Before Date
-						<span class="field-hint">For fresh stocks and produce (e.g. fruits, vegetables, dry goods).</span>
-					</label>
-					<input type="date" class="date-input" v-model="bestBeforeDate" />
 
 					<p v-if="submitError" class="submit-error">{{ submitError }}</p>
 
@@ -266,13 +282,13 @@ const alternatives = computed(() => {
 	return hasDairy ? ALTERNATIVE_CATALOG.dairy : []
 })
 
-const ingredientsOpen = ref(false)
+const ingredientsOpen = ref(true)
 
 watch(
 	() => props.isOpen,
 	(open) => {
 		if (open) {
-			ingredientsOpen.value = false
+			ingredientsOpen.value = true
 			resetPantryForm()
 			fetchHalalPref()
 		}
@@ -354,31 +370,35 @@ function handleDismiss() {
 <style scoped>
 .sheet-ion-content {
 	--background: #ffffff;
+	--padding-bottom: 40px;
 }
 
 .sheet-content {
-	padding: 8px 20px 24px;
+	padding: 16px 20px 48px;
 	max-width: 480px;
 	margin: 0 auto;
 }
 
 .sheet-header {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	gap: 12px;
+	padding-bottom: 16px;
 	margin-bottom: 16px;
+	border-bottom: 1px solid #f1f5f9;
 }
 
 .product-thumb {
-	width: 44px;
-	height: 44px;
-	border-radius: 10px;
-	background: #f1f2f4;
+	width: 52px;
+	height: 52px;
+	border-radius: 14px;
+	background: #f8fafc;
+	border: 1px solid #f1f5f9;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: #9aa0a6;
-	font-size: 1.3rem;
+	color: #94a3b8;
+	font-size: 1.6rem;
 	flex-shrink: 0;
 	overflow: hidden;
 }
@@ -396,24 +416,26 @@ function handleDismiss() {
 
 .product-title {
 	margin: 0;
-	font-size: 1.05rem;
-	font-weight: 700;
-	color: #1f2937;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: #0f172a;
+	line-height: 1.25;
 }
 
 .product-subtitle {
-	margin: 2px 0 0;
+	margin: 3px 0 0;
 	font-size: 0.8rem;
-	color: #9aa0a6;
+	color: #64748b;
 }
 
 .close-btn {
 	background: none;
 	border: none;
-	color: #9aa0a6;
-	font-size: 1.3rem;
+	color: #64748b;
+	font-size: 1.2rem;
 	line-height: 1;
 	padding: 4px;
+	cursor: pointer;
 }
 
 .badge-row {
@@ -423,6 +445,7 @@ function handleDismiss() {
 	margin-bottom: 14px;
 }
 
+/* Unbolded Allergen Badges matching Picture 3 */
 .badge {
 	display: inline-flex;
 	align-items: center;
@@ -430,7 +453,7 @@ function handleDismiss() {
 	padding: 4px 10px;
 	border-radius: 999px;
 	font-size: 0.78rem;
-	font-weight: 600;
+	font-weight: 400;
 }
 
 .badge-halal-pending {
@@ -446,6 +469,7 @@ function handleDismiss() {
 .badge-allergen {
 	background: #fdeee0;
 	color: #d9762b;
+
 }
 
 .badge-allergen--personal {
@@ -479,7 +503,7 @@ function handleDismiss() {
 
 .personal-allergen-alert__list {
 	margin: 2px 0 0;
-	font-weight: 600;
+	font-weight: 500;
 }
 
 .warning-box {
@@ -494,7 +518,7 @@ function handleDismiss() {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font-weight: 700;
+	font-weight: 600;
 	font-size: 0.85rem;
 	color: #92680a;
 	margin-bottom: 6px;
@@ -505,47 +529,61 @@ function handleDismiss() {
 	padding-left: 18px;
 	font-size: 0.82rem;
 	color: #7a5c0e;
+	font-weight: 400;
 }
 
 .warning-box__list li {
 	margin-bottom: 2px;
 }
 
-.ingredients-toggle {
+/* Ingredients Card Container matching Picture 1 */
+.ingredients-card {
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	overflow: hidden;
+	margin-bottom: 16px;
+}
+
+.ingredients-card__header {
 	width: 100%;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	background: #f4f5f7;
+	background: transparent;
 	border: none;
-	border-radius: 12px;
 	padding: 12px 14px;
-	font-weight: 600;
-	color: #3b5bfd;
-	margin-bottom: 8px;
+	cursor: pointer;
 }
 
-.ingredients-toggle ion-icon {
+.ingredients-card__title {
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: #334155;
+}
+
+.ingredients-card__header ion-icon {
+	color: #64748b;
+	font-size: 0.95rem;
 	transition: transform 0.2s ease;
 }
 
-.ingredients-toggle ion-icon.is-rotated {
+.ingredients-card__header ion-icon.is-rotated {
 	transform: rotate(180deg);
 }
 
-.ingredients-content {
-	font-size: 0.85rem;
-	color: #4b5563;
-	background: #fafafa;
-	border-radius: 10px;
-	padding: 10px 14px;
-	margin-bottom: 16px;
+.ingredients-card__body {
+	font-size: 0.825rem;
+	color: #475569;
+	font-weight: 400;
+	padding: 0 14px 14px 14px;
+	line-height: 1.45;
 	white-space: pre-line;
 }
 
 .section-title {
 	font-size: 0.95rem;
-	font-weight: 700;
+	font-weight: 600;
 	color: #1f2937;
 	margin: 0 0 10px;
 }
@@ -567,9 +605,10 @@ function handleDismiss() {
 	border-bottom: none;
 }
 
+/* Lessened font weight for Alternatives in Picture 2 */
 .alt-item__name {
 	margin: 0;
-	font-weight: 600;
+	font-weight: 500;
 	font-size: 0.88rem;
 	color: #1f2937;
 }
@@ -577,7 +616,8 @@ function handleDismiss() {
 .alt-item__desc {
 	margin: 2px 0 0;
 	font-size: 0.76rem;
-	color: #9aa0a6;
+	color: #94a3b8;
+	font-weight: 400;
 }
 
 .alt-item__tags {
@@ -590,7 +630,7 @@ function handleDismiss() {
 	background: #e6f7ee;
 	color: #1a9c5e;
 	font-size: 0.72rem;
-	font-weight: 600;
+	font-weight: 500;
 	padding: 3px 8px;
 	border-radius: 999px;
 	white-space: nowrap;
@@ -603,7 +643,7 @@ function handleDismiss() {
 
 .field-label {
 	display: block;
-	font-size: 0.8rem;
+	font-size: 0.825rem;
 	font-weight: 600;
 	color: #92400e;
 	margin-bottom: 6px;
@@ -612,9 +652,11 @@ function handleDismiss() {
 .field-hint {
 	display: block;
 	font-weight: 400;
-	color: #9aa0a6;
-	font-size: 0.74rem;
+	color: #94a3b8;
+	font-size: 0.75rem;
+	line-height: 1.35;
 	margin-top: 2px;
+	margin-bottom: 6px;
 }
 
 .quantity-row {
@@ -623,6 +665,7 @@ function handleDismiss() {
 	margin-bottom: 14px;
 }
 
+/* Lessened font weight for form inputs in Picture 2 */
 .quantity-input {
 	flex: 1;
 	border: 1px solid #e5e7eb;
@@ -630,7 +673,14 @@ function handleDismiss() {
 	padding: 10px 12px;
 	font-size: 0.95rem;
 	color: #3b5bfd;
-	font-weight: 600;
+	font-weight: 500;
+	-moz-appearance: textfield;
+}
+
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
 }
 
 .unit-select {
@@ -640,7 +690,7 @@ function handleDismiss() {
 	padding: 10px 12px;
 	font-size: 0.95rem;
 	color: #3b5bfd;
-	font-weight: 600;
+	font-weight: 500;
 	background: #fff;
 }
 
@@ -653,30 +703,43 @@ function handleDismiss() {
 .storage-btn {
 	flex: 1;
 	padding: 10px 0;
-	border-radius: 10px;
+	border-radius: 12px;
 	border: 1px solid #e5e7eb;
 	background: #fff;
-	font-weight: 600;
+	font-weight: 500;
 	font-size: 0.85rem;
 	color: #374151;
 }
 
 .storage-btn--active {
-	background: #22c55e;
-	border-color: #22c55e;
-	color: #fff;
+	background: #00b14f;
+	border-color: #00b14f;
+	color: #ffffff;
+}
+
+/* Date Box Section */
+.date-selection-box {
+	background: #eff6ff;
+	border: 1px solid #dbeafe;
+	border-radius: 16px;
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	margin-bottom: 16px;
 }
 
 .info-box {
 	display: flex;
 	align-items: flex-start;
 	gap: 8px;
-	background: #eaf1ff;
-	color: #2952cc;
-	border-radius: 10px;
-	padding: 10px 12px;
-	font-size: 0.8rem;
-	margin-bottom: 14px;
+	color: #2563eb;
+	font-size: 0.825rem;
+	line-height: 1.35;
+	background: transparent;
+	padding: 0;
+	margin-bottom: 2px;
+	font-weight: 400;
 }
 
 .info-box ion-icon {
@@ -684,14 +747,36 @@ function handleDismiss() {
 	flex-shrink: 0;
 }
 
+.date-field {
+	display: flex;
+	flex-direction: column;
+}
+
+.date-field-label {
+	display: block;
+	font-size: 0.825rem;
+	font-weight: 600;
+	color: #92400e;
+}
+
 .date-input {
 	width: 100%;
-	border: 1px solid #e5e7eb;
-	border-radius: 10px;
-	padding: 10px 12px;
+	border: 1px solid #cbd5e1;
+	border-radius: 12px;
+	padding: 10px 14px;
 	font-size: 0.9rem;
 	color: #374151;
-	margin-bottom: 4px;
+	background: #ffffff;
+	box-sizing: border-box;
+	font-weight: 400;
+	transition: all 0.2s ease;
+}
+
+.date-input--has-value,
+.date-input:focus {
+	border-color: #22c55e;
+	box-shadow: 0 0 0 1px #22c55e;
+	outline: none;
 }
 
 .or-divider {
@@ -700,19 +785,20 @@ function handleDismiss() {
 	text-align: center;
 	color: #9aa0a6;
 	font-size: 0.78rem;
-	font-weight: 600;
-	margin: 14px 0;
+	font-weight: 500;
+	margin: 2px 0;
 }
 
 .or-divider::before,
 .or-divider::after {
 	content: '';
 	flex: 1;
-	border-top: 1px solid #e5e7eb;
+	border-top: 1px solid #bfdbfe;
 }
 
 .or-divider span {
 	padding: 0 10px;
+	color: #3b82f6;
 }
 
 .submit-error {
@@ -722,8 +808,13 @@ function handleDismiss() {
 }
 
 .submit-btn {
-	margin-top: 18px;
+	margin-top: 24px;
 	--border-radius: 12px;
-	font-weight: 700;
+	--background: #00b14f;
+	--background-activated: #009643;
+	--background-disabled: #e2e8f0;
+	--color-disabled: #94a3b8;
+	font-weight: 600;
+	height: 48px;
 }
 </style>

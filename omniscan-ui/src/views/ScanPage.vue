@@ -1,57 +1,81 @@
 <template>
-	<ion-page>
-		<ion-header>
-			<ion-toolbar>
-				<ion-title>Scan</ion-title>
-			</ion-toolbar>
-		</ion-header>
+	<ion-page class="scan-page">
+		<ion-content class="scan-content">
+			<div class="page-container">
+				<!-- Top Header Area -->
+				<header class="header-section">
+					<h1 class="page-title">OmniScan</h1>
+					<p class="page-subtitle">
+						Scan any product package showing Halal logo and ingredient list
+					</p>
+				</header>
 
-		<ion-content class="ion-padding">
-			<div class="scan-container">
-				<input ref="fileInputRef" type="file" accept="image/*" capture="environment" class="hidden-input" @change="onFileSelected" />
+				<!-- Hidden File Input -->
+				<input
+					ref="fileInputRef"
+					type="file"
+					accept="image/*"
+					capture="environment"
+					class="hidden-input"
+					@change="onFileSelected"
+				/>
 
-				<ion-card v-if="captureStage === 'back'" class="back-prompt-card">
-					<ion-card-content>
+				<!-- Interactive Controls Section -->
+				<div class="controls-section">
+					<!-- Prompt card for back photo step -->
+					<div v-if="captureStage === 'back'" class="back-prompt-card">
 						<p class="back-prompt-text">
-							<strong>Front captured.</strong> Now scan or upload the <strong>back</strong> of the product so the ingredients list can
-							be read.
+							<strong>Front captured.</strong> Now scan or upload the <strong>back</strong> of the product so the ingredients list can be read.
 						</p>
-						<ion-button expand="block" fill="clear" size="small" @click="skipBackPhoto"> Skip — use front photo only </ion-button>
-					</ion-card-content>
-				</ion-card>
+						<ion-button expand="block" fill="clear" size="small" class="skip-btn" @click="skipBackPhoto">
+							Skip — use front photo only
+						</ion-button>
+					</div>
 
-				<ion-button expand="block" size="large" class="scan-button" :disabled="isCoolingDown" @click="openCamera">
-					<ion-spinner v-if="isCoolingDown" name="crescent" slot="start"></ion-spinner>
-					<ion-icon v-else :icon="cameraOutline" slot="start"></ion-icon>
-					<span v-if="isCoolingDown"> Processing… ({{ remainingSeconds }}s) </span>
-					<span v-else-if="captureStage === 'back'">Scan Back of Item</span>
-					<span v-else>Scan Item</span>
-				</ion-button>
+					<!-- Primary Action Button -->
+					<ion-button
+						expand="block"
+						class="btn-primary"
+						:disabled="isCoolingDown"
+						@click="openCamera"
+					>
+						<ion-spinner v-if="isCoolingDown" name="crescent" slot="start" />
+						<ion-icon v-else :icon="scanOutline" slot="start" />
+						<span v-if="isCoolingDown">Processing… ({{ remainingSeconds }}s)</span>
+						<span v-else-if="captureStage === 'back'">Scan Back of Item</span>
+						<span v-else>Scan Product</span>
+					</ion-button>
 
-				<ion-button expand="block" size="large" fill="outline" class="upload-button" @click="isPhotoModalOpen = true">
-					<ion-icon :icon="cloudUploadOutline" slot="start"></ion-icon>
-					Upload a Photo
-				</ion-button>
+					<!-- Secondary Action Button (Updated to soft grayish styling) -->
+					<ion-button
+						expand="block"
+						class="btn-secondary"
+						@click="isPhotoModalOpen = true"
+					>
+						<ion-icon :icon="cameraOutline" slot="start" />
+						UPLOAD A PHOTO
+					</ion-button>
 
-				<ion-note v-if="isCoolingDown" class="cooldown-note">
-					Please wait, upload in progress. Button re-enables in {{ remainingSeconds }}s.
-				</ion-note>
+					<ion-note v-if="isCoolingDown" class="cooldown-note">
+						Please wait, upload in progress. Button re-enables in {{ remainingSeconds }}s.
+					</ion-note>
 
-				<ion-card class="results-placeholder">
-					<ion-card-header>
-						<ion-card-title>Analysis Results</ion-card-title>
-					</ion-card-header>
-					<ion-card-content>
-						<div v-if="!lastFileName" class="placeholder-empty">
-							<ion-icon :icon="documentTextOutline" size="large"></ion-icon>
-							<p>No scan yet. Results will appear here after you upload an image.</p>
-						</div>
-						<div v-else>
-							<p><strong>File:</strong> {{ lastFileName }}</p>
-							<p><strong>Status:</strong> {{ analysisStatus }}</p>
-						</div>
-					</ion-card-content>
-				</ion-card>
+					<ion-card class="results-placeholder">
+						<ion-card-header>
+							<ion-card-title>Analysis Results</ion-card-title>
+						</ion-card-header>
+						<ion-card-content>
+							<div v-if="!lastFileName" class="placeholder-empty">
+								<ion-icon :icon="documentTextOutline" size="large"></ion-icon>
+								<p>No scan yet. Results will appear here after you upload an image.</p>
+							</div>
+							<div v-else>
+								<p><strong>File:</strong> {{ lastFileName }}</p>
+								<p><strong>Status:</strong> {{ analysisStatus }}</p>
+							</div>
+						</ion-card-content>
+					</ion-card>
+				</div>
 			</div>
 		</ion-content>
 
@@ -73,7 +97,9 @@
 
 			<div v-if="cameraError" class="camera-error">
 				<p>{{ cameraError }}</p>
-				<ion-button size="small" fill="outline" color="light" @click="fallbackToFilePicker"> Use Photo Library Instead </ion-button>
+				<ion-button size="small" fill="outline" color="light" @click="fallbackToFilePicker">
+					Use Photo Library Instead
+				</ion-button>
 			</div>
 			<template v-else>
 				<div class="live-instruction" :class="{ 'live-instruction--warn': isLowLight }">
@@ -96,9 +122,6 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import {
 	IonPage,
-	IonHeader,
-	IonToolbar,
-	IonTitle,
 	IonContent,
 	IonButton,
 	IonSpinner,
@@ -109,7 +132,7 @@ import {
 	IonCardTitle,
 	IonCardContent,
 } from '@ionic/vue'
-import { cameraOutline, documentTextOutline, cloudUploadOutline, closeOutline } from 'ionicons/icons'
+import { cameraOutline, documentTextOutline, closeOutline, scanOutline } from 'ionicons/icons'
 import ScanResultModal from '../components/ScanResultModal.vue'
 import PhotoPantryUploadModal from '../components/PhotoPantryUploadModal.vue'
 
@@ -277,9 +300,6 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 	analysisStatus.value = `Analysis complete — Verdict: ${scan.safety_verdict}`
 	isResultModalOpen.value = true
 
-	// The modal now owns displaying the result — revert the inline
-	// placeholder card back to its empty state rather than leaving stale
-	// "Analysis complete" text behind it.
 	lastFileName.value = null
 	analysisStatus.value = 'Idle'
 }
@@ -461,10 +481,20 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.scan-container {
+.scan-page {
+	--background: #ffffff;
+}
+
+.scan-content {
+	--background: #ffffff;
+	--color: #1f2937;
+}
+
+.page-container {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+	padding: 16px 20px;
+	box-sizing: border-box;
 	max-width: 480px;
 	margin: 0 auto;
 }
@@ -473,25 +503,96 @@ onBeforeUnmount(() => {
 	display: none;
 }
 
-.scan-button {
-	margin-top: 24px;
-	--border-radius: 12px;
-	font-weight: 600;
+/* Header Section */
+.header-section {
+	text-align: center;
+	margin-top: 8px;
+	margin-bottom: 24px;
 }
 
-.upload-button {
-	--border-radius: 12px;
-	font-weight: 600;
+.page-title {
+	color: #1f2937;
+	font-size: 1.5rem;
+	font-weight: 700;
+	margin: 0 0 6px 0;
+}
+
+.page-subtitle {
+	color: #6b7280;
+	font-size: 0.875rem;
+	margin: 0;
+	line-height: 1.4;
+	padding: 0 16px;
+}
+
+/* Controls & Action Buttons */
+.controls-section {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	width: 100%;
+}
+
+.back-prompt-card {
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 12px;
+	text-align: center;
+	color: #334155;
+	font-size: 0.85rem;
+}
+
+.skip-btn {
+	--color: #0284c7;
+	margin-top: 4px;
+}
+
+.btn-primary {
+	--background: #00b14f;
+	--background-activated: #009643;
+	--color: #ffffff;
+	--border-radius: 9999px;
+	font-weight: 700;
+	height: 48px;
+	margin: 0;
+}
+
+/* Grayish Secondary Upload Button matching reference */
+.btn-secondary {
+	--background: #f1f5f9;
+	--background-activated: #e2e8f0;
+	--color: #27303e;
+	--border-radius: 9999px;
+	--border-color: #e2e8f0;
+	--border-width: 1px;
+	--border-style: solid;
+	font-weight: 700;
+	font-size: 0.85rem;
+	letter-spacing: 0.5px;
+	height: 48px;
+	margin: 0;
 }
 
 .cooldown-note {
 	text-align: center;
 	font-size: 0.85rem;
-	color: var(--ion-color-medium);
+	color: #6b7280;
 }
 
 .results-placeholder {
-	margin-top: 24px;
+	margin-top: 8px;
+	--background: #f8fafc;
+	--color: #1f2937;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	box-shadow: none;
+}
+
+.results-placeholder ion-card-title {
+	color: #1f2937;
+	font-size: 1rem;
+	font-weight: 600;
 }
 
 .placeholder-empty {
@@ -499,11 +600,12 @@ onBeforeUnmount(() => {
 	flex-direction: column;
 	align-items: center;
 	gap: 8px;
-	padding: 24px 0;
-	color: var(--ion-color-medium);
+	padding: 16px 0;
+	color: #94a3b8;
 	text-align: center;
 }
 
+/* Camera Overlay Styles */
 .camera-overlay {
 	position: fixed;
 	inset: 0;
@@ -553,7 +655,7 @@ onBeforeUnmount(() => {
 	position: absolute;
 	width: 40px;
 	height: 40px;
-	border-color: #22c55e;
+	border-color: #00b14f;
 	border-style: solid;
 	border-width: 0;
 }

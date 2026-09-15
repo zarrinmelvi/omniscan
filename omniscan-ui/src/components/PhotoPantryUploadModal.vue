@@ -1,18 +1,16 @@
 <template>
 	<ion-modal :is-open="isOpen" @didDismiss="handleDismiss">
-		<ion-header>
-			<ion-toolbar>
-				<ion-buttons slot="start">
-					<ion-button @click="handleBack">
-						<ion-icon :icon="arrowBackOutline" slot="icon-only" />
-					</ion-button>
-				</ion-buttons>
-				<ion-title>{{ step === 1 ? 'Upload a Photo' : 'Product Details' }}</ion-title>
-			</ion-toolbar>
-		</ion-header>
-
-		<ion-content class="ion-padding">
-			<p class="step-caption">Step {{ step }} of 2 — {{ step === 1 ? 'Select your photo' : 'Fill in the details' }}</p>
+		<ion-content class="light-content ion-padding">
+			<!-- Header Block -->
+			<div class="modal-custom-header">
+				<button type="button" class="back-circle-btn" aria-label="Go back" @click="handleBack">
+					<ion-icon :icon="arrowBackOutline" />
+				</button>
+				<div class="header-text-block">
+					<h2 class="header-title">{{ step === 1 ? 'Upload a Photo' : 'Product Details' }}</h2>
+					<p class="step-caption">Step {{ step }} of 2 — {{ step === 1 ? 'Select your photo' : 'Fill in the details' }}</p>
+				</div>
+			</div>
 
 			<div class="progress-row">
 				<div class="progress-segment" :class="{ filled: step >= 1 }"></div>
@@ -21,23 +19,31 @@
 
 			<!-- ============ STEP 1: PHOTO ============ -->
 			<div v-if="step === 1">
-				<ion-accordion-group>
-					<ion-accordion value="guidelines">
-						<ion-item slot="header">
-							<ion-icon :icon="informationCircleOutline" slot="start" />
-							<ion-label>Photo Upload Guidelines</ion-label>
+				<ion-accordion-group :value="'guidelines'">
+					<ion-accordion value="guidelines" class="light-accordion">
+						<ion-item slot="header" lines="none" class="guidelines-header-item">
+							<ion-icon :icon="informationCircleOutline" slot="start" class="guidelines-info-icon" />
+							<ion-label class="guidelines-header-label">Photo Upload Guidelines</ion-label>
 						</ion-item>
 						<div slot="content" class="guidelines-content">
-							<ol>
-								<li>Upload only clear and focused images of the product packaging.</li>
-								<li>Ensure the label, ingredients, and expiration date are fully visible.</li>
-								<li>Avoid blurry, dark, or obstructed photos.</li>
-								<li>Capture the product front and back if needed.</li>
-								<li>Do not upload unrelated or non-food images.</li>
-								<li>Limit uploads to 7 photos per day only.</li>
-								<li>Make sure text on the packaging is readable.</li>
-								<li>Use good lighting to improve scan accuracy.</li>
-							</ol>
+							<div class="guidelines-list">
+								<div class="guideline-item">
+									<span class="badge-number">1</span>
+									<span>Upload only clear and focused images of the stocks(eg. fruits, vegetables, dry goods).</span>
+								</div>
+								<div class="guideline-item">
+									<span class="badge-number">2</span>
+									<span>Do not upload unrelated or non-food images.</span>
+								</div>
+								<div class="guideline-item">
+									<span class="badge-number">3</span>
+									<span>Avoid blurry, dark, or obstructed photos.</span>
+								</div>
+								<div class="guideline-item">
+									<span class="badge-number">4</span>
+									<span>Use good lighting to improve scan accuracy.</span>
+								</div>
+							</div>
 						</div>
 					</ion-accordion>
 				</ion-accordion-group>
@@ -48,7 +54,9 @@
 
 				<div class="upload-dropzone" @click="fileInputRef?.click()">
 					<template v-if="!previewUrl">
-						<ion-icon :icon="cloudUploadOutline" class="upload-icon" />
+						<div class="upload-icon-wrapper">
+							<ion-icon :icon="cloudUploadOutline" class="upload-icon" />
+						</div>
 						<p class="upload-title">Tap to upload a photo</p>
 						<p class="upload-subtitle">Take a photo or choose from your gallery</p>
 					</template>
@@ -77,33 +85,43 @@
 				<div v-if="formError" class="form-error">{{ formError }}</div>
 
 				<form @submit.prevent="handleSubmit">
-					<ion-item lines="none" class="form-field">
-						<ion-label position="stacked">Product Name *</ion-label>
-						<ion-input v-model="form.productName" placeholder="e.g. Magnolia Full Cream Milk" required />
-					</ion-item>
+					<div class="form-group">
+						<label class="field-label-brown">Product Name *</label>
+						<input v-model="form.productName" type="text" placeholder="e.g. Magnolia Full Cream Milk" required class="native-text-input" />
+					</div>
 
-					<div class="date-hint-box">
-						<p class="date-hint-title">
+					<div class="date-selection-box">
+						<div class="info-box">
 							<ion-icon :icon="informationCircleOutline" />
-							You must provide at least one date before adding to pantry.
-						</p>
+							<span>You must provide at least one date before adding to pantry.</span>
+						</div>
 
-						<ion-item lines="none" class="form-field">
-							<ion-label position="stacked">Expiration Date</ion-label>
-							<ion-note class="field-note">For packaged and processed products (e.g. canned goods, dairy, meat).</ion-note>
-							<input v-model="form.expirationDate" type="date" class="native-date-input" />
-						</ion-item>
+						<div class="date-field">
+							<label class="date-field-label">Expiration Date</label>
+							<span class="field-hint">For packaged and processed products (e.g. canned goods, dairy, meat).</span>
+							<input
+								v-model="form.expirationDate"
+								type="date"
+								class="date-input"
+								:class="{ 'date-input--has-value': !!form.expirationDate }"
+							/>
+						</div>
 
 						<div class="or-divider"><span>OR</span></div>
 
-						<ion-item lines="none" class="form-field">
-							<ion-label position="stacked">Best Before Date</ion-label>
-							<ion-note class="field-note">For fresh stock and produce (e.g. fruits, vegetables, dry goods).</ion-note>
-							<input v-model="form.bestBeforeDate" type="date" class="native-date-input" />
-						</ion-item>
+						<div class="date-field">
+							<label class="date-field-label">Best Before Date</label>
+							<span class="field-hint">For fresh stocks and produce (e.g. fruits, vegetables, dry goods).</span>
+							<input
+								v-model="form.bestBeforeDate"
+								type="date"
+								class="date-input"
+								:class="{ 'date-input--has-value': !!form.bestBeforeDate }"
+							/>
+						</div>
 					</div>
 
-					<p class="section-label">Storage Location</p>
+					<label class="field-label-brown">Storage Location</label>
 					<div class="storage-buttons">
 						<button
 							v-for="loc in storageLocations"
@@ -116,20 +134,18 @@
 						</button>
 					</div>
 
-					<p class="section-label">Quantity &amp; Unit</p>
+					<!-- Styled Quantity & Unit (Matching Picture 3 format) -->
+					<label class="field-label-brown">Quantity &amp; Unit</label>
 					<div class="quantity-row">
-						<ion-input v-model.number="form.quantity" type="number" min="0" step="any" class="quantity-input" />
-						<ion-select v-model="form.unit" interface="popover" class="unit-select">
-							<ion-select-option value="pcs">pcs</ion-select-option>
-							<ion-select-option value="g">g</ion-select-option>
-							<ion-select-option value="kg">kg</ion-select-option>
-							<ion-select-option value="ml">ml</ion-select-option>
-							<ion-select-option value="L">L</ion-select-option>
-						</ion-select>
+						<input type="number" min="0.01" step="any" class="quantity-input" v-model.number="form.quantity" />
+						<select class="unit-select" v-model="form.unit">
+							<option v-for="opt in unitOptions" :key="opt" :value="opt">{{ opt }}</option>
+						</select>
 					</div>
 
-					<ion-button expand="block" type="submit" class="primary-button" :disabled="isSubmitting">
-						<ion-icon :icon="addOutline" slot="start" />
+					<ion-button expand="block" type="submit" class="primary-button" :disabled="!isFormValid || isSubmitting">
+						<ion-spinner v-if="isSubmitting" name="crescent" slot="start" />
+						<ion-icon v-else :icon="addOutline" slot="start" />
 						{{ isSubmitting ? 'Adding...' : 'Add to Pantry' }}
 					</ion-button>
 				</form>
@@ -139,39 +155,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import {
 	IonModal,
-	IonHeader,
-	IonToolbar,
-	IonTitle,
-	IonButtons,
-	IonButton,
 	IonIcon,
+	IonButton,
 	IonContent,
 	IonAccordionGroup,
 	IonAccordion,
 	IonItem,
 	IonLabel,
-	IonInput,
-	IonSelect,
-	IonSelectOption,
-	IonNote,
+	IonSpinner,
 } from '@ionic/vue'
-import { arrowBackOutline, informationCircleOutline, warningOutline, cloudUploadOutline, addOutline } from 'ionicons/icons'
+import {
+	arrowBackOutline,
+	informationCircleOutline,
+	warningOutline,
+	cloudUploadOutline,
+	addOutline,
+} from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB raw, before base64 overhead
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 
 defineProps<{ isOpen: boolean }>()
 const emit = defineEmits<{ close: []; created: [] }>()
 
 const step = ref<1 | 2>(1)
 const fileInputRef = ref<HTMLInputElement | null>(null)
-const previewUrl = ref<string | null>(null) // this IS the base64 data URI, reused directly
+const previewUrl = ref<string | null>(null)
 const fileError = ref<string | null>(null)
 
 const storageLocations = ['Fridge', 'Freezer', 'Cupboard'] as const
+const unitOptions = ['pcs', 'g', 'kg', 'ml', 'L']
 
 const form = reactive({
 	productName: '',
@@ -184,6 +200,14 @@ const form = reactive({
 
 const isSubmitting = ref(false)
 const formError = ref<string | null>(null)
+
+/* Button Unclickable Validation */
+const isFormValid = computed(() => {
+	const hasName = form.productName.trim().length > 0
+	const hasValidQty = form.quantity > 0
+	const hasAtLeastOneDate = !!form.expirationDate || !!form.bestBeforeDate
+	return hasName && hasValidQty && hasAtLeastOneDate
+})
 
 function resetAll(): void {
 	step.value = 1
@@ -245,20 +269,8 @@ function handleDismiss(): void {
 }
 
 async function handleSubmit(): Promise<void> {
+	if (!isFormValid.value) return
 	formError.value = null
-
-	if (!form.productName.trim()) {
-		formError.value = 'Please enter a product name.'
-		return
-	}
-	if (!form.expirationDate && !form.bestBeforeDate) {
-		formError.value = 'Please provide at least one date.'
-		return
-	}
-	if (form.quantity <= 0) {
-		formError.value = 'Please enter a valid quantity.'
-		return
-	}
 
 	isSubmitting.value = true
 
@@ -288,193 +300,432 @@ async function handleSubmit(): Promise<void> {
 </script>
 
 <style scoped>
-.step-caption {
-	color: #6b7280;
-	font-size: 0.85rem;
-	margin-bottom: 8px;
+.light-content {
+	--background: #ffffff;
+	--color: #4b5563;
 }
+
+/* Header layout */
+.modal-custom-header {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-top: 6px;
+	margin-bottom: 12px;
+}
+
+.back-circle-btn {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: #f1f5f9;
+	border: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #1f2937;
+	font-size: 1.1rem;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.header-text-block {
+	display: flex;
+	flex-direction: column;
+}
+
+.header-title {
+	margin: 0;
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: #1f2937;
+	line-height: 1.25;
+}
+
+.step-caption {
+	color: #9aa0a6;
+	font-size: 0.78rem;
+	margin: 2px 0 0;
+}
+
 .progress-row {
 	display: flex;
 	gap: 8px;
 	margin-bottom: 16px;
 }
+
 .progress-segment {
 	flex: 1;
 	height: 4px;
 	border-radius: 2px;
-	background: #e5e7eb;
+	background: #e2e8f0;
 }
+
 .progress-segment.filled {
-	background: #16a34a;
+	background: #00b14f;
 }
-.guidelines-content {
-	padding: 0 16px 16px;
+
+/* Guidelines Accordion */
+ion-accordion-group {
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	overflow: hidden;
+	margin-bottom: 12px;
+	background: #f8fafc;
+}
+
+.light-accordion {
+	background: #f8fafc;
+}
+
+.guidelines-header-item {
+	--background: #f8fafc;
+	--padding-start: 12px;
+}
+
+.guidelines-info-icon {
+	color: #00b14f;
+	font-size: 1.15rem;
+	margin-right: 8px;
+}
+
+.guidelines-header-label {
 	font-size: 0.85rem;
-	color: #374151;
+	font-weight: 600;
+	color: #1f2937;
 }
-.guidelines-content ol {
-	margin: 0;
-	padding-left: 20px;
+
+.guidelines-content {
+	padding: 12px 14px 16px;
+	background: #f8fafc;
 }
-.guidelines-content li {
-	margin-bottom: 6px;
+
+.guidelines-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
 }
-.upload-limit-note {
-	color: #b45309;
+
+.guideline-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
 	font-size: 0.8rem;
+	color: #334155;
+	line-height: 1.38;
+}
+
+.badge-number {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background: #00b14f;
+	color: #ffffff;
+	font-weight: 700;
+	font-size: 0.72rem;
 	display: flex;
 	align-items: center;
-	gap: 4px;
-	margin: 12px 0;
+	justify-content: center;
+	flex-shrink: 0;
+	margin-top: 1px;
 }
+
+.upload-limit-note {
+	color: #d9762b;
+	font-size: 0.78rem;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 12px 0;
+	font-weight: 600;
+}
+
 .hidden-input {
 	display: none;
 }
+
 .upload-dropzone {
-	border: 2px dashed #d1d5db;
+	border: 1px dashed #cbd5e1;
 	border-radius: 16px;
 	padding: 32px 16px;
 	text-align: center;
 	cursor: pointer;
 	margin: 16px 0;
+	background: #ffffff;
 }
+
+.upload-icon-wrapper {
+	width: 50px;
+	height: 50px;
+	border-radius: 50%;
+	background: #f1f5f9;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 8px;
+}
+
 .upload-icon {
-	font-size: 2rem;
-	color: #6b7280;
+	font-size: 1.5rem;
+	color: #94a3b8;
 }
+
 .upload-title {
-	font-weight: 600;
-	margin: 8px 0 2px;
+	font-weight: 700;
+	margin: 6px 0 3px;
+	color: #1f2937;
+	font-size: 0.925rem;
 }
+
 .upload-subtitle {
-	color: #6b7280;
-	font-size: 0.85rem;
+	color: #9aa0a6;
+	font-size: 0.8rem;
 }
+
 .preview-image {
 	max-width: 100%;
 	max-height: 200px;
 	border-radius: 12px;
 }
+
 .change-photo-link {
-	color: #16a34a;
-	font-size: 0.85rem;
+	color: #00b14f;
+	font-size: 0.825rem;
 	margin-top: 8px;
 }
+
 .required-note {
 	text-align: center;
-	color: #6b7280;
-	font-size: 0.8rem;
+	color: #9aa0a6;
+	font-size: 0.78rem;
 	margin-top: 8px;
 }
+
 .photo-summary {
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	margin-bottom: 16px;
+	margin-bottom: 14px;
 }
+
 .thumbnail {
-	width: 56px;
-	height: 56px;
+	width: 52px;
+	height: 52px;
 	object-fit: cover;
 	border-radius: 10px;
 }
+
 .uploaded-label {
-	font-size: 0.85rem;
+	font-size: 0.825rem;
 	color: #374151;
 	margin: 0;
 }
+
 .change-photo-text {
-	color: #16a34a;
-	font-size: 0.85rem;
+	color: #00b14f;
+	font-size: 0.825rem;
 	text-decoration: underline;
 }
-.form-field {
-	--padding-start: 0;
-	margin-bottom: 8px;
+
+/* Form Styles */
+.form-group {
+	margin-bottom: 12px;
 }
-.date-hint-box {
-	background: #eff6ff;
-	border-radius: 12px;
-	padding: 12px;
-	margin: 12px 0;
-}
-.date-hint-title {
-	color: #1d4ed8;
+
+.field-label-brown {
+	display: block;
 	font-size: 0.8rem;
+	font-weight: 600;
+	color: #92400e;
+	margin: 10px 0 5px;
+}
+
+.native-text-input {
+	width: 100%;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	padding: 10px 12px;
+	font-size: 0.9rem;
+	color: #1f2937;
+	background: #ffffff;
+	box-sizing: border-box;
+}
+
+.native-text-input::placeholder {
+	color: #9aa0a6;
+}
+
+/* Date Selection Box */
+.date-selection-box {
+	background: #eff6ff;
+	border: 1px solid #dbeafe;
+	border-radius: 16px;
+	padding: 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin: 14px 0;
+}
+
+.info-box {
 	display: flex;
 	align-items: flex-start;
-	gap: 6px;
-	margin-bottom: 8px;
+	gap: 8px;
+	color: #2563eb;
+	font-size: 0.78rem;
+	line-height: 1.35;
+	background: transparent;
+	padding: 0;
 }
-.field-note {
-	font-size: 0.75rem;
-	color: #6b7280;
+
+.info-box ion-icon {
+	margin-top: 1px;
+	flex-shrink: 0;
 }
-.native-date-input {
-	width: 100%;
-	padding: 10px;
-	border: 1px solid #d1d5db;
-	border-radius: 8px;
-	font-size: 0.95rem;
-	margin-top: 4px;
+
+.date-field {
+	display: flex;
+	flex-direction: column;
 }
-.or-divider {
-	text-align: center;
-	color: #9ca3af;
-	font-size: 0.75rem;
-	margin: 8px 0;
-}
-.section-label {
+
+.date-field-label {
+	display: block;
+	font-size: 0.8rem;
 	font-weight: 600;
-	font-size: 0.85rem;
-	margin: 16px 0 8px;
+	color: #92400e;
 }
+
+.field-hint {
+	display: block;
+	font-weight: 400;
+	color: #94a3b8;
+	font-size: 0.74rem;
+	line-height: 1.35;
+	margin-top: 2px;
+	margin-bottom: 6px;
+}
+
+.date-input {
+	width: 100%;
+	border: 1px solid #cbd5e1;
+	border-radius: 12px;
+	padding: 10px 14px;
+	font-size: 0.875rem;
+	color: #374151;
+	background: #ffffff;
+	box-sizing: border-box;
+	transition: all 0.2s ease;
+}
+
+.date-input--has-value,
+.date-input:focus {
+	border-color: #22c55e;
+	box-shadow: 0 0 0 1px #22c55e;
+	outline: none;
+}
+
+.or-divider {
+	display: flex;
+	align-items: center;
+	text-align: center;
+	color: #9aa0a6;
+	font-size: 0.76rem;
+	font-weight: 500;
+	margin: 1px 0;
+}
+
+.or-divider::before,
+.or-divider::after {
+	content: '';
+	flex: 1;
+	border-top: 1px solid #bfdbfe;
+}
+
+.or-divider span {
+	padding: 0 10px;
+	color: #3b82f6;
+}
+
 .storage-buttons {
 	display: flex;
 	gap: 8px;
+	margin-bottom: 12px;
 }
+
 .pill {
-	border: 1px solid #d1d5db;
+	border: 1px solid #e5e7eb;
 	background: #ffffff;
 	color: #374151;
-	border-radius: 999px;
-	padding: 6px 16px;
-	font-size: 0.85rem;
+	border-radius: 12px;
+	padding: 9px 0;
+	font-size: 0.825rem;
+	font-weight: 500;
 	flex: 1;
 }
+
 .pill--active {
-	border-color: #16a34a;
-	color: #16a34a;
-	background: #f0fdf4;
+	border-color: #00b14f;
+	color: #ffffff;
+	background: #00b14f;
 	font-weight: 600;
 }
+
+/* Quantity & Unit (Matching Picture 3 format) */
 .quantity-row {
 	display: flex;
-	gap: 8px;
+	gap: 10px;
+	margin-bottom: 14px;
 }
+
 .quantity-input {
 	flex: 1;
-	border: 1px solid #d1d5db;
-	border-radius: 8px;
-	--padding-start: 12px;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	padding: 10px 12px;
+	font-size: 0.925rem;
+	color: #3b5bfd;
+	font-weight: 500;
+	background: #ffffff;
+	-moz-appearance: textfield;
 }
+
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
 .unit-select {
 	flex: 1;
-	border: 1px solid #d1d5db;
-	border-radius: 8px;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	padding: 10px 12px;
+	font-size: 0.925rem;
+	color: #3b5bfd;
+	font-weight: 500;
+	background: #ffffff;
 }
+
+/* Primary Button with Disabled state styling */
 .primary-button {
-	--background: #16a34a;
+	--background: #00b14f;
+	--background-activated: #009643;
+	--background-disabled: #e2e8f0;
+	--color-disabled: #94a3b8;
+	--color: #ffffff;
 	--border-radius: 12px;
-	font-weight: 600;
+	font-weight: 700;
 	margin-top: 20px;
+	height: 48px;
 }
+
 .form-error {
 	background: #fee2e2;
 	color: #b91c1c;
+	border: 1px solid #fca5a5;
 	border-radius: 8px;
 	padding: 8px 12px;
 	margin-bottom: 12px;
-	font-size: 0.85rem;
+	font-size: 0.825rem;
 }
 </style>

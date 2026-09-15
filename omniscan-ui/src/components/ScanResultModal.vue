@@ -113,12 +113,7 @@
 						<div class="date-field">
 							<label class="date-field-label">Expiration Date</label>
 							<span class="field-hint">For packaged and processed products (e.g. canned goods, dairy, meat).</span>
-							<input
-								type="date"
-								class="date-input"
-								:class="{ 'date-input--has-value': !!expirationDate }"
-								v-model="expirationDate"
-							/>
+							<input type="date" class="date-input" :class="{ 'date-input--has-value': !!expirationDate }" v-model="expirationDate" />
 						</div>
 
 						<div class="or-divider"><span>OR</span></div>
@@ -126,12 +121,7 @@
 						<div class="date-field">
 							<label class="date-field-label">Best Before Date</label>
 							<span class="field-hint">For fresh stocks and produce (e.g. fruits, vegetables, dry goods).</span>
-							<input
-								type="date"
-								class="date-input"
-								:class="{ 'date-input--has-value': !!bestBeforeDate }"
-								v-model="bestBeforeDate"
-							/>
+							<input type="date" class="date-input" :class="{ 'date-input--has-value': !!bestBeforeDate }" v-model="bestBeforeDate" />
 						</div>
 					</div>
 
@@ -168,8 +158,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'added'])
-
-const TOKEN_KEY = 'omniscan_token'
 
 const product = computed(() => props.data?.product || null)
 
@@ -326,37 +314,22 @@ async function submitAddToPantry() {
 	submitting.value = true
 
 	try {
-		const token = localStorage.getItem(TOKEN_KEY)
-
-		if (!token) {
-			throw new Error('You must be logged in to add items to your pantry.')
-		}
-
-		const response = await fetch('/api/pantry_item', {
+		await apiFetch('/api/pantry_item', {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${token}`,
-			},
-			body: JSON.stringify({
+			body: {
 				product_id: product.value.id,
 				quantity: quantity.value,
 				unit: unit.value,
 				storage_location: storageLocation.value,
 				expiration_date: expirationDate.value || undefined,
 				best_before_date: bestBeforeDate.value || undefined,
-			}),
+			},
 		})
-
-		if (!response.ok) {
-			const body = await response.json().catch(() => null)
-			throw new Error(body?.statusMessage || `Failed to add item (status ${response.status}).`)
-		}
 
 		emit('added')
 		handleDismiss()
 	} catch (err) {
-		submitError.value = err instanceof Error ? err.message : 'Failed to add item to pantry.'
+		submitError.value = err.message || 'Failed to add item to pantry.'
 	} finally {
 		submitting.value = false
 	}

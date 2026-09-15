@@ -142,6 +142,9 @@ async function extractProductInfoFromImage(base64Images: string[]): Promise<Scan
 	try {
 		ollamaResponse = await $fetch<OllamaChatResponse>(OLLAMA_ENDPOINT, {
 			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
+			},
 			body: requestPayload,
 		})
 

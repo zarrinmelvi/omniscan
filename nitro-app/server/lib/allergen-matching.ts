@@ -100,6 +100,9 @@ export async function matchUserAllergensSemantically(ingredientsText: string, al
 	try {
 		const response = await $fetch<OllamaChatResponse>(OLLAMA_ENDPOINT, {
 			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
+			},
 			body: requestPayload,
 		})
 

@@ -5,27 +5,19 @@
 				<!-- Top Header Area -->
 				<header class="header-section">
 					<h1 class="page-title">OmniScan</h1>
-					<p class="page-subtitle">
-						Scan any product package showing Halal logo and ingredient list
-					</p>
+					<p class="page-subtitle">Scan any product package showing Halal logo and ingredient list</p>
 				</header>
 
 				<!-- Hidden File Input -->
-				<input
-					ref="fileInputRef"
-					type="file"
-					accept="image/*"
-					capture="environment"
-					class="hidden-input"
-					@change="onFileSelected"
-				/>
+				<input ref="fileInputRef" type="file" accept="image/*" capture="environment" class="hidden-input" @change="onFileSelected" />
 
 				<!-- Interactive Controls Section -->
 				<div class="controls-section">
 					<!-- Prompt card for back photo step -->
 					<div v-if="captureStage === 'back'" class="back-prompt-card">
 						<p class="back-prompt-text">
-							<strong>Front captured.</strong> Now scan or upload the <strong>back</strong> of the product so the ingredients list can be read.
+							<strong>Front captured.</strong> Now scan or upload the <strong>back</strong> of the product so the ingredients list can
+							be read.
 						</p>
 						<ion-button expand="block" fill="clear" size="small" class="skip-btn" @click="skipBackPhoto">
 							Skip — use front photo only
@@ -33,12 +25,7 @@
 					</div>
 
 					<!-- Primary Action Button -->
-					<ion-button
-						expand="block"
-						class="btn-primary"
-						:disabled="isCoolingDown"
-						@click="openCamera"
-					>
+					<ion-button expand="block" class="btn-primary" :disabled="isCoolingDown" @click="openCamera">
 						<ion-spinner v-if="isCoolingDown" name="crescent" slot="start" />
 						<ion-icon v-else :icon="scanOutline" slot="start" />
 						<span v-if="isCoolingDown">Processing… ({{ remainingSeconds }}s)</span>
@@ -47,11 +34,7 @@
 					</ion-button>
 
 					<!-- Secondary Action Button (Updated to soft grayish styling) -->
-					<ion-button
-						expand="block"
-						class="btn-secondary"
-						@click="isPhotoModalOpen = true"
-					>
+					<ion-button expand="block" class="btn-secondary" @click="isPhotoModalOpen = true">
 						<ion-icon :icon="cameraOutline" slot="start" />
 						UPLOAD A PHOTO
 					</ion-button>
@@ -97,9 +80,7 @@
 
 			<div v-if="cameraError" class="camera-error">
 				<p>{{ cameraError }}</p>
-				<ion-button size="small" fill="outline" color="light" @click="fallbackToFilePicker">
-					Use Photo Library Instead
-				</ion-button>
+				<ion-button size="small" fill="outline" color="light" @click="fallbackToFilePicker"> Use Photo Library Instead </ion-button>
 			</div>
 			<template v-else>
 				<div class="live-instruction" :class="{ 'live-instruction--warn': isLowLight }">
@@ -121,18 +102,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import {
-	IonPage,
-	IonContent,
-	IonButton,
-	IonSpinner,
-	IonIcon,
-	IonNote,
-	IonCard,
-	IonCardHeader,
-	IonCardTitle,
-	IonCardContent,
-} from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonSpinner, IonIcon, IonNote, IonCard, IonCardHeader, IonCardTitle, IonCardContent } from '@ionic/vue'
+
+import { API_BASE_URL } from '@/utils/api'
+
 import { cameraOutline, documentTextOutline, closeOutline, scanOutline } from 'ionicons/icons'
 import ScanResultModal from '../components/ScanResultModal.vue'
 import PhotoPantryUploadModal from '../components/PhotoPantryUploadModal.vue'
@@ -261,7 +234,7 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		throw new Error('You must be logged in to scan an item.')
 	}
 
-	const response = await fetch('/api/scan', {
+	const response = await fetch(`${API_BASE_URL}/api/scan`, {
 		method: 'POST',
 		headers: {
 			Authorization: `Bearer ${token}`,

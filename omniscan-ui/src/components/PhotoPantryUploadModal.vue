@@ -134,7 +134,7 @@
 						</button>
 					</div>
 
-					<!-- Styled Quantity & Unit (Matching Picture 3 format) -->
+					<!-- Styled Quantity & Unit -->
 					<label class="field-label-brown">Quantity &amp; Unit</label>
 					<div class="quantity-row">
 						<input type="number" min="0.01" step="any" class="quantity-input" v-model.number="form.quantity" />
@@ -201,7 +201,6 @@ const form = reactive({
 const isSubmitting = ref(false)
 const formError = ref<string | null>(null)
 
-/* Button Unclickable Validation */
 const isFormValid = computed(() => {
 	const hasName = form.productName.trim().length > 0
 	const hasValidQty = form.quantity > 0
@@ -305,7 +304,6 @@ async function handleSubmit(): Promise<void> {
 	--color: #4b5563;
 }
 
-/* Header layout */
 .modal-custom-header {
 	display: flex;
 	align-items: center;
@@ -365,7 +363,6 @@ async function handleSubmit(): Promise<void> {
 	background: #00b14f;
 }
 
-/* Guidelines Accordion */
 ion-accordion-group {
 	border: 1px solid #e2e8f0;
 	border-radius: 14px;
@@ -527,7 +524,6 @@ ion-accordion-group {
 	text-decoration: underline;
 }
 
-/* Form Styles */
 .form-group {
 	margin-bottom: 12px;
 }
@@ -555,7 +551,6 @@ ion-accordion-group {
 	color: #9aa0a6;
 }
 
-/* Date Selection Box */
 .date-selection-box {
 	background: #eff6ff;
 	border: 1px solid #dbeafe;
@@ -670,7 +665,6 @@ ion-accordion-group {
 	font-weight: 600;
 }
 
-/* Quantity & Unit (Matching Picture 3 format) */
 .quantity-row {
 	display: flex;
 	gap: 10px;
@@ -686,11 +680,13 @@ ion-accordion-group {
 	color: #3b5bfd;
 	font-weight: 500;
 	background: #ffffff;
+	appearance: textfield;
 	-moz-appearance: textfield;
 }
 
 .quantity-input::-webkit-outer-spin-button,
 .quantity-input::-webkit-inner-spin-button {
+	appearance: none;
 	-webkit-appearance: none;
 	margin: 0;
 }
@@ -706,7 +702,6 @@ ion-accordion-group {
 	background: #ffffff;
 }
 
-/* Primary Button with Disabled state styling */
 .primary-button {
 	--background: #00b14f;
 	--background-activated: #009643;

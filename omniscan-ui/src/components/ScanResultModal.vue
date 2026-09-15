@@ -55,7 +55,7 @@
 					</ul>
 				</div>
 
-				<!-- Ingredients Card Layout matching Picture 1 -->
+				<!-- Ingredients Card Layout -->
 				<div class="ingredients-card">
 					<button type="button" class="ingredients-card__header" @click="ingredientsOpen = !ingredientsOpen">
 						<span class="ingredients-card__title">Ingredients</span>
@@ -176,12 +176,6 @@ const product = computed(() => props.data?.product || null)
 const personalAllergenAlerts = computed(() => props.data?.matched_user_allergens || [])
 const halalInfo = computed(() => props.data?.halal || null)
 
-// Halal badges (both "certified" and "pending verification") only mean
-// anything to a user who actually has Halal as a dietary preference —
-// previously these showed identically for every user regardless of their
-// profile. Fetched fresh each time the modal opens (see the isOpen watcher
-// below) rather than cached, matching how ProfilePage.vue and the rest of
-// this app fetch dietary profile data — no shared store for it exists yet.
 const userHalalPref = ref(false)
 
 async function fetchHalalPref() {
@@ -189,11 +183,6 @@ async function fetchHalalPref() {
 		const data = await apiFetch('/api/users', { method: 'GET' })
 		userHalalPref.value = data?.user?.dietary_prof?.[0]?.halal_pref ?? false
 	} catch (err) {
-		// Fail closed on DISPLAY, not safety: if we can't confirm the
-		// user's preference, don't show a Halal badge that may not be
-		// relevant to them. This must never block the rest of the modal —
-		// Add to Pantry and everything else still needs to work even if
-		// this fetch fails.
 		console.error('Failed to fetch dietary profile for Halal badge gating:', err)
 		userHalalPref.value = false
 	}
@@ -207,10 +196,6 @@ const halalCertifiedLabel = computed(() => {
 	return certifier ? `${certifier} Certified` : 'Halal Certified'
 })
 
-// -------- Allergen detection (derived client-side from ingredients_text) --------
-// Placeholder heuristic — keyword matching against the AI-extracted ingredient
-// text, same spirit as the backend's Red/Yellow/Green keyword verdict logic.
-// Swap for a real allergen-classification step later if needed.
 const ALLERGEN_RULES = [
 	{ key: 'milk', label: 'Milk', keywords: ['milk'], warning: 'Contains milk — not suitable for those with a milk allergy' },
 	{
@@ -267,8 +252,6 @@ const dietaryWarnings = computed(() => {
 	return warnings
 })
 
-// -------- Alternatives (placeholder — no real recommendation engine yet) --------
-// TODO: replace with a real alternatives/recommendation source once one exists.
 const ALTERNATIVE_CATALOG = {
 	dairy: [
 		{ name: 'Selecta Full Cream Milk', description: 'Similar nutritional profile', tags: ['Halal', 'Gluten-free'] },
@@ -445,7 +428,6 @@ function handleDismiss() {
 	margin-bottom: 14px;
 }
 
-/* Unbolded Allergen Badges matching Picture 3 */
 .badge {
 	display: inline-flex;
 	align-items: center;
@@ -469,7 +451,6 @@ function handleDismiss() {
 .badge-allergen {
 	background: #fdeee0;
 	color: #d9762b;
-
 }
 
 .badge-allergen--personal {
@@ -536,7 +517,6 @@ function handleDismiss() {
 	margin-bottom: 2px;
 }
 
-/* Ingredients Card Container matching Picture 1 */
 .ingredients-card {
 	background: #f8fafc;
 	border: 1px solid #e2e8f0;
@@ -605,7 +585,6 @@ function handleDismiss() {
 	border-bottom: none;
 }
 
-/* Lessened font weight for Alternatives in Picture 2 */
 .alt-item__name {
 	margin: 0;
 	font-weight: 500;
@@ -665,7 +644,6 @@ function handleDismiss() {
 	margin-bottom: 14px;
 }
 
-/* Lessened font weight for form inputs in Picture 2 */
 .quantity-input {
 	flex: 1;
 	border: 1px solid #e5e7eb;
@@ -674,11 +652,13 @@ function handleDismiss() {
 	font-size: 0.95rem;
 	color: #3b5bfd;
 	font-weight: 500;
+	appearance: textfield;
 	-moz-appearance: textfield;
 }
 
 .quantity-input::-webkit-outer-spin-button,
 .quantity-input::-webkit-inner-spin-button {
+	appearance: none;
 	-webkit-appearance: none;
 	margin: 0;
 }
@@ -717,7 +697,6 @@ function handleDismiss() {
 	color: #ffffff;
 }
 
-/* Date Box Section */
 .date-selection-box {
 	background: #eff6ff;
 	border: 1px solid #dbeafe;

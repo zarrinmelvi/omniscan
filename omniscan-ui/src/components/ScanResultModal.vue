@@ -55,7 +55,7 @@
 					</ul>
 				</div>
 
-				<!-- Ingredients Card Layout -->
+				<!-- Ingredients Card Layout matching Picture 1 -->
 				<div class="ingredients-card">
 					<button type="button" class="ingredients-card__header" @click="ingredientsOpen = !ingredientsOpen">
 						<span class="ingredients-card__title">Ingredients</span>
@@ -445,6 +445,7 @@ function handleDismiss() {
 	margin-bottom: 14px;
 }
 
+/* Unbolded Allergen Badges matching Picture 3 */
 .badge {
 	display: inline-flex;
 	align-items: center;
@@ -534,6 +535,7 @@ function handleDismiss() {
 	margin-bottom: 2px;
 }
 
+/* Ingredients Card Container matching Picture 1 */
 .ingredients-card {
 	background: #f8fafc;
 	border: 1px solid #e2e8f0;
@@ -602,6 +604,7 @@ function handleDismiss() {
 	border-bottom: none;
 }
 
+/* Lessened font weight for Alternatives in Picture 2 */
 .alt-item__name {
 	margin: 0;
 	font-weight: 500;
@@ -661,6 +664,7 @@ function handleDismiss() {
 	margin-bottom: 14px;
 }
 
+/* Lessened font weight for form inputs in Picture 2 */
 .quantity-input {
 	flex: 1;
 	border: 1px solid #e5e7eb;
@@ -669,6 +673,8 @@ function handleDismiss() {
 	font-size: 0.95rem;
 	color: #3b5bfd;
 	font-weight: 500;
+	background-color: #ffffff !important;
+	color-scheme: light;
 	appearance: textfield;
 	-moz-appearance: textfield;
 }
@@ -688,7 +694,8 @@ function handleDismiss() {
 	font-size: 0.95rem;
 	color: #3b5bfd;
 	font-weight: 500;
-	background: #fff;
+	background-color: #ffffff !important;
+	color-scheme: light;
 }
 
 .storage-row {
@@ -714,6 +721,7 @@ function handleDismiss() {
 	color: #ffffff;
 }
 
+/* Date Box Section */
 .date-selection-box {
 	background: #eff6ff;
 	border: 1px solid #dbeafe;
@@ -762,7 +770,8 @@ function handleDismiss() {
 	padding: 10px 14px;
 	font-size: 0.9rem;
 	color: #374151;
-	background: #ffffff;
+	background-color: #ffffff !important;
+	color-scheme: light;
 	box-sizing: border-box;
 	font-weight: 400;
 	transition: all 0.2s ease;

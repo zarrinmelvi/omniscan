@@ -103,11 +103,12 @@
 			</div>
 			<template v-else>
 				<div class="live-instruction" :class="{ 'live-instruction--warn': isLowLight }">
-					{{ liveInstruction }}
+					{{ isCapturing ? 'Saving image...' : liveInstruction }}
 				</div>
 
-				<button type="button" class="capture-btn" :disabled="!isCameraReady" aria-label="Capture photo" @click="handleCapture">
-					<span class="capture-btn__ring"></span>
+				<button type="button" class="capture-btn" :disabled="!isCameraReady || isCapturing" aria-label="Capture photo" @click="handleCapture">
+					<ion-spinner v-if="isCapturing" name="crescent" color="dark" />
+					<span v-else class="capture-btn__ring"></span>
 				</button>
 			</template>
 		</div>
@@ -341,6 +342,7 @@ const BRIGHTNESS_SAMPLE_SIZE = 32
 
 const isCameraOpen = ref(false)
 const isCameraReady = ref(false)
+const isCapturing = ref(false)
 const cameraError = ref<string | null>(null)
 const liveInstruction = ref<string>('Align product within frame')
 const isLowLight = ref(false)
@@ -388,6 +390,7 @@ function closeCamera(): void {
 	mediaStream?.getTracks().forEach((track) => track.stop())
 	mediaStream = null
 	isCameraReady.value = false
+	isCapturing.value = false
 	isCameraOpen.value = false
 	cameraError.value = null
 }
@@ -446,15 +449,19 @@ function stopBrightnessLoop(): void {
 }
 
 function handleCapture(): void {
-	if (!videoRef.value || !canvasRef.value) return
+	if (!videoRef.value || !canvasRef.value || isCapturing.value) return
 
+	isCapturing.value = true
 	const video = videoRef.value
 	const canvas = canvasRef.value
 	canvas.width = video.videoWidth
 	canvas.height = video.videoHeight
 
 	const ctx = canvas.getContext('2d')
-	if (!ctx) return
+	if (!ctx) {
+		isCapturing.value = false
+		return
+	}
 
 	ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
 
@@ -462,12 +469,18 @@ function handleCapture(): void {
 		(blob) => {
 			if (!blob) {
 				cameraError.value = 'Could not capture photo. Please try again.'
+				isCapturing.value = false
 				return
 			}
 
-			const file = new File([blob], `scan-${Date.now()}.jpg`, { type: 'image/jpeg' })
-			closeCamera()
-			void processCapturedFile(file)
+			try {
+				const file = new File([blob], `scan-${Date.now()}.jpg`, { type: 'image/jpeg' })
+				closeCamera()
+				void processCapturedFile(file)
+			} catch (err) {
+				isCapturing.value = false
+				cameraError.value = 'An error occurred while saving the photo.'
+			}
 		},
 		'image/jpeg',
 		0.85,
@@ -727,6 +740,13 @@ onBeforeUnmount(() => {
 	align-items: center;
 	justify-content: center;
 	padding: 0;
+	transition: transform 0.1s ease, border-color 0.1s ease;
+	cursor: pointer;
+}
+
+.capture-btn:active {
+	transform: translateX(-50%) scale(0.95);
+	border-color: #d1d5db;
 }
 
 .capture-btn:disabled {
@@ -738,6 +758,11 @@ onBeforeUnmount(() => {
 	height: 56px;
 	border-radius: 50%;
 	background: #ffffff;
+	transition: background-color 0.1s ease;
+}
+
+.capture-btn:active .capture-btn__ring {
+	background-color: #9ca3af;
 }
 
 .camera-error {

@@ -39,10 +39,6 @@
 									<span class="badge-number">3</span>
 									<span>Avoid blurry, dark, or obstructed photos.</span>
 								</div>
-								<div class="guideline-item">
-									<span class="badge-number">4</span>
-									<span>Use good lighting to improve scan accuracy.</span>
-								</div>
 							</div>
 						</div>
 					</ion-accordion>

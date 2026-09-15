@@ -11,7 +11,7 @@ const AUTH_EXEMPT_ENDPOINTS = ['/api/auth/login', '/api/auth/register', '/api/ad
 // fetch would hit omniscan-ui's own domain instead of the backend. Set
 // VITE_API_URL (e.g. to the nitro-app Vercel deployment's URL) in that
 // project's Environment Variables to fix this — leave it unset locally.
-const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || ''
+export const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || ''
 
 export interface ApiRequestOptions extends Omit<RequestInit, 'body'> {
 	body?: unknown

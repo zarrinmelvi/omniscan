@@ -1,71 +1,91 @@
 <template>
 	<ion-page>
-		<ion-content :fullscreen="true" class="pantry-content">
-			<div class="pantry-wrap">
-				<!-- Search + filter trigger -->
-				<div class="search-row">
-					<ion-searchbar
-						v-model="searchQuery"
-						placeholder="Search"
-						class="search-bar"
-						:show-clear-button="searchQuery ? 'always' : 'never'" />
-					<!-- Sort lives behind this icon on small screens; -->
-					<!-- the text sort control below stays visible too since your mockup shows both. -->
-					<ion-select v-model="sortOption" interface="popover" class="sort-icon-select" aria-label="Sort pantry items">
-						<ion-icon slot="trigger" :icon="optionsOutline" class="sort-icon" />
-						<ion-select-option value="soonest">Expiring soonest</ion-select-option>
-						<ion-select-option value="latest">Expiring latest</ion-select-option>
-						<ion-select-option value="name">Name A–Z</ion-select-option>
-					</ion-select>
-				</div>
+		<!-- Fixed White Header Controls -->
+		<div class="header-container">
+			<!-- Search bar -->
+			<div class="search-row">
+				<ion-searchbar
+					v-model="searchQuery"
+					placeholder="Search"
+					class="search-bar"
+					:show-clear-button="searchQuery ? 'always' : 'never'" />
+			</div>
 
-				<!-- Active / Archived toggle -->
+			<!-- Active / Archived Segment Container -->
+			<div class="view-toggle-wrap">
 				<div class="view-toggle">
-					<button type="button" class="toggle-btn" :class="{ 'toggle-btn--active': view === 'active' }" @click="view = 'active'">
+					<button
+						type="button"
+						class="toggle-btn"
+						:class="{ 'toggle-btn--active': view === 'active' }"
+						@click="view = 'active'">
 						Active
 					</button>
 					<button
 						type="button"
-						class="toggle-btn toggle-btn--dark"
-						:class="{ 'toggle-btn--active-dark': view === 'archived' }"
+						class="toggle-btn"
+						:class="{ 'toggle-btn--archived-active': view === 'archived' }"
 						@click="view = 'archived'">
 						<ion-icon :icon="archiveOutline" />
 						Archived
 						<span v-if="archivedItems.length" class="count-badge">{{ archivedItems.length }}</span>
 					</button>
 				</div>
+			</div>
 
-				<!-- ACTIVE VIEW -->
+			<!-- ACTIVE VIEW FILTERS -->
+			<template v-if="view === 'active'">
+				<div v-if="expiringOnly" class="filter-banner">
+					<span>Showing items expiring soon</span>
+					<button type="button" class="filter-clear" @click="expiringOnly = false">
+						Clear
+						<ion-icon :icon="closeOutline" />
+					</button>
+				</div>
+
+				<div class="pill-row">
+					<button
+						v-for="loc in locationOptions"
+						:key="loc"
+						type="button"
+						class="pill"
+						:class="{ 'pill--active': locationFilter === loc }"
+						@click="locationFilter = loc">
+						{{ loc }}
+					</button>
+				</div>
+
+				<div class="sort-row">
+					<span class="sort-row__label">Sort ↕</span>
+					<ion-select
+						v-model="sortOption"
+						interface="popover"
+						:interface-options="{ cssClass: 'compact-sort-popover' }"
+						class="sort-text-select">
+						<ion-select-option value="soonest">Expiring soonest</ion-select-option>
+						<ion-select-option value="latest">Expiring latest</ion-select-option>
+						<ion-select-option value="name">Name A–Z</ion-select-option>
+					</ion-select>
+				</div>
+			</template>
+
+			<!-- ARCHIVED VIEW HEADER INFO -->
+			<template v-else>
+				<div class="archived-header-row">
+					<span class="archived-subhead">Items you've marked as consumed</span>
+					<span class="auto-delete-info">
+						<ion-icon :icon="timeOutline" />
+						Auto-deleted after 7 days
+					</span>
+				</div>
+			</template>
+		</div>
+
+		<!-- Scrollable Content -->
+		<ion-content :fullscreen="true" class="pantry-content">
+			<div class="pantry-wrap">
+				<!-- ACTIVE VIEW GRID -->
 				<template v-if="view === 'active'">
-					<div v-if="expiringOnly" class="filter-banner">
-						<span>Showing items expiring soon</span>
-						<button type="button" class="filter-clear" @click="expiringOnly = false">
-							Clear
-							<ion-icon :icon="closeOutline" />
-						</button>
-					</div>
-
-					<div class="pill-row">
-						<button
-							v-for="loc in locationOptions"
-							:key="loc"
-							type="button"
-							class="pill"
-							:class="{ 'pill--active': locationFilter === loc }"
-							@click="locationFilter = loc">
-							{{ loc }}
-						</button>
-					</div>
-
-					<div class="sort-row">
-						<span class="sort-row__label">Sort ↕</span>
-						<ion-select v-model="sortOption" interface="popover" class="sort-text-select">
-							<ion-select-option value="soonest">Expiring soonest</ion-select-option>
-							<ion-select-option value="latest">Expiring latest</ion-select-option>
-							<ion-select-option value="name">Name A–Z</ion-select-option>
-						</ion-select>
-					</div>
-
 					<div v-if="isLoading" class="state-block">
 						<ion-spinner name="crescent" />
 					</div>
@@ -78,7 +98,7 @@
 
 					<div v-else-if="filteredActiveItems.length === 0" class="empty-state">
 						<ion-icon :icon="fileTrayOutline" class="empty-icon" />
-						<p>{{ items.length === 0 ? 'Your pantry is empty.' : 'No items match this filter.' }}</p>
+						<p>{{ items.length === 0 ? 'Your pantry is empty.' : 'No items match your search or filter.' }}</p>
 					</div>
 
 					<div v-else class="card-grid">
@@ -91,8 +111,10 @@
 							@click="goToDetail(item.id)"
 							@keydown.enter="goToDetail(item.id)">
 							<div class="card-top">
-								<span class="expiry-dot" :class="dotClass(item)"></span>
-								<span class="expiry-days">{{ daysLabel(item) }}</span>
+								<div class="expiry-info">
+									<span class="expiry-dot" :class="dotClass(item)"></span>
+									<span class="expiry-days">{{ daysLabel(item) }}</span>
+								</div>
 								<button
 									type="button"
 									class="check-btn"
@@ -109,21 +131,23 @@
 									:src="item.product.image_base64"
 									:alt="item.product.product_name"
 									class="product-photo" />
-								<span v-else class="placeholder-initial">{{ item.product.product_name.charAt(0) }}</span>
+								<div v-else class="placeholder-box">
+									<ion-icon :icon="imageOutline" class="placeholder-icon" />
+								</div>
 							</div>
 
 							<div class="card-body">
 								<h3 class="card-title">{{ item.product.product_name }}</h3>
 								<div class="card-meta">
-									<span>{{ item.storage_location }}</span>
-									<span>{{ formatQuantity(item) }}</span>
+									<span class="location-text">{{ item.storage_location }}</span>
+									<span class="quantity-badge">{{ formatQuantity(item) }}</span>
 								</div>
 							</div>
 						</div>
 					</div>
 				</template>
 
-				<!-- ARCHIVED VIEW -->
+				<!-- ARCHIVED VIEW LIST -->
 				<template v-else>
 					<div v-if="isLoading" class="state-block">
 						<ion-spinner name="crescent" />
@@ -136,15 +160,13 @@
 					</div>
 
 					<template v-else>
-						<p class="archived-subhead">Items you've marked as consumed</p>
-
-						<div v-if="archivedItems.length === 0" class="empty-state">
+						<div v-if="filteredArchivedItems.length === 0" class="empty-state">
 							<ion-icon :icon="archiveOutline" class="empty-icon" />
-							<p>Nothing archived yet.</p>
+							<p>{{ archivedItems.length === 0 ? 'Nothing archived yet.' : 'No archived items match your search.' }}</p>
 						</div>
 
 						<div v-else class="archived-list">
-							<div v-for="item in archivedItems" :key="item.id" class="archived-card">
+							<div v-for="item in filteredArchivedItems" :key="item.id" class="archived-card">
 								<div class="archived-thumb">
 									<img
 										v-if="item.product.image_base64"
@@ -156,74 +178,40 @@
 
 								<div class="archived-info">
 									<h4 class="archived-title">{{ item.product.product_name }}</h4>
-									<p class="archived-meta">{{ item.storage_location }} · {{ consumedLabel(item) }}</p>
-									<span class="delete-chip">
+									<p class="archived-meta-location">{{ item.storage_location }}</p>
+									<p class="archived-meta-consumed">
+										<ion-icon :icon="archiveOutline" class="consumed-icon" />
+										{{ consumedLabel(item) }}
+									</p>
+									<div class="delete-chip">
 										<ion-icon :icon="timeOutline" />
 										{{ deleteInLabel(item) }}
-									</span>
+									</div>
 								</div>
 
 								<div class="archived-actions">
-									<ion-button
-										size="small"
-										fill="outline"
-										color="success"
+									<button
+										type="button"
+										class="soft-btn soft-btn--restore"
 										:disabled="isRestoringId === item.id"
 										@click="restoreItem(item.id)">
-										<ion-icon :icon="refreshOutline" slot="start" />
+										<ion-icon :icon="refreshOutline" />
 										Restore
-									</ion-button>
-									<ion-button
-										size="small"
-										fill="outline"
-										color="danger"
+									</button>
+									<button
+										type="button"
+										class="soft-btn soft-btn--delete"
 										:disabled="isDeletingId === item.id"
 										@click="openDeleteModal(item)">
-										<ion-icon :icon="trashOutline" slot="start" />
+										<ion-icon :icon="trashOutline" />
 										Delete
-									</ion-button>
+									</button>
 								</div>
 							</div>
 						</div>
 					</template>
 				</template>
 			</div>
-
-			<!-- Mark as Consumed confirmation -->
-			<ion-modal :is-open="isConsumeModalOpen" @didDismiss="closeConsumeModal" class="confirm-modal">
-				<div class="modal-body">
-					<div class="modal-icon modal-icon--success">
-						<ion-icon :icon="checkmarkCircleOutline" />
-					</div>
-					<h2>Mark as Consumed?</h2>
-					<p>This item will be moved to the Archive and automatically deleted after 7 days. You can restore it anytime.</p>
-					<div v-if="consumeError" class="form-error">{{ consumeError }}</div>
-					<div class="modal-actions">
-						<ion-button expand="block" fill="outline" :disabled="isArchiving" @click="closeConsumeModal"> Cancel </ion-button>
-						<ion-button expand="block" color="success" :disabled="isArchiving" @click="confirmConsume">
-							{{ isArchiving ? 'Saving…' : 'Confirm' }}
-						</ion-button>
-					</div>
-				</div>
-			</ion-modal>
-
-			<!-- Delete permanently confirmation -->
-			<ion-modal :is-open="isDeleteModalOpen" @didDismiss="closeDeleteModal" class="confirm-modal">
-				<div class="modal-body">
-					<div class="modal-icon modal-icon--danger">
-						<ion-icon :icon="trashOutline" />
-					</div>
-					<h2>Delete permanently?</h2>
-					<p>This removes the item for good — it won't be recoverable from the Archive afterward.</p>
-					<div v-if="deleteError" class="form-error">{{ deleteError }}</div>
-					<div class="modal-actions">
-						<ion-button expand="block" fill="outline" :disabled="isDeletingId !== null" @click="closeDeleteModal"> Cancel </ion-button>
-						<ion-button expand="block" color="danger" :disabled="isDeletingId !== null" @click="confirmDelete">
-							{{ isDeletingId !== null ? 'Deleting…' : 'Delete' }}
-						</ion-button>
-					</div>
-				</div>
-			</ion-modal>
 		</ion-content>
 	</ion-page>
 </template>
@@ -240,11 +228,10 @@ import {
 	IonButton,
 	IonIcon,
 	IonSpinner,
-	IonModal,
+	alertController,
 	onIonViewWillEnter,
 } from '@ionic/vue'
 import {
-	optionsOutline,
 	archiveOutline,
 	checkmarkCircleOutline,
 	fileTrayOutline,
@@ -253,6 +240,7 @@ import {
 	refreshOutline,
 	trashOutline,
 	closeOutline,
+	imageOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
@@ -289,9 +277,6 @@ const locationFilter = ref<LocationFilter>('All')
 const sortOption = ref<SortOption>('soonest')
 const searchQuery = ref('')
 
-// Set when arriving from the Home dashboard's "Expiring Soon" card/carousel
-// (/tabs/pantry?filter=expiring) — narrows the active view to items expiring
-// within the same window used on the dashboard, sorted soonest-first.
 const route = useRoute()
 const router = useRouter()
 const EXPIRING_SOON_THRESHOLD_DAYS = 3
@@ -301,16 +286,8 @@ function goToDetail(itemId: number): void {
 	router.push(`/tabs/pantry/${itemId}`)
 }
 
-const isConsumeModalOpen = ref(false)
-const itemPendingConsume = ref<PantryItemDto | null>(null)
 const isArchiving = ref(false)
-const consumeError = ref('')
-
-const isDeleteModalOpen = ref(false)
-const itemPendingDelete = ref<PantryItemDto | null>(null)
 const isDeletingId = ref<number | null>(null)
-const deleteError = ref('')
-
 const isRestoringId = ref<number | null>(null)
 
 const activeItems = computed(() => items.value.filter((item) => !item.is_archived))
@@ -318,6 +295,7 @@ const archivedItems = computed(() =>
 	items.value.filter((item) => item.is_archived).sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()),
 )
 
+/* Active View Search + Filter */
 const filteredActiveItems = computed(() => {
 	let result = activeItems.value
 
@@ -355,9 +333,22 @@ const filteredActiveItems = computed(() => {
 				return dateB - dateA
 			})
 			break
+		case 'name':
+			sorted.sort((a, b) => a.product.product_name.localeCompare(b.product.product_name))
+			break
 	}
 
 	return sorted
+})
+
+/* Search Bar functionality for Archived View */
+const filteredArchivedItems = computed(() => {
+	let result = archivedItems.value
+	const query = searchQuery.value.trim().toLowerCase()
+	if (query) {
+		result = result.filter((item) => item.product.product_name.toLowerCase().includes(query))
+	}
+	return result
 })
 
 function daysBetween(from: Date, to: Date): number {
@@ -378,16 +369,17 @@ function daysLabel(item: PantryItemDto): string {
 	const diff = daysBetween(new Date(), date)
 	if (diff < 0) return `Expired ${Math.abs(diff)}d ago`
 	if (diff === 0) return 'Expires today'
-	return `${diff} day${diff === 1 ? '' : 's'}`
+	return `${diff} days`
 }
 
+/* Threshold Logic */
 function dotClass(item: PantryItemDto): string {
 	const date = getRelevantDate(item)
 	if (!date) return 'expiry-dot--warning'
 	const diff = daysBetween(new Date(), date)
-	if (diff <= 1) return 'expiry-dot--danger'
-	if (diff <= 3) return 'expiry-dot--warning'
-	return 'expiry-dot--success'
+	if (diff <= 1) return 'expiry-dot--danger'   // Red: Expired, Today, or 1 day
+	if (diff <= 5) return 'expiry-dot--warning'  // Amber/Orange: 2 to 5 days left
+	return 'expiry-dot--success'                 // Green: 6+ days left
 }
 
 function consumedLabel(item: PantryItemDto): string {
@@ -422,23 +414,32 @@ async function fetchPantryItems(): Promise<void> {
 	}
 }
 
-function openConsumeModal(item: PantryItemDto): void {
-	itemPendingConsume.value = item
-	consumeError.value = ''
-	isConsumeModalOpen.value = true
+async function openConsumeModal(item: PantryItemDto): Promise<void> {
+	const alert = await alertController.create({
+		header: 'Mark as Consumed?',
+		message: 'This item will be moved to the Archive and automatically deleted after 7 days. You can restore it anytime.',
+		cssClass: 'custom-make-alert',
+		buttons: [
+			{
+				text: 'Cancel',
+				role: 'cancel',
+				cssClass: 'alert-button-cancel',
+			},
+			{
+				text: 'Confirm',
+				cssClass: 'alert-button-confirm',
+				handler: () => {
+					confirmConsume(item.id)
+				},
+			},
+		],
+	})
+
+	await alert.present()
 }
 
-function closeConsumeModal(): void {
-	isConsumeModalOpen.value = false
-	itemPendingConsume.value = null
-}
-
-async function confirmConsume(): Promise<void> {
-	if (!itemPendingConsume.value) return
-	const targetId = itemPendingConsume.value.id
-
+async function confirmConsume(targetId: number): Promise<void> {
 	isArchiving.value = true
-	consumeError.value = ''
 
 	try {
 		const data = await apiFetch<{ success: boolean; item: PantryItemDto }>(`/api/pantry_item/${targetId}`, {
@@ -446,14 +447,10 @@ async function confirmConsume(): Promise<void> {
 			body: { is_archived: true },
 		})
 
-		// Update in place so the UI reflects the change instantly without
-		// waiting on a full refetch.
 		const index = items.value.findIndex((item) => item.id === targetId)
 		if (index !== -1) items.value[index] = data.item
-
-		closeConsumeModal()
 	} catch (err) {
-		consumeError.value = err instanceof ApiError ? err.message : 'Failed to archive this item.'
+		loadError.value = err instanceof ApiError ? err.message : 'Failed to archive this item.'
 	} finally {
 		isArchiving.value = false
 	}
@@ -477,23 +474,32 @@ async function restoreItem(id: number): Promise<void> {
 	}
 }
 
-function openDeleteModal(item: PantryItemDto): void {
-	itemPendingDelete.value = item
-	deleteError.value = ''
-	isDeleteModalOpen.value = true
+async function openDeleteModal(item: PantryItemDto): Promise<void> {
+	const alert = await alertController.create({
+		header: 'Delete permanently?',
+		message: "This removes the item for good — it won't be recoverable from the Archive afterward.",
+		cssClass: 'custom-make-alert',
+		buttons: [
+			{
+				text: 'Cancel',
+				role: 'cancel',
+				cssClass: 'alert-button-cancel',
+			},
+			{
+				text: 'Delete',
+				cssClass: 'alert-button-danger',
+				handler: () => {
+					confirmDelete(item.id)
+				},
+			},
+		],
+	})
+
+	await alert.present()
 }
 
-function closeDeleteModal(): void {
-	isDeleteModalOpen.value = false
-	itemPendingDelete.value = null
-}
-
-async function confirmDelete(): Promise<void> {
-	if (!itemPendingDelete.value) return
-	const targetId = itemPendingDelete.value.id
-
+async function confirmDelete(targetId: number): Promise<void> {
 	isDeletingId.value = targetId
-	deleteError.value = ''
 
 	try {
 		await apiFetch(`/api/pantry_item/${targetId}`, {
@@ -501,20 +507,14 @@ async function confirmDelete(): Promise<void> {
 		})
 
 		items.value = items.value.filter((item) => item.id !== targetId)
-		closeDeleteModal()
 	} catch (err) {
-		deleteError.value = err instanceof ApiError ? err.message : 'Failed to delete this item.'
+		loadError.value = err instanceof ApiError ? err.message : 'Failed to delete this item.'
 	} finally {
 		isDeletingId.value = null
 	}
 }
 
 onIonViewWillEnter(() => {
-	// onMounted only fires once for the lifetime of this cached tab page —
-	// Ionic keeps tab pages alive rather than destroying/recreating them on
-	// each visit, so a plain onMounted fetch goes stale after the first
-	// visit (e.g. items added via Scan never show up here without a full
-	// page reload). onIonViewWillEnter re-fires on every re-entry instead.
 	expiringOnly.value = route.query.filter === 'expiring'
 	if (expiringOnly.value) sortOption.value = 'soonest'
 	fetchPantryItems()
@@ -522,70 +522,362 @@ onIonViewWillEnter(() => {
 </script>
 
 <style scoped>
+/* Header Container */
+.header-container {
+	background: #ffffff;
+	padding: 12px 16px 8px;
+	border-bottom: 1px solid #f1f5f9;
+	z-index: 10;
+}
+
+/* Scrollable Content */
 .pantry-content {
-	--background: #f7f8fa;
+	--background: #fafafa;
 }
 .pantry-wrap {
-	padding: 8px 16px 24px;
+	padding: 14px 16px 24px;
 }
 
+/* Search bar */
 .search-row {
-	display: flex;
-	align-items: center;
-	gap: 8px;
 	margin-bottom: 12px;
+	width: 100%;
 }
 .search-bar {
-	flex: 1;
-	--background: #ececef;
-	--border-radius: 12px;
+	--background: #f1f5f9;
+	--border-radius: 24px;
 	--box-shadow: none;
 	padding: 0;
-}
-.sort-icon-select {
-	--padding-start: 8px;
-	--padding-end: 8px;
-	max-width: 40px;
-}
-.sort-icon {
-	font-size: 1.3rem;
-	color: var(--ion-color-medium);
+	width: 100%;
 }
 
+/* View Toggle Container */
+.view-toggle-wrap {
+	margin-bottom: 12px;
+}
 .view-toggle {
 	display: flex;
-	gap: 8px;
-	margin-bottom: 12px;
+	background: #f1f5f9;
+	border-radius: 24px;
+	padding: 4px;
 }
 .toggle-btn {
 	flex: 1;
 	border: none;
-	border-radius: 999px;
-	padding: 10px 0;
+	border-radius: 20px;
+	padding: 8px 0;
 	font-weight: 600;
-	font-size: 0.9rem;
-	background: #ececef;
-	color: #374151;
+	font-size: 0.85rem;
+	background: transparent;
+	color: #64748b;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 6px;
+	transition: all 0.2s ease;
 }
 .toggle-btn--active {
-	background: #16a34a;
+	background: #00a651;
 	color: #ffffff;
 }
-.toggle-btn--active-dark {
-	background: #111827;
+.toggle-btn--archived-active {
+	background: #334155;
 	color: #ffffff;
 }
 .count-badge {
-	background: rgba(255, 255, 255, 0.25);
+	background: #ffffff;
+	color: #334155;
 	border-radius: 999px;
-	padding: 1px 8px;
-	font-size: 0.75rem;
+	padding: 0 7px;
+	font-size: 0.72rem;
+	font-weight: 700;
 }
 
+/* Sub-location Filter Pills */
+.pill-row {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 12px;
+	overflow-x: auto;
+	padding-bottom: 2px;
+}
+.pill {
+	border: 1px solid #e2e8f0;
+	background: #ffffff;
+	color: #475569;
+	border-radius: 20px;
+	padding: 5px 14px;
+	font-size: 0.82rem;
+	font-weight: 500;
+	white-space: nowrap;
+}
+.pill--active {
+	border-color: #00a651;
+	color: #00a651;
+	background: #ffffff;
+	font-weight: 600;
+}
+
+/* Sort Row */
+.sort-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 4px;
+	font-size: 0.82rem;
+	color: #64748b;
+}
+
+/* Sort dropdown text: font weight removed */
+.sort-text-select {
+	max-width: 160px;
+	font-size: 0.82rem;
+	font-weight: 400;
+	color: #0f172a;
+}
+
+/* Cards Grid */
+.card-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 14px;
+}
+.pantry-card {
+	background: #ffffff;
+	border-radius: 20px;
+	padding: 12px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+.card-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 8px;
+}
+.expiry-info {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.expiry-dot {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+}
+.expiry-dot--danger {
+	background: #ef4444;
+}
+.expiry-dot--warning {
+	background: #f59e0b;
+}
+.expiry-dot--success {
+	background: #10b981;
+}
+.expiry-days {
+	font-size: 0.75rem;
+	color: #6b7280;
+	font-weight: 500;
+}
+.check-btn {
+	border: none;
+	background: none;
+	font-size: 1.2rem;
+	color: #9ca3af;
+	line-height: 0;
+	padding: 0;
+	cursor: pointer;
+}
+
+.card-image {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 110px;
+	margin-bottom: 8px;
+	width: 100%;
+}
+.product-photo {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 12px;
+}
+.placeholder-box {
+	width: 100%;
+	height: 100%;
+	background: #f3f4f6;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.placeholder-icon {
+	font-size: 2.5rem;
+	color: #9ca3af;
+}
+
+.card-body {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+/* Item name: font weight removed */
+.card-title {
+	font-size: 0.85rem;
+	font-weight: 400;
+	margin: 0;
+	color: #111827;
+	line-height: 1.2;
+}
+.card-meta {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	font-size: 0.75rem;
+	color: #9ca3af;
+}
+.quantity-badge {
+	background: #f3f4f6;
+	color: #6b7280;
+	padding: 2px 6px;
+	border-radius: 6px;
+	font-weight: 500;
+}
+
+/* Archived Header Row */
+.archived-header-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 4px 0 6px;
+}
+.archived-subhead {
+	font-size: 0.78rem;
+	color: #64748b;
+}
+.auto-delete-info {
+	font-size: 0.74rem;
+	color: #d97706;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-weight: 500;
+}
+
+/* Archived List & Cards */
+.archived-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.archived-card {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	background: #ffffff;
+	border-radius: 20px;
+	padding: 14px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+.archived-thumb {
+	width: 54px;
+	height: 54px;
+	border-radius: 12px;
+	background: transparent;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	overflow: hidden;
+}
+.archived-photo {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+.placeholder-initial {
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: #9ca3af;
+}
+.archived-info {
+	flex: 1;
+	min-width: 0;
+}
+
+/* Archived title: font weight removed */
+.archived-title {
+	font-size: 0.88rem;
+	font-weight: 400;
+	margin: 0 0 2px;
+	color: #0f172a;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.archived-meta-location {
+	font-size: 0.78rem;
+	color: #64748b;
+	margin: 0 0 2px;
+}
+.archived-meta-consumed {
+	font-size: 0.75rem;
+	color: #94a3b8;
+	margin: 0 0 6px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+.consumed-icon {
+	font-size: 0.85rem;
+}
+
+.delete-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 0.72rem;
+	color: #b45309;
+	background: #fffbeb;
+	border-radius: 12px;
+	padding: 2px 8px;
+	font-weight: 500;
+}
+
+.archived-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.soft-btn {
+	border: none;
+	border-radius: 16px;
+	padding: 6px 14px;
+	font-size: 0.78rem;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	cursor: pointer;
+	transition: opacity 0.2s ease;
+}
+.soft-btn:disabled {
+	opacity: 0.6;
+}
+.soft-btn--restore {
+	background: #ecfdf5;
+	color: #10b981;
+}
+.soft-btn--delete {
+	background: #fef2f2;
+	color: #ef4444;
+}
+
+/* States */
 .filter-banner {
 	display: flex;
 	align-items: center;
@@ -593,9 +885,9 @@ onIonViewWillEnter(() => {
 	background: #eff6ff;
 	color: #1d4ed8;
 	border-radius: 12px;
-	padding: 10px 12px;
-	margin-bottom: 12px;
-	font-size: 0.85rem;
+	padding: 8px 12px;
+	margin-bottom: 10px;
+	font-size: 0.82rem;
 	font-weight: 500;
 }
 .filter-clear {
@@ -606,42 +898,7 @@ onIonViewWillEnter(() => {
 	background: none;
 	color: #1d4ed8;
 	font-weight: 600;
-	font-size: 0.85rem;
-}
-
-.pill-row {
-	display: flex;
-	gap: 8px;
-	margin-bottom: 12px;
-	flex-wrap: wrap;
-}
-.pill {
-	border: 1px solid #d1d5db;
-	background: #ffffff;
-	color: #374151;
-	border-radius: 999px;
-	padding: 6px 16px;
-	font-size: 0.85rem;
-}
-.pill--active {
-	border-color: #16a34a;
-	color: #16a34a;
-	background: #f0fdf4;
-	font-weight: 600;
-}
-
-.sort-row {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 12px;
-	font-size: 0.85rem;
-	color: #6b7280;
-}
-.sort-text-select {
-	max-width: 200px;
-	font-weight: 600;
-	color: #111827;
+	font-size: 0.82rem;
 }
 
 .state-block {
@@ -663,203 +920,16 @@ onIonViewWillEnter(() => {
 	font-size: 3rem;
 	margin-bottom: 8px;
 }
+</style>
 
-.card-grid {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 12px;
+<style>
+/* Popover Sizing */
+.compact-sort-popover .popover-content {
+	width: 170px !important;
+	border-radius: 12px !important;
 }
-.pantry-card {
-	background: #ffffff;
-	border-radius: 16px;
-	overflow: hidden;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-	cursor: pointer;
-}
-.card-top {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 10px 10px 0;
-}
-.expiry-dot {
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	flex-shrink: 0;
-}
-.expiry-dot--danger {
-	background: #ef4444;
-}
-.expiry-dot--warning {
-	background: #f59e0b;
-}
-.expiry-dot--success {
-	background: #22c55e;
-}
-.expiry-days {
-	font-size: 0.75rem;
-	color: #6b7280;
-	flex: 1;
-}
-.check-btn {
-	border: none;
-	background: none;
-	font-size: 1.3rem;
-	color: #9ca3af;
-	line-height: 0;
-	padding: 2px;
-}
-.check-btn:active {
-	color: #16a34a;
-}
-.card-image {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: 96px;
-	margin: 8px 10px 0;
-	background: #f3f4f6;
-	border-radius: 12px;
-}
-
-.product-photo {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	border-radius: 12px;
-}
-.archived-photo {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	border-radius: 10px;
-}
-
-.placeholder-initial {
-	font-size: 1.75rem;
-	font-weight: 700;
-	color: #9ca3af;
-}
-.card-body {
-	padding: 10px;
-}
-.card-title {
-	font-size: 0.9rem;
-	font-weight: 600;
-	margin: 0 0 4px;
-	color: #111827;
-}
-.card-meta {
-	display: flex;
-	justify-content: space-between;
-	font-size: 0.78rem;
-	color: #6b7280;
-}
-
-.archived-subhead {
-	font-size: 0.85rem;
-	color: #6b7280;
-	margin: 4px 0 12px;
-}
-.archived-list {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-}
-.archived-card {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	background: #ffffff;
-	border-radius: 14px;
-	padding: 12px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-.archived-thumb {
-	width: 48px;
-	height: 48px;
-	border-radius: 10px;
-	background: #f3f4f6;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-}
-.archived-info {
-	flex: 1;
-	min-width: 0;
-}
-.archived-title {
-	font-size: 0.9rem;
-	font-weight: 600;
-	margin: 0 0 2px;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-.archived-meta {
-	font-size: 0.78rem;
-	color: #6b7280;
-	margin: 0 0 4px;
-}
-.delete-chip {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	font-size: 0.72rem;
-	color: #b45309;
-	background: #fffbeb;
-	border-radius: 999px;
-	padding: 2px 8px;
-}
-.archived-actions {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-}
-
-.modal-body {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	text-align: center;
-	padding: 32px 24px;
-	gap: 8px;
-}
-.modal-icon {
-	width: 56px;
-	height: 56px;
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 1.8rem;
-	margin-bottom: 8px;
-}
-.modal-icon--success {
-	background: #fff7ed;
-	color: #f59e0b;
-}
-.modal-icon--danger {
-	background: #fef2f2;
-	color: #ef4444;
-}
-.modal-actions {
-	display: flex;
-	gap: 12px;
-	width: 100%;
-	margin-top: 16px;
-}
-.modal-actions ion-button {
-	flex: 1;
-}
-.form-error {
-	background: #fee2e2;
-	color: #b91c1c;
-	border-radius: 8px;
-	padding: 8px 12px;
-	font-size: 0.85rem;
-	width: 100%;
+.compact-sort-popover ion-item {
+	--min-height: 40px;
+	font-size: 0.82rem;
 }
 </style>

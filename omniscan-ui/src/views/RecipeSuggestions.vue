@@ -1,75 +1,122 @@
 <template>
 	<ion-page>
-		<ion-header>
-			<ion-toolbar>
-				<ion-title>Recipe Suggestions</ion-title>
-			</ion-toolbar>
-		</ion-header>
+		<ion-content class="recipe-content">
+			<!-- Header Block -->
+			<div class="header-container">
+				<h1 class="page-title">Recipes</h1>
+				<p class="page-subtitle">Based on your pantry items</p>
 
-		<ion-content class="ion-padding">
-			<ion-segment v-model="activeTab" shape="round" class="tab-segment" @ionChange="onTabChange">
-				<ion-segment-button value="all">
-					<ion-label>All Recipes</ion-label>
-				</ion-segment-button>
-				<ion-segment-button value="liked">
-					<ion-label>Liked</ion-label>
-				</ion-segment-button>
-				<ion-segment-button value="made">
-					<ion-label>Made</ion-label>
-				</ion-segment-button>
-			</ion-segment>
+				<!-- Custom Segment Tabs -->
+				<div class="tab-chips-container">
+					<button
+						type="button"
+						class="tab-chip"
+						:class="{ 'tab-chip--active-all': activeTab === 'all' }"
+						@click="setTab('all')">
+						All Recipes
+					</button>
+					<button
+						type="button"
+						class="tab-chip"
+						:class="{ 'tab-chip--active-liked': activeTab === 'liked' }"
+						@click="setTab('liked')">
+						<ion-icon :icon="activeTab === 'liked' ? heart : heartOutline" class="chip-icon" />
+						Liked
+					</button>
+					<button
+						type="button"
+						class="tab-chip"
+						:class="{ 'tab-chip--active-made': activeTab === 'made' }"
+						@click="setTab('made')">
+						<ion-icon :icon="archiveOutline" class="chip-icon" />
+						Made
+						<span v-if="madeCount > 0" class="tab-badge">{{ madeCount }}</span>
+					</button>
+				</div>
+			</div>
 
 			<div v-if="errorMessage" class="form-error">{{ errorMessage }}</div>
 
-			<div v-if="isLoading" class="flex justify-center py-10">
+			<div v-if="isLoading" class="loading-container">
 				<ion-spinner name="crescent" />
 			</div>
 
+			<!-- Dynamic Empty States -->
 			<div v-else-if="recipes.length === 0" class="empty-state">
-				<ion-icon :icon="restaurantOutline" class="empty-icon" />
-				<p>{{ emptyMessage }}</p>
+				<template v-if="activeTab === 'liked'">
+					<ion-icon :icon="heartOutline" class="empty-icon light-gray-icon" />
+					<h3 class="empty-title">No liked recipes yet</h3>
+					<p class="empty-subtext">Tap the heart icon on any recipe to save it here</p>
+				</template>
+				<template v-else-if="activeTab === 'made'">
+					<ion-icon :icon="archiveOutline" class="empty-icon light-gray-icon" />
+					<h3 class="empty-title">No made recipes yet</h3>
+					<p class="empty-subtext">Recipes you make will appear here</p>
+				</template>
+				<template v-else>
+					<ion-icon :icon="restaurantOutline" class="empty-icon light-gray-icon" />
+					<h3 class="empty-title">No recipes found</h3>
+					<p class="empty-subtext">{{ emptyMessage }}</p>
+				</template>
 			</div>
 
-			<ion-card v-for="recipe in recipes" :key="recipe.id">
-				<ion-card-header class="card-header-row">
-					<div>
-						<ion-card-title>{{ recipe.name }}</ion-card-title>
-						<ion-card-subtitle>
-							{{ recipe.matched_count }}/{{ recipe.total_count }} ingredients in pantry
-							<ion-chip v-if="recipe.made" color="success" class="made-chip">Made</ion-chip>
-						</ion-card-subtitle>
+			<!-- Recipe Cards Grid -->
+			<div v-else class="cards-list">
+				<div v-for="recipe in recipes" :key="recipe.id" class="recipe-card" @click="openRecipeDetail(recipe)">
+					<div class="card-image-wrapper">
+						<img v-if="recipe.image_url" :src="recipe.image_url" :alt="recipe.name" class="recipe-image" />
+						<div v-else class="recipe-image-placeholder">
+							<ion-icon :icon="restaurantOutline" class="placeholder-icon" />
+						</div>
+
+						<div v-if="recipe.made || activeTab === 'made'" class="made-overlay-badge">
+							<ion-icon :icon="checkmarkCircle" class="made-badge-icon" />
+							<span>Made</span>
+						</div>
+
+						<button
+							type="button"
+							class="heart-overlay-btn"
+							:disabled="likingId === recipe.id"
+							@click.stop="toggleLike(recipe)">
+							<ion-icon :icon="recipe.liked ? heart : heartOutline" :class="{ 'heart-icon--liked': recipe.liked }" />
+						</button>
 					</div>
-					<ion-button fill="clear" class="like-button" :disabled="likingId === recipe.id" @click="toggleLike(recipe)">
-						<ion-icon :icon="recipe.liked ? heart : heartOutline" :color="recipe.liked ? 'danger' : 'medium'" slot="icon-only" />
-					</ion-button>
-				</ion-card-header>
 
-				<ion-card-content>
-					<ion-progress-bar :value="recipe.matched_count / recipe.total_count" :color="matchColor(recipe)" class="mb-3" />
+					<div class="card-body">
+						<div class="title-row">
+							<h2 class="card-title">{{ recipe.name }}</h2>
+							<ion-icon :icon="chevronForwardOutline" class="chevron-icon" />
+						</div>
 
-					<p class="text-gray-700 mb-3">{{ recipe.instructions }}</p>
+						<p class="card-instructions">{{ recipe.instructions }}</p>
 
-					<div v-if="recipe.missing_ingredients.length > 0">
-						<p class="missing-label">Missing:</p>
-						<ion-chip v-for="(missing, index) in recipe.missing_ingredients" :key="index" color="medium">
-							{{ missing }}
-						</ion-chip>
+						<div class="card-footer">
+							<span class="pantry-count">{{ recipe.matched_count }} in pantry</span>
+						</div>
 					</div>
-					<p v-else class="all-set-label">You have everything for this recipe!</p>
+				</div>
+			</div>
 
-					<ion-button expand="block" fill="outline" class="mt-4" :disabled="makingId === recipe.id" @click="confirmMakeRecipe(recipe)">
-						{{ makingId === recipe.id ? 'Updating pantry...' : 'Make Recipe' }}
-					</ion-button>
-				</ion-card-content>
-			</ion-card>
+			<!-- Recipe Detail Modal -->
+			<RecipeDetailModal
+				:is-open="isDetailModalOpen"
+				:recipe="selectedRecipe"
+				@close="isDetailModalOpen = false"
+				@toggle-like="toggleLike"
+				@make="handleMakeFromModal"
+				@unmake="handleUnmakeFromModal" />
 
+			<!-- Rounded Confirmation Alert -->
 			<ion-alert
 				:is-open="isAlertOpen"
 				header="Make this recipe?"
 				:message="alertMessage"
 				:buttons="alertButtons"
+				class="custom-make-alert"
 				@didDismiss="isAlertOpen = false" />
 
+			<!-- Result Modal -->
 			<ion-modal :is-open="isResultModalOpen" @didDismiss="isResultModalOpen = false">
 				<ion-header>
 					<ion-toolbar>
@@ -84,7 +131,7 @@
 
 				<ion-content class="ion-padding">
 					<div v-if="madeRecipeResult">
-						<p class="archived-note" v-if="archivedCount > 0">
+						<p v-if="archivedCount > 0" class="archived-note">
 							{{ archivedCount }} pantry item{{ archivedCount === 1 ? '' : 's' }} used and archived.
 						</p>
 
@@ -102,7 +149,7 @@
 						</div>
 					</div>
 
-					<ion-button expand="block" class="mt-4" @click="isResultModalOpen = false">Done</ion-button>
+					<ion-button expand="block" class="mt-4 submit-btn" @click="isResultModalOpen = false">Done</ion-button>
 				</ion-content>
 			</ion-modal>
 		</ion-content>
@@ -110,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
 	IonPage,
 	IonHeader,
@@ -118,34 +165,28 @@ import {
 	IonTitle,
 	IonButtons,
 	IonContent,
-	IonCard,
-	IonCardHeader,
-	IonCardTitle,
-	IonCardSubtitle,
-	IonCardContent,
 	IonChip,
 	IonIcon,
 	IonSpinner,
-	IonProgressBar,
 	IonButton,
 	IonAlert,
 	IonModal,
-	IonSegment,
-	IonSegmentButton,
-	IonLabel,
 } from '@ionic/vue'
-import { restaurantOutline, closeOutline, heart, heartOutline } from 'ionicons/icons'
+import { restaurantOutline, closeOutline, heart, heartOutline, archiveOutline, checkmarkCircle, chevronForwardOutline } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
+import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
 
 interface SuggestedRecipe {
 	id: number
 	name: string
 	instructions: string
+	matched_ingredients?: string[]
 	matched_count: number
 	total_count: number
 	missing_ingredients: string[]
 	liked: boolean
 	made: boolean
+	image_url?: string
 }
 
 interface MadeRecipeResult {
@@ -179,6 +220,15 @@ const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 const makingId = ref<number | null>(null)
 
+const madeCount = computed(() => {
+	if (activeTab.value === 'made') return recipes.value.length
+	return recipes.value.filter((r) => r.made).length
+})
+
+// Detail modal state
+const isDetailModalOpen = ref(false)
+const selectedRecipe = ref<SuggestedRecipe | null>(null)
+
 const isResultModalOpen = ref(false)
 const madeRecipeResult = ref<MadeRecipeResult | null>(null)
 const archivedCount = ref(0)
@@ -188,10 +238,15 @@ const alertMessage = ref('')
 const pendingRecipeId = ref<number | null>(null)
 
 const alertButtons = [
-	{ text: 'Cancel', role: 'cancel' },
+	{
+		text: 'Cancel',
+		role: 'cancel',
+		cssClass: 'alert-button-cancel',
+	},
 	{
 		text: 'Confirm',
 		role: 'confirm',
+		cssClass: 'alert-button-confirm',
 		handler: () => {
 			if (pendingRecipeId.value !== null) {
 				void makeRecipe(pendingRecipeId.value)
@@ -200,13 +255,30 @@ const alertButtons = [
 	},
 ]
 
-function matchColor(recipe: SuggestedRecipe): 'success' | 'warning' {
-	return recipe.matched_count / recipe.total_count >= 0.8 ? 'success' : 'warning'
+function setTab(tab: RecipeTab): void {
+	if (activeTab.value === tab) return
+	activeTab.value = tab
+	fetchSuggestions()
+}
+
+function openRecipeDetail(recipe: SuggestedRecipe): void {
+	selectedRecipe.value = recipe
+	isDetailModalOpen.value = true
+}
+
+function handleMakeFromModal(recipe: SuggestedRecipe): void {
+	isDetailModalOpen.value = false
+	confirmMakeRecipe(recipe)
+}
+
+function handleUnmakeFromModal(recipe: SuggestedRecipe): void {
+	isDetailModalOpen.value = false
+	void unmakeRecipe(recipe.id)
 }
 
 function confirmMakeRecipe(recipe: SuggestedRecipe): void {
 	pendingRecipeId.value = recipe.id
-	alertMessage.value = `This will remove "${recipe.name}"'s matched ingredients from your pantry.`
+	alertMessage.value = `This will reduce your pantry quantities for "${recipe.name}". Continue?`
 	isAlertOpen.value = true
 }
 
@@ -228,18 +300,10 @@ async function fetchSuggestions(): Promise<void> {
 	}
 }
 
-function onTabChange(): void {
-	void fetchSuggestions()
-}
-
 async function toggleLike(recipe: SuggestedRecipe): Promise<void> {
 	if (likingId.value === recipe.id) return
 
 	likingId.value = recipe.id
-	// Optimistic update — flip immediately, revert below if the request fails.
-	// A card the user just liked while on the Liked tab stays visible until
-	// the next refetch rather than vanishing mid-tap, which reads as a bug
-	// even though it'd be technically correct.
 	const previousLiked = recipe.liked
 	recipe.liked = !previousLiked
 
@@ -289,85 +353,316 @@ async function makeRecipe(recipeId: number): Promise<void> {
 	}
 }
 
+async function unmakeRecipe(recipeId: number): Promise<void> {
+	try {
+		await apiFetch<{ success: boolean }>('/api/recipes/made', {
+			method: 'DELETE',
+			body: { recipe_id: recipeId },
+		})
+		await fetchSuggestions()
+	} catch (err) {
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to remove recipe from Made list.'
+		console.error('Unmake recipe error:', err)
+	}
+}
+
 onMounted(() => {
 	fetchSuggestions()
 })
 </script>
 
 <style scoped>
-.tab-segment {
-	margin-bottom: 16px;
+.recipe-content {
+	--background: #f9fafb;
 }
-.card-header-row {
+
+.header-container {
+	padding: 24px 20px 16px;
+	background: #ffffff;
+}
+
+.page-title {
+	font-size: 1.75rem;
+	font-weight: 700;
+	color: #111827;
+	margin: 0 0 4px;
+	letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+	color: #6b7280;
+	font-size: 0.85rem;
+	margin: 0 0 20px;
+}
+
+/* Custom Segment Tabs */
+.tab-chips-container {
 	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
+	gap: 10px;
 }
-.like-button {
-	margin: 0;
-	flex-shrink: 0;
+
+.tab-chip {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 16px;
+	border-radius: 9999px;
+	background: #f3f4f6;
+	color: #4b5563;
+	font-size: 0.85rem;
+	font-weight: 600;
+	border: none;
+	cursor: pointer;
+	transition: all 0.2s ease;
 }
-.made-chip {
-	height: 20px;
-	font-size: 0.7rem;
-	margin-left: 6px;
-	vertical-align: middle;
+
+.tab-chip--active-all {
+	background: #05c450;
+	color: #ffffff;
 }
+
+.tab-chip--active-liked {
+	background: #ff2d55;
+	color: #ffffff;
+}
+
+.tab-chip--active-made {
+	background: #344154;
+	color: #ffffff;
+}
+
+.tab-badge {
+	background: #ffffff;
+	color: #344154;
+	font-size: 0.72rem;
+	font-weight: 700;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 2px;
+}
+
+.chip-icon {
+	font-size: 0.95rem;
+}
+
+.loading-container {
+	display: flex;
+	justify-content: center;
+	padding: 40px 0;
+}
+
 .empty-state {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	padding: 64px 0;
-	color: var(--ion-color-medium);
+	padding: 80px 20px;
+	text-align: center;
 }
+
 .empty-icon {
-	font-size: 3rem;
-	margin-bottom: 8px;
+	font-size: 4rem;
+	margin-bottom: 16px;
 }
-.missing-label {
-	font-size: 0.85rem;
+
+.light-gray-icon {
+	color: #e5e7eb;
+}
+
+.empty-title {
+	font-size: 1.1rem;
 	font-weight: 600;
-	color: var(--ion-color-medium);
-	margin-bottom: 4px;
+	color: #9ca3af;
+	margin: 0 0 6px;
 }
-.all-set-label {
-	font-size: 0.85rem;
-	color: var(--ion-color-success);
-	font-weight: 500;
+
+.empty-subtext {
+	font-size: 0.82rem;
+	color: #9ca3af;
+	margin: 0;
 }
+
+.cards-list {
+	padding: 16px 20px 32px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.recipe-card {
+	background: #ffffff;
+	border-radius: 20px;
+	overflow: hidden;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	border: 1px solid #f3f4f6;
+	cursor: pointer;
+	transition: transform 0.2s ease;
+}
+
+.card-image-wrapper {
+	position: relative;
+	width: 100%;
+	height: 180px;
+	background: #e5e7eb;
+}
+
+.recipe-image {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.recipe-image-placeholder {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #f3f4f6;
+}
+
+.placeholder-icon {
+	font-size: 2.5rem;
+	color: #9ca3af;
+}
+
+.made-overlay-badge {
+	position: absolute;
+	top: 14px;
+	left: 14px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	background: rgba(52, 65, 84, 0.85);
+	backdrop-filter: blur(4px);
+	color: #ffffff;
+	font-size: 0.75rem;
+	font-weight: 600;
+	padding: 4px 10px;
+	border-radius: 9999px;
+}
+
+.made-badge-icon {
+	color: #05c450;
+	font-size: 0.9rem;
+}
+
+.heart-overlay-btn {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.85);
+	backdrop-filter: blur(4px);
+	border: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	color: #6b7280;
+	font-size: 1.15rem;
+	transition: background 0.2s;
+}
+
+.heart-icon--liked {
+	color: #ef4444;
+}
+
+.card-body {
+	padding: 16px;
+}
+
+.title-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 6px;
+}
+
+.card-title {
+	font-size: 1.15rem;
+	font-weight: 700;
+	color: #111827;
+	margin: 0;
+}
+
+.chevron-icon {
+	color: #9ca3af;
+	font-size: 1.1rem;
+}
+
+.card-instructions {
+	font-size: 0.82rem;
+	color: #6b7280;
+	line-height: 1.45;
+	margin: 0 0 14px;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.card-footer {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.pantry-count {
+	font-size: 0.78rem;
+	font-weight: 600;
+	color: #05c450;
+}
+
 .form-error {
 	background: #fee2e2;
 	color: #b91c1c;
 	border-radius: 8px;
 	padding: 8px 12px;
-	margin-bottom: 12px;
+	margin: 16px 20px 0;
 	font-size: 0.85rem;
 }
+
 .archived-note {
 	font-size: 0.85rem;
-	color: var(--ion-color-success);
+	color: #05c450;
 	font-weight: 600;
 	margin-bottom: 16px;
 }
+
 .section-label {
 	font-size: 0.85rem;
 	font-weight: 700;
-	color: var(--ion-color-medium);
+	color: #6b7280;
 	text-transform: uppercase;
 	letter-spacing: 0.02em;
 	margin-bottom: 8px;
 }
+
 .instructions-text {
 	white-space: pre-line;
-	color: var(--ion-color-dark);
+	color: #111827;
 	line-height: 1.5;
 }
+
 .notes-block {
 	margin-top: 16px;
 	padding: 12px;
-	background: var(--ion-color-light);
+	background: #f3f4f6;
 	border-radius: 8px;
 }
+
+.submit-btn {
+	--background: #05c450;
+	--border-radius: 9999px;
+}
+
 .mt-4 {
 	margin-top: 16px;
 }

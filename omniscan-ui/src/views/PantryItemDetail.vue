@@ -1,11 +1,12 @@
 <template>
 	<ion-page>
-		<ion-header>
-			<ion-toolbar>
+		<!-- Header with Title Left-Aligned Next to Back Arrow -->
+		<ion-header class="ion-no-border">
+			<ion-toolbar class="detail-toolbar">
 				<ion-buttons slot="start">
-					<ion-back-button default-href="/tabs/pantry" text=""></ion-back-button>
+					<ion-back-button default-href="/tabs/pantry" text="" class="back-btn"></ion-back-button>
 				</ion-buttons>
-				<ion-title>{{ item?.product.product_name ?? 'Loading…' }}</ion-title>
+				<ion-title class="detail-title">{{ item?.product?.product_name ?? 'Loading…' }}</ion-title>
 			</ion-toolbar>
 		</ion-header>
 
@@ -21,19 +22,37 @@
 			</div>
 
 			<div v-else-if="item" class="detail-wrap">
-				<div class="product-image">
-					<img v-if="item.product.image_base64" :src="item.product.image_base64" :alt="item.product.product_name" />
-					<span v-else class="placeholder-initial">{{ item.product.product_name.charAt(0) }}</span>
+				<!-- Hero Image Section -->
+				<div class="hero-image-container">
+					<img
+						v-if="item.product.image_base64"
+						:src="item.product.image_base64"
+						:alt="item.product.product_name"
+						class="hero-photo" />
+					<div v-else class="hero-placeholder">
+						<span class="placeholder-initial">{{ item.product.product_name.charAt(0) }}</span>
+					</div>
 				</div>
 
-				<div v-if="expiryBanner" class="expiry-banner" :class="expiryBanner.tone">
-					<ion-icon :icon="calendarOutline" />
-					<span>{{ expiryBanner.text }}</span>
-					<span class="expiry-banner__storage">Storage: {{ item.storage_location }}</span>
+				<!-- Expiration & Storage Status Banner -->
+				<div v-if="expiryBanner" class="status-banner" :class="expiryBanner.tone">
+					<div class="status-left">
+						<ion-icon :icon="calendarOutline" class="status-icon" />
+						<span class="status-text">{{ expiryBanner.text }}</span>
+					</div>
+					<div class="status-right">
+						<span class="storage-label">Storage: </span>
+						<span class="storage-value">{{ item.storage_location }}</span>
+					</div>
 				</div>
 
+				<!-- Navigation Tabs -->
 				<div class="tab-row">
-					<button type="button" class="tab-btn" :class="{ 'tab-btn--active': activeTab === 'overview' }" @click="activeTab = 'overview'">
+					<button
+						type="button"
+						class="tab-btn"
+						:class="{ 'tab-btn--active': activeTab === 'overview' }"
+						@click="activeTab = 'overview'">
 						Overview
 					</button>
 					<button
@@ -54,6 +73,7 @@
 
 				<!-- OVERVIEW -->
 				<template v-if="activeTab === 'overview'">
+					<!-- Non-clickable Static Recipe Usage Rows -->
 					<div v-if="item.recipes_using_this.length > 0" class="info-card">
 						<h3 class="info-card__title">Used in Recipes</h3>
 						<div v-for="usage in item.recipes_using_this" :key="usage.recipe_id" class="recipe-usage-row">
@@ -68,9 +88,13 @@
 							</span>
 						</div>
 					</div>
-					<div class="info-card">
+
+					<!-- Halal Status Card (Only visible if certified or confirmed not halal) -->
+					<div v-if="hasHalalData" class="info-card">
 						<h3 class="info-card__title">Halal Status</h3>
-						<div class="halal-row" :class="{ 'halal-row--certified': isHalalCertified, 'halal-row--not-halal': isConfirmedNotHalal }">
+						<div
+							class="halal-row"
+							:class="{ 'halal-row--certified': isHalalCertified, 'halal-row--not-halal': isConfirmedNotHalal }">
 							<ion-icon
 								:icon="isHalalCertified ? checkmarkCircleOutline : isConfirmedNotHalal ? closeCircleOutline : helpCircleOutline" />
 							{{ isHalalCertified ? 'Halal certified' : isConfirmedNotHalal ? 'Confirmed not Halal' : 'Not verified' }}
@@ -121,10 +145,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent, IonSpinner, IonIcon, IonButton } from '@ionic/vue'
-import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, helpCircleOutline, constructOutline, closeCircleOutline } from 'ionicons/icons'
+import {
+	IonPage,
+	IonHeader,
+	IonToolbar,
+	IonTitle,
+	IonButtons,
+	IonBackButton,
+	IonContent,
+	IonSpinner,
+	IonIcon,
+	IonButton,
+	onIonViewWillEnter,
+} from '@ionic/vue'
+import {
+	alertCircleOutline,
+	calendarOutline,
+	checkmarkCircleOutline,
+	helpCircleOutline,
+	constructOutline,
+	closeCircleOutline,
+} from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
 interface RecipeUsage {
@@ -169,6 +212,7 @@ const activeTab = ref<Tab>('overview')
 
 const isHalalCertified = computed(() => !!item.value?.product.halal_logo_id)
 const isConfirmedNotHalal = computed(() => !!item.value?.product.confirmed_not_halal && !isHalalCertified.value)
+const hasHalalData = computed(() => isHalalCertified.value || isConfirmedNotHalal.value)
 
 function formatQuantity(n: number): string {
 	return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, '')
@@ -206,10 +250,11 @@ const expiryBanner = computed(() => {
 	if (!date) return null
 	const diff = daysBetween(new Date(), date)
 
-	if (diff < 0) return { text: `Expired ${Math.abs(diff)}d ago`, tone: 'expiry-banner--danger' }
-	if (diff === 0) return { text: 'Expires Today!', tone: 'expiry-banner--danger' }
-	if (diff <= 3) return { text: `Expires in ${diff} day${diff === 1 ? '' : 's'}`, tone: 'expiry-banner--warning' }
-	return { text: `Expires in ${diff} days`, tone: 'expiry-banner--success' }
+	if (diff < 0) return { text: `Expired ${Math.abs(diff)}d ago!`, tone: 'status-banner--danger' }
+	if (diff === 0) return { text: 'Expires Today!', tone: 'status-banner--danger' }
+	if (diff === 1) return { text: 'Expires Tomorrow!', tone: 'status-banner--danger' }
+	if (diff <= 5) return { text: `Expires in ${diff} days`, tone: 'status-banner--warning' }
+	return { text: `Expires in ${diff} days`, tone: 'status-banner--success' }
 })
 
 async function fetchItem(): Promise<void> {
@@ -229,174 +274,195 @@ async function fetchItem(): Promise<void> {
 	}
 }
 
-onMounted(fetchItem)
+onIonViewWillEnter(fetchItem)
 </script>
 
 <style scoped>
-.recipe-usage-row {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	gap: 8px;
-	padding: 8px 0;
-	border-bottom: 1px solid #f3f4f6;
-	font-size: 0.85rem;
-}
-.recipe-usage-row:last-child {
-	border-bottom: none;
-}
-.recipe-usage-row__name {
-	color: #111827;
-	font-weight: 600;
-}
-.recipe-usage-badge {
-	font-size: 0.75rem;
-	font-weight: 600;
-	white-space: nowrap;
-}
-.recipe-usage-badge--neutral {
-	color: #6b7280;
-}
-
 .detail-content {
-	--background: #f9fafb;
-}
-.state-block {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 12px;
-	padding: 48px 16px;
-	text-align: center;
+	--background: #fafafa;
 }
 .detail-wrap {
-	padding: 16px;
+	padding: 12px 16px 24px;
 	max-width: 480px;
 	margin: 0 auto;
 }
 
-.product-image {
-	width: 100%;
-	height: 200px;
-	border-radius: 16px;
-	background: #f3f4f6;
+.detail-toolbar {
+	--background: #ffffff;
+	--border-width: 0;
+	--padding-start: 0px;
+	padding: 4px 4px 4px 0;
+	border-bottom: 1px solid #f1f5f9;
+}
+.detail-title {
+	font-size: 1.15rem;
+	font-weight: 600;
+	color: #1e293b;
+	padding-left: 0;
+}
+.back-btn {
+	--color: #1e293b;
+	font-size: 1.2rem;
+}
+
+.hero-image-container {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	height: 190px;
+	width: 100%;
+	margin: 6px 0 16px;
+	border-radius: 20px;
 	overflow: hidden;
-	margin-bottom: 16px;
+	background: #f1f5f9;
 }
-.product-image img {
+.hero-photo {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 }
+.hero-placeholder {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
 .placeholder-initial {
 	font-size: 3rem;
 	font-weight: 700;
-	color: #9ca3af;
+	color: #94a3b8;
 }
 
-.expiry-banner {
+.status-banner {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	border-radius: 12px;
-	padding: 10px 14px;
+	justify-content: space-between;
+	border-radius: 14px;
+	padding: 12px 14px;
 	font-size: 0.85rem;
-	font-weight: 600;
 	margin-bottom: 16px;
 }
-.expiry-banner ion-icon {
+.status-left {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: 600;
+}
+.status-icon {
 	font-size: 1.1rem;
 }
-.expiry-banner__storage {
-	margin-left: auto;
-	font-weight: 500;
-	opacity: 0.8;
+.storage-label {
+	font-weight: 400;
+	opacity: 0.9;
 }
-.expiry-banner--danger {
+.storage-value {
+	font-weight: 400;
+}
+
+.status-banner--danger {
 	background: #fee2e2;
-	color: #b91c1c;
+	color: #991b1b;
 }
-.expiry-banner--warning {
+.status-banner--warning {
 	background: #fef3c7;
 	color: #92400e;
 }
-.expiry-banner--success {
-	background: #d1fae5;
-	color: #065f46;
+.status-banner--success {
+	background: #dcfce7;
+	color: #166534;
 }
 
 .tab-row {
 	display: flex;
 	gap: 4px;
-	border-bottom: 1px solid #e5e7eb;
+	border-bottom: 1px solid #e2e8f0;
 	margin-bottom: 16px;
 }
 .tab-btn {
 	flex: 1;
 	background: none;
 	border: none;
-	padding: 10px 0;
+	padding: 8px 0;
 	font-size: 0.85rem;
 	font-weight: 600;
-	color: #9ca3af;
+	color: #94a3b8;
 	border-bottom: 2px solid transparent;
 }
 .tab-btn--active {
-	color: #16a34a;
-	border-bottom-color: #16a34a;
+	color: #00a651;
+	border-bottom-color: #00a651;
 }
 
 .info-card {
 	background: #ffffff;
-	border-radius: 14px;
+	border-radius: 16px;
 	padding: 16px;
 	margin-bottom: 12px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+	border: 1px solid #f1f5f9;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
 }
 .info-card__title {
-	font-size: 0.95rem;
+	font-size: 0.9rem;
 	font-weight: 700;
-	color: #111827;
+	color: #0f172a;
 	margin: 0 0 12px;
 }
 .info-row {
 	display: flex;
 	justify-content: space-between;
 	font-size: 0.85rem;
-	color: #6b7280;
+	color: #64748b;
 	padding: 6px 0;
 }
 .info-row strong {
-	color: #111827;
+	color: #0f172a;
 }
 
-.halal-row--not-halal {
-	color: #b91c1c;
-	background: #fee2e2;
+.recipe-usage-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 0;
+	border-bottom: 1px solid #f1f5f9;
+	font-size: 0.85rem;
+}
+.recipe-usage-row:last-child {
+	border-bottom: none;
+}
+.recipe-usage-row__name {
+	color: #0f172a;
+	font-weight: 600;
+}
+.recipe-usage-badge--neutral {
+	color: #64748b;
+	font-size: 0.75rem;
 }
 
 .halal-row {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	background: #f3f4f6;
-	color: #6b7280;
-	border-radius: 10px;
+	background: #f8fafc;
+	color: #64748b;
+	border-radius: 12px;
 	padding: 10px 12px;
 	font-size: 0.85rem;
 	font-weight: 600;
 }
 .halal-row--certified {
 	background: #ecfdf5;
-	color: #065f46;
+	color: #047857;
+}
+.halal-row--not-halal {
+	background: #fef2f2;
+	color: #b91c1c;
 }
 
 .ingredients-text {
 	font-size: 0.85rem;
-	color: #4b5563;
+	color: #334155;
 	line-height: 1.5;
 	white-space: pre-line;
 	margin: 0;
@@ -408,14 +474,19 @@ onMounted(fetchItem)
 	align-items: center;
 	text-align: center;
 	gap: 8px;
-	color: #9ca3af;
+	color: #94a3b8;
 	padding: 32px 16px;
 }
 .alternatives-placeholder ion-icon {
 	font-size: 2rem;
 }
-.alternatives-placeholder p {
-	margin: 0;
-	font-size: 0.85rem;
+
+.state-block {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	padding: 64px 16px;
+	text-align: center;
 }
 </style>

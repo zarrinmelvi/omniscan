@@ -1,56 +1,69 @@
 <template>
 	<ion-page>
-		<ion-content class="ion-padding auth-content">
+		<ion-content class="auth-content">
 			<div class="auth-card">
-				<ion-button fill="clear" class="back-button" @click="handleBack">
-					<ion-icon :icon="chevronBackOutline" slot="icon-only" />
-				</ion-button>
+				<button v-if="step === 1" class="back-button" @click="handleBack">
+					<ion-icon :icon="chevronBackOutline" />
+				</button>
 
 				<div class="progress-bar">
 					<div class="progress-segment" :class="{ 'progress-segment--filled': step >= 1 }"></div>
 					<div class="progress-segment" :class="{ 'progress-segment--filled': step >= 2 }"></div>
 				</div>
 				<p v-if="step === 1" class="step-label">Step 1 of 2</p>
-				<p v-else class="step-label step-label--accent">Almost There!</p>
+				<p v-else class="step-label step-label--accent">Step 2 of 2</p>
 
 				<!-- STEP 1: Create Account -->
 				<template v-if="step === 1">
+					<span class="brand-label">OmniScan</span>
 					<h1 class="auth-title">Create Account</h1>
 					<p class="auth-subtitle">Let's get started with your smart pantry</p>
 
 					<div v-if="errorMessage" class="form-error">{{ errorMessage }}</div>
 
 					<form @submit.prevent="handleRegister">
-						<ion-item lines="none" class="form-field">
-							<ion-label position="stacked">Full Name</ion-label>
-							<ion-input v-model="name" placeholder="Enter your name" required />
-						</ion-item>
+						<div class="form-group">
+							<label class="input-label">Full Name</label>
+							<div class="custom-input-wrapper">
+								<input v-model="name" type="text" placeholder="Enter your name" required class="custom-input" />
+							</div>
+						</div>
 
-						<ion-item lines="none" class="form-field">
-							<ion-label position="stacked">Email Address</ion-label>
-							<ion-input v-model="email" type="email" placeholder="your@email.com" required />
-						</ion-item>
+						<div class="form-group">
+							<label class="input-label">Email Address</label>
+							<div class="custom-input-wrapper">
+								<input v-model="email" type="email" placeholder="your@email.com" required class="custom-input" />
+							</div>
+						</div>
 
-						<ion-item lines="none" class="form-field">
-							<ion-label position="stacked">Password</ion-label>
-							<ion-input v-model="password" :type="showPassword ? 'text' : 'password'" placeholder="Create a password" required>
+						<div class="form-group">
+							<label class="input-label">Password</label>
+							<div class="custom-input-wrapper">
+								<input
+									v-model="password"
+									:type="showPassword ? 'text' : 'password'"
+									placeholder="Create a password"
+									required
+									class="custom-input" />
 								<ion-icon
-									slot="end"
 									:icon="showPassword ? eyeOffOutline : eyeOutline"
 									class="password-toggle"
 									@click="showPassword = !showPassword" />
-							</ion-input>
-						</ion-item>
-						<p class="hint-text">Minimum of 6 characters</p>
+							</div>
+							<p class="hint-text">Must be at least 8 characters</p>
+						</div>
 
-						<ion-item lines="none" class="form-field">
-							<ion-label position="stacked">Confirm Password</ion-label>
-							<ion-input
-								v-model="confirmPassword"
-								:type="showPassword ? 'text' : 'password'"
-								placeholder="Re-enter your password"
-								required />
-						</ion-item>
+						<div class="form-group">
+							<label class="input-label">Confirm Password</label>
+							<div class="custom-input-wrapper">
+								<input
+									v-model="confirmPassword"
+									:type="showPassword ? 'text' : 'password'"
+									placeholder="Re-enter your password"
+									required
+									class="custom-input" />
+							</div>
+						</div>
 
 						<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
 							{{ isSubmitting ? 'Creating account...' : 'Continue' }}
@@ -61,10 +74,17 @@
 						Already have an account?
 						<router-link to="/login" class="switch-link">Sign In</router-link>
 					</p>
+
+					<p class="legal-text">
+						By continuing you agree to OmniScan's
+						<a href="#" @click.prevent>Terms of Service</a> and
+						<a href="#" @click.prevent>Privacy Policy</a>
+					</p>
 				</template>
 
 				<!-- STEP 2: Dietary Preferences -->
 				<template v-else>
+					<span class="brand-label">Almost There!</span>
 					<h1 class="auth-title">Dietary Preferences</h1>
 					<p class="auth-subtitle">Select your dietary preferences so we can help you make better choices</p>
 
@@ -96,7 +116,7 @@
 							:class="{ 'pref-card--selected': selectedAllergenIds.includes(allergen.id) }"
 							@click="toggleAllergen(allergen.id)">
 							<span class="pref-emoji">{{ emojiForAllergen(allergen.name) }}</span>
-							<span class="pref-label">{{ allergen.name }}</span>
+							<span class="pref-label">{{ formatAllergenName(allergen.name) }}</span>
 						</button>
 					</div>
 
@@ -116,7 +136,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError } from '@/utils/api'
@@ -150,9 +170,6 @@ const allergensLoadError = ref('')
 const isSavingPrefs = ref(false)
 const prefsError = ref('')
 
-// Emoji per allergen name — anything fetched from the catalog that isn't
-// in this map (e.g. a new allergen an admin adds later) still renders,
-// just with a generic fallback icon instead of a blank card.
 const ALLERGEN_EMOJI: Record<string, string> = {
 	milk: '🥛',
 	eggs: '🥚',
@@ -168,12 +185,12 @@ function emojiForAllergen(name: string): string {
 	return ALLERGEN_EMOJI[name.toLowerCase()] ?? '🍽️'
 }
 
+function formatAllergenName(name: string): string {
+	return name.replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
 function handleBack(): void {
 	if (step.value === 2) {
-		// Account + session already exist at this point — going back just
-		// re-shows the form, it won't re-run account creation unless the
-		// user submits it again (which would correctly fail as a duplicate
-		// email, same as re-submitting any already-used signup form).
 		step.value = 1
 		return
 	}
@@ -183,8 +200,8 @@ function handleBack(): void {
 async function handleRegister(): Promise<void> {
 	errorMessage.value = null
 
-	if (password.value.length < 6) {
-		errorMessage.value = 'Password must be at least 6 characters.'
+	if (password.value.length < 8) {
+		errorMessage.value = 'Password must be at least 8 characters.'
 		return
 	}
 	if (password.value !== confirmPassword.value) {
@@ -196,10 +213,6 @@ async function handleRegister(): Promise<void> {
 
 	try {
 		await authStore.register(name.value.trim(), email.value, password.value)
-
-		// register() doesn't return a token — log in immediately after so
-		// step 2 can call authenticated endpoints (saving prefs needs a
-		// session the same way the Profile page does).
 		await authStore.login(email.value, password.value)
 
 		step.value = 2
@@ -256,79 +269,172 @@ function skipForNow(): void {
 
 <style scoped>
 .auth-content {
-	--background: #f8f9fa;
+	--background: #ffffff;
 }
+
 .auth-card {
-	max-width: 420px;
-	margin: 24px auto;
+	max-width: 380px;
+	margin: 0 auto;
+	padding: 12px 24px 32px;
 	background: #ffffff;
-	border-radius: 16px;
-	padding: 24px;
 }
+
 .back-button {
-	margin-left: -12px;
+	background: none;
+	border: none;
+	font-size: 1.25rem;
+	color: #111827;
+	padding: 4px 0;
+	margin-bottom: 8px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
 }
+
 .progress-bar {
 	display: flex;
 	gap: 6px;
-	margin-bottom: 12px;
+	margin-bottom: 6px;
 }
+
 .progress-segment {
 	flex: 1;
 	height: 4px;
 	background: #e5e7eb;
-	border-radius: 2px;
+	border-radius: 9999px;
 }
+
 .progress-segment--filled {
-	background: #16a34a;
+	background: #05c450;
 }
+
 .step-label {
-	font-size: 0.8rem;
+	font-size: 0.75rem;
 	color: #6b7280;
+	margin: 0 0 24px;
+}
+
+.step-label--accent {
+	color: #6b7280;
+}
+
+.brand-label {
+	display: block;
+	color: #05c450;
+	font-weight: 600;
+	font-size: 0.85rem;
 	margin-bottom: 4px;
 }
-.step-label--accent {
-	color: #16a34a;
-	font-weight: 600;
-}
+
 .auth-title {
-	font-size: 1.75rem;
+	font-size: 1.85rem;
 	font-weight: 700;
-	margin: 4px 0 4px;
+	color: #111827;
+	margin: 0 0 6px;
+	letter-spacing: -0.02em;
 }
+
 .auth-subtitle {
 	color: #6b7280;
-	margin-bottom: 20px;
+	font-size: 0.85rem;
+	line-height: 1.4;
+	margin: 0 0 24px;
 }
-.form-field {
-	--padding-start: 0;
-	margin-bottom: 4px;
+
+.form-group {
+	margin-bottom: 14px;
 }
-.hint-text {
+
+.input-label {
+	display: block;
 	font-size: 0.8rem;
-	color: #6b7280;
-	margin: 2px 0 12px;
-}
-.password-toggle {
-	cursor: pointer;
-	color: #6b7280;
-}
-.submit-button {
-	--background: #16a34a;
-	--border-radius: 10px;
 	font-weight: 600;
-	margin-top: 16px;
+	color: #374151;
+	margin-bottom: 6px;
 }
+
+.custom-input-wrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.custom-input {
+	width: 100%;
+	height: 46px;
+	border: 1px solid #e5e7eb;
+	border-radius: 12px;
+	padding: 0 14px;
+	font-size: 0.9rem;
+	color: #111827;
+	outline: none;
+	background: #ffffff;
+	transition: border-color 0.2s;
+}
+
+.custom-input:focus {
+	border-color: #05c450;
+}
+
+.custom-input::placeholder {
+	color: #9ca3af;
+}
+
+.password-toggle {
+	position: absolute;
+	right: 14px;
+	font-size: 1.1rem;
+	color: #6b7280;
+	cursor: pointer;
+}
+
+.hint-text {
+	font-size: 0.75rem;
+	color: #6b7280;
+	margin: 4px 0 0;
+}
+
+.submit-button {
+	--background: #05c450;
+	--background-activated: #04ab45;
+	--border-radius: 9999px;
+	--box-shadow: none;
+	--color: #ffffff;
+	font-weight: 600;
+	font-size: 0.95rem;
+	height: 48px;
+	text-transform: none;
+	margin-top: 24px;
+}
+
 .switch-auth {
 	text-align: center;
 	margin-top: 20px;
-	color: #374151;
+	font-size: 0.85rem;
+	color: #4b5563;
 }
+
 .switch-link {
-	color: #16a34a;
+	color: #05c450;
+	font-weight: 600;
+	text-decoration: none;
+	margin-left: 2px;
+}
+
+.legal-text {
+	color: #6b7280;
+	font-size: 0.72rem;
+	line-height: 1.4;
+	text-align: center;
+	margin-top: 32px;
+}
+
+.legal-text a {
+	color: #05c450;
 	font-weight: 600;
 	text-decoration: none;
 }
+
 .form-error {
 	background: #fee2e2;
 	color: #b91c1c;
@@ -337,6 +443,7 @@ function skipForNow(): void {
 	margin-bottom: 12px;
 	font-size: 0.85rem;
 }
+
 .inline-error {
 	display: flex;
 	align-items: center;
@@ -345,40 +452,52 @@ function skipForNow(): void {
 	color: var(--ion-color-danger);
 	font-size: 0.85rem;
 }
+
 .state-block {
 	display: flex;
 	justify-content: center;
 	padding: 24px 0;
 }
 
+/* Step 2 Cards Grid */
 .pref-grid {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
-	gap: 10px;
-	margin-bottom: 16px;
+	gap: 12px;
+	margin-bottom: 24px;
 }
+
 .pref-card {
 	border: 1px solid #e5e7eb;
 	background: #ffffff;
-	border-radius: 14px;
-	padding: 16px 8px;
+	border-radius: 16px;
+	padding: 18px 12px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 6px;
+	justify-content: center;
+	gap: 10px;
+	cursor: pointer;
+	transition: all 0.2s ease;
 }
+
 .pref-card--selected {
-	border-color: #16a34a;
+	border-color: #05c450;
 	background: #f0fdf4;
+	box-shadow: 0 0 0 1px #05c450;
 }
+
 .pref-emoji {
-	font-size: 1.6rem;
+	font-size: 1.8rem;
+	line-height: 1;
 }
+
 .pref-label {
 	font-size: 0.85rem;
 	font-weight: 600;
 	color: #111827;
 }
+
 .skip-link {
 	display: block;
 	width: 100%;
@@ -387,6 +506,7 @@ function skipForNow(): void {
 	border: none;
 	color: #6b7280;
 	font-size: 0.85rem;
-	padding: 12px 0 0;
+	padding: 16px 0 0;
+	cursor: pointer;
 }
 </style>

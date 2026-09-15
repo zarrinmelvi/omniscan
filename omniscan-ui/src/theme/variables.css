@@ -1,2 +1,90 @@
-/* For information on how to create your own theme, please refer to:
-http://ionicframework.com/docs/theming/ */
+/* Custom Tight Alert Overrides */
+ion-alert.custom-make-alert {
+	--background: #ffffff;
+	--border-radius: 20px;
+}
+
+ion-alert.custom-make-alert .alert-wrapper {
+	border-radius: 20px !important;
+	padding: 16px 16px 20px !important;
+	max-width: 320px !important;
+	width: 84% !important;
+}
+
+ion-alert.custom-make-alert .alert-head {
+	padding: 8px 8px 4px !important;
+	text-align: center !important;
+}
+
+ion-alert.custom-make-alert .alert-title {
+	font-size: 1.15rem !important;
+	font-weight: 700 !important;
+	color: #0f172a !important;
+}
+
+ion-alert.custom-make-alert .alert-message {
+	color: #64748b !important;
+	font-size: 0.88rem !important;
+	line-height: 1.4 !important;
+	text-align: center !important;
+	padding: 8px 8px 16px !important;
+}
+
+/* Button Group Grid */
+ion-alert.custom-make-alert .alert-button-group {
+	display: grid !important;
+	grid-template-columns: 1fr 1fr !important;
+	gap: 10px !important;
+	padding: 0 !important;
+}
+
+/* Base style resetting internal Ionic padding */
+ion-alert.custom-make-alert .alert-button {
+	width: 100% !important;
+	height: 42px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border-radius: 9999px !important;
+	font-size: 0.88rem !important;
+	font-weight: 600 !important;
+	text-transform: none !important;
+	letter-spacing: normal !important;
+}
+
+/* Remove default internal offset */
+ion-alert.custom-make-alert .alert-button .alert-button-inner {
+	width: 100% !important;
+	height: 100% !important;
+	justify-content: center !important;
+	padding: 0 !important;
+}
+
+/* Cancel Button */
+ion-alert.custom-make-alert .alert-button-cancel {
+	background: #ffffff !important;
+	border: 1px solid #e2e8f0 !important;
+}
+
+ion-alert.custom-make-alert .alert-button-cancel .alert-button-inner {
+	color: #475569 !important;
+}
+
+/* Confirm Button (Green) */
+ion-alert.custom-make-alert .alert-button-confirm {
+	background: #00a651 !important;
+	border: none !important;
+}
+
+ion-alert.custom-make-alert .alert-button-confirm .alert-button-inner {
+	color: #ffffff !important;
+}
+
+/* Danger Button (Red) */
+ion-alert.custom-make-alert .alert-button-danger {
+	background: #dc2626 !important;
+	border: none !important;
+}
+
+ion-alert.custom-make-alert .alert-button-danger .alert-button-inner {
+	color: #ffffff !important;
+}

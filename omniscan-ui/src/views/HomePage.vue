@@ -34,7 +34,7 @@
 					</button>
 				</div>
 
-				<!-- Expiring Soon carousel -->
+				<!-- Expiring Soon Carousel -->
 				<div class="section-header">
 					<h2 class="section-title">Expiring Soon</h2>
 				</div>
@@ -45,14 +45,20 @@
 
 				<div v-else-if="expiringItems.length === 0" class="empty-note">Nothing expiring in the next few days.</div>
 
-				<div v-else class="carousel-row">
-					<button type="button" class="carousel-nav" aria-label="Scroll left" @click="scrollCarousel(-1)">
+				<div v-else class="carousel-container">
+					<!-- Floating White Circle Overlay Navigation Buttons -->
+					<button type="button" class="carousel-nav carousel-nav--left" aria-label="Scroll left" @click="scrollCarousel(-1)">
 						<ion-icon :icon="chevronBackOutline" />
 					</button>
 
 					<div ref="carouselRef" class="carousel-track">
-						<button v-for="item in expiringItems" :key="item.id" type="button" class="expiring-card" @click="goToExpiringPantry">
-							<span class="expiring-badge" :class="{ 'expiring-badge--urgent': (daysUntil(item) ?? Infinity) <= 1 }">
+						<button v-for="item in expiringItems" :key="item.id" type="button" class="expiring-card" @click="goToPantryItemDetail(item.id)">
+							<span
+								class="expiring-badge"
+								:class="{
+									'expiring-badge--urgent': (daysUntil(item) ?? Infinity) <= 1,
+									'expiring-badge--warning': (daysUntil(item) ?? Infinity) > 1,
+								}">
 								{{ expiryLabel(item) }}
 							</span>
 							<div class="expiring-image">
@@ -67,18 +73,43 @@
 						</button>
 					</div>
 
-					<button type="button" class="carousel-nav" aria-label="Scroll right" @click="scrollCarousel(1)">
+					<button type="button" class="carousel-nav carousel-nav--right" aria-label="Scroll right" @click="scrollCarousel(1)">
 						<ion-icon :icon="chevronForwardOutline" />
 					</button>
 				</div>
 
-				<!-- Recommended for You (stubbed — no recommendation endpoint yet) -->
+				<!-- Recommended for You -->
 				<div class="section-header section-header--top">
 					<h2 class="section-title">Recommended for You</h2>
 				</div>
-				<div class="placeholder-card">
+
+				<div v-if="isLoading" class="state-block">
+					<ion-spinner name="crescent" />
+				</div>
+
+				<div v-else-if="recommendedRecipes.length === 0" class="placeholder-card">
 					<ion-icon :icon="restaurantOutline" class="placeholder-icon" />
 					<p>Personalized recipe recommendations are coming soon.</p>
+				</div>
+
+				<div v-else class="recommended-list">
+					<div
+						v-for="recipe in recommendedRecipes"
+						:key="recipe.id"
+						class="recipe-card"
+						@click="openRecipeDetail(recipe)">
+						<div class="recipe-img-wrap">
+							<img v-if="recipe.image_url" :src="recipe.image_url" :alt="recipe.name" class="recipe-img" />
+							<div v-else class="recipe-placeholder">
+								<ion-icon :icon="restaurantOutline" />
+							</div>
+						</div>
+						<div class="recipe-info">
+							<h3 class="recipe-title">{{ recipe.name }}</h3>
+							<p class="recipe-match">{{ recipe.matched_count }} in pantry</p>
+						</div>
+						<ion-icon :icon="chevronForwardOutline" class="recipe-arrow" />
+					</div>
 				</div>
 
 				<!-- Recent Activities -->
@@ -113,6 +144,61 @@
 					</div>
 				</div>
 			</div>
+
+			<!-- Recipe Detail Modal -->
+			<RecipeDetailModal
+				:is-open="isDetailModalOpen"
+				:recipe="selectedRecipe"
+				@close="isDetailModalOpen = false"
+				@toggle-like="toggleLike"
+				@make="handleMakeFromModal"
+				@unmake="handleUnmakeFromModal" />
+
+			<!-- Rounded Confirmation Alert -->
+			<ion-alert
+				:is-open="isAlertOpen"
+				header="Make this recipe?"
+				:message="alertMessage"
+				:buttons="alertButtons"
+				class="custom-make-alert"
+				@didDismiss="isAlertOpen = false" />
+
+			<!-- Result Modal -->
+			<ion-modal :is-open="isResultModalOpen" @didDismiss="isResultModalOpen = false">
+				<ion-header>
+					<ion-toolbar>
+						<ion-title>{{ madeRecipeResult?.name ?? 'Recipe Made' }}</ion-title>
+						<ion-buttons slot="end">
+							<ion-button @click="isResultModalOpen = false">
+								<ion-icon :icon="closeOutline" slot="icon-only" />
+							</ion-button>
+						</ion-buttons>
+					</ion-toolbar>
+				</ion-header>
+
+				<ion-content class="ion-padding">
+					<div v-if="madeRecipeResult">
+						<p v-if="archivedCount > 0" class="archived-note">
+							{{ archivedCount }} pantry item{{ archivedCount === 1 ? '' : 's' }} used and archived.
+						</p>
+
+						<p class="section-label">Adjusted Ingredients</p>
+						<ion-chip v-for="(ingredient, index) in madeRecipeResult.adjusted_ingredients" :key="index" color="success">
+							{{ ingredient.name }} — {{ ingredient.amount_text }}
+						</ion-chip>
+
+						<p class="section-label mt-4">Instructions</p>
+						<p class="instructions-text">{{ madeRecipeResult.adapted_instructions }}</p>
+
+						<div v-if="madeRecipeResult.notes" class="notes-block">
+							<p class="section-label">Notes</p>
+							<p>{{ madeRecipeResult.notes }}</p>
+						</div>
+					</div>
+
+					<ion-button expand="block" class="mt-4 submit-btn" @click="isResultModalOpen = false">Done</ion-button>
+				</ion-content>
+			</ion-modal>
 		</ion-content>
 	</ion-page>
 </template>
@@ -120,7 +206,21 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonContent, IonIcon, IonSpinner, IonButton, onIonViewWillEnter } from '@ionic/vue'
+import {
+	IonPage,
+	IonContent,
+	IonHeader,
+	IonToolbar,
+	IonTitle,
+	IonButtons,
+	IonChip,
+	IonIcon,
+	IonSpinner,
+	IonButton,
+	IonAlert,
+	IonModal,
+	onIonViewWillEnter,
+} from '@ionic/vue'
 import {
 	alertCircleOutline,
 	chevronBackOutline,
@@ -131,8 +231,10 @@ import {
 	warningOutline,
 	addCircleOutline,
 	checkmarkCircleOutline,
+	closeOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
+import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
 
 const router = useRouter()
 
@@ -155,6 +257,27 @@ interface PantryItemDto {
 	product: Product
 }
 
+interface SuggestedRecipe {
+	id: number
+	name: string
+	instructions: string
+	matched_ingredients?: string[]
+	matched_count: number
+	total_count: number
+	missing_ingredients: string[]
+	liked: boolean
+	made: boolean
+	image_url?: string
+}
+
+interface MadeRecipeResult {
+	id: number
+	name: string
+	adapted_instructions: string
+	adjusted_ingredients: { name: string; amount_text: string }[]
+	notes: string
+}
+
 interface UserDto {
 	id: number
 	name: string
@@ -172,8 +295,6 @@ interface ActivityLogDto {
 	pantry_item_id: number | null
 }
 
-// Anything within this many days (and not yet expired) counts as "expiring soon" —
-// matches the danger/warning thresholds already used on the Pantry page.
 const EXPIRING_SOON_THRESHOLD_DAYS = 3
 
 const isLoading = ref(true)
@@ -182,8 +303,41 @@ const loadError = ref('')
 const userName = ref('')
 const avatarBase64 = ref<string | null>(null)
 const pantryItems = ref<PantryItemDto[]>([])
+const recommendedRecipes = ref<SuggestedRecipe[]>([])
 const activities = ref<ActivityLogDto[]>([])
 const activitiesLoadError = ref('')
+
+// Recipe Modal States
+const isDetailModalOpen = ref(false)
+const selectedRecipe = ref<SuggestedRecipe | null>(null)
+const likingId = ref<number | null>(null)
+const makingId = ref<number | null>(null)
+
+const isResultModalOpen = ref(false)
+const madeRecipeResult = ref<MadeRecipeResult | null>(null)
+const archivedCount = ref(0)
+
+const isAlertOpen = ref(false)
+const alertMessage = ref('')
+const pendingRecipeId = ref<number | null>(null)
+
+const alertButtons = [
+	{
+		text: 'Cancel',
+		role: 'cancel',
+		cssClass: 'alert-button-cancel',
+	},
+	{
+		text: 'Confirm',
+		role: 'confirm',
+		cssClass: 'alert-button-confirm',
+		handler: () => {
+			if (pendingRecipeId.value !== null) {
+				void makeRecipe(pendingRecipeId.value)
+			}
+		},
+	},
+]
 
 const carouselRef = ref<HTMLElement | null>(null)
 
@@ -231,7 +385,7 @@ function expiryLabel(item: PantryItemDto): string {
 }
 
 function scrollCarousel(direction: 1 | -1) {
-	carouselRef.value?.scrollBy({ left: direction * 220, behavior: 'smooth' })
+	carouselRef.value?.scrollBy({ left: direction * 180, behavior: 'smooth' })
 }
 
 function goToPantry() {
@@ -240,6 +394,94 @@ function goToPantry() {
 
 function goToProfile() {
 	router.push('/tabs/profile')
+}
+
+function goToPantryItemDetail(id: number) {
+	router.push(`/tabs/pantry/${id}`)
+}
+
+function openRecipeDetail(recipe: SuggestedRecipe): void {
+	selectedRecipe.value = recipe
+	isDetailModalOpen.value = true
+}
+
+function handleMakeFromModal(recipe: SuggestedRecipe): void {
+	isDetailModalOpen.value = false
+	confirmMakeRecipe(recipe)
+}
+
+function handleUnmakeFromModal(recipe: SuggestedRecipe): void {
+	isDetailModalOpen.value = false
+	void unmakeRecipe(recipe.id)
+}
+
+function confirmMakeRecipe(recipe: SuggestedRecipe): void {
+	pendingRecipeId.value = recipe.id
+	alertMessage.value = `This will reduce your pantry quantities for "${recipe.name}". Continue?`
+	isAlertOpen.value = true
+}
+
+async function toggleLike(recipe: SuggestedRecipe): Promise<void> {
+	if (likingId.value === recipe.id) return
+
+	likingId.value = recipe.id
+	const previousLiked = recipe.liked
+	recipe.liked = !previousLiked
+
+	try {
+		const data = await apiFetch<{ liked: boolean; made: boolean }>(`/api/recipes/${recipe.id}/like`, { method: 'POST' })
+		recipe.liked = data.liked
+		recipe.made = data.made
+	} catch (err) {
+		recipe.liked = previousLiked
+		loadError.value = err instanceof ApiError ? err.message : 'Failed to update like status.'
+	} finally {
+		likingId.value = null
+	}
+}
+
+async function makeRecipe(recipeId: number): Promise<void> {
+	makingId.value = recipeId
+
+	try {
+		const data = await apiFetch<{
+			recipe: MadeRecipeResult
+			archived_count?: number
+			made?: boolean
+			liked?: boolean
+		}>('/api/recipes/make', {
+			method: 'POST',
+			body: { recipe_id: recipeId },
+		})
+
+		madeRecipeResult.value = data.recipe
+		archivedCount.value = data.archived_count ?? 0
+		isResultModalOpen.value = true
+
+		const affected = recommendedRecipes.value.find((r) => r.id === recipeId)
+		if (affected) {
+			affected.made = data.made ?? true
+			affected.liked = data.liked ?? affected.liked
+		}
+
+		await loadDashboard()
+	} catch (err) {
+		loadError.value = err instanceof ApiError ? err.message : 'Failed to update pantry after making this recipe.'
+	} finally {
+		makingId.value = null
+	}
+}
+
+async function unmakeRecipe(recipeId: number): Promise<void> {
+	try {
+		await apiFetch<{ success: boolean }>('/api/recipes/made', {
+			method: 'DELETE',
+			body: { recipe_id: recipeId },
+		})
+		await loadDashboard()
+	} catch (err) {
+		loadError.value = err instanceof ApiError ? err.message : 'Failed to remove recipe from Made list.'
+	}
 }
 
 function iconForActivityType(type: ActivityType) {
@@ -268,10 +510,6 @@ function labelForActivityType(type: ActivityType): string {
 	}
 }
 
-// Simplification: uses one consistent granularity (hours, then Yesterday,
-// then "N Days Ago") rather than mixing hour- and day-based wording per
-// activity type — the mockup showed both styles across different rows,
-// which reads more like illustrative sample data than a strict spec.
 function formatRelativeTime(iso: string): string {
 	const then = new Date(iso)
 	const now = new Date()
@@ -300,6 +538,17 @@ function goToExpiringPantry() {
 	router.push({ path: '/tabs/pantry', query: { filter: 'expiring' } })
 }
 
+async function fetchRecommendations() {
+	try {
+		const data = await apiFetch<{ success: boolean; recipes: SuggestedRecipe[] }>('/api/recipes/suggest', {
+			method: 'GET',
+		})
+		recommendedRecipes.value = (data.recipes || []).slice(0, 3)
+	} catch {
+		recommendedRecipes.value = []
+	}
+}
+
 async function loadDashboard() {
 	isLoading.value = true
 	loadError.value = ''
@@ -314,12 +563,12 @@ async function loadDashboard() {
 		userName.value = userRes.user.name
 		avatarBase64.value = userRes.user.avatar_base64
 		pantryItems.value = pantryRes.items
+
+		await fetchRecommendations()
 	} catch (err) {
 		loadError.value = err instanceof ApiError ? err.message : 'Failed to load your dashboard.'
 	}
 
-	// Fetched separately so a broken activity feed doesn't block the rest
-	// of the dashboard (stats and expiring carousel) from rendering.
 	try {
 		const activityRes = await apiFetch<{ success: boolean; activities: ActivityLogDto[] }>('/api/activity_log', {
 			method: 'GET',
@@ -332,11 +581,6 @@ async function loadDashboard() {
 	}
 }
 
-// Ionic keeps tab views alive in the DOM when you switch tabs (it doesn't
-// unmount/remount them), so onMounted() only fires once, ever. Using
-// onIonViewWillEnter instead means this refetches every time you land back
-// on the Home tab, so the stats never go stale after adding/removing items
-// elsewhere.
 onIonViewWillEnter(() => {
 	loadDashboard()
 })
@@ -344,7 +588,7 @@ onIonViewWillEnter(() => {
 
 <style scoped>
 .home-content {
-	--background: #f7f8fa;
+	--background: #f8fafc;
 }
 .home-wrap {
 	padding: 16px 16px 96px;
@@ -354,24 +598,25 @@ onIonViewWillEnter(() => {
 	display: flex;
 	align-items: flex-start;
 	justify-content: space-between;
-	margin-bottom: 16px;
+	margin-bottom: 20px;
 }
 .greeting-title {
-	font-size: 1.4rem;
-	font-weight: 700;
+	font-size: 1.3rem;
+	font-weight: 600;
 	margin: 0;
-	color: #111827;
+	color: #0f172a;
+	letter-spacing: -0.2px;
 }
 .greeting-date {
-	font-size: 0.85rem;
-	color: #6b7280;
-	margin: 4px 0 0;
+	font-size: 0.82rem;
+	color: #8e8e93;
+	margin: 2px 0 0;
 }
 .avatar-wrap {
 	width: 44px;
 	height: 44px;
 	border-radius: 50%;
-	background: #f3f4f6;
+	background: #e5e5ea;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -388,8 +633,8 @@ onIonViewWillEnter(() => {
 }
 .avatar-initial {
 	font-size: 1.1rem;
-	font-weight: 700;
-	color: #9ca3af;
+	font-weight: 600;
+	color: #8e8e93;
 }
 
 .inline-error {
@@ -404,40 +649,40 @@ onIonViewWillEnter(() => {
 .stats-row {
 	display: flex;
 	gap: 12px;
-	margin-bottom: 20px;
+	margin-bottom: 24px;
 }
 .stat-card {
 	flex: 1;
 	background: #ffffff;
 	border: none;
 	border-radius: 16px;
-	padding: 14px 16px 16px;
+	padding: 14px 16px;
 	text-align: left;
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+	gap: 6px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 .stat-label {
-	font-size: 0.8rem;
-	color: #6b7280;
+	font-size: 0.75rem;
+	color: #8e8e93;
 }
 .stat-value {
-	font-size: 1.6rem;
-	font-weight: 700;
-	color: #111827;
+	font-size: 1.5rem;
+	font-weight: 600;
+	color: #0f172a;
 }
 .stat-bar {
 	display: block;
-	height: 4px;
+	height: 3px;
 	border-radius: 999px;
-	margin-top: 6px;
+	margin-top: 4px;
 }
 .stat-bar--green {
-	background: #16a34a;
+	background: #22c55e;
 }
 .stat-bar--orange {
-	background: #f59e0b;
+	background: #f97316;
 }
 
 .section-header {
@@ -447,13 +692,14 @@ onIonViewWillEnter(() => {
 	margin-bottom: 12px;
 }
 .section-header--top {
-	margin-top: 24px;
+	margin-top: 28px;
 }
 .section-title {
-	font-size: 1.05rem;
-	font-weight: 700;
-	color: #111827;
+	font-size: 1.1rem;
+	font-weight: 600;
+	color: #0f172a;
 	margin: 0;
+	letter-spacing: -0.2px;
 }
 
 .state-block {
@@ -462,91 +708,176 @@ onIonViewWillEnter(() => {
 	padding: 24px 0;
 }
 .empty-note {
-	color: #9ca3af;
+	color: #8e8e93;
 	font-size: 0.85rem;
 	padding: 8px 0 4px;
 }
 
-.carousel-row {
-	display: flex;
-	align-items: center;
-	gap: 4px;
+.carousel-container {
+	position: relative;
+	width: 100%;
 }
+
 .carousel-nav {
-	flex-shrink: 0;
-	width: 28px;
-	height: 28px;
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 10;
+	width: 32px;
+	height: 32px;
 	border-radius: 50%;
-	border: 1px solid #e5e7eb;
+	border: none;
 	background: #ffffff;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: #6b7280;
+	color: #334155;
+	padding: 0;
+	cursor: pointer;
 }
+
+.carousel-nav--left {
+	left: -8px;
+}
+
+.carousel-nav--right {
+	right: -8px;
+}
+
 .carousel-track {
 	display: flex;
 	gap: 12px;
 	overflow-x: auto;
 	scroll-snap-type: x proximity;
-	padding-bottom: 4px;
+	padding: 8px 4px;
 }
+
 .carousel-track::-webkit-scrollbar {
 	display: none;
 }
+
 .expiring-card {
 	flex-shrink: 0;
 	width: 140px;
 	background: #ffffff;
 	border: none;
-	border-radius: 16px;
+	border-radius: 18px;
 	padding: 10px;
-	text-align: left;
+	text-align: center;
 	scroll-snap-align: start;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 .expiring-badge {
 	display: inline-block;
-	background: #fef3c7;
-	color: #92400e;
-	font-size: 0.7rem;
-	font-weight: 600;
+	font-size: 0.68rem;
+	font-weight: 500;
 	border-radius: 999px;
-	padding: 3px 10px;
-	margin-bottom: 8px;
+	padding: 3px 8px;
+	margin-bottom: 6px;
 }
 .expiring-badge--urgent {
 	background: #fee2e2;
-	color: #b91c1c;
+	color: #dc2626;
 }
+.expiring-badge--warning {
+	background: #fef3c7;
+	color: #d97706;
+}
+
 .expiring-image {
 	height: 80px;
-	background: #f3f4f6;
-	border-radius: 12px;
+	width: 100%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin-bottom: 8px;
-	overflow: hidden;
+	margin-bottom: 6px;
 }
 .expiring-photo {
+	max-height: 100%;
+	max-width: 100%;
+	object-fit: contain;
+}
+.placeholder-initial {
+	font-size: 1.5rem;
+	font-weight: 600;
+	color: #8e8e93;
+}
+
+.expiring-name {
+	font-size: 0.8rem;
+	font-weight: 500;
+	color: #0f172a;
+	margin: 0;
+	width: 100%;
+	text-align: center;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.recommended-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.recipe-card {
+	background: #ffffff;
+	border-radius: 18px;
+	padding: 12px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+	cursor: pointer;
+}
+.recipe-img-wrap {
+	width: 60px;
+	height: 60px;
+	border-radius: 12px;
+	overflow: hidden;
+	flex-shrink: 0;
+	background: #f2f2f7;
+}
+.recipe-img {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 }
-.placeholder-initial {
-	font-size: 1.5rem;
-	font-weight: 700;
-	color: #9ca3af;
+.recipe-placeholder {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.3rem;
+	color: #8e8e93;
 }
-.expiring-name {
-	font-size: 0.85rem;
+.recipe-info {
+	flex: 1;
+	min-width: 0;
+}
+.recipe-title {
+	font-size: 0.92rem;
 	font-weight: 600;
-	color: #111827;
-	margin: 0;
+	color: #0f172a;
+	margin: 0 0 2px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+.recipe-match {
+	font-size: 0.75rem;
+	color: #22c55e;
+	font-weight: 500;
+	margin: 0;
+}
+.recipe-arrow {
+	color: #c7c7cc;
+	font-size: 1.1rem;
 }
 
 .placeholder-card {
@@ -558,13 +889,13 @@ onIonViewWillEnter(() => {
 	align-items: center;
 	text-align: center;
 	gap: 8px;
-	color: #6b7280;
+	color: #8e8e93;
 	font-size: 0.85rem;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 .placeholder-icon {
 	font-size: 1.8rem;
-	color: #9ca3af;
+	color: #c7c7cc;
 }
 
 .activity-list {
@@ -579,16 +910,16 @@ onIonViewWillEnter(() => {
 	background: #ffffff;
 	border-radius: 14px;
 	padding: 12px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 .activity-icon {
-	width: 40px;
-	height: 40px;
+	width: 36px;
+	height: 36px;
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 1.3rem;
+	font-size: 1.2rem;
 	flex-shrink: 0;
 }
 .activity-icon--scanned {
@@ -601,28 +932,66 @@ onIonViewWillEnter(() => {
 }
 .activity-icon--added {
 	background: #f0fdf4;
-	color: #16a34a;
+	color: #22c55e;
 }
 .activity-icon--consumed {
-	background: #f3f4f6;
-	color: #6b7280;
+	background: #f2f2f7;
+	color: #8e8e93;
 }
 .activity-info {
 	flex: 1;
 	min-width: 0;
 }
 .activity-name {
-	font-size: 0.9rem;
+	font-size: 0.88rem;
 	font-weight: 600;
-	color: #111827;
+	color: #0f172a;
 	margin: 0 0 2px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 .activity-meta {
-	font-size: 0.78rem;
-	color: #6b7280;
+	font-size: 0.75rem;
+	color: #8e8e93;
 	margin: 0;
+}
+
+.archived-note {
+	font-size: 0.85rem;
+	color: #22c55e;
+	font-weight: 600;
+	margin-bottom: 16px;
+}
+
+.section-label {
+	font-size: 0.85rem;
+	font-weight: 700;
+	color: #6b7280;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	margin-bottom: 8px;
+}
+
+.instructions-text {
+	white-space: pre-line;
+	color: #111827;
+	line-height: 1.5;
+}
+
+.notes-block {
+	margin-top: 16px;
+	padding: 12px;
+	background: #f3f4f6;
+	border-radius: 8px;
+}
+
+.submit-btn {
+	--background: #22c55e;
+	--border-radius: 9999px;
+}
+
+.mt-4 {
+	margin-top: 16px;
 }
 </style>

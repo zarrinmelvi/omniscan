@@ -7,7 +7,7 @@
 				<div class="welcome-body">
 					<span class="brand-label">OmniScan</span>
 
-					<h1 class="headline">Scan with Confidence.<br />Live with Intention.</h1>
+					<h1 class="headline">Scan with<br />Confidence.<br />Live with<br />Intention.</h1>
 
 					<p class="subtext">Allergen &amp; Halal detection, smart pantry, and AI recommendations — all in one scan.</p>
 
@@ -18,7 +18,6 @@
 
 					<p class="legal-text">
 						By continuing you agree to OmniScan's
-						<!-- No Terms/Privacy routes exist yet — point these at real pages once they do. -->
 						<a href="#" @click.prevent>Terms of Service</a> and <a href="#" @click.prevent>Privacy Policy</a>.
 					</p>
 				</div>
@@ -54,9 +53,9 @@ function goToLogin() {
 	flex-direction: column;
 	justify-content: flex-end;
 
-	/* TODO: replace with your own asset, e.g. background-image: url('@/assets/welcome-bg.jpg'); */
+	/* Replace with your background image path when ready */
 	background-image:
-		linear-gradient(180deg, rgba(16, 19, 15, 0.2) 0%, rgba(16, 19, 15, 0.55) 55%, rgba(10, 12, 9, 0.96) 100%),
+		linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.5) 40%, rgba(0, 0, 0, 0.85) 100%),
 		linear-gradient(135deg, #2f3b28 0%, #1c2418 100%);
 	background-size: cover;
 	background-position: center;
@@ -65,71 +64,82 @@ function goToLogin() {
 .welcome-overlay {
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(180deg, transparent 0%, rgba(8, 10, 7, 0.9) 100%);
+	background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.75) 100%);
 	pointer-events: none;
 }
 
 .welcome-body {
 	position: relative;
 	z-index: 1;
-	padding: 0 24px calc(28px + env(safe-area-inset-bottom, 0px));
+	padding: 0 28px calc(32px + env(safe-area-inset-bottom, 0px));
 }
 
 .brand-label {
-	display: inline-block;
-	color: #22c55e;
-	font-weight: 700;
-	font-size: 0.95rem;
-	margin-bottom: 12px;
+	display: block;
+	color: #10b981;
+	font-weight: 600;
+	font-size: 0.85rem;
+	margin-bottom: 6px;
 }
 
 .headline {
 	color: #ffffff;
-	font-size: 2.2rem;
-	font-weight: 800;
+	font-size: 2.3rem;
+	font-weight: 700;
 	line-height: 1.15;
-	margin: 0 0 12px;
+	letter-spacing: -0.02em;
+	margin: 0 0 14px;
 }
 
 .subtext {
 	color: #d1d5db;
-	font-size: 0.95rem;
-	line-height: 1.5;
-	margin: 0 0 24px;
-	max-width: 340px;
+	font-size: 0.9rem;
+	line-height: 1.4;
+	margin: 0 0 28px;
+	max-width: 320px;
 }
 
 .actions {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
-	margin-bottom: 16px;
+	margin-bottom: 20px;
 }
+
 .get-started-btn {
-	--background: #22c55e;
-	--background-activated: #16a34a;
-	--border-radius: 999px;
+	--background: #05c450;
+	--background-activated: #04ab45;
+	--border-radius: 9999px;
 	--box-shadow: none;
-	font-weight: 700;
-	height: 52px;
-}
-.sign-in-btn {
-	--border-color: rgba(255, 255, 255, 0.5);
-	--border-radius: 999px;
 	--color: #ffffff;
-	font-weight: 700;
-	height: 52px;
+	font-weight: 600;
+	font-size: 0.95rem;
+	height: 48px;
+	text-transform: none;
+}
+
+.sign-in-btn {
+	--border-color: rgba(255, 255, 255, 0.6);
+	--border-width: 1px;
+	--border-radius: 9999px;
+	--color: #ffffff;
+	font-weight: 600;
+	font-size: 0.95rem;
+	height: 48px;
+	text-transform: none;
 }
 
 .legal-text {
 	color: #9ca3af;
 	font-size: 0.75rem;
-	line-height: 1.5;
+	line-height: 1.4;
 	text-align: center;
 	margin: 0;
+	padding: 0 8px;
 }
+
 .legal-text a {
-	color: #d1d5db;
+	color: #ffffff;
 	text-decoration: underline;
 }
 </style>

@@ -14,34 +14,37 @@
 				<!-- Interactive Controls Section -->
 				<div class="controls-section">
 					<!-- Prompt card for back photo step -->
-					<div v-if="captureStage === 'back'" class="back-prompt-card">
+					<div v-if="captureStage === 'back' || isBackCaptured" class="back-prompt-card">
 						<p class="back-prompt-text">
-							<strong>Front captured.</strong> Now scan or upload the <strong>back</strong> of the product so the ingredients list can
-							be read.
+							<template v-if="isBackCaptured">
+								<strong>Back captured.</strong> Please wait, upload in progress.
+							</template>
+							<template v-else>
+								<strong>Front captured.</strong> Now scan or upload the <strong>back</strong> of the product so the ingredients list can
+								be read.
+							</template>
 						</p>
-						<ion-button expand="block" fill="clear" size="small" class="skip-btn" @click="skipBackPhoto">
+						<ion-button v-if="!isBackCaptured && !isUploading" expand="block" fill="clear" size="small" class="skip-btn" @click="skipBackPhoto">
 							Skip — use front photo only
 						</ion-button>
 					</div>
 
 					<!-- Primary Action Button -->
-					<ion-button expand="block" class="btn-primary" :disabled="isCoolingDown" @click="openCamera">
-						<ion-spinner v-if="isCoolingDown" name="crescent" slot="start" />
+					<ion-button expand="block" class="btn-primary" :disabled="isUploading || isCoolingDown" @click="openCamera">
+						<ion-spinner v-if="isUploading || isCoolingDown" name="crescent" slot="start" />
 						<ion-icon v-else :icon="scanOutline" slot="start" />
-						<span v-if="isCoolingDown">Processing… ({{ remainingSeconds }}s)</span>
+						<span v-if="isUploading">Processing…</span>
+						<span v-else-if="isCoolingDown">Processing… ({{ remainingSeconds }}s)</span>
+						<span v-else-if="hasScannedAtLeastOnce">Scan Again</span>
 						<span v-else-if="captureStage === 'back'">Scan Back of Item</span>
 						<span v-else>Scan Product</span>
 					</ion-button>
 
 					<!-- Secondary Action Button (Updated to soft grayish styling) -->
-					<ion-button expand="block" class="btn-secondary" @click="isPhotoModalOpen = true">
+					<ion-button expand="block" class="btn-secondary" :disabled="isUploading" @click="isPhotoModalOpen = true">
 						<ion-icon :icon="cameraOutline" slot="start" />
 						UPLOAD A PHOTO
 					</ion-button>
-
-					<ion-note v-if="isCoolingDown" class="cooldown-note">
-						Please wait, upload in progress. Button re-enables in {{ remainingSeconds }}s.
-					</ion-note>
 
 					<ion-card class="results-placeholder">
 						<ion-card-header>
@@ -102,7 +105,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { IonPage, IonContent, IonButton, IonSpinner, IonIcon, IonNote, IonCard, IonCardHeader, IonCardTitle, IonCardContent } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonSpinner, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent } from '@ionic/vue'
 
 import { API_BASE_URL } from '@/utils/api'
 
@@ -151,6 +154,9 @@ const COOLDOWN_TICK_MS = 1_000
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const isCoolingDown = ref(false)
+const isUploading = ref(false)
+const isBackCaptured = ref(false)
+const hasScannedAtLeastOnce = ref(false)
 const remainingSeconds = ref(0)
 
 const lastFileName = ref<string | null>(null)
@@ -164,7 +170,7 @@ let cooldownTimeoutId: number | null = null
 let cooldownIntervalId: number | null = null
 
 function triggerFileInput(): void {
-	if (isCoolingDown.value) {
+	if (isCoolingDown.value || isUploading.value) {
 		return
 	}
 	fileInputRef.value?.click()
@@ -184,7 +190,7 @@ async function onFileSelected(event: Event): Promise<void> {
 }
 
 async function processCapturedFile(file: File): Promise<void> {
-	if (isCoolingDown.value) {
+	if (isCoolingDown.value || isUploading.value) {
 		return
 	}
 
@@ -196,28 +202,33 @@ async function processCapturedFile(file: File): Promise<void> {
 		return
 	}
 
+	isBackCaptured.value = true
 	await submitScan(frontFile.value!, file)
 }
 
 async function skipBackPhoto(): Promise<void> {
-	if (!frontFile.value || isCoolingDown.value) {
+	if (!frontFile.value || isCoolingDown.value || isUploading.value) {
 		return
 	}
 	await submitScan(frontFile.value, null)
 }
 
 async function submitScan(front: File, back: File | null): Promise<void> {
+	isUploading.value = true
 	lockButton()
 	analysisStatus.value = 'Uploading…'
 
 	try {
 		await handleUpload(front, back)
+		hasScannedAtLeastOnce.value = true
 	} catch (err) {
 		analysisStatus.value = err instanceof Error ? err.message : 'Upload failed'
 		console.error('Scan upload failed:', err)
 	} finally {
 		frontFile.value = null
 		captureStage.value = 'front'
+		isBackCaptured.value = false
+		isUploading.value = false
 	}
 }
 
@@ -329,7 +340,7 @@ let brightnessCanvas: HTMLCanvasElement | null = null
 let brightnessCtx: CanvasRenderingContext2D | null = null
 
 async function openCamera(): Promise<void> {
-	if (isCoolingDown.value) {
+	if (isCoolingDown.value || isUploading.value) {
 		return
 	}
 
@@ -561,12 +572,6 @@ onBeforeUnmount(() => {
 	letter-spacing: 0.5px;
 	height: 48px;
 	margin: 0;
-}
-
-.cooldown-note {
-	text-align: center;
-	font-size: 0.85rem;
-	color: #6b7280;
 }
 
 .results-placeholder {

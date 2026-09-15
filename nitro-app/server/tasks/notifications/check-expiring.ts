@@ -73,7 +73,7 @@ export default defineTask({
 			const alreadyNotified = await prisma.notification.findFirst({
 				where: {
 					pantry_item_id: item.id,
-					type: 'expiring_soon',
+					type: 'expiring',
 					deleted_at: null,
 				},
 			})
@@ -89,7 +89,7 @@ export default defineTask({
 			await prisma.notification.create({
 				data: {
 					user_id: item.user_id,
-					type: 'expiring_soon',
+					type: 'expiring',
 					message: `${item.product.product_name} expires ${dayLabel}. Use it before it goes to waste!`,
 					pantry_item_id: item.id,
 					product_id: item.product.id,

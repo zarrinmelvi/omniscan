@@ -176,6 +176,12 @@ const product = computed(() => props.data?.product || null)
 const personalAllergenAlerts = computed(() => props.data?.matched_user_allergens || [])
 const halalInfo = computed(() => props.data?.halal || null)
 
+// Halal badges (both "certified" and "pending verification") only mean
+// anything to a user who actually has Halal as a dietary preference —
+// previously these showed identically for every user regardless of their
+// profile. Fetched fresh each time the modal opens (see the isOpen watcher
+// below) rather than cached, matching how ProfilePage.vue and the rest of
+// this app fetch dietary profile data — no shared store for it exists yet.
 const userHalalPref = ref(false)
 
 async function fetchHalalPref() {
@@ -183,6 +189,11 @@ async function fetchHalalPref() {
 		const data = await apiFetch('/api/users', { method: 'GET' })
 		userHalalPref.value = data?.user?.dietary_prof?.[0]?.halal_pref ?? false
 	} catch (err) {
+		// Fail closed on DISPLAY, not safety: if we can't confirm the
+		// user's preference, don't show a Halal badge that may not be
+		// relevant to them. This must never block the rest of the modal —
+		// Add to Pantry and everything else still needs to work even if
+		// this fetch fails.
 		console.error('Failed to fetch dietary profile for Halal badge gating:', err)
 		userHalalPref.value = false
 	}
@@ -196,6 +207,10 @@ const halalCertifiedLabel = computed(() => {
 	return certifier ? `${certifier} Certified` : 'Halal Certified'
 })
 
+// -------- Allergen detection (derived client-side from ingredients_text) --------
+// Placeholder heuristic — keyword matching against the AI-extracted ingredient
+// text, same spirit as the backend's Red/Yellow/Green keyword verdict logic.
+// Swap for a real allergen-classification step later if needed.
 const ALLERGEN_RULES = [
 	{ key: 'milk', label: 'Milk', keywords: ['milk'], warning: 'Contains milk — not suitable for those with a milk allergy' },
 	{
@@ -252,6 +267,8 @@ const dietaryWarnings = computed(() => {
 	return warnings
 })
 
+// -------- Alternatives (placeholder — no real recommendation engine yet) --------
+// TODO: replace with a real alternatives/recommendation source once one exists.
 const ALTERNATIVE_CATALOG = {
 	dairy: [
 		{ name: 'Selecta Full Cream Milk', description: 'Similar nutritional profile', tags: ['Halal', 'Gluten-free'] },

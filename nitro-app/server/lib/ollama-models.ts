@@ -1,4 +1,5 @@
-export const OLLAMA_ENDPOINT = 'http://localhost:11434/api/chat'
+const BASE_HOST = process.env.OLLAMA_HOST || 'https://ollama.com'
+export const OLLAMA_ENDPOINT = `${BASE_HOST.replace(/\/$/, '')}/api/chat`
 
 // Vision + text. Used for: scan photo -> ingredient extraction (OCR),
 // and (once extended) Halal logo detection from the same photo.

@@ -59,6 +59,9 @@ async function generateAdaptedRecipe(
 	try {
 		const response = await $fetch<OllamaChatResponse>(OLLAMA_ENDPOINT, {
 			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
+			},
 			body: {
 				model: GENERATION_MODEL,
 				stream: false,

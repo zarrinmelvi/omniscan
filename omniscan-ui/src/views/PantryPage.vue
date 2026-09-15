@@ -277,6 +277,9 @@ const locationFilter = ref<LocationFilter>('All')
 const sortOption = ref<SortOption>('soonest')
 const searchQuery = ref('')
 
+// Set when arriving from the Home dashboard's "Expiring Soon" card/carousel
+// (/tabs/pantry?filter=expiring) – narrows the active view to items expiring
+// within the same window used on the dashboard, sorted soonest-first.
 const route = useRoute()
 const router = useRouter()
 const EXPIRING_SOON_THRESHOLD_DAYS = 3
@@ -447,6 +450,8 @@ async function confirmConsume(targetId: number): Promise<void> {
 			body: { is_archived: true },
 		})
 
+		// Update in place so the UI reflects the change instantly without
+		// waiting on a full refetch.
 		const index = items.value.findIndex((item) => item.id === targetId)
 		if (index !== -1) items.value[index] = data.item
 	} catch (err) {
@@ -514,6 +519,11 @@ async function confirmDelete(targetId: number): Promise<void> {
 	}
 }
 
+// onMounted only fires once for the lifetime of this cached tab page –
+// Ionic keeps tab pages alive rather than destroying/recreating them on
+// each visit, so a plain onMounted fetch goes stale after the first
+// visit (e.g. items added via Scan never show up here without a full
+// page reload). onIonViewWillEnter re-fires on every re-entry instead.
 onIonViewWillEnter(() => {
 	expiringOnly.value = route.query.filter === 'expiring'
 	if (expiringOnly.value) sortOption.value = 'soonest'

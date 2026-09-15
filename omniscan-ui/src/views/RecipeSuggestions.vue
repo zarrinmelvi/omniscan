@@ -304,6 +304,11 @@ async function toggleLike(recipe: SuggestedRecipe): Promise<void> {
 	if (likingId.value === recipe.id) return
 
 	likingId.value = recipe.id
+
+	// Optimistic update – flip immediately, revert below if the request fails.
+	// A card the user just liked while on the Liked tab stays visible until
+	// the next refetch rather than vanishing mid-tap, which reads as a bug
+	// even though it'd be technically correct.
 	const previousLiked = recipe.liked
 	recipe.liked = !previousLiked
 

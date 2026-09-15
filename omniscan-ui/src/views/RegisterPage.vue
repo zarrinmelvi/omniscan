@@ -170,6 +170,9 @@ const allergensLoadError = ref('')
 const isSavingPrefs = ref(false)
 const prefsError = ref('')
 
+// Emoji per allergen name – anything fetched from the catalog that isn't
+// in this map (e.g. a new allergen an admin adds later) still renders,
+// just with a generic fallback icon instead of a blank card.
 const ALLERGEN_EMOJI: Record<string, string> = {
 	milk: '🥛',
 	eggs: '🥚',
@@ -191,6 +194,10 @@ function formatAllergenName(name: string): string {
 
 function handleBack(): void {
 	if (step.value === 2) {
+		// Account + session already exist at this point – going back just
+		// re-shows the form, it won't re-run account creation unless the
+		// user submits it again (which would correctly fail as a duplicate
+		// email, same as re-submitting any already-used signup form).
 		step.value = 1
 		return
 	}
@@ -213,6 +220,9 @@ async function handleRegister(): Promise<void> {
 
 	try {
 		await authStore.register(name.value.trim(), email.value, password.value)
+		// register() doesn't return a token – log in immediately after so
+		// step 2 can call authenticated endpoints (saving prefs needs a
+		// session the same way the Profile page does).
 		await authStore.login(email.value, password.value)
 
 		step.value = 2

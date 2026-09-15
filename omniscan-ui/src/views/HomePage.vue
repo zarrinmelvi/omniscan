@@ -295,6 +295,8 @@ interface ActivityLogDto {
 	pantry_item_id: number | null
 }
 
+// Anything within this many days (and not yet expired) counts as "expiring soon" —
+// matches the danger/warning thresholds already used on the Pantry page.
 const EXPIRING_SOON_THRESHOLD_DAYS = 3
 
 const isLoading = ref(true)
@@ -510,6 +512,10 @@ function labelForActivityType(type: ActivityType): string {
 	}
 }
 
+// Simplification: uses one consistent granularity (hours, then Yesterday,
+// then "N Days Ago") rather than mixing hour- and day-based wording per
+// activity type – the mockup showed both styles across different rows,
+// which reads more like illustrative sample data than a strict spec.
 function formatRelativeTime(iso: string): string {
 	const then = new Date(iso)
 	const now = new Date()
@@ -569,6 +575,8 @@ async function loadDashboard() {
 		loadError.value = err instanceof ApiError ? err.message : 'Failed to load your dashboard.'
 	}
 
+	// Fetched separately so a broken activity feed doesn't block the rest
+	// of the dashboard (stats and expiring carousel) from rendering.
 	try {
 		const activityRes = await apiFetch<{ success: boolean; activities: ActivityLogDto[] }>('/api/activity_log', {
 			method: 'GET',
@@ -581,6 +589,11 @@ async function loadDashboard() {
 	}
 }
 
+// Ionic keeps tab views alive in the DOM when you switch tabs (it doesn't
+// unmount/remount them), so onMounted() only fires once, ever. Using
+// onIonViewWillEnter instead means this refetches every time you land back
+// on the Home tab, so the stats never go stale after adding/removing items
+// elsewhere.
 onIonViewWillEnter(() => {
 	loadDashboard()
 })

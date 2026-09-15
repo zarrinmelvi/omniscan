@@ -246,6 +246,10 @@ import {
 
 const router = useRouter()
 
+// Settings now lives inside /tabs/ (a sibling of Profile in the same nested
+// outlet), so this push is just normal same-outlet navigation – the earlier
+// crash was from Settings being a top-level route in a *different* outlet
+// than Profile, which Ionic's tabs outlet doesn't reliably restore from.
 function goBackToProfile() {
 	router.push('/tabs/profile')
 }

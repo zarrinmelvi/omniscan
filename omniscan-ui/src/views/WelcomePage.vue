@@ -18,6 +18,7 @@
 
 					<p class="legal-text">
 						By continuing you agree to OmniScan's
+						<!-- No Terms/Privacy routes exist yet – point these at real pages once they do. -->
 						<a href="#" @click.prevent>Terms of Service</a> and <a href="#" @click.prevent>Privacy Policy</a>.
 					</p>
 				</div>

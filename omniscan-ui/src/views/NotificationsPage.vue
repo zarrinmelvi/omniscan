@@ -83,9 +83,15 @@ import { apiFetch, ApiError } from '@/utils/api'
 const router = useRouter()
 
 function goBackToProfile() {
+	// Notifications now lives inside /tabs/ (a sibling of Profile in the same
+	// nested outlet), so this push is just normal same-outlet navigation – see
+	// SettingsPage.vue for why the previous top-level-route setup crashed.
 	router.push('/tabs/profile')
 }
 
+// Only 'expiring' has a real backend trigger today (see detect-expiring.post.ts).
+// The rest render correctly if the API ever returns them, but nothing
+// currently generates them since Recipes isn't built yet.
 type NotificationType = 'expiring' | 'recipe_suggestion' | 'pantry_match'
 
 interface NotificationDto {

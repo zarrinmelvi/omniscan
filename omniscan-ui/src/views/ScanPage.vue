@@ -300,6 +300,9 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 	analysisStatus.value = `Analysis complete — Verdict: ${scan.safety_verdict}`
 	isResultModalOpen.value = true
 
+	// The modal now owns displaying the result – revert the inline
+	// placeholder card back to its empty state rather than leaving stale
+	// "Analysis complete" text behind it.
 	lastFileName.value = null
 	analysisStatus.value = 'Idle'
 }

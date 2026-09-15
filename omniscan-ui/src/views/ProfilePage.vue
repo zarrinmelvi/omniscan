@@ -225,6 +225,10 @@ const quickAddSuggestions = [
 	'Mustard-free',
 ]
 
+// Maps a dietary tag to the real allergen name it should enforce at the safety-check
+// level. These tags are the only UI surface now – selecting one silently keeps the
+// underlying Allergen relation (used by scans/recipe suggestions) in sync. Anything
+// not listed here (Keto, Paleo, Pescatarian, etc.) is cosmetic and has no allergen mapping.
 const ALLERGEN_TAG_MAP: Record<string, string> = {
 	'Gluten-free': 'Wheat',
 	'Dairy-free': 'Milk',
@@ -318,6 +322,10 @@ async function fetchProfile() {
 	}
 }
 
+// Background lookup only – powers deriveAllergenIds() so the dietary tags above can
+// silently keep the safety-check Allergen relation in sync. Not shown in the UI, so
+// failures are logged rather than surfaced; worst case, allergen sync is skipped for
+// this save and scans/recipes fall back to whatever was already set.
 async function fetchAllergens() {
 	try {
 		allergenCatalog.value = await apiFetch<Allergen[]>('/api/allergen', { method: 'GET' })

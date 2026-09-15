@@ -33,15 +33,14 @@
 					<ion-button expand="block" class="btn-primary" :disabled="isUploading || isCoolingDown" @click="openCamera">
 						<ion-spinner v-if="isUploading || isCoolingDown" name="crescent" slot="start" />
 						<ion-icon v-else :icon="scanOutline" slot="start" />
-						<span v-if="isUploading">Processing…</span>
-						<span v-else-if="isCoolingDown">Processing… ({{ remainingSeconds }}s)</span>
+						<span v-if="isUploading || isCoolingDown">Processing… ({{ remainingSeconds }}s)</span>
 						<span v-else-if="hasScannedAtLeastOnce">Scan Again</span>
 						<span v-else-if="captureStage === 'back'">Scan Back of Item</span>
 						<span v-else>Scan Product</span>
 					</ion-button>
 
 					<!-- Secondary Action Button (Updated to soft grayish styling) -->
-					<ion-button expand="block" class="btn-secondary" :disabled="isUploading" @click="isPhotoModalOpen = true">
+					<ion-button expand="block" class="btn-secondary" :disabled="isUploading || isCoolingDown" @click="isPhotoModalOpen = true">
 						<ion-icon :icon="cameraOutline" slot="start" />
 						UPLOAD A PHOTO
 					</ion-button>

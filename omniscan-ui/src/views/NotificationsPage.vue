@@ -1,18 +1,25 @@
 <template>
 	<ion-page>
-		<ion-header>
-			<ion-toolbar>
+		<ion-header class="ion-no-border">
+			<ion-toolbar class="notif-toolbar">
 				<ion-buttons slot="start">
 					<ion-button @click="goBackToProfile">
-						<ion-icon :icon="chevronBackOutline" slot="icon-only" />
+						<ion-icon :icon="chevronBackOutline" slot="icon-only" class="back-icon" />
 					</ion-button>
 				</ion-buttons>
-				<ion-title>
+				<ion-title class="notif-header-title">
 					Notifications
 					<span v-if="unreadCount > 0" class="unread-badge">{{ unreadCount }}</span>
 				</ion-title>
 				<ion-buttons slot="end">
-					<ion-button fill="clear" :disabled="unreadCount === 0 || isMarkingAll" @click="markAllRead"> Mark all read </ion-button>
+					<ion-button
+						fill="clear"
+						class="mark-read-btn"
+						:class="{ 'mark-read-btn--active': unreadCount > 0 }"
+						:disabled="unreadCount === 0 || isMarkingAll"
+						@click="markAllRead">
+						Mark all read
+					</ion-button>
 				</ion-buttons>
 			</ion-toolbar>
 		</ion-header>
@@ -40,13 +47,15 @@
 					type="button"
 					class="notif-card"
 					:class="{ 'notif-card--unread': !notif.is_read }"
-					:style="{ borderLeftColor: !notif.is_read ? colorForType(notif.type) : 'transparent' }"
 					@click="handleNotifClick(notif)">
-					<div class="notif-icon" :style="{ background: bgForType(notif.type), color: colorForType(notif.type) }">
-						<ion-icon :icon="iconForType(notif.type)" />
+					<!-- Indicator bar for unread notifications -->
+					<div v-if="!notif.is_read" class="unread-bar" />
+
+					<div class="notif-icon" :style="{ background: bgForType(notif.type, notif.message), color: colorForType(notif.type, notif.message) }">
+						<ion-icon :icon="iconForType(notif.type, notif.message)" />
 					</div>
 					<div class="notif-body">
-						<p class="notif-title">{{ titleForType(notif.type) }}</p>
+						<p class="notif-title">{{ titleForType(notif.type, notif.message) }}</p>
 						<p class="notif-message">{{ notif.message }}</p>
 						<p class="notif-time">{{ formatRelativeTime(notif.created_at) }}</p>
 					</div>
@@ -68,21 +77,16 @@ import {
 	checkmarkOutline,
 	warningOutline,
 	restaurantOutline,
-	searchOutline,
-	handLeftOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
 const router = useRouter()
 
-// Notifications now lives inside /tabs/ (a sibling of Profile in the same
-// nested outlet), so this push is just normal same-outlet navigation — see
-// SettingsPage.vue for why the previous top-level-route setup crashed.
 function goBackToProfile() {
 	router.push('/tabs/profile')
 }
 
-type NotificationType = 'expiring' | 'recipe_suggestion' | 'recipe_idea' | 'pantry_match'
+type NotificationType = 'expiring' | 'recipe_suggestion' | 'pantry_match'
 
 interface NotificationDto {
 	id: number
@@ -98,63 +102,44 @@ const isLoading = ref(true)
 const loadError = ref('')
 const isMarkingAll = ref(false)
 
-// Only 'expiring' has a real backend trigger today (see detect-expiring.post.ts).
-// The rest render correctly if the API ever returns them, but nothing
-// currently generates them since Recipes isn't built yet.
-function iconForType(type: string) {
-	switch (type) {
-		case 'expiring':
-			return warningOutline
-		case 'recipe_suggestion':
-			return restaurantOutline
-		case 'recipe_idea':
-			return searchOutline
-		case 'pantry_match':
-			return handLeftOutline
-		default:
-			return warningOutline
+function titleForType(type: string, message: string = ''): string {
+	const lowerType = type?.toLowerCase() || ''
+	const lowerMsg = message.toLowerCase()
+
+	if (lowerType === 'expiring' || lowerMsg.includes('expire') || lowerMsg.includes('expiring')) {
+		return 'Expiring Soon ⚠️'
 	}
+	if (lowerType === 'recipe_suggestion' || lowerMsg.includes('suggestion')) {
+		return 'New Recipe Suggestion 🍱'
+	}
+	if (lowerType === 'pantry_match' || lowerMsg.includes('pantry') || lowerMsg.includes('match')) {
+		return 'Pantry Recipe Match 🍗'
+	}
+	return 'Notification'
 }
 
-function titleForType(type: string): string {
-	switch (type) {
-		case 'expiring':
-			return 'Expiring Soon'
-		case 'recipe_suggestion':
-			return 'New Recipe Suggestion'
-		case 'recipe_idea':
-			return 'Recipe Idea'
-		case 'pantry_match':
-			return 'Pantry Recipe Match'
-		default:
-			return 'Notification'
+function iconForType(type: string, message: string = '') {
+	const title = titleForType(type, message)
+	if (title.includes('Expiring')) {
+		return warningOutline
 	}
+	return restaurantOutline
 }
 
-function colorForType(type: string): string {
-	switch (type) {
-		case 'expiring':
-			return '#ea580c'
-		case 'recipe_suggestion':
-		case 'recipe_idea':
-		case 'pantry_match':
-			return '#16a34a'
-		default:
-			return '#6b7280'
+function colorForType(type: string, message: string = ''): string {
+	const title = titleForType(type, message)
+	if (title.includes('Expiring')) {
+		return '#ea580c'
 	}
+	return '#16a34a'
 }
 
-function bgForType(type: string): string {
-	switch (type) {
-		case 'expiring':
-			return '#fff7ed'
-		case 'recipe_suggestion':
-		case 'recipe_idea':
-		case 'pantry_match':
-			return '#f0fdf4'
-		default:
-			return '#f3f4f6'
+function bgForType(type: string, message: string = ''): string {
+	const title = titleForType(type, message)
+	if (title.includes('Expiring')) {
+		return '#ffedd5'
 	}
+	return '#dcfce7'
 }
 
 function daysBetween(from: Date, to: Date): number {
@@ -205,7 +190,7 @@ async function handleNotifClick(notif: NotificationDto) {
 		notif.is_read = true
 		unreadCount.value = Math.max(0, unreadCount.value - 1)
 	} catch {
-		// Non-critical — the notification just stays marked unread if this fails.
+		// Non-critical — stays unread on failure
 	}
 }
 
@@ -216,7 +201,7 @@ async function markAllRead() {
 		notifications.value = notifications.value.map((n) => ({ ...n, is_read: true }))
 		unreadCount.value = 0
 	} catch {
-		// Non-critical — leave state as-is on failure, user can retry the tap.
+		// Non-critical — leave state as-is on failure
 	} finally {
 		isMarkingAll.value = false
 	}
@@ -226,22 +211,53 @@ onMounted(fetchNotifications)
 </script>
 
 <style scoped>
-.notif-content {
-	--background: #f7f8fa;
+.notif-toolbar {
+	--background: #ffffff;
+	--border-width: 0;
+	padding-top: 6px;
+	padding-bottom: 2px;
 }
+.notif-header-title {
+	font-weight: 700;
+	font-size: 1.2rem;
+	color: #111827;
+}
+.back-icon {
+	color: #111827;
+	font-size: 1.25rem;
+}
+
+/* Light green for disabled / all marked read */
+.mark-read-btn {
+	--color: #86efac;
+	font-weight: 600;
+	font-size: 0.88rem;
+	text-transform: none;
+	opacity: 1 !important;
+	transition: color 0.2s ease;
+}
+
+/* Darker vibrant green when there are unread notifications */
+.mark-read-btn--active {
+	--color: #16a34a;
+}
+
 .unread-badge {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	min-width: 20px;
+	width: 20px;
 	height: 20px;
-	padding: 0 6px;
-	background: #16a34a;
+	background: #10b981;
 	color: #fff;
-	border-radius: 999px;
-	font-size: 0.7rem;
+	border-radius: 50%;
+	font-size: 0.72rem;
+	font-weight: 600;
 	margin-left: 6px;
 	vertical-align: middle;
+}
+.notif-content {
+	--background: #f8fafc;
 }
 .state-block {
 	display: flex;
@@ -265,31 +281,39 @@ onMounted(fetchNotifications)
 .notif-list {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	gap: 16px;
+	padding: 8px 4px 16px;
 }
 .notif-card {
+	position: relative;
 	display: flex;
 	align-items: flex-start;
-	gap: 12px;
+	gap: 14px;
 	background: #ffffff;
-	border: none;
-	border-left: 3px solid transparent;
-	border-radius: 12px;
-	padding: 12px;
+	border: 1px solid #f1f5f9;
+	border-radius: 20px;
+	padding: 18px 18px 18px 22px;
 	text-align: left;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.025);
+	overflow: hidden;
 }
-.notif-card--unread {
-	background: #fefefe;
+.unread-bar {
+	position: absolute;
+	left: 8px;
+	top: 16px;
+	bottom: 16px;
+	width: 4px;
+	background-color: #10b981;
+	border-radius: 4px;
 }
 .notif-icon {
-	width: 36px;
-	height: 36px;
+	width: 44px;
+	height: 44px;
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 1.1rem;
+	font-size: 1.2rem;
 	flex-shrink: 0;
 }
 .notif-body {
@@ -297,23 +321,28 @@ onMounted(fetchNotifications)
 	min-width: 0;
 }
 .notif-title {
-	font-weight: 600;
-	font-size: 0.9rem;
-	margin: 0 0 2px;
-	color: #111827;
+	font-weight: 700;
+	font-size: 0.95rem;
+	margin: 0 0 3px;
+	color: #1e293b;
+	line-height: 1.25;
 }
 .notif-message {
-	font-size: 0.83rem;
-	color: #4b5563;
-	margin: 0 0 4px;
+	font-size: 0.84rem;
+	font-weight: 400;
+	color: #64748b;
+	line-height: 1.35;
+	margin: 0 0 5px;
 }
 .notif-time {
-	font-size: 0.75rem;
-	color: #9ca3af;
+	font-size: 0.78rem;
+	font-weight: 400;
+	color: #94a3b8;
 	margin: 0;
 }
 .read-check {
-	color: #16a34a;
+	color: #cbd5e1;
+	font-size: 1.1rem;
 	flex-shrink: 0;
 	margin-top: 2px;
 }

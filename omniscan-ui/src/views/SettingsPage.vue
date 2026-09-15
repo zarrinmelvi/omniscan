@@ -1,93 +1,111 @@
 <template>
 	<ion-page>
-		<ion-header>
-			<ion-toolbar>
+		<ion-header class="ion-no-border">
+			<ion-toolbar class="settings-toolbar">
 				<ion-buttons slot="start">
 					<ion-button @click="goBackToProfile">
-						<ion-icon :icon="chevronBackOutline" slot="icon-only" />
+						<ion-icon :icon="chevronBackOutline" slot="icon-only" class="header-back-icon" />
 					</ion-button>
 				</ion-buttons>
-				<ion-title>Settings</ion-title>
+				<ion-title class="header-title">Settings</ion-title>
 			</ion-toolbar>
 		</ion-header>
 
-		<ion-content class="ion-padding settings-content">
-			<p class="section-label">Permissions</p>
-			<div class="settings-card">
-				<div class="settings-row">
-					<ion-icon :icon="cameraOutline" class="row-icon" />
-					<div class="row-text">
-						<p class="row-title">Camera</p>
-						<p class="row-subtitle">Allow OmniScan to scan product ingredients &amp; logos</p>
+		<ion-content class="settings-content">
+			<div class="content-container">
+				<!-- Permissions -->
+				<p class="section-label">PERMISSIONS</p>
+				<div class="settings-card">
+					<div class="settings-row">
+						<div class="icon-wrapper icon-green">
+							<ion-icon :icon="cameraOutline" class="row-icon" />
+						</div>
+						<div class="row-text">
+							<p class="row-title">Camera</p>
+							<p class="row-subtitle">Allow OmniScan to scan product's ingredients &amp; logo</p>
+						</div>
+						<ion-toggle v-model="cameraPermission" @ion-change="savePrefs" class="custom-toggle" />
 					</div>
-					<ion-toggle v-model="cameraPermission" @ion-change="savePrefs" />
+					<div class="settings-row">
+						<div class="icon-wrapper icon-orange">
+							<ion-icon :icon="notificationsOutline" class="row-icon" />
+						</div>
+						<div class="row-text">
+							<p class="row-title">Notifications</p>
+							<p class="row-subtitle">Get expiry and recipe alerts</p>
+						</div>
+						<ion-toggle v-model="notificationsPermission" @ion-change="savePrefs" class="custom-toggle" />
+					</div>
 				</div>
-				<div class="settings-row">
-					<ion-icon :icon="notificationsOutline" class="row-icon" />
-					<div class="row-text">
-						<p class="row-title">Notifications</p>
-						<p class="row-subtitle">Get expiry and recipe alerts</p>
+
+				<!-- Appearance -->
+				<p class="section-label section-label--top">APPEARANCE</p>
+				<div class="settings-card">
+					<div class="settings-row">
+						<div class="icon-wrapper icon-purple">
+							<ion-icon :icon="moonOutline" class="row-icon" />
+						</div>
+						<div class="row-text">
+							<p class="row-title">Dark Mode</p>
+							<p class="row-subtitle">Switch to a darker interface</p>
+						</div>
+						<ion-toggle v-model="darkMode" @ion-change="onDarkModeToggle" class="custom-toggle" />
 					</div>
-					<ion-toggle v-model="notificationsPermission" @ion-change="savePrefs" />
+				</div>
+
+				<!-- Help & Support -->
+				<p class="section-label section-label--top">HELP &amp; SUPPORT</p>
+				<div class="settings-card">
+					<button type="button" class="settings-row settings-row--button" @click="isTermsOpen = true">
+						<div class="icon-wrapper icon-slate">
+							<ion-icon :icon="shieldCheckmarkOutline" class="row-icon" />
+						</div>
+						<div class="row-text">
+							<p class="row-title">Terms &amp; Conditions</p>
+							<p class="row-subtitle">Privacy policy &amp; usage terms</p>
+						</div>
+						<ion-icon :icon="chevronForwardOutline" class="chevron" />
+					</button>
+					<button type="button" class="settings-row settings-row--button" @click="isFaqOpen = true">
+						<div class="icon-wrapper icon-slate">
+							<ion-icon :icon="helpCircleOutline" class="row-icon" />
+						</div>
+						<div class="row-text">
+							<p class="row-title">FAQ</p>
+							<p class="row-subtitle">Frequently asked questions</p>
+						</div>
+						<ion-icon :icon="chevronForwardOutline" class="chevron" />
+					</button>
+					<button type="button" class="settings-row settings-row--button" @click="isAboutOpen = true">
+						<div class="icon-wrapper icon-green-light">
+							<ion-icon :icon="informationCircleOutline" class="row-icon" />
+						</div>
+						<div class="row-text">
+							<p class="row-title">About Us</p>
+							<p class="row-subtitle">Our mission &amp; the OmniScan team</p>
+						</div>
+						<ion-icon :icon="chevronForwardOutline" class="chevron" />
+					</button>
+					<button type="button" class="settings-row settings-row--button" @click="contactSupport">
+						<div class="icon-wrapper icon-purple-light">
+							<ion-icon :icon="mailOutline" class="row-icon" />
+						</div>
+						<div class="row-text">
+							<p class="row-title">Contact Support</p>
+							<p class="row-subtitle">support@omniscan.app</p>
+						</div>
+						<ion-icon :icon="chevronForwardOutline" class="chevron" />
+					</button>
+				</div>
+
+				<div class="version-container">
+					<p class="version-text">OmniScan v1.0.0</p>
+					<p class="version-text">© 2026 OmniScan. All rights reserved.</p>
 				</div>
 			</div>
-			<p class="disclaimer-text">
-				These two toggles are saved locally on this device only. They don't yet control anything on the server — real camera/push-permission
-				enforcement isn't wired up.
-			</p>
-
-			<p class="section-label section-label--top">Appearance</p>
-			<div class="settings-card">
-				<div class="settings-row">
-					<ion-icon :icon="moonOutline" class="row-icon" />
-					<div class="row-text">
-						<p class="row-title">Dark Mode</p>
-						<p class="row-subtitle">Switch to a darker interface</p>
-					</div>
-					<ion-toggle v-model="darkMode" @ion-change="onDarkModeToggle" />
-				</div>
-			</div>
-
-			<p class="section-label section-label--top">Help &amp; Support</p>
-			<div class="settings-card">
-				<button type="button" class="settings-row settings-row--button" @click="isTermsOpen = true">
-					<ion-icon :icon="documentTextOutline" class="row-icon" />
-					<div class="row-text">
-						<p class="row-title">Terms &amp; Conditions</p>
-						<p class="row-subtitle">Privacy policy &amp; usage terms</p>
-					</div>
-					<ion-icon :icon="chevronForwardOutline" class="chevron" />
-				</button>
-				<button type="button" class="settings-row settings-row--button" @click="isFaqOpen = true">
-					<ion-icon :icon="helpCircleOutline" class="row-icon" />
-					<div class="row-text">
-						<p class="row-title">FAQ</p>
-						<p class="row-subtitle">Frequently asked questions</p>
-					</div>
-					<ion-icon :icon="chevronForwardOutline" class="chevron" />
-				</button>
-				<button type="button" class="settings-row settings-row--button" @click="isAboutOpen = true">
-					<ion-icon :icon="informationCircleOutline" class="row-icon" />
-					<div class="row-text">
-						<p class="row-title">About Us</p>
-						<p class="row-subtitle">Our mission &amp; the OmniScan team</p>
-					</div>
-					<ion-icon :icon="chevronForwardOutline" class="chevron" />
-				</button>
-				<button type="button" class="settings-row settings-row--button" @click="contactSupport">
-					<ion-icon :icon="mailOutline" class="row-icon" />
-					<div class="row-text">
-						<p class="row-title">Contact Support</p>
-						<p class="row-subtitle">support@omniscan.app</p>
-					</div>
-					<ion-icon :icon="chevronForwardOutline" class="chevron" />
-				</button>
-			</div>
-
-			<p class="version-text">OmniScan v1.0.0 · © 2026 OmniScan. All rights reserved.</p>
 		</ion-content>
 
-		<!-- Terms & Conditions -->
+		<!-- Terms & Conditions Modal -->
 		<ion-modal :is-open="isTermsOpen" @didDismiss="isTermsOpen = false">
 			<ion-header>
 				<ion-toolbar>
@@ -130,48 +148,65 @@
 			</ion-content>
 		</ion-modal>
 
-		<!-- FAQ -->
-		<ion-modal :is-open="isFaqOpen" @didDismiss="isFaqOpen = false">
-			<ion-header>
-				<ion-toolbar>
-					<ion-title>FAQ</ion-title>
-					<ion-buttons slot="end">
-						<ion-button @click="isFaqOpen = false"><ion-icon :icon="closeOutline" slot="icon-only" /></ion-button>
-					</ion-buttons>
-				</ion-toolbar>
+		<!-- FAQ Modal -->
+		<ion-modal :is-open="isFaqOpen" @didDismiss="isFaqOpen = false" class="custom-styled-modal">
+			<ion-header class="ion-no-border modal-header-custom">
+				<div class="modal-header-flex">
+					<div>
+						<h2 class="modal-title-custom">FAQ</h2>
+						<p class="modal-subtitle-custom">Frequently Asked Questions</p>
+					</div>
+					<ion-button fill="clear" class="modal-close-icon-btn" @click="isFaqOpen = false">
+						<ion-icon :icon="closeOutline" slot="icon-only" />
+					</ion-button>
+				</div>
 			</ion-header>
-			<ion-content class="ion-padding">
-				<div v-for="faq in faqs" :key="faq.q" class="faq-item">
-					<p class="faq-question">{{ faq.q }}</p>
-					<p class="faq-answer">{{ faq.a }}</p>
+
+			<ion-content class="modal-content-custom">
+				<div class="faq-list-container">
+					<ion-accordion-group class="faq-accordion-group">
+						<ion-accordion v-for="(faq, index) in faqs" :key="index" :value="`faq-${index}`" class="faq-accordion-item">
+							<ion-item slot="header" lines="none" class="faq-accordion-header">
+								<div class="faq-badge">{{ index + 1 }}</div>
+								<ion-label class="faq-question-label">{{ faq.q }}</ion-label>
+							</ion-item>
+							<div slot="content" class="faq-accordion-body">
+								<p class="faq-answer-text">{{ faq.a }}</p>
+							</div>
+						</ion-accordion>
+					</ion-accordion-group>
 				</div>
 			</ion-content>
 		</ion-modal>
 
-		<!-- About Us -->
-		<ion-modal :is-open="isAboutOpen" @didDismiss="isAboutOpen = false">
-			<ion-header>
-				<ion-toolbar>
-					<ion-title>About Us</ion-title>
-					<ion-buttons slot="end">
-						<ion-button @click="isAboutOpen = false"><ion-icon :icon="closeOutline" slot="icon-only" /></ion-button>
-					</ion-buttons>
-				</ion-toolbar>
+		<!-- About Us Modal -->
+		<ion-modal :is-open="isAboutOpen" @didDismiss="isAboutOpen = false" class="custom-styled-modal">
+			<ion-header class="ion-no-border modal-header-custom">
+				<div class="modal-header-flex">
+					<h2 class="modal-title-custom">About Us</h2>
+					<ion-button fill="clear" class="modal-close-icon-btn" @click="isAboutOpen = false">
+						<ion-icon :icon="closeOutline" slot="icon-only" />
+					</ion-button>
+				</div>
 			</ion-header>
-			<ion-content class="ion-padding">
-				<h2>OmniScan</h2>
-				<p>
-					OmniScan is a cross-platform pantry manager that uses computer vision and AI to help you scan food packaging, detect allergens,
-					identify Halal certification, track expiration dates, and get recipe ideas from what's already in your pantry.
-				</p>
-				<p class="faq-question">Our Team</p>
-				<ul class="team-list">
-					<li>ZarrinMelvi V. Delos Santos</li>
-					<li>Shanna Hazel A. Rogero</li>
-					<li>Angel Fea P. Roma Cruz</li>
-					<li>Ruben M. Sentales</li>
-				</ul>
-				<p class="faq-answer">A capstone project — STI College San Jose Del Monte, 2026.</p>
+			<ion-content class="modal-content-custom">
+				<div class="about-container">
+					<h3 class="about-app-title">OmniScan</h3>
+					<p class="about-description">
+						OmniScan is a cross-platform pantry manager that uses computer vision and AI to help you scan food packaging, detect allergens,
+						identify Halal certification, track expiration dates, and get recipe ideas from what's already in your pantry.
+					</p>
+
+					<p class="about-section-heading">Our Team</p>
+					<ul class="about-team-list">
+						<li>ZarrinMelvi V. Delos Santos</li>
+						<li>Shanna Hazel A. Rogero</li>
+						<li>Angel Fea P. Roma Cruz</li>
+						<li>Ruben M. Sentales</li>
+					</ul>
+
+					<p class="about-footer-tag">A capstone project — STI College San Jose Del Monte, 2026.</p>
+				</div>
 			</ion-content>
 		</ion-modal>
 	</ion-page>
@@ -180,14 +215,29 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonIcon, IonToggle, IonModal } from '@ionic/vue'
+import {
+	IonPage,
+	IonHeader,
+	IonToolbar,
+	IonTitle,
+	IonButtons,
+	IonButton,
+	IonContent,
+	IonIcon,
+	IonToggle,
+	IonModal,
+	IonAccordionGroup,
+	IonAccordion,
+	IonItem,
+	IonLabel,
+} from '@ionic/vue'
 import {
 	chevronBackOutline,
 	chevronForwardOutline,
 	cameraOutline,
 	notificationsOutline,
 	moonOutline,
-	documentTextOutline,
+	shieldCheckmarkOutline,
 	helpCircleOutline,
 	informationCircleOutline,
 	mailOutline,
@@ -196,10 +246,6 @@ import {
 
 const router = useRouter()
 
-// Settings now lives inside /tabs/ (a sibling of Profile in the same nested
-// outlet), so this push is just normal same-outlet navigation — the earlier
-// crash was from Settings being a top-level route in a *different* outlet
-// than Profile, which Ionic's tabs outlet doesn't reliably restore from.
 function goBackToProfile() {
 	router.push('/tabs/profile')
 }
@@ -218,24 +264,44 @@ const isAboutOpen = ref(false)
 
 const faqs = [
 	{
-		q: 'How accurate is the allergen detection?',
-		a: 'OmniScan checks against a predefined allergen dataset and readable ingredient labels. It may miss rare or newly identified allergens, or labels that are damaged, unclear, or incomplete — always double-check anything critical.',
+		q: 'What is OmniScan?',
+		a: 'OmniScan is a smart pantry management system that uses Artificial Intelligence and computer vision to scan food products, detect allergens, verify Halal certification, and provide personalized food recommendations.',
 	},
 	{
-		q: 'Does a Halal logo mean the product is certified everywhere?',
-		a: "OmniScan recognizes a set of known Halal certification logos in its dataset. It doesn't cover every international certification body, so an unrecognized logo doesn't necessarily mean a product isn't Halal.",
+		q: 'How does OmniScan work?',
+		a: 'Users can scan food packaging using their device camera or upload an image. The system analyzes the product using computer vision and OCR to extract ingredient information, detect allergens, and recognize Halal certification logos.',
 	},
 	{
-		q: 'How many photos can I upload per day?',
-		a: 'Up to 7 photo uploads per day, shared across web and mobile.',
+		q: 'What allergens can the system detect?',
+		a: 'OmniScan can detect common allergens such as milk, eggs, peanuts, tree nuts, soy, wheat, fish, and shellfish. Additionally, users can customize their dietary profile by adding other allergies or ingredient sensitivities.',
 	},
 	{
-		q: 'Do I need to manually remove consumed pantry items?',
-		a: "Yes. OmniScan doesn't automatically detect when you've used a product — mark items as consumed from your Pantry so your inventory stays accurate.",
+		q: 'Can I add my own dietary restrictions?',
+		a: 'Yes. The system includes a personalized dietary profile where users can add allergies, dietary restrictions (e.g., Halal, vegetarian, vegan), health conditions, and nutritional preferences.',
 	},
 	{
-		q: 'Is my data shared with third parties?',
-		a: 'No. Your dietary preferences and pantry data are used only to power your own scans, alerts, and recommendations.',
+		q: 'How does the Halal detection feature work?',
+		a: 'The system identifies authorized Halal certification logos from food packaging and verifies them using a stored database of recognized certification marks.',
+	},
+	{
+		q: 'Does OmniScan suggest food or recipes?',
+		a: 'Yes. OmniScan provides AI-powered recommendations, including safer alternative products and recipe suggestions based on the ingredients available in your pantry and your dietary profile.',
+	},
+	{
+		q: 'Can OmniScan track expiration dates?',
+		a: 'Yes. The system monitors expiration dates of stored products and notifies users when items are near expiration to help reduce food waste.',
+	},
+	{
+		q: 'Is an internet connection required?',
+		a: 'Some features, such as AI recommendations and database updates, may require an internet connection, while basic scanning functions may still work with limited offline capability depending on the system design.',
+	},
+	{
+		q: 'Is my personal data safe?',
+		a: 'Yes. OmniScan is designed to protect user data. Personal information and dietary profiles are securely stored and used only to provide personalized system features and recommendations.',
+	},
+	{
+		q: 'Who can use OmniScan?',
+		a: 'OmniScan is designed for anyone, especially individuals with food allergies, dietary restrictions, health conditions, or those who want to make safer and more informed food choices.',
 	},
 ]
 
@@ -265,27 +331,55 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.settings-content {
-	--background: #f7f8fa;
+.settings-toolbar {
+	--background: #f8f9fa;
+	--border-width: 0;
+	padding-top: 8px;
 }
+
+.header-title {
+	font-weight: 700;
+	font-size: 1.15rem;
+	color: #111827;
+	text-align: left;
+}
+
+.header-back-icon {
+	color: #111827;
+	font-size: 1.2rem;
+}
+
+.settings-content {
+	--background: #f8f9fa;
+}
+
+.content-container {
+	padding: 12px 18px 32px;
+}
+
 .section-label {
 	font-weight: 600;
-	font-size: 0.85rem;
-	color: #374151;
-	margin: 0 0 8px;
+	font-size: 0.72rem;
+	color: #8e8e93;
+	letter-spacing: 0.5px;
+	margin: 12px 0 10px 4px;
 }
+
 .section-label--top {
-	margin-top: 20px;
+	margin-top: 24px;
 }
+
 .settings-card {
 	background: #ffffff;
-	border-radius: 14px;
+	border-radius: 16px;
 	overflow: hidden;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
+
 .settings-row {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 14px;
 	padding: 14px 16px;
 	border-bottom: 1px solid #f3f4f6;
 	width: 100%;
@@ -295,48 +389,102 @@ onMounted(() => {
 	border-top: none;
 	text-align: left;
 }
+
 .settings-row:last-child {
 	border-bottom: none;
 }
+
 .settings-row--button {
 	color: inherit;
+	cursor: pointer;
 }
-.row-icon {
-	font-size: 1.3rem;
-	color: #16a34a;
+
+/* Icon Badges */
+.icon-wrapper {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	flex-shrink: 0;
 }
+
+.icon-green {
+	background-color: #f0fdf4;
+	color: #16a34a;
+}
+
+.icon-orange {
+	background-color: #fff7ed;
+	color: #f97316;
+}
+
+.icon-purple {
+	background-color: #f5f3ff;
+	color: #a855f7;
+}
+
+.icon-slate {
+	background-color: #f1f5f9;
+	color: #64748b;
+}
+
+.icon-green-light {
+	background-color: #f0fdf4;
+	color: #22c55e;
+}
+
+.icon-purple-light {
+	background-color: #faf5ff;
+	color: #e879f9;
+}
+
+.row-icon {
+	font-size: 1.15rem;
+}
+
 .row-text {
 	flex: 1;
 	min-width: 0;
 }
+
 .row-title {
-	font-size: 0.9rem;
+	font-size: 0.88rem;
 	font-weight: 600;
-	color: #111827;
+	color: #1f2937;
 	margin: 0;
 }
+
 .row-subtitle {
-	font-size: 0.78rem;
-	color: #6b7280;
+	font-size: 0.76rem;
+	color: #8e8e93;
 	margin: 2px 0 0;
 }
-.chevron {
-	color: #9ca3af;
-	flex-shrink: 0;
-}
-.disclaimer-text {
-	font-size: 0.75rem;
-	color: #9ca3af;
-	margin: 8px 4px 0;
-}
-.version-text {
-	text-align: center;
-	font-size: 0.75rem;
-	color: #9ca3af;
-	margin: 24px 0 8px;
+
+.custom-toggle {
+	--track-background-checked: #22c55e;
+	--handle-background-checked: #ffffff;
 }
 
+.chevron {
+	color: #c7c7cc;
+	font-size: 0.85rem;
+	flex-shrink: 0;
+}
+
+.version-container {
+	margin-top: 32px;
+	text-align: center;
+}
+
+.version-text {
+	font-size: 0.75rem;
+	color: #9ca3af;
+	margin: 2px 0;
+}
+
+/* Base Modal Styling */
 .placeholder-note {
 	background: #fef3c7;
 	color: #92400e;
@@ -345,34 +493,161 @@ onMounted(() => {
 	font-size: 0.8rem;
 	margin-bottom: 8px;
 }
+
 .legal-updated {
 	font-size: 0.78rem;
 	color: #9ca3af;
 	margin-bottom: 16px;
 }
+
 .understand-button {
 	--background: #16a34a;
 	--border-radius: 12px;
 	font-weight: 600;
 	margin-top: 20px;
 }
-.faq-item {
-	margin-bottom: 16px;
+
+/* Custom Styled Sheet Modals (FAQ & About Us) */
+.modal-header-custom {
+	background: #ffffff;
+	padding: 18px 20px 8px;
+	border-bottom: 1px solid #f3f4f6;
 }
-.faq-question {
-	font-weight: 600;
-	margin: 0 0 4px;
+
+.modal-header-flex {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
-.faq-answer {
-	color: #4b5563;
-	font-size: 0.9rem;
+
+.modal-title-custom {
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: #111827;
 	margin: 0;
 }
-.team-list {
-	margin: 8px 0 16px;
-	padding-left: 20px;
+
+.modal-subtitle-custom {
+	font-size: 0.8rem;
+	color: #9ca3af;
+	margin: 2px 0 0;
 }
-.team-list li {
+
+.modal-close-icon-btn {
+	--color: #374151;
+	--padding-start: 0;
+	--padding-end: 0;
+	margin: 0;
+}
+
+.modal-content-custom {
+	--background: #ffffff;
+}
+
+/* FAQ UI Refinements */
+.faq-list-container {
+	padding: 16px 16px 28px;
+}
+
+.faq-accordion-group {
+	background: transparent;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.faq-accordion-item {
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
+	border-radius: 14px;
+	overflow: hidden;
+}
+
+.faq-accordion-header {
+	--background: #ffffff;
+	--padding-start: 12px;
+	--inner-padding-end: 12px;
+	--min-height: 54px;
+}
+
+.faq-badge {
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	background-color: #dcfce7;
+	color: #16a34a;
+	font-size: 0.76rem;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-right: 12px;
+	flex-shrink: 0;
+}
+
+.faq-question-label {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: #1f2937;
+	white-space: normal;
+}
+
+.faq-accordion-body {
+	padding: 0 16px 14px 48px;
+	background: #ffffff;
+}
+
+.faq-answer-text {
+	font-size: 0.82rem;
+	font-weight: 400;
+	color: #4b5563;
+	line-height: 1.5;
+	margin: 0;
+}
+
+/* About Us Layout */
+.about-container {
+	padding: 20px 20px 32px;
+}
+
+.about-app-title {
+	font-size: 1.35rem;
+	font-weight: 700;
+	color: #111827;
+	margin: 0 0 12px;
+}
+
+.about-description {
+	font-size: 0.88rem;
+	font-weight: 400;
+	color: #4b5563;
+	line-height: 1.55;
+	margin: 0 0 20px;
+}
+
+.about-section-heading {
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: #111827;
+	margin: 0 0 8px;
+}
+
+.about-team-list {
+	margin: 0 0 20px;
+	padding-left: 20px;
+	font-size: 0.88rem;
+	color: #374151;
+	line-height: 1.6;
+}
+
+.about-team-list li {
 	margin-bottom: 4px;
+	font-weight: 500;
+}
+
+.about-footer-tag {
+	font-size: 0.8rem;
+	color: #6b7280;
+	margin: 0;
 }
 </style>

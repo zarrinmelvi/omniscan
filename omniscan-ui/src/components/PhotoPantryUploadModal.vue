@@ -29,7 +29,7 @@
 							<div class="guidelines-list">
 								<div class="guideline-item">
 									<span class="badge-number">1</span>
-									<span>Upload only clear and focused images of the stocks(eg. fruits, vegetables, dry goods).</span>
+									<span>Upload only clear and focused images of the stocks (eg. fruits, vegetables, dry goods).</span>
 								</div>
 								<div class="guideline-item">
 									<span class="badge-number">2</span>

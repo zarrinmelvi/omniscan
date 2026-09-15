@@ -1,11 +1,5 @@
 <template>
 	<ion-page>
-		<ion-header>
-			<ion-toolbar>
-				<ion-title>Profile</ion-title>
-			</ion-toolbar>
-		</ion-header>
-
 		<ion-content class="profile-content">
 			<div v-if="isLoading" class="state-block">
 				<ion-spinner name="crescent" />
@@ -19,54 +13,64 @@
 			</div>
 
 			<template v-else>
-				<!-- Header card -->
-				<div class="header-card">
-					<div class="avatar-wrap">
-						<img v-if="user.avatar_base64" :src="user.avatar_base64" alt="Profile photo" class="avatar-image" />
-						<span v-else class="avatar-initial">{{ user.name.charAt(0) }}</span>
+				<!-- Top Header Area -->
+				<div class="header-section">
+					<div class="profile-header-top">
+						<div class="avatar-wrap">
+							<img v-if="user.avatar_base64" :src="user.avatar_base64" alt="Profile photo" class="avatar-image" />
+							<span v-else class="avatar-initial">{{ user.name.charAt(0) }}</span>
+							<div class="avatar-camera-badge" @click="openEditModal">
+								<ion-icon :icon="cameraOutline" />
+							</div>
+						</div>
+						<div class="header-info">
+							<h1 class="user-name">{{ user.name }}</h1>
+							<p class="user-email">{{ user.email }}</p>
+						</div>
+						<button type="button" class="edit-trigger" @click="openEditModal">
+							<ion-icon :icon="pencilOutline" />
+						</button>
 					</div>
-					<div class="header-info">
-						<h1 class="user-name">{{ user.name }}</h1>
-						<p class="user-email">{{ user.email }}</p>
+
+					<!-- Dietary preferences summary chips -->
+					<div v-if="halalPref || customPreferences.length > 0" class="pref-summary">
+						<p class="section-label">Dietary Preferences:</p>
+						<div class="chip-row">
+							<span v-if="halalPref" class="pref-chip">Halal</span>
+							<span v-for="pref in customPreferences" :key="pref" class="pref-chip">{{ pref }}</span>
+						</div>
 					</div>
-					<ion-button fill="clear" class="edit-trigger" @click="openEditModal">
-						<ion-icon :icon="pencilOutline" slot="icon-only" />
-					</ion-button>
 				</div>
 
-				<!-- Lifestyle preference summary (matches mockup's top chip row) -->
-				<div v-if="halalPref || customPreferences.length > 0" class="pref-summary">
-					<p class="section-label">Dietary Preferences:</p>
-					<div class="chip-row">
-						<span v-if="halalPref" class="pref-chip">Halal</span>
-						<span v-for="pref in customPreferences" :key="pref" class="pref-chip">{{ pref }}</span>
+				<!-- Main Content Body (Gray Background Region) -->
+				<div class="main-body">
+					<!-- Action rows -->
+					<div class="action-list">
+						<button type="button" class="action-row" @click="router.push('/tabs/settings')">
+							<ion-icon :icon="settingsOutline" class="action-icon" />
+							<span>Settings</span>
+							<ion-icon :icon="chevronForwardOutline" class="chevron" />
+						</button>
+						<button type="button" class="action-row" @click="router.push('/tabs/notifications')">
+							<ion-icon :icon="notificationsOutline" class="action-icon" />
+							<span>Notifications</span>
+							<ion-icon :icon="chevronForwardOutline" class="chevron" />
+						</button>
+						<button type="button" class="action-row action-row--danger" @click="handleLogout">
+							<ion-icon :icon="logOutOutline" class="action-icon" />
+							<span>Log Out</span>
+							<ion-icon :icon="chevronForwardOutline" class="chevron" />
+						</button>
 					</div>
-				</div>
 
-				<!-- Action rows -->
-				<div class="action-list">
-					<button type="button" class="action-row" @click="router.push('/tabs/settings')">
-						<ion-icon :icon="settingsOutline" />
-						<span>Settings</span>
-						<ion-icon :icon="chevronForwardOutline" class="chevron" />
-					</button>
-					<button type="button" class="action-row" @click="router.push('/tabs/notifications')">
-						<ion-icon :icon="notificationsOutline" />
-						<span>Notifications</span>
-						<ion-icon :icon="chevronForwardOutline" class="chevron" />
-					</button>
-					<button type="button" class="action-row action-row--danger" @click="handleLogout">
-						<ion-icon :icon="logOutOutline" />
-						<span>Log Out</span>
-						<ion-icon :icon="chevronForwardOutline" class="chevron" />
-					</button>
-				</div>
-
-				<!-- Stats -->
-				<p class="section-label section-label--top">Your Stats</p>
-				<div class="stats-card">
-					<span class="stats-label">Total Items Scanned</span>
-					<span class="stats-value">{{ stats.total_items_scanned }}</span>
+					<!-- Stats section -->
+					<div class="stats-section">
+						<h2 class="section-title">Your Stats</h2>
+						<div class="stats-card">
+							<span class="stats-label">Total Items Scanned</span>
+							<span class="stats-value">{{ stats.total_items_scanned }}</span>
+						</div>
+					</div>
 				</div>
 			</template>
 
@@ -77,91 +81,97 @@
 				color="success"
 				@didDismiss="showSuccessToast = false" />
 
-			<!-- Edit Profile Modal -->
-			<ion-modal :is-open="isEditModalOpen" @didDismiss="closeEditModal">
-				<ion-header>
-					<ion-toolbar>
-						<ion-title>Edit Profile</ion-title>
-						<ion-buttons slot="end">
-							<ion-button @click="closeEditModal">
-								<ion-icon :icon="closeOutline" slot="icon-only" />
-							</ion-button>
-						</ion-buttons>
-					</ion-toolbar>
-				</ion-header>
-
-				<ion-content class="ion-padding">
-					<div v-if="saveError" class="form-error">{{ saveError }}</div>
-
-					<div class="avatar-edit-wrap">
-						<img v-if="form.avatarBase64" :src="form.avatarBase64" alt="Profile photo" class="avatar-image-large" />
-						<span v-else class="avatar-initial avatar-initial--large">{{ form.name.charAt(0) || '?' }}</span>
-						<button type="button" class="avatar-upload-btn" @click="avatarInputRef?.click()">
-							<ion-icon :icon="cameraOutline" />
-						</button>
-						<input ref="avatarInputRef" type="file" accept="image/*" class="hidden-input" @change="onAvatarSelected" />
-					</div>
-					<p v-if="avatarError" class="form-error">{{ avatarError }}</p>
-
-					<ion-item lines="none" class="form-field">
-						<ion-label position="stacked">Name</ion-label>
-						<ion-input v-model="form.name" placeholder="Your name" />
-					</ion-item>
-
-					<ion-item lines="none" class="form-field">
-						<ion-label position="stacked">Email</ion-label>
-						<ion-input :value="form.email" :disabled="true" />
-					</ion-item>
-
-					<p class="section-label">Dietary Preferences</p>
-					<div class="chip-row chip-row--editable">
-						<span v-if="form.halalPref" class="pref-chip">
-							Halal
-							<ion-icon :icon="closeOutline" class="chip-remove" @click="form.halalPref = false" />
-						</span>
-						<span v-for="pref in form.customPreferences" :key="pref" class="pref-chip">
-							{{ pref }}
-							<ion-icon :icon="closeOutline" class="chip-remove" @click="removeCustomPreference(pref)" />
-						</span>
-					</div>
-
-					<div class="custom-pref-input-row">
-						<ion-input
-							v-model="customPrefDraft"
-							placeholder="Type a custom preference…"
-							class="custom-pref-input"
-							@keyup.enter="addCustomPreference" />
-						<ion-button size="small" @click="addCustomPreference">
-							<ion-icon :icon="addOutline" slot="start" />
-							Add
-						</ion-button>
-					</div>
-
-					<p class="quick-add-label">Quick add:</p>
-					<div class="chip-row">
-						<button
-							v-for="suggestion in quickAddSuggestions"
-							:key="suggestion"
-							type="button"
-							class="quick-add-chip"
-							:disabled="form.customPreferences.includes(suggestion)"
-							@click="addQuickPreference(suggestion)">
-							+ {{ suggestion }}
-						</button>
-						<button
-							type="button"
-							class="quick-add-chip"
-							:class="{ 'quick-add-chip--active': form.halalPref }"
-							@click="form.halalPref = true">
-							+ Halal
+			<!-- Floating Edit Profile Modal -->
+			<ion-modal :is-open="isEditModalOpen" class="custom-edit-modal" @didDismiss="closeEditModal">
+				<div class="modal-card">
+					<!-- Modal Header -->
+					<div class="modal-header">
+						<h2 class="modal-title">Edit Profile</h2>
+						<button type="button" class="modal-close-btn" @click="closeEditModal">
+							<ion-icon :icon="closeOutline" />
 						</button>
 					</div>
 
-					<ion-button expand="block" class="save-button" :disabled="isSaving" @click="saveProfile">
-						<ion-spinner v-if="isSaving" name="crescent" slot="start" />
-						{{ isSaving ? 'Saving…' : 'Save Changes' }}
-					</ion-button>
-				</ion-content>
+					<div class="modal-body">
+						<div v-if="saveError" class="form-error">{{ saveError }}</div>
+
+						<!-- Avatar Edit -->
+						<div class="avatar-edit-wrap">
+							<img v-if="form.avatarBase64" :src="form.avatarBase64" alt="Profile photo" class="avatar-image-large" />
+							<span v-else class="avatar-initial avatar-initial--large">{{ form.name.charAt(0) || '?' }}</span>
+							<button type="button" class="avatar-upload-btn" @click="avatarInputRef?.click()">
+								<ion-icon :icon="cameraOutline" />
+							</button>
+							<input ref="avatarInputRef" type="file" accept="image/*" class="hidden-input" @change="onAvatarSelected" />
+						</div>
+						<p v-if="avatarError" class="form-error">{{ avatarError }}</p>
+
+						<!-- Form Fields -->
+						<div class="input-group">
+							<label class="input-label">Name</label>
+							<input v-model="form.name" type="text" placeholder="Your name" class="custom-input" />
+						</div>
+
+						<div class="input-group">
+							<label class="input-label">Email</label>
+							<input :value="form.email" type="email" disabled class="custom-input custom-input--disabled" />
+						</div>
+
+						<!-- Dietary Preferences Edit -->
+						<label class="input-label">Dietary Preferences</label>
+						<div class="chip-row chip-row--editable">
+							<span v-if="form.halalPref" class="pref-chip">
+								Halal
+								<ion-icon :icon="closeOutline" class="chip-remove" @click="form.halalPref = false" />
+							</span>
+							<span v-for="pref in form.customPreferences" :key="pref" class="pref-chip">
+								{{ pref }}
+								<ion-icon :icon="closeOutline" class="chip-remove" @click="removeCustomPreference(pref)" />
+							</span>
+						</div>
+
+						<div class="custom-pref-input-row">
+							<input
+								v-model="customPrefDraft"
+								type="text"
+								placeholder="Type a custom preference…"
+								class="custom-input pref-text-input"
+								@keyup.enter="addCustomPreference" />
+							<button
+								type="button"
+								class="add-btn"
+								:disabled="!customPrefDraft.trim()"
+								@click="addCustomPreference">
+								+ Add
+							</button>
+						</div>
+
+						<p class="quick-add-label">Quick add:</p>
+						<div class="chip-row">
+							<button
+								v-for="suggestion in quickAddSuggestions"
+								:key="suggestion"
+								type="button"
+								class="quick-add-chip"
+								:disabled="form.customPreferences.includes(suggestion)"
+								@click="addQuickPreference(suggestion)">
+								+ {{ suggestion }}
+							</button>
+							<button
+								type="button"
+								class="quick-add-chip"
+								:class="{ 'quick-add-chip--active': form.halalPref }"
+								@click="form.halalPref = true">
+								+ Halal
+							</button>
+						</div>
+
+						<button type="button" class="save-changes-btn" :disabled="isSaving" @click="saveProfile">
+							<ion-spinner v-if="isSaving" name="crescent" />
+							<span>{{ isSaving ? 'Saving…' : 'Save Changes' }}</span>
+						</button>
+					</div>
+				</div>
 			</ion-modal>
 		</ion-content>
 	</ion-page>
@@ -172,19 +182,12 @@ import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
 	IonPage,
-	IonHeader,
-	IonToolbar,
-	IonTitle,
 	IonContent,
 	IonButton,
-	IonButtons,
 	IonIcon,
 	IonSpinner,
 	IonToast,
 	IonModal,
-	IonItem,
-	IonLabel,
-	IonInput,
 } from '@ionic/vue'
 import {
 	alertCircleOutline,
@@ -195,7 +198,6 @@ import {
 	chevronForwardOutline,
 	closeOutline,
 	cameraOutline,
-	addOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 import { useAuthStore } from '@/stores/authStore'
@@ -203,7 +205,7 @@ import { useAuthStore } from '@/stores/authStore'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB raw, before base64 overhead
+const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024
 
 const quickAddSuggestions = [
 	'Keto',
@@ -223,10 +225,6 @@ const quickAddSuggestions = [
 	'Mustard-free',
 ]
 
-// Maps a dietary tag to the real allergen name it should enforce at the safety-check
-// level. These tags are the only UI surface now — selecting one silently keeps the
-// underlying Allergen relation (used by scans/recipe suggestions) in sync. Anything
-// not listed here (Keto, Paleo, Pescatarian, etc.) is cosmetic and has no allergen mapping.
 const ALLERGEN_TAG_MAP: Record<string, string> = {
 	'Gluten-free': 'Wheat',
 	'Dairy-free': 'Milk',
@@ -320,10 +318,6 @@ async function fetchProfile() {
 	}
 }
 
-// Background lookup only — powers deriveAllergenIds() so the dietary tags above can
-// silently keep the safety-check Allergen relation in sync. Not shown in the UI, so
-// failures are logged rather than surfaced; worst case, allergen sync is skipped for
-// this save and scans/recipes fall back to whatever was already set.
 async function fetchAllergens() {
 	try {
 		allergenCatalog.value = await apiFetch<Allergen[]>('/api/allergen', { method: 'GET' })
@@ -433,8 +427,10 @@ onMounted(() => {
 
 <style scoped>
 .profile-content {
-	--background: #f7f8fa;
+	--background: #ffffff;
+	--overflow: hidden;
 }
+
 .state-block {
 	display: flex;
 	flex-direction: column;
@@ -444,156 +440,279 @@ onMounted(() => {
 	text-align: center;
 }
 
-.header-card {
-	display: flex;
-	align-items: center;
-	gap: 12px;
+/* Header Section */
+.header-section {
 	background: #ffffff;
-	border-radius: 16px;
-	padding: 16px;
-	margin: 12px 16px 0;
+	padding: 36px 24px 24px;
 }
+
+.profile-header-top {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+}
+
 .avatar-wrap {
-	width: 56px;
-	height: 56px;
+	position: relative;
+	width: 72px;
+	height: 72px;
 	border-radius: 50%;
 	background: #f3f4f6;
-	display: flex;
-	align-items: center;
-	justify-content: center;
 	flex-shrink: 0;
-	overflow: hidden;
 }
+
 .avatar-image {
 	width: 100%;
 	height: 100%;
+	border-radius: 50%;
 	object-fit: cover;
 }
+
 .avatar-initial {
-	font-size: 1.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	font-size: 1.75rem;
 	font-weight: 700;
 	color: #9ca3af;
 }
+
+.avatar-camera-badge {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	width: 24px;
+	height: 24px;
+	background-color: #10b981;
+	border: 2px solid #ffffff;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #ffffff;
+	font-size: 12px;
+	cursor: pointer;
+}
+
 .header-info {
 	flex: 1;
 	min-width: 0;
+	padding-top: 4px;
 }
+
 .user-name {
-	font-size: 1.2rem;
+	font-size: 1.4rem;
 	font-weight: 700;
+	color: #0f172a;
 	margin: 0;
 }
+
 .user-email {
 	font-size: 0.85rem;
-	color: #6b7280;
-	margin: 2px 0 0;
+	color: #64748b;
+	margin: 4px 0 0;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+
 .edit-trigger {
-	color: #16a34a;
+	background: transparent;
+	border: none;
+	color: #10b981;
+	font-size: 1.25rem;
+	padding: 4px;
+	cursor: pointer;
 }
 
+/* Preferences Summary */
 .pref-summary {
-	margin: 16px 16px 0;
+	margin-top: 24px;
 }
+
 .section-label {
-	font-weight: 600;
-	font-size: 0.85rem;
-	color: #374151;
-	margin: 0 0 8px;
+	font-size: 0.825rem;
+	color: #64748b;
+	margin: 0 0 10px;
+	font-weight: 500;
 }
-.section-label--top {
-	margin-top: 20px;
-}
+
 .chip-row {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 }
+
 .pref-chip {
 	display: inline-flex;
 	align-items: center;
-	gap: 4px;
+	gap: 6px;
 	background: #dcfce7;
-	color: #15803d;
+	color: #059669;
 	border-radius: 999px;
-	padding: 4px 12px;
+	padding: 6px 14px;
 	font-size: 0.85rem;
 	font-weight: 500;
 }
+
 .chip-remove {
 	cursor: pointer;
 	font-size: 0.9rem;
 }
 
+/* Main Body Background */
+.main-body {
+	background-color: #f8fafc;
+	min-height: 100%;
+	flex: 1;
+	padding: 20px 20px 40px;
+}
+
+/* Action Rows */
 .action-list {
-	margin: 20px 16px 0;
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 12px;
 }
+
 .action-row {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 14px;
 	background: #ffffff;
 	border: none;
-	border-radius: 14px;
-	padding: 14px 16px;
+	border-radius: 16px;
+	padding: 18px 20px;
 	font-size: 0.95rem;
-	color: #111827;
+	font-weight: 600;
+	color: #0f172a;
+	width: 100%;
 	text-align: left;
 }
-.action-row--danger {
-	color: #dc2626;
+
+.action-icon {
+	font-size: 1.25rem;
+	color: #334155;
 }
+
+.action-row--danger {
+	color: #ef4444;
+}
+
+.action-row--danger .action-icon {
+	color: #ef4444;
+}
+
 .action-row .chevron {
 	margin-left: auto;
-	color: #9ca3af;
+	color: #94a3b8;
+	font-size: 1rem;
+}
+
+/* Stats Section */
+.stats-section {
+	margin-top: 28px;
+}
+
+.section-title {
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: #0f172a;
+	margin: 0 0 12px;
 }
 
 .stats-card {
-	margin: 8px 16px 0;
 	background: #ffffff;
-	border-radius: 14px;
-	padding: 16px;
+	border-radius: 16px;
+	padding: 22px 20px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 }
+
 .stats-label {
-	color: #16a34a;
+	color: #475569;
 	font-weight: 500;
+	font-size: 0.95rem;
 }
+
 .stats-value {
 	font-weight: 700;
 	font-size: 1.1rem;
+	color: #0f172a;
+}
+</style>
+
+<!-- Unscoped Style Block for Floating Modal, Dynamic Add Button, & Scrollbar Hiding -->
+<style>
+/* Hide the visual scrollbar for the page */
+.profile-content::part(scroll) {
+	overflow-y: auto;
+}
+.profile-content::part(scroll)::-webkit-scrollbar {
+	display: none;
 }
 
-/* Edit modal */
-.form-error {
-	background: #fee2e2;
-	color: #b91c1c;
-	border-radius: 8px;
-	padding: 8px 12px;
-	margin-bottom: 12px;
-	font-size: 0.85rem;
+/* Modal Styling */
+ion-modal.custom-edit-modal {
+	--height: auto;
+	--width: 90%;
+	--max-width: 400px;
+	--border-radius: 20px;
+	--background: transparent;
+	--box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
-.avatar-edit-wrap {
+
+.custom-edit-modal .modal-card {
+	background: #ffffff;
+	border-radius: 20px;
+	padding: 24px 20px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.custom-edit-modal .modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 16px;
+}
+
+.custom-edit-modal .modal-title {
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: #0f172a;
+	margin: 0;
+}
+
+.custom-edit-modal .modal-close-btn {
+	background: transparent;
+	border: none;
+	font-size: 1.25rem;
+	color: #64748b;
+	cursor: pointer;
+	padding: 4px;
+	display: flex;
+	align-items: center;
+}
+
+.custom-edit-modal .avatar-edit-wrap {
 	position: relative;
 	width: 88px;
 	height: 88px;
-	margin: 0 auto 16px;
+	margin: 0 auto 20px;
 }
-.avatar-image-large {
+
+.custom-edit-modal .avatar-image-large {
 	width: 88px;
 	height: 88px;
 	border-radius: 50%;
 	object-fit: cover;
 }
-.avatar-initial--large {
+
+.custom-edit-modal .avatar-initial--large {
 	width: 88px;
 	height: 88px;
 	border-radius: 50%;
@@ -605,67 +724,145 @@ onMounted(() => {
 	font-weight: 700;
 	color: #9ca3af;
 }
-.avatar-upload-btn {
+
+.custom-edit-modal .avatar-upload-btn {
 	position: absolute;
 	bottom: 0;
 	right: 0;
-	width: 32px;
-	height: 32px;
+	width: 28px;
+	height: 28px;
 	border-radius: 50%;
-	background: #16a34a;
+	background: #10b981;
 	color: #ffffff;
 	border: 2px solid #ffffff;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	cursor: pointer;
 }
-.hidden-input {
+
+.custom-edit-modal .hidden-input {
 	display: none;
 }
-.form-field {
-	--padding-start: 0;
-	margin-bottom: 8px;
+
+.custom-edit-modal .input-group {
+	margin-bottom: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
 }
-.chip-row--editable {
+
+.custom-edit-modal .input-label {
+	font-size: 0.85rem;
+	font-weight: 500;
+	color: #475569;
+}
+
+.custom-edit-modal .custom-input {
+	width: 100%;
+	height: 44px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 0 14px;
+	font-size: 0.95rem;
+	color: #0f172a;
+	outline: none;
+	box-sizing: border-box;
+}
+
+.custom-edit-modal .custom-input:focus {
+	border-color: #10b981;
+}
+
+.custom-edit-modal .custom-input--disabled {
+	background-color: #ffffff;
+	color: #64748b;
+}
+
+.custom-edit-modal .chip-row--editable {
+	margin-top: 6px;
 	margin-bottom: 12px;
 }
-.custom-pref-input-row {
+
+.custom-edit-modal .custom-pref-input-row {
 	display: flex;
 	gap: 8px;
-	align-items: center;
-	margin-bottom: 12px;
+	margin-bottom: 14px;
 }
-.custom-pref-input {
+
+.custom-edit-modal .pref-text-input {
 	flex: 1;
-	border: 1px solid #d1d5db;
-	border-radius: 8px;
-	--padding-start: 12px;
 }
-.quick-add-label {
-	font-size: 0.8rem;
-	color: #6b7280;
-	margin: 4px 0 8px;
+
+.custom-edit-modal .pref-text-input:focus {
+	border: 1.5px solid #00b050;
+	outline: none;
 }
-.quick-add-chip {
-	border: 1px solid #d1d5db;
-	background: #f9fafb;
-	color: #374151;
-	border-radius: 999px;
-	padding: 4px 12px;
-	font-size: 0.8rem;
-}
-.quick-add-chip:disabled {
-	opacity: 0.5;
-}
-.quick-add-chip--active {
-	border-color: #16a34a;
-	color: #16a34a;
-	background: #f0fdf4;
-}
-.save-button {
-	--background: #16a34a;
-	--border-radius: 12px;
+
+/* Base Add button - Disabled State */
+.custom-edit-modal .add-btn {
+	background: #a7f3d0;
+	color: #ffffff;
+	border: none;
+	border-radius: 12px;
+	padding: 0 18px;
 	font-weight: 600;
-	margin-top: 20px;
+	font-size: 0.9rem;
+	cursor: not-allowed;
+	transition: background-color 0.2s ease;
+}
+
+/* Active Add button when input has text */
+.custom-edit-modal .add-btn:not(:disabled) {
+	background: #00b050;
+	cursor: pointer;
+}
+
+.custom-edit-modal .quick-add-label {
+	font-size: 0.8rem;
+	color: #64748b;
+	margin: 8px 0;
+}
+
+.custom-edit-modal .quick-add-chip {
+	border: none;
+	background: #f1f5f9;
+	color: #475569;
+	border-radius: 12px;
+	padding: 6px 12px;
+	font-size: 0.8rem;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.custom-edit-modal .quick-add-chip--active {
+	background: #dcfce7;
+	color: #059669;
+}
+
+.custom-edit-modal .save-changes-btn {
+	width: 100%;
+	height: 48px;
+	background: #00b050;
+	color: #ffffff;
+	border: none;
+	border-radius: 12px;
+	font-size: 1rem;
+	font-weight: 600;
+	margin-top: 24px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+.custom-edit-modal .form-error {
+	background: #fee2e2;
+	color: #b91c1c;
+	border-radius: 8px;
+	padding: 8px 12px;
+	margin-bottom: 12px;
+	font-size: 0.85rem;
 }
 </style>

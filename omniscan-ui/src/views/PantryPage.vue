@@ -59,9 +59,7 @@
 						interface="popover"
 						:interface-options="{ cssClass: 'compact-sort-popover' }"
 						class="sort-text-select">
-						<ion-select-option value="soonest">Expiring soonest</ion-select-option>
-						<ion-select-option value="latest">Expiring latest</ion-select-option>
-						<ion-select-option value="name">Name A–Z</ion-select-option>
+						<ion-select-option v-for="opt in currentSortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</ion-select-option>
 					</ion-select>
 				</div>
 			</template>
@@ -74,6 +72,17 @@
 						<ion-icon :icon="timeOutline" />
 						Auto-deleted after 7 days
 					</span>
+				</div>
+
+				<div class="sort-row">
+					<span class="sort-row__label">Sort ↕</span>
+					<ion-select
+						v-model="sortOption"
+						interface="popover"
+						:interface-options="{ cssClass: 'compact-sort-popover' }"
+						class="sort-text-select">
+						<ion-select-option v-for="opt in currentSortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</ion-select-option>
+					</ion-select>
 				</div>
 			</template>
 		</div>
@@ -214,7 +223,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
 	IonPage,
@@ -262,7 +271,14 @@ interface PantryItemDto {
 
 type ViewMode = 'active' | 'archived'
 type LocationFilter = 'All' | 'Fridge' | 'Freezer' | 'Cupboard'
-type SortOption = 'soonest' | 'latest' | 'name'
+// 'name_asc' is intentionally shared between both tabs (same comparator,
+// same label) rather than two separately-named-but-identical values.
+type SortOption = 'expiring_soonest' | 'expiring_latest' | 'name_asc' | 'recently_consumed' | 'deletes_soonest'
+
+interface SortOptionItem {
+	label: string
+	value: SortOption
+}
 
 const items = ref<PantryItemDto[]>([])
 const isLoading = ref(true)
@@ -272,8 +288,31 @@ const totalItemsScanned = ref(0)
 const view = ref<ViewMode>('active')
 const locationOptions: LocationFilter[] = ['All', 'Fridge', 'Freezer', 'Cupboard']
 const locationFilter = ref<LocationFilter>('All')
-const sortOption = ref<SortOption>('soonest')
+const sortOption = ref<SortOption>('expiring_soonest')
 const searchQuery = ref('')
+
+const currentSortOptions = computed<SortOptionItem[]>(() => {
+	if (view.value === 'active') {
+		return [
+			{ label: 'Expiring soonest', value: 'expiring_soonest' },
+			{ label: 'Expiring latest', value: 'expiring_latest' },
+			{ label: 'Name A–Z', value: 'name_asc' },
+		]
+	}
+	return [
+		{ label: 'Recently consumed', value: 'recently_consumed' },
+		{ label: 'Deletes soonest', value: 'deletes_soonest' },
+		{ label: 'Name A–Z', value: 'name_asc' },
+	]
+})
+
+// Active's and Archived's sort option sets are disjoint apart from
+// name_asc — switching tabs while, say, "Expiring latest" is selected
+// would leave Archived's sort silently doing nothing (that value isn't
+// handled in its switch below). Reset to each tab's own default instead.
+watch(view, (newView) => {
+	sortOption.value = newView === 'active' ? 'expiring_soonest' : 'recently_consumed'
+})
 
 // Set when arriving from the Home dashboard's "Expiring Soon" card/carousel
 // (/tabs/pantry?filter=expiring) – narrows the active view to items expiring
@@ -292,9 +331,9 @@ const isDeletingId = ref<number | null>(null)
 const isRestoringId = ref<number | null>(null)
 
 const activeItems = computed(() => items.value.filter((item) => !item.is_archived))
-const archivedItems = computed(() =>
-	items.value.filter((item) => item.is_archived).sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()),
-)
+// Sorting now happens in filteredArchivedItems, driven by the Archived
+// tab's own sort options — this stays a plain filter.
+const archivedItems = computed(() => items.value.filter((item) => item.is_archived))
 
 /* Active View Search + Filter */
 const filteredActiveItems = computed(() => {
@@ -320,21 +359,21 @@ const filteredActiveItems = computed(() => {
 
 	const sorted = [...result]
 	switch (sortOption.value) {
-		case 'soonest':
+		case 'expiring_soonest':
 			sorted.sort((a, b) => {
 				const dateA = getRelevantDate(a)?.getTime() ?? Infinity
 				const dateB = getRelevantDate(b)?.getTime() ?? Infinity
 				return dateA - dateB
 			})
 			break
-		case 'latest':
+		case 'expiring_latest':
 			sorted.sort((a, b) => {
 				const dateA = getRelevantDate(a)?.getTime() ?? -Infinity
 				const dateB = getRelevantDate(b)?.getTime() ?? -Infinity
 				return dateB - dateA
 			})
 			break
-		case 'name':
+		case 'name_asc':
 			sorted.sort((a, b) => a.product.product_name.localeCompare(b.product.product_name))
 			break
 	}
@@ -342,14 +381,28 @@ const filteredActiveItems = computed(() => {
 	return sorted
 })
 
-/* Search Bar functionality for Archived View */
+/* Search + Sort for Archived View */
 const filteredArchivedItems = computed(() => {
 	let result = archivedItems.value
 	const query = searchQuery.value.trim().toLowerCase()
 	if (query) {
 		result = result.filter((item) => item.product.product_name.toLowerCase().includes(query))
 	}
-	return result
+
+	const sorted = [...result]
+	switch (sortOption.value) {
+		case 'recently_consumed':
+			sorted.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+			break
+		case 'deletes_soonest':
+			sorted.sort((a, b) => new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime())
+			break
+		case 'name_asc':
+			sorted.sort((a, b) => a.product.product_name.localeCompare(b.product.product_name))
+			break
+	}
+
+	return sorted
 })
 
 function daysBetween(from: Date, to: Date): number {
@@ -538,7 +591,7 @@ async function confirmDelete(targetId: number): Promise<void> {
 // page reload). onIonViewWillEnter re-fires on every re-entry instead.
 onIonViewWillEnter(() => {
 	expiringOnly.value = route.query.filter === 'expiring'
-	if (expiringOnly.value) sortOption.value = 'soonest'
+	if (expiringOnly.value) sortOption.value = 'expiring_soonest'
 	fetchPantryItems()
 	fetchTotalItemsScanned()
 })

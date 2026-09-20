@@ -231,10 +231,6 @@ interface Product {
 	halal_logo_id: number | null
 	confirmed_not_halal: boolean
 	halal_unverified: boolean
-	// Certifier names, e.g. ["IDCP", "JAKIM"] — a product can genuinely hold
-	// more than one real certification. May be empty even when
-	// halal_logo_id is set, for pre-migration rows that predate the join
-	// table — isHalalCertified below falls back to halal_logo_id for those.
 	halal_certifiers: string[]
 }
 
@@ -250,8 +246,6 @@ const matchedUserAllergens = computed(() => item.value?.matched_user_allergens ?
 
 const isHalalCertified = computed(() => (item.value?.product.halal_certifiers.length ?? 0) > 0 || !!item.value?.product.halal_logo_id)
 const isConfirmedNotHalal = computed(() => !!item.value?.product.confirmed_not_halal && !isHalalCertified.value)
-// Previously unreachable — Product had no field recording "detected but
-// unresolved" before this change, so this state could never actually render.
 const isHalalUnverified = computed(() => !!item.value?.product.halal_unverified && !isHalalCertified.value && !isConfirmedNotHalal.value)
 const hasHalalData = computed(() => isHalalCertified.value || isConfirmedNotHalal.value || isHalalUnverified.value)
 const halalCertifierNames = computed(() => {
@@ -350,22 +344,28 @@ onIonViewWillEnter(fetchItem)
 	font-size: 1.2rem;
 }
 
+/* Updated Hero Container & Image Styling to display cropped images in exact scale */
 .hero-image-container {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	height: 190px;
+	height: 220px;
 	width: 100%;
 	margin: 6px 0 16px;
 	border-radius: 20px;
 	overflow: hidden;
 	background: #f1f5f9;
+	padding: 8px;
+	box-sizing: border-box;
 }
+
 .hero-photo {
 	width: 100%;
 	height: 100%;
-	object-fit: cover;
+	object-fit: contain; /* Retains original cropped aspect ratio without stretching */
+	border-radius: 12px;
 }
+
 .hero-placeholder {
 	width: 100%;
 	height: 100%;

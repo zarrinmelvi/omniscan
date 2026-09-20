@@ -32,7 +32,7 @@
 						</button>
 					</div>
 
-					<!-- Dietary preferences summary chips -->
+					<!-- Dietary preference summary (matches mockup's top chip row) -->
 					<div v-if="halalPref || customPreferences.length > 0" class="pref-summary">
 						<p class="section-label">Dietary Preferences:</p>
 						<div class="chip-row">
@@ -182,7 +182,7 @@ import { useAuthStore } from '@/stores/authStore'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024
+const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB raw, before base64 overhead
 
 const quickAddSuggestions = [
 	'Keto',
@@ -594,9 +594,9 @@ onMounted(() => {
 }
 </style>
 
-<!-- Unscoped Style Block for Floating Modal, Dynamic Add Button, & Scrollbar Hiding -->
+<!-- Unscoped Style Block for Floating Modal, Input Fixing & Scrollbar Hiding -->
 <style>
-/* Hide the visual scrollbar for the page */
+/* Hide scrollbar */
 .profile-content::part(scroll) {
 	overflow-y: auto;
 }
@@ -604,7 +604,7 @@ onMounted(() => {
 	display: none;
 }
 
-/* Modal Styling */
+/* Edit Modal */
 ion-modal.custom-edit-modal {
 	--height: auto;
 	--width: 90%;
@@ -707,16 +707,31 @@ ion-modal.custom-edit-modal {
 	color: #475569;
 }
 
+/* Custom Input Box Styling - Fix for dark background */
 .custom-edit-modal .custom-input {
 	width: 100%;
 	height: 44px;
+	background-color: #ffffff !important;
 	border: 1px solid #e2e8f0;
 	border-radius: 12px;
 	padding: 0 14px;
 	font-size: 0.95rem;
-	color: #0f172a;
+	color: #0f172a !important;
 	outline: none;
 	box-sizing: border-box;
+	-webkit-appearance: none;
+}
+
+.custom-edit-modal .custom-input::placeholder {
+	color: #94a3b8;
+}
+
+/* Chrome/Safari autofill override */
+.custom-edit-modal .custom-input:-webkit-autofill,
+.custom-edit-modal .custom-input:-webkit-autofill:hover,
+.custom-edit-modal .custom-input:-webkit-autofill:focus {
+	-webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+	-webkit-text-fill-color: #0f172a !important;
 }
 
 .custom-edit-modal .custom-input:focus {
@@ -724,8 +739,8 @@ ion-modal.custom-edit-modal {
 }
 
 .custom-edit-modal .custom-input--disabled {
-	background-color: #ffffff;
-	color: #64748b;
+	background-color: #ffffff !important;
+	color: #64748b !important;
 }
 
 .custom-edit-modal .chip-row--editable {

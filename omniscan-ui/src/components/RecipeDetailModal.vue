@@ -21,6 +21,17 @@
 
 			<!-- Body Details -->
 			<div class="detail-content">
+				<!-- Allergen Warning: informational only, never blocks Make Recipe -->
+				<div v-if="recipe.allergen_warnings?.length" class="allergen-warning">
+					<ion-icon :icon="warningOutline" />
+					<div>
+						<p class="allergen-warning-title">Contains an allergen you've flagged</p>
+						<p class="allergen-warning-text">
+							This recipe contains {{ recipe.allergen_warnings.join(', ') }}. You can still make it if you choose to.
+						</p>
+					</div>
+				</div>
+
 				<!-- Chip-Based Ingredients: Pantry Matches -->
 				<div v-if="recipe.matched_ingredients?.length" class="section-group">
 					<div class="section-title text-green">
@@ -72,7 +83,7 @@
 
 <script setup lang="ts">
 import { IonModal, IonButton, IonIcon } from '@ionic/vue'
-import { closeOutline, heart, heartOutline, checkmarkCircle, bagHandleOutline, restaurantOutline } from 'ionicons/icons'
+import { closeOutline, heart, heartOutline, checkmarkCircle, bagHandleOutline, restaurantOutline, warningOutline } from 'ionicons/icons'
 
 interface RecipeIngredientRef {
 	name: string
@@ -91,6 +102,7 @@ interface SuggestedRecipe {
 	liked: boolean
 	made: boolean
 	image_url?: string
+	allergen_warnings?: string[]
 }
 
 defineProps<{
@@ -214,6 +226,32 @@ function formatIngredient(item: RecipeIngredientRef): string {
 .detail-content {
 	padding: 20px;
 	flex: 1;
+}
+
+.allergen-warning {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	background: #fffbeb;
+	border: 1px solid #fde68a;
+	border-radius: 12px;
+	padding: 12px 14px;
+	margin-bottom: 20px;
+	color: #92400e;
+	font-size: 1.1rem;
+}
+
+.allergen-warning-title {
+	font-size: 0.85rem;
+	font-weight: 700;
+	margin: 0 0 2px;
+}
+
+.allergen-warning-text {
+	font-size: 0.8rem;
+	line-height: 1.4;
+	margin: 0;
+	font-weight: 400;
 }
 
 .section-group {

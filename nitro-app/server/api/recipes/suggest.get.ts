@@ -110,6 +110,7 @@ export default defineEventHandler(async (event) => {
 			liked: boolean
 			made: boolean
 			image_url: string | null
+			allergen_warnings: string[]
 		}[] = []
 
 		for (const recipe of recipeRows) {
@@ -118,8 +119,14 @@ export default defineEventHandler(async (event) => {
 
 			const combinedText = ingredients.map((i) => i.name).join(', ')
 
+			// Was previously `if (allergenMatches.length > 0) continue` — a
+			// recipe containing an allergen is no longer hidden from
+			// suggestions entirely. The user can still choose to make it;
+			// they just see which allergen(s) are present first, the same
+			// way Scan already surfaces allergen warnings without blocking
+			// "Add to Pantry". Halal exclusion below is untouched — only the
+			// allergen behavior changed, per what was actually asked for.
 			const allergenMatches = findMatchedUserAllergens(combinedText, userAllergens)
-			if (allergenMatches.length > 0) continue
 
 			if (halalPref && findNonHalalKeywords(combinedText).length > 0) continue
 
@@ -150,6 +157,7 @@ export default defineEventHandler(async (event) => {
 				liked: interaction?.liked ?? false,
 				made: isMade,
 				image_url: recipe.image_url,
+				allergen_warnings: allergenMatches.map((a) => a.name),
 			})
 
 			if (results.length >= RESULTS_LIMIT) break

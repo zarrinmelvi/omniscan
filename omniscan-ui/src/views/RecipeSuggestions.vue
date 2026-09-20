@@ -171,6 +171,7 @@ interface SuggestedRecipe {
 	liked: boolean
 	made: boolean
 	image_url?: string
+	allergen_warnings?: string[]
 }
 
 interface MadeRecipeResult {

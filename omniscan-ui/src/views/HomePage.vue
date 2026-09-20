@@ -52,7 +52,12 @@
 					</button>
 
 					<div ref="carouselRef" class="carousel-track">
-						<button v-for="item in expiringItems" :key="item.id" type="button" class="expiring-card" @click="goToPantryItemDetail(item.id)">
+						<button
+							v-for="item in expiringItems"
+							:key="item.id"
+							type="button"
+							class="expiring-card"
+							@click="goToPantryItemDetail(item.id)">
 							<span
 								class="expiring-badge"
 								:class="{
@@ -93,11 +98,7 @@
 				</div>
 
 				<div v-else class="recommended-list">
-					<div
-						v-for="recipe in recommendedRecipes"
-						:key="recipe.id"
-						class="recipe-card"
-						@click="openRecipeDetail(recipe)">
+					<div v-for="recipe in recommendedRecipes" :key="recipe.id" class="recipe-card" @click="openRecipeDetail(recipe)">
 						<div class="recipe-img-wrap">
 							<img v-if="recipe.image_url" :src="recipe.image_url" :alt="recipe.name" class="recipe-img" />
 							<div v-else class="recipe-placeholder">
@@ -261,10 +262,10 @@ interface SuggestedRecipe {
 	id: number
 	name: string
 	instructions: string
-	matched_ingredients?: string[]
+	matched_ingredients?: { name: string; quantity: number | null; unit: string | null }[]
 	matched_count: number
 	total_count: number
-	missing_ingredients: string[]
+	missing_ingredients: { name: string; quantity: number | null; unit: string | null }[]
 	liked: boolean
 	made: boolean
 	image_url?: string

@@ -234,6 +234,8 @@ export type HalalLogoWhereInput = {
   is_accredited?: Prisma.BoolFilter<"HalalLogo"> | boolean
   product?: Prisma.ProductListRelationFilter
   catalog_product?: Prisma.CatalogProductListRelationFilter
+  product_links?: Prisma.ProductHalalLogoListRelationFilter
+  catalog_product_links?: Prisma.CatalogProductHalalLogoListRelationFilter
 }
 
 export type HalalLogoOrderByWithRelationInput = {
@@ -246,6 +248,8 @@ export type HalalLogoOrderByWithRelationInput = {
   is_accredited?: Prisma.SortOrder
   product?: Prisma.ProductOrderByRelationAggregateInput
   catalog_product?: Prisma.CatalogProductOrderByRelationAggregateInput
+  product_links?: Prisma.ProductHalalLogoOrderByRelationAggregateInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoOrderByRelationAggregateInput
 }
 
 export type HalalLogoWhereUniqueInput = Prisma.AtLeast<{
@@ -261,6 +265,8 @@ export type HalalLogoWhereUniqueInput = Prisma.AtLeast<{
   is_accredited?: Prisma.BoolFilter<"HalalLogo"> | boolean
   product?: Prisma.ProductListRelationFilter
   catalog_product?: Prisma.CatalogProductListRelationFilter
+  product_links?: Prisma.ProductHalalLogoListRelationFilter
+  catalog_product_links?: Prisma.CatalogProductHalalLogoListRelationFilter
 }, "id" | "certifier">
 
 export type HalalLogoOrderByWithAggregationInput = {
@@ -300,6 +306,8 @@ export type HalalLogoCreateInput = {
   is_accredited?: boolean
   product?: Prisma.ProductCreateNestedManyWithoutHalal_logoInput
   catalog_product?: Prisma.CatalogProductCreateNestedManyWithoutHalal_logoInput
+  product_links?: Prisma.ProductHalalLogoCreateNestedManyWithoutHalal_logoInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoCreateNestedManyWithoutHalal_logoInput
 }
 
 export type HalalLogoUncheckedCreateInput = {
@@ -312,6 +320,8 @@ export type HalalLogoUncheckedCreateInput = {
   is_accredited?: boolean
   product?: Prisma.ProductUncheckedCreateNestedManyWithoutHalal_logoInput
   catalog_product?: Prisma.CatalogProductUncheckedCreateNestedManyWithoutHalal_logoInput
+  product_links?: Prisma.ProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
 }
 
 export type HalalLogoUpdateInput = {
@@ -323,6 +333,8 @@ export type HalalLogoUpdateInput = {
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   product?: Prisma.ProductUpdateManyWithoutHalal_logoNestedInput
   catalog_product?: Prisma.CatalogProductUpdateManyWithoutHalal_logoNestedInput
+  product_links?: Prisma.ProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
 }
 
 export type HalalLogoUncheckedUpdateInput = {
@@ -335,6 +347,8 @@ export type HalalLogoUncheckedUpdateInput = {
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   product?: Prisma.ProductUncheckedUpdateManyWithoutHalal_logoNestedInput
   catalog_product?: Prisma.CatalogProductUncheckedUpdateManyWithoutHalal_logoNestedInput
+  product_links?: Prisma.ProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
 }
 
 export type HalalLogoCreateManyInput = {
@@ -409,6 +423,11 @@ export type HalalLogoSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
 }
 
+export type HalalLogoScalarRelationFilter = {
+  is?: Prisma.HalalLogoWhereInput
+  isNot?: Prisma.HalalLogoWhereInput
+}
+
 export type HalalLogoCreateNestedOneWithoutProductInput = {
   create?: Prisma.XOR<Prisma.HalalLogoCreateWithoutProductInput, Prisma.HalalLogoUncheckedCreateWithoutProductInput>
   connectOrCreate?: Prisma.HalalLogoCreateOrConnectWithoutProductInput
@@ -441,6 +460,34 @@ export type HalalLogoUpdateOneWithoutCatalog_productNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.HalalLogoUpdateToOneWithWhereWithoutCatalog_productInput, Prisma.HalalLogoUpdateWithoutCatalog_productInput>, Prisma.HalalLogoUncheckedUpdateWithoutCatalog_productInput>
 }
 
+export type HalalLogoCreateNestedOneWithoutProduct_linksInput = {
+  create?: Prisma.XOR<Prisma.HalalLogoCreateWithoutProduct_linksInput, Prisma.HalalLogoUncheckedCreateWithoutProduct_linksInput>
+  connectOrCreate?: Prisma.HalalLogoCreateOrConnectWithoutProduct_linksInput
+  connect?: Prisma.HalalLogoWhereUniqueInput
+}
+
+export type HalalLogoUpdateOneRequiredWithoutProduct_linksNestedInput = {
+  create?: Prisma.XOR<Prisma.HalalLogoCreateWithoutProduct_linksInput, Prisma.HalalLogoUncheckedCreateWithoutProduct_linksInput>
+  connectOrCreate?: Prisma.HalalLogoCreateOrConnectWithoutProduct_linksInput
+  upsert?: Prisma.HalalLogoUpsertWithoutProduct_linksInput
+  connect?: Prisma.HalalLogoWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.HalalLogoUpdateToOneWithWhereWithoutProduct_linksInput, Prisma.HalalLogoUpdateWithoutProduct_linksInput>, Prisma.HalalLogoUncheckedUpdateWithoutProduct_linksInput>
+}
+
+export type HalalLogoCreateNestedOneWithoutCatalog_product_linksInput = {
+  create?: Prisma.XOR<Prisma.HalalLogoCreateWithoutCatalog_product_linksInput, Prisma.HalalLogoUncheckedCreateWithoutCatalog_product_linksInput>
+  connectOrCreate?: Prisma.HalalLogoCreateOrConnectWithoutCatalog_product_linksInput
+  connect?: Prisma.HalalLogoWhereUniqueInput
+}
+
+export type HalalLogoUpdateOneRequiredWithoutCatalog_product_linksNestedInput = {
+  create?: Prisma.XOR<Prisma.HalalLogoCreateWithoutCatalog_product_linksInput, Prisma.HalalLogoUncheckedCreateWithoutCatalog_product_linksInput>
+  connectOrCreate?: Prisma.HalalLogoCreateOrConnectWithoutCatalog_product_linksInput
+  upsert?: Prisma.HalalLogoUpsertWithoutCatalog_product_linksInput
+  connect?: Prisma.HalalLogoWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.HalalLogoUpdateToOneWithWhereWithoutCatalog_product_linksInput, Prisma.HalalLogoUpdateWithoutCatalog_product_linksInput>, Prisma.HalalLogoUncheckedUpdateWithoutCatalog_product_linksInput>
+}
+
 export type HalalLogoCreateWithoutProductInput = {
   certifier: string
   full_name: string
@@ -449,6 +496,8 @@ export type HalalLogoCreateWithoutProductInput = {
   scraped_date: Date | string
   is_accredited?: boolean
   catalog_product?: Prisma.CatalogProductCreateNestedManyWithoutHalal_logoInput
+  product_links?: Prisma.ProductHalalLogoCreateNestedManyWithoutHalal_logoInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoCreateNestedManyWithoutHalal_logoInput
 }
 
 export type HalalLogoUncheckedCreateWithoutProductInput = {
@@ -460,6 +509,8 @@ export type HalalLogoUncheckedCreateWithoutProductInput = {
   scraped_date: Date | string
   is_accredited?: boolean
   catalog_product?: Prisma.CatalogProductUncheckedCreateNestedManyWithoutHalal_logoInput
+  product_links?: Prisma.ProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
 }
 
 export type HalalLogoCreateOrConnectWithoutProductInput = {
@@ -486,6 +537,8 @@ export type HalalLogoUpdateWithoutProductInput = {
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   catalog_product?: Prisma.CatalogProductUpdateManyWithoutHalal_logoNestedInput
+  product_links?: Prisma.ProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
 }
 
 export type HalalLogoUncheckedUpdateWithoutProductInput = {
@@ -497,6 +550,8 @@ export type HalalLogoUncheckedUpdateWithoutProductInput = {
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   catalog_product?: Prisma.CatalogProductUncheckedUpdateManyWithoutHalal_logoNestedInput
+  product_links?: Prisma.ProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
 }
 
 export type HalalLogoCreateWithoutCatalog_productInput = {
@@ -507,6 +562,8 @@ export type HalalLogoCreateWithoutCatalog_productInput = {
   scraped_date: Date | string
   is_accredited?: boolean
   product?: Prisma.ProductCreateNestedManyWithoutHalal_logoInput
+  product_links?: Prisma.ProductHalalLogoCreateNestedManyWithoutHalal_logoInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoCreateNestedManyWithoutHalal_logoInput
 }
 
 export type HalalLogoUncheckedCreateWithoutCatalog_productInput = {
@@ -518,6 +575,8 @@ export type HalalLogoUncheckedCreateWithoutCatalog_productInput = {
   scraped_date: Date | string
   is_accredited?: boolean
   product?: Prisma.ProductUncheckedCreateNestedManyWithoutHalal_logoInput
+  product_links?: Prisma.ProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
 }
 
 export type HalalLogoCreateOrConnectWithoutCatalog_productInput = {
@@ -544,6 +603,8 @@ export type HalalLogoUpdateWithoutCatalog_productInput = {
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   product?: Prisma.ProductUpdateManyWithoutHalal_logoNestedInput
+  product_links?: Prisma.ProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
 }
 
 export type HalalLogoUncheckedUpdateWithoutCatalog_productInput = {
@@ -555,6 +616,140 @@ export type HalalLogoUncheckedUpdateWithoutCatalog_productInput = {
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
   product?: Prisma.ProductUncheckedUpdateManyWithoutHalal_logoNestedInput
+  product_links?: Prisma.ProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
+}
+
+export type HalalLogoCreateWithoutProduct_linksInput = {
+  certifier: string
+  full_name: string
+  image_path: string
+  source_url: string
+  scraped_date: Date | string
+  is_accredited?: boolean
+  product?: Prisma.ProductCreateNestedManyWithoutHalal_logoInput
+  catalog_product?: Prisma.CatalogProductCreateNestedManyWithoutHalal_logoInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoCreateNestedManyWithoutHalal_logoInput
+}
+
+export type HalalLogoUncheckedCreateWithoutProduct_linksInput = {
+  id?: number
+  certifier: string
+  full_name: string
+  image_path: string
+  source_url: string
+  scraped_date: Date | string
+  is_accredited?: boolean
+  product?: Prisma.ProductUncheckedCreateNestedManyWithoutHalal_logoInput
+  catalog_product?: Prisma.CatalogProductUncheckedCreateNestedManyWithoutHalal_logoInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
+}
+
+export type HalalLogoCreateOrConnectWithoutProduct_linksInput = {
+  where: Prisma.HalalLogoWhereUniqueInput
+  create: Prisma.XOR<Prisma.HalalLogoCreateWithoutProduct_linksInput, Prisma.HalalLogoUncheckedCreateWithoutProduct_linksInput>
+}
+
+export type HalalLogoUpsertWithoutProduct_linksInput = {
+  update: Prisma.XOR<Prisma.HalalLogoUpdateWithoutProduct_linksInput, Prisma.HalalLogoUncheckedUpdateWithoutProduct_linksInput>
+  create: Prisma.XOR<Prisma.HalalLogoCreateWithoutProduct_linksInput, Prisma.HalalLogoUncheckedCreateWithoutProduct_linksInput>
+  where?: Prisma.HalalLogoWhereInput
+}
+
+export type HalalLogoUpdateToOneWithWhereWithoutProduct_linksInput = {
+  where?: Prisma.HalalLogoWhereInput
+  data: Prisma.XOR<Prisma.HalalLogoUpdateWithoutProduct_linksInput, Prisma.HalalLogoUncheckedUpdateWithoutProduct_linksInput>
+}
+
+export type HalalLogoUpdateWithoutProduct_linksInput = {
+  certifier?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.StringFieldUpdateOperationsInput | string
+  image_path?: Prisma.StringFieldUpdateOperationsInput | string
+  source_url?: Prisma.StringFieldUpdateOperationsInput | string
+  scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  product?: Prisma.ProductUpdateManyWithoutHalal_logoNestedInput
+  catalog_product?: Prisma.CatalogProductUpdateManyWithoutHalal_logoNestedInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
+}
+
+export type HalalLogoUncheckedUpdateWithoutProduct_linksInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  certifier?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.StringFieldUpdateOperationsInput | string
+  image_path?: Prisma.StringFieldUpdateOperationsInput | string
+  source_url?: Prisma.StringFieldUpdateOperationsInput | string
+  scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  product?: Prisma.ProductUncheckedUpdateManyWithoutHalal_logoNestedInput
+  catalog_product?: Prisma.CatalogProductUncheckedUpdateManyWithoutHalal_logoNestedInput
+  catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
+}
+
+export type HalalLogoCreateWithoutCatalog_product_linksInput = {
+  certifier: string
+  full_name: string
+  image_path: string
+  source_url: string
+  scraped_date: Date | string
+  is_accredited?: boolean
+  product?: Prisma.ProductCreateNestedManyWithoutHalal_logoInput
+  catalog_product?: Prisma.CatalogProductCreateNestedManyWithoutHalal_logoInput
+  product_links?: Prisma.ProductHalalLogoCreateNestedManyWithoutHalal_logoInput
+}
+
+export type HalalLogoUncheckedCreateWithoutCatalog_product_linksInput = {
+  id?: number
+  certifier: string
+  full_name: string
+  image_path: string
+  source_url: string
+  scraped_date: Date | string
+  is_accredited?: boolean
+  product?: Prisma.ProductUncheckedCreateNestedManyWithoutHalal_logoInput
+  catalog_product?: Prisma.CatalogProductUncheckedCreateNestedManyWithoutHalal_logoInput
+  product_links?: Prisma.ProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
+}
+
+export type HalalLogoCreateOrConnectWithoutCatalog_product_linksInput = {
+  where: Prisma.HalalLogoWhereUniqueInput
+  create: Prisma.XOR<Prisma.HalalLogoCreateWithoutCatalog_product_linksInput, Prisma.HalalLogoUncheckedCreateWithoutCatalog_product_linksInput>
+}
+
+export type HalalLogoUpsertWithoutCatalog_product_linksInput = {
+  update: Prisma.XOR<Prisma.HalalLogoUpdateWithoutCatalog_product_linksInput, Prisma.HalalLogoUncheckedUpdateWithoutCatalog_product_linksInput>
+  create: Prisma.XOR<Prisma.HalalLogoCreateWithoutCatalog_product_linksInput, Prisma.HalalLogoUncheckedCreateWithoutCatalog_product_linksInput>
+  where?: Prisma.HalalLogoWhereInput
+}
+
+export type HalalLogoUpdateToOneWithWhereWithoutCatalog_product_linksInput = {
+  where?: Prisma.HalalLogoWhereInput
+  data: Prisma.XOR<Prisma.HalalLogoUpdateWithoutCatalog_product_linksInput, Prisma.HalalLogoUncheckedUpdateWithoutCatalog_product_linksInput>
+}
+
+export type HalalLogoUpdateWithoutCatalog_product_linksInput = {
+  certifier?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.StringFieldUpdateOperationsInput | string
+  image_path?: Prisma.StringFieldUpdateOperationsInput | string
+  source_url?: Prisma.StringFieldUpdateOperationsInput | string
+  scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  product?: Prisma.ProductUpdateManyWithoutHalal_logoNestedInput
+  catalog_product?: Prisma.CatalogProductUpdateManyWithoutHalal_logoNestedInput
+  product_links?: Prisma.ProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
+}
+
+export type HalalLogoUncheckedUpdateWithoutCatalog_product_linksInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  certifier?: Prisma.StringFieldUpdateOperationsInput | string
+  full_name?: Prisma.StringFieldUpdateOperationsInput | string
+  image_path?: Prisma.StringFieldUpdateOperationsInput | string
+  source_url?: Prisma.StringFieldUpdateOperationsInput | string
+  scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  product?: Prisma.ProductUncheckedUpdateManyWithoutHalal_logoNestedInput
+  catalog_product?: Prisma.CatalogProductUncheckedUpdateManyWithoutHalal_logoNestedInput
+  product_links?: Prisma.ProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
 }
 
 
@@ -565,11 +760,15 @@ export type HalalLogoUncheckedUpdateWithoutCatalog_productInput = {
 export type HalalLogoCountOutputType = {
   product: number
   catalog_product: number
+  product_links: number
+  catalog_product_links: number
 }
 
 export type HalalLogoCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | HalalLogoCountOutputTypeCountProductArgs
   catalog_product?: boolean | HalalLogoCountOutputTypeCountCatalog_productArgs
+  product_links?: boolean | HalalLogoCountOutputTypeCountProduct_linksArgs
+  catalog_product_links?: boolean | HalalLogoCountOutputTypeCountCatalog_product_linksArgs
 }
 
 /**
@@ -596,6 +795,20 @@ export type HalalLogoCountOutputTypeCountCatalog_productArgs<ExtArgs extends run
   where?: Prisma.CatalogProductWhereInput
 }
 
+/**
+ * HalalLogoCountOutputType without action
+ */
+export type HalalLogoCountOutputTypeCountProduct_linksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProductHalalLogoWhereInput
+}
+
+/**
+ * HalalLogoCountOutputType without action
+ */
+export type HalalLogoCountOutputTypeCountCatalog_product_linksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CatalogProductHalalLogoWhereInput
+}
+
 
 export type HalalLogoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -607,6 +820,8 @@ export type HalalLogoSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   is_accredited?: boolean
   product?: boolean | Prisma.HalalLogo$productArgs<ExtArgs>
   catalog_product?: boolean | Prisma.HalalLogo$catalog_productArgs<ExtArgs>
+  product_links?: boolean | Prisma.HalalLogo$product_linksArgs<ExtArgs>
+  catalog_product_links?: boolean | Prisma.HalalLogo$catalog_product_linksArgs<ExtArgs>
   _count?: boolean | Prisma.HalalLogoCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["halalLogo"]>
 
@@ -644,6 +859,8 @@ export type HalalLogoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 export type HalalLogoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.HalalLogo$productArgs<ExtArgs>
   catalog_product?: boolean | Prisma.HalalLogo$catalog_productArgs<ExtArgs>
+  product_links?: boolean | Prisma.HalalLogo$product_linksArgs<ExtArgs>
+  catalog_product_links?: boolean | Prisma.HalalLogo$catalog_product_linksArgs<ExtArgs>
   _count?: boolean | Prisma.HalalLogoCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type HalalLogoIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -654,6 +871,8 @@ export type $HalalLogoPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   objects: {
     product: Prisma.$ProductPayload<ExtArgs>[]
     catalog_product: Prisma.$CatalogProductPayload<ExtArgs>[]
+    product_links: Prisma.$ProductHalalLogoPayload<ExtArgs>[]
+    catalog_product_links: Prisma.$CatalogProductHalalLogoPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1059,6 +1278,8 @@ export interface Prisma__HalalLogoClient<T, Null = never, ExtArgs extends runtim
   readonly [Symbol.toStringTag]: "PrismaPromise"
   product<T extends Prisma.HalalLogo$productArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.HalalLogo$productArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   catalog_product<T extends Prisma.HalalLogo$catalog_productArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.HalalLogo$catalog_productArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CatalogProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  product_links<T extends Prisma.HalalLogo$product_linksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.HalalLogo$product_linksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductHalalLogoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  catalog_product_links<T extends Prisma.HalalLogo$catalog_product_linksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.HalalLogo$catalog_product_linksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CatalogProductHalalLogoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1533,6 +1754,54 @@ export type HalalLogo$catalog_productArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.CatalogProductScalarFieldEnum | Prisma.CatalogProductScalarFieldEnum[]
+}
+
+/**
+ * HalalLogo.product_links
+ */
+export type HalalLogo$product_linksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProductHalalLogo
+   */
+  select?: Prisma.ProductHalalLogoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProductHalalLogo
+   */
+  omit?: Prisma.ProductHalalLogoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProductHalalLogoInclude<ExtArgs> | null
+  where?: Prisma.ProductHalalLogoWhereInput
+  orderBy?: Prisma.ProductHalalLogoOrderByWithRelationInput | Prisma.ProductHalalLogoOrderByWithRelationInput[]
+  cursor?: Prisma.ProductHalalLogoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProductHalalLogoScalarFieldEnum | Prisma.ProductHalalLogoScalarFieldEnum[]
+}
+
+/**
+ * HalalLogo.catalog_product_links
+ */
+export type HalalLogo$catalog_product_linksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CatalogProductHalalLogo
+   */
+  select?: Prisma.CatalogProductHalalLogoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CatalogProductHalalLogo
+   */
+  omit?: Prisma.CatalogProductHalalLogoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CatalogProductHalalLogoInclude<ExtArgs> | null
+  where?: Prisma.CatalogProductHalalLogoWhereInput
+  orderBy?: Prisma.CatalogProductHalalLogoOrderByWithRelationInput | Prisma.CatalogProductHalalLogoOrderByWithRelationInput[]
+  cursor?: Prisma.CatalogProductHalalLogoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CatalogProductHalalLogoScalarFieldEnum | Prisma.CatalogProductHalalLogoScalarFieldEnum[]
 }
 
 /**

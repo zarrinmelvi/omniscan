@@ -24,11 +24,7 @@
 			<div v-else-if="item" class="detail-wrap">
 				<!-- Hero Image Section -->
 				<div class="hero-image-container">
-					<img
-						v-if="item.product.image_base64"
-						:src="item.product.image_base64"
-						:alt="item.product.product_name"
-						class="hero-photo" />
+					<img v-if="item.product.image_base64" :src="item.product.image_base64" :alt="item.product.product_name" class="hero-photo" />
 					<div v-else class="hero-placeholder">
 						<span class="placeholder-initial">{{ item.product.product_name.charAt(0) }}</span>
 					</div>
@@ -48,11 +44,7 @@
 
 				<!-- Navigation Tabs -->
 				<div class="tab-row">
-					<button
-						type="button"
-						class="tab-btn"
-						:class="{ 'tab-btn--active': activeTab === 'overview' }"
-						@click="activeTab = 'overview'">
+					<button type="button" class="tab-btn" :class="{ 'tab-btn--active': activeTab === 'overview' }" @click="activeTab = 'overview'">
 						Overview
 					</button>
 					<button
@@ -89,15 +81,19 @@
 						</div>
 					</div>
 
-					<!-- Halal Status Card (Only visible if certified or confirmed not halal) -->
+					<!-- Halal Status Card (certified / unverified / confirmed not halal) -->
 					<div v-if="hasHalalData" class="info-card">
 						<h3 class="info-card__title">Halal Status</h3>
-						<div
-							class="halal-row"
-							:class="{ 'halal-row--certified': isHalalCertified, 'halal-row--not-halal': isConfirmedNotHalal }">
+						<div class="halal-row" :class="{ 'halal-row--certified': isHalalCertified, 'halal-row--not-halal': isConfirmedNotHalal }">
 							<ion-icon
 								:icon="isHalalCertified ? checkmarkCircleOutline : isConfirmedNotHalal ? closeCircleOutline : helpCircleOutline" />
-							{{ isHalalCertified ? 'Halal certified' : isConfirmedNotHalal ? 'Confirmed not Halal' : 'Not verified' }}
+							{{
+								isHalalCertified
+									? `Halal certified — ${halalCertifierNames}`
+									: isConfirmedNotHalal
+										? 'Confirmed not Halal'
+										: 'Not verified'
+							}}
 						</div>
 					</div>
 
@@ -160,14 +156,7 @@ import {
 	IonButton,
 	onIonViewWillEnter,
 } from '@ionic/vue'
-import {
-	alertCircleOutline,
-	calendarOutline,
-	checkmarkCircleOutline,
-	helpCircleOutline,
-	constructOutline,
-	closeCircleOutline,
-} from 'ionicons/icons'
+import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, helpCircleOutline, constructOutline, closeCircleOutline } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
 interface RecipeUsage {
@@ -200,6 +189,12 @@ interface Product {
 	simplified_ingredients: string | null
 	halal_logo_id: number | null
 	confirmed_not_halal: boolean
+	halal_unverified: boolean
+	// Certifier names, e.g. ["IDCP", "JAKIM"] — a product can genuinely hold
+	// more than one real certification. May be empty even when
+	// halal_logo_id is set, for pre-migration rows that predate the join
+	// table — isHalalCertified below falls back to halal_logo_id for those.
+	halal_certifiers: string[]
 }
 
 type Tab = 'overview' | 'ingredients' | 'alternatives'
@@ -210,9 +205,16 @@ const isLoading = ref(true)
 const loadError = ref('')
 const activeTab = ref<Tab>('overview')
 
-const isHalalCertified = computed(() => !!item.value?.product.halal_logo_id)
+const isHalalCertified = computed(() => (item.value?.product.halal_certifiers.length ?? 0) > 0 || !!item.value?.product.halal_logo_id)
 const isConfirmedNotHalal = computed(() => !!item.value?.product.confirmed_not_halal && !isHalalCertified.value)
-const hasHalalData = computed(() => isHalalCertified.value || isConfirmedNotHalal.value)
+// Previously unreachable — Product had no field recording "detected but
+// unresolved" before this change, so this state could never actually render.
+const isHalalUnverified = computed(() => !!item.value?.product.halal_unverified && !isHalalCertified.value && !isConfirmedNotHalal.value)
+const hasHalalData = computed(() => isHalalCertified.value || isConfirmedNotHalal.value || isHalalUnverified.value)
+const halalCertifierNames = computed(() => {
+	const names = item.value?.product.halal_certifiers ?? []
+	return names.length > 0 ? names.join(', ') : 'certifying body unavailable'
+})
 
 function formatQuantity(n: number): string {
 	return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, '')

@@ -24,11 +24,6 @@ export default defineEventHandler(async (event) => {
 
 	const { product_name, image_base64, expiration_date, best_before_date, storage_location, quantity, unit } = body
 
-	// product_name is only required for the manual-add path — when product_id
-	// is present (a scan's own product), that request never needs to send a
-	// name at all. Without this gate, the product_id fast path below was
-	// unreachable: this check ran first and rejected the request before it
-	// could ever be evaluated.
 	if (body.product_id === undefined) {
 		if (!product_name || typeof product_name !== 'string' || !product_name.trim()) {
 			throw createError({ statusCode: 400, statusMessage: 'product_name is required.' })

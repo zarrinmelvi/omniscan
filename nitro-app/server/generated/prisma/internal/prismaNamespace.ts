@@ -401,6 +401,8 @@ export const ModelName = {
   CatalogProduct: 'CatalogProduct',
   CatalogIngredient: 'CatalogIngredient',
   CatalogProductIngredient: 'CatalogProductIngredient',
+  ProductHalalLogo: 'ProductHalalLogo',
+  CatalogProductHalalLogo: 'CatalogProductHalalLogo',
   Admin: 'Admin'
 } as const
 
@@ -417,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "activityLog" | "user" | "dietaryProfile" | "notification" | "allergen" | "ingredientMapping" | "recipe" | "recipeInteraction" | "ingredient" | "product" | "halalLogo" | "pantryItem" | "scan" | "flaggedScan" | "catalogProduct" | "catalogIngredient" | "catalogProductIngredient" | "admin"
+    modelProps: "activityLog" | "user" | "dietaryProfile" | "notification" | "allergen" | "ingredientMapping" | "recipe" | "recipeInteraction" | "ingredient" | "product" | "halalLogo" | "pantryItem" | "scan" | "flaggedScan" | "catalogProduct" | "catalogIngredient" | "catalogProductIngredient" | "productHalalLogo" | "catalogProductHalalLogo" | "admin"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1679,6 +1681,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProductHalalLogo: {
+      payload: Prisma.$ProductHalalLogoPayload<ExtArgs>
+      fields: Prisma.ProductHalalLogoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProductHalalLogoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductHalalLogoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProductHalalLogoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductHalalLogoPayload>
+        }
+        findFirst: {
+          args: Prisma.ProductHalalLogoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductHalalLogoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProductHalalLogoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductHalalLogoPayload>
+        }
+        findMany: {
+          args: Prisma.ProductHalalLogoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductHalalLogoPayload>[]
+        }
+        create: {
+          args: Prisma.ProductHalalLogoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductHalalLogoPayload>
+        }
+        createMany: {
+          args: Prisma.ProductHalalLogoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProductHalalLogoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductHalalLogoPayload>[]
+        }
+        delete: {
+          args: Prisma.ProductHalalLogoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductHalalLogoPayload>
+        }
+        update: {
+          args: Prisma.ProductHalalLogoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductHalalLogoPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProductHalalLogoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProductHalalLogoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProductHalalLogoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductHalalLogoPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProductHalalLogoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductHalalLogoPayload>
+        }
+        aggregate: {
+          args: Prisma.ProductHalalLogoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProductHalalLogo>
+        }
+        groupBy: {
+          args: Prisma.ProductHalalLogoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductHalalLogoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProductHalalLogoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductHalalLogoCountAggregateOutputType> | number
+        }
+      }
+    }
+    CatalogProductHalalLogo: {
+      payload: Prisma.$CatalogProductHalalLogoPayload<ExtArgs>
+      fields: Prisma.CatalogProductHalalLogoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CatalogProductHalalLogoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CatalogProductHalalLogoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CatalogProductHalalLogoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CatalogProductHalalLogoPayload>
+        }
+        findFirst: {
+          args: Prisma.CatalogProductHalalLogoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CatalogProductHalalLogoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CatalogProductHalalLogoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CatalogProductHalalLogoPayload>
+        }
+        findMany: {
+          args: Prisma.CatalogProductHalalLogoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CatalogProductHalalLogoPayload>[]
+        }
+        create: {
+          args: Prisma.CatalogProductHalalLogoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CatalogProductHalalLogoPayload>
+        }
+        createMany: {
+          args: Prisma.CatalogProductHalalLogoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CatalogProductHalalLogoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CatalogProductHalalLogoPayload>[]
+        }
+        delete: {
+          args: Prisma.CatalogProductHalalLogoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CatalogProductHalalLogoPayload>
+        }
+        update: {
+          args: Prisma.CatalogProductHalalLogoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CatalogProductHalalLogoPayload>
+        }
+        deleteMany: {
+          args: Prisma.CatalogProductHalalLogoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CatalogProductHalalLogoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CatalogProductHalalLogoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CatalogProductHalalLogoPayload>[]
+        }
+        upsert: {
+          args: Prisma.CatalogProductHalalLogoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CatalogProductHalalLogoPayload>
+        }
+        aggregate: {
+          args: Prisma.CatalogProductHalalLogoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCatalogProductHalalLogo>
+        }
+        groupBy: {
+          args: Prisma.CatalogProductHalalLogoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CatalogProductHalalLogoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CatalogProductHalalLogoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CatalogProductHalalLogoCountAggregateOutputType> | number
+        }
+      }
+    }
     Admin: {
       payload: Prisma.$AdminPayload<ExtArgs>
       fields: Prisma.AdminFieldRefs
@@ -1936,6 +2086,7 @@ export const ProductScalarFieldEnum = {
   image_base64_back: 'image_base64_back',
   halal_logo_id: 'halal_logo_id',
   confirmed_not_halal: 'confirmed_not_halal',
+  halal_unverified: 'halal_unverified',
   created_at: 'created_at',
   updated_at: 'updated_at',
   deleted_at: 'deleted_at'
@@ -2019,6 +2170,7 @@ export const CatalogProductScalarFieldEnum = {
   match_key: 'match_key',
   halal_logo_id: 'halal_logo_id',
   confirmed_not_halal: 'confirmed_not_halal',
+  halal_unverified: 'halal_unverified',
   created_at: 'created_at',
   updated_at: 'updated_at',
   deleted_at: 'deleted_at'
@@ -2048,6 +2200,30 @@ export const CatalogProductIngredientScalarFieldEnum = {
 } as const
 
 export type CatalogProductIngredientScalarFieldEnum = (typeof CatalogProductIngredientScalarFieldEnum)[keyof typeof CatalogProductIngredientScalarFieldEnum]
+
+
+export const ProductHalalLogoScalarFieldEnum = {
+  id: 'id',
+  product_id: 'product_id',
+  halal_logo_id: 'halal_logo_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  deleted_at: 'deleted_at'
+} as const
+
+export type ProductHalalLogoScalarFieldEnum = (typeof ProductHalalLogoScalarFieldEnum)[keyof typeof ProductHalalLogoScalarFieldEnum]
+
+
+export const CatalogProductHalalLogoScalarFieldEnum = {
+  id: 'id',
+  catalog_product_id: 'catalog_product_id',
+  halal_logo_id: 'halal_logo_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  deleted_at: 'deleted_at'
+} as const
+
+export type CatalogProductHalalLogoScalarFieldEnum = (typeof CatalogProductHalalLogoScalarFieldEnum)[keyof typeof CatalogProductHalalLogoScalarFieldEnum]
 
 
 export const AdminScalarFieldEnum = {
@@ -2324,6 +2500,8 @@ export type GlobalOmitConfig = {
   catalogProduct?: Prisma.CatalogProductOmit
   catalogIngredient?: Prisma.CatalogIngredientOmit
   catalogProductIngredient?: Prisma.CatalogProductIngredientOmit
+  productHalalLogo?: Prisma.ProductHalalLogoOmit
+  catalogProductHalalLogo?: Prisma.CatalogProductHalalLogoOmit
   admin?: Prisma.AdminOmit
 }
 

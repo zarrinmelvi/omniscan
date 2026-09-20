@@ -53,6 +53,7 @@ interface CatalogProductRecord {
 	ingredient_text: string
 	simplified_ingredients: string
 	halal_logo_id: number | null
+	halal_logos: { halal_logo: HalalLogoRecord }[]
 }
 
 const RED_KEYWORDS = ['milk', 'wheat', 'soy']
@@ -209,17 +210,32 @@ function determineVerdict(text: string): { verdict: SafetyVerdict; reasons: stri
 	return { verdict: 'Green', reasons: ['No flagged ingredients detected'] }
 }
 
-function resolveHalalLogoMatch(certifyingBodyText: string, logos: HalalLogoRecord[]): HalalLogoRecord | null {
-	const normalized = certifyingBodyText.trim().toLowerCase()
-	if (!normalized) return null
+// The AI reads one photo, so certifying_body is usually a single name — but
+// occasionally a label genuinely shows more than one certifying mark, and
+// gemma4:cloud may read that as a comma-separated string (e.g.
+// "IDCP, MUI, JAKIM"). Split and resolve each candidate independently rather
+// than treating the whole string as one (likely unmatchable) name, and
+// return every match found, deduped by id.
+function resolveHalalLogoMatches(certifyingBodyText: string, logos: HalalLogoRecord[]): HalalLogoRecord[] {
+	const candidates = certifyingBodyText
+		.split(',')
+		.map((c) => c.trim().toLowerCase())
+		.filter(Boolean)
 
-	return (
-		logos.find((logo) => {
+	if (candidates.length === 0) return []
+
+	const matches = new Map<number, HalalLogoRecord>()
+
+	for (const candidate of candidates) {
+		const found = logos.find((logo) => {
 			const known = logo.certifier.trim().toLowerCase()
 			if (!known) return false
-			return known.includes(normalized) || normalized.includes(known)
-		}) ?? null
-	)
+			return known.includes(candidate) || candidate.includes(known)
+		})
+		if (found) matches.set(found.id, found)
+	}
+
+	return Array.from(matches.values())
 }
 
 function normalizeForCatalogMatch(text: string): string {
@@ -342,6 +358,7 @@ export default defineEventHandler(async (event) => {
 				ingredient_text: true,
 				simplified_ingredients: true,
 				halal_logo_id: true,
+				halal_logos: { select: { halal_logo: { select: { id: true, certifier: true, is_accredited: true } } } },
 			},
 		}),
 	])
@@ -355,11 +372,21 @@ export default defineEventHandler(async (event) => {
 
 	let { verdict, reasons } = determineVerdict(extraction.ingredients_text)
 
-	let matchedHalalLogo = extraction.halal_logo_detected ? resolveHalalLogoMatch(extraction.certifying_body, halalLogos) : null
+	// AI-detection-first, catalog-fallback-second — deliberately kept this
+	// precedence (not flipped to catalog-first) per an earlier explicit
+	// decision: with most CatalogProduct rows still lacking real Halal data,
+	// flipping it would have little practical effect yet and isn't worth
+	// revisiting until more catalog rows actually carry certifications.
+	const aiMatchedHalalLogos = extraction.halal_logo_detected ? resolveHalalLogoMatches(extraction.certifying_body, halalLogos) : []
 
-	if (!matchedHalalLogo && catalogMatch?.halal_logo_id) {
-		matchedHalalLogo = halalLogos.find((l) => l.id === catalogMatch.halal_logo_id) ?? null
-	}
+	const catalogHalalLogos = catalogMatch?.halal_logos.map((link) => link.halal_logo) ?? []
+
+	const matchedHalalLogos = aiMatchedHalalLogos.length > 0 ? aiMatchedHalalLogos : catalogHalalLogos
+
+	// Kept for anything still reading a single logo (e.g. the legacy
+	// halal_logo_id column) — first match is an arbitrary but stable choice
+	// when there's more than one.
+	const matchedHalalLogo = matchedHalalLogos[0] ?? null
 
 	const combinedIngredientText = `${extraction.ingredients_text} ${extraction.simplified_ingredients}`
 
@@ -395,8 +422,16 @@ export default defineEventHandler(async (event) => {
 				is_verified: false,
 
 				...(matchedHalalLogo ? { halal_logo_id: matchedHalalLogo.id } : {}),
+				halal_unverified: extraction.halal_logo_detected && matchedHalalLogos.length === 0,
 			},
 		})
+
+		if (matchedHalalLogos.length > 0) {
+			await prisma.productHalalLogo.createMany({
+				data: matchedHalalLogos.map((logo) => ({ product_id: product.id, halal_logo_id: logo.id })),
+				skipDuplicates: true,
+			})
+		}
 
 		const scan = await prisma.scan.create({
 			data: {
@@ -422,7 +457,7 @@ export default defineEventHandler(async (event) => {
 			},
 		})
 
-		const halalUnverified = extraction.halal_logo_detected && matchedHalalLogo === null
+		const halalUnverified = extraction.halal_logo_detected && matchedHalalLogos.length === 0
 		const shouldAutoFlag = verdict === 'Red' || halalUnverified
 
 		if (shouldAutoFlag) {
@@ -463,6 +498,7 @@ export default defineEventHandler(async (event) => {
 					ingredient_text: product.ingredient_text,
 					simplified_ingredients: product.simplified_ingredients,
 					halal_logo_id: product.halal_logo_id,
+					halal_unverified: product.halal_unverified,
 					image_base64: product.image_base64,
 					image_base64_back: product.image_base64_back,
 				},
@@ -474,7 +510,12 @@ export default defineEventHandler(async (event) => {
 					certifying_body: extraction.certifying_body || null,
 					known_certifier: matchedHalalLogo?.certifier ?? null,
 					is_accredited: matchedHalalLogo?.is_accredited ?? null,
-					matched_known_logo: matchedHalalLogo !== null,
+					matched_known_logo: matchedHalalLogos.length > 0,
+					// Full set — a product can genuinely hold more than one
+					// real certification (e.g. from the catalog fallback).
+					// known_certifier above is kept for anything still reading
+					// a single value.
+					certifiers: matchedHalalLogos.map((logo) => ({ id: logo.id, certifier: logo.certifier, is_accredited: logo.is_accredited })),
 				},
 				scan_time: scan.scan_time,
 			},

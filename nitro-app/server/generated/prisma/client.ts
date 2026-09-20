@@ -127,6 +127,16 @@ export type CatalogIngredient = Prisma.CatalogIngredientModel
  */
 export type CatalogProductIngredient = Prisma.CatalogProductIngredientModel
 /**
+ * Model ProductHalalLogo
+ * 
+ */
+export type ProductHalalLogo = Prisma.ProductHalalLogoModel
+/**
+ * Model CatalogProductHalalLogo
+ * 
+ */
+export type CatalogProductHalalLogo = Prisma.CatalogProductHalalLogoModel
+/**
  * Model Admin
  * 
  */

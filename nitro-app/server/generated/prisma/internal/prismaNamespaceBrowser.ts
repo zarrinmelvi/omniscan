@@ -68,6 +68,8 @@ export const ModelName = {
   CatalogProduct: 'CatalogProduct',
   CatalogIngredient: 'CatalogIngredient',
   CatalogProductIngredient: 'CatalogProductIngredient',
+  ProductHalalLogo: 'ProductHalalLogo',
+  CatalogProductHalalLogo: 'CatalogProductHalalLogo',
   Admin: 'Admin'
 } as const
 
@@ -231,6 +233,7 @@ export const ProductScalarFieldEnum = {
   image_base64_back: 'image_base64_back',
   halal_logo_id: 'halal_logo_id',
   confirmed_not_halal: 'confirmed_not_halal',
+  halal_unverified: 'halal_unverified',
   created_at: 'created_at',
   updated_at: 'updated_at',
   deleted_at: 'deleted_at'
@@ -314,6 +317,7 @@ export const CatalogProductScalarFieldEnum = {
   match_key: 'match_key',
   halal_logo_id: 'halal_logo_id',
   confirmed_not_halal: 'confirmed_not_halal',
+  halal_unverified: 'halal_unverified',
   created_at: 'created_at',
   updated_at: 'updated_at',
   deleted_at: 'deleted_at'
@@ -343,6 +347,30 @@ export const CatalogProductIngredientScalarFieldEnum = {
 } as const
 
 export type CatalogProductIngredientScalarFieldEnum = (typeof CatalogProductIngredientScalarFieldEnum)[keyof typeof CatalogProductIngredientScalarFieldEnum]
+
+
+export const ProductHalalLogoScalarFieldEnum = {
+  id: 'id',
+  product_id: 'product_id',
+  halal_logo_id: 'halal_logo_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  deleted_at: 'deleted_at'
+} as const
+
+export type ProductHalalLogoScalarFieldEnum = (typeof ProductHalalLogoScalarFieldEnum)[keyof typeof ProductHalalLogoScalarFieldEnum]
+
+
+export const CatalogProductHalalLogoScalarFieldEnum = {
+  id: 'id',
+  catalog_product_id: 'catalog_product_id',
+  halal_logo_id: 'halal_logo_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  deleted_at: 'deleted_at'
+} as const
+
+export type CatalogProductHalalLogoScalarFieldEnum = (typeof CatalogProductHalalLogoScalarFieldEnum)[keyof typeof CatalogProductHalalLogoScalarFieldEnum]
 
 
 export const AdminScalarFieldEnum = {

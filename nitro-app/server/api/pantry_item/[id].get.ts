@@ -41,6 +41,7 @@ export default defineEventHandler(async (event) => {
 						simplified_ingredients: true,
 						halal_logo_id: true,
 						confirmed_not_halal: true,
+						halal_unverified: true,
 					},
 				},
 			},
@@ -53,6 +54,12 @@ export default defineEventHandler(async (event) => {
 		if (item.user_id !== authUser.id) {
 			throw createError({ statusCode: 403, statusMessage: 'You do not have access to this pantry item.' })
 		}
+
+		const halalLinks = await prisma.productHalalLogo.findMany({
+			where: { product_id: item.product.id },
+			select: { halal_logo: { select: { certifier: true } } },
+		})
+		const halal_certifiers = halalLinks.map((l) => l.halal_logo.certifier)
 
 		const madeInteractions = await prisma.recipeInteraction.findMany({
 			where: { user_id: authUser.id, made_at: { not: null } },
@@ -98,7 +105,7 @@ export default defineEventHandler(async (event) => {
 				best_before_date: item.best_before_date ? item.best_before_date.toISOString() : null,
 				is_archived: item.is_archived,
 				updated_at: item.updated_at.toISOString(),
-				product: item.product,
+				product: { ...item.product, halal_certifiers },
 				recipes_using_this: recipesUsingThis,
 			},
 		}

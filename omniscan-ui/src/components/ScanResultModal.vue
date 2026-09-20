@@ -187,10 +187,16 @@ async function fetchHalalPref() {
 	}
 }
 
-const isHalalCertified = computed(() => userHalalPref.value && !!halalInfo.value?.matched_known_logo)
-const isHalalUnverified = computed(() => userHalalPref.value && !!halalInfo.value?.logo_detected && !halalInfo.value?.matched_known_logo)
+const isHalalCertified = computed(
+	() => userHalalPref.value && ((halalInfo.value?.certifiers?.length ?? 0) > 0 || !!halalInfo.value?.matched_known_logo),
+)
+const isHalalUnverified = computed(() => userHalalPref.value && !!halalInfo.value?.logo_detected && !isHalalCertified.value)
 
 const halalCertifiedLabel = computed(() => {
+	const certifiers = halalInfo.value?.certifiers
+	if (certifiers && certifiers.length > 0) {
+		return `${certifiers.map((c) => c.certifier).join(', ')} Certified`
+	}
 	const certifier = halalInfo.value?.known_certifier
 	return certifier ? `${certifier} Certified` : 'Halal Certified'
 })

@@ -175,6 +175,7 @@ model Product {
 
 	halal_logo HalalLogo? @relation(fields: [halal_logo_id], references: [id])
 	halal_logo_id Int?
+	halal_logos ProductHalalLogo[]
 
 	pantry_item PantryItem[]
 	scan Scan[]
@@ -183,6 +184,12 @@ model Product {
 	notification Notification[]
 
 	confirmed_not_halal Boolean @default(false)
+	// True when the AI detected a Halal-looking logo on the packaging but it
+	// couldn't be resolved to any known HalalLogo row — distinct from both
+	// "certified" (halal_logo_id/halal_logos set) and "confirmed not halal".
+	// Needed so the Pantry Overview can actually render a "Not verified"
+	// state — without this, Product had no way to record that fact at all.
+	halal_unverified Boolean @default(false)
 	created_at DateTime @default(now())
   	updated_at DateTime @updatedAt
   	deleted_at DateTime?
@@ -200,6 +207,8 @@ model HalalLogo {
 
   product         Product[]
   catalog_product CatalogProduct[]
+  product_links         ProductHalalLogo[]
+  catalog_product_links CatalogProductHalalLogo[]
 }
 
 
@@ -289,9 +298,11 @@ model CatalogProduct {
 
 	halal_logo HalalLogo? @relation(fields: [halal_logo_id], references: [id])
 	halal_logo_id Int?
+	halal_logos CatalogProductHalalLogo[]
 	ingredients CatalogProductIngredient[]
 
 	confirmed_not_halal Boolean @default(false)
+	halal_unverified Boolean @default(false)
 	created_at DateTime @default(now())
   	updated_at DateTime @updatedAt
   	deleted_at DateTime?
@@ -321,6 +332,43 @@ model CatalogProductIngredient {
   	deleted_at DateTime?
 
 	@@unique([catalog_product_id, catalog_ingredient_id])
+}
+
+// A product can genuinely hold more than one real-world Halal certification
+// (e.g. a product certified by both IDCP and JAKIM) — Product/CatalogProduct
+// keep their original single `halal_logo_id` FK for backward compatibility
+// (existing admin approval flow, existing scanned/seeded rows), but this
+// join table is the actual source of truth going forward for "which
+// certifications does this product have," same shape as
+// CatalogProductIngredient above.
+model ProductHalalLogo {
+	id Int @id @default(autoincrement())
+
+	product Product @relation(fields: [product_id], references: [id])
+	product_id Int
+	halal_logo HalalLogo @relation(fields: [halal_logo_id], references: [id])
+	halal_logo_id Int
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+
+	@@unique([product_id, halal_logo_id])
+}
+
+model CatalogProductHalalLogo {
+	id Int @id @default(autoincrement())
+
+	catalog_product CatalogProduct @relation(fields: [catalog_product_id], references: [id])
+	catalog_product_id Int
+	halal_logo HalalLogo @relation(fields: [halal_logo_id], references: [id])
+	halal_logo_id Int
+
+	created_at DateTime @default(now())
+  	updated_at DateTime @updatedAt
+  	deleted_at DateTime?
+
+	@@unique([catalog_product_id, halal_logo_id])
 }
 
 model Admin {

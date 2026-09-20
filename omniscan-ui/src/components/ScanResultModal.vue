@@ -1,6 +1,6 @@
 <template>
 	<ion-modal :is-open="isOpen" :breakpoints="[0, 0.5, 0.95]" :initial-breakpoint="0.95" :backdrop-dismiss="true" @didDismiss="handleDismiss">
-		<ion-content class="sheet-ion-content" scroll-y="true">
+		<ion-content class="sheet-ion-content" :scroll-y="true">
 			<div class="sheet-content">
 				<div class="sheet-header">
 					<div class="product-thumb">
@@ -113,6 +113,10 @@
 						<div class="date-field">
 							<label class="date-field-label">Expiration Date</label>
 							<span class="field-hint">For packaged and processed products (e.g. canned goods, dairy, meat).</span>
+							<div v-if="dateAutoDetected" class="ai-detected-banner">
+								<ion-icon :icon="sparklesOutline" />
+								<span>Expiration Detected — please double-check for accuracy</span>
+							</div>
 							<input type="date" class="date-input" :class="{ 'date-input--has-value': !!expirationDate }" v-model="expirationDate" />
 						</div>
 
@@ -138,7 +142,7 @@
 	</ion-modal>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { IonModal, IonContent, IonIcon, IonButton, IonSpinner } from '@ionic/vue'
 import { apiFetch } from '@/utils/api'
@@ -150,6 +154,7 @@ import {
 	informationCircleOutline,
 	addOutline,
 	imageOutline,
+	sparklesOutline,
 } from 'ionicons/icons'
 
 const props = defineProps({
@@ -174,7 +179,7 @@ const userHalalPref = ref(false)
 
 async function fetchHalalPref() {
 	try {
-		const data = await apiFetch('/api/users', { method: 'GET' })
+		const data = await apiFetch<{ user?: { dietary_prof?: { halal_pref: boolean }[] } }>('/api/users', { method: 'GET' })
 		userHalalPref.value = data?.user?.dietary_prof?.[0]?.halal_pref ?? false
 	} catch (err) {
 		// Fail closed on DISPLAY, not safety: if we can't confirm the
@@ -195,7 +200,7 @@ const isHalalUnverified = computed(() => userHalalPref.value && !!halalInfo.valu
 const halalCertifiedLabel = computed(() => {
 	const certifiers = halalInfo.value?.certifiers
 	if (certifiers && certifiers.length > 0) {
-		return `${certifiers.map((c) => c.certifier).join(', ')} Certified`
+		return `${certifiers.map((c: { certifier: string }) => c.certifier).join(', ')} Certified`
 	}
 	const certifier = halalInfo.value?.known_certifier
 	return certifier ? `${certifier} Certified` : 'Halal Certified'
@@ -246,7 +251,7 @@ const allergenTags = computed(() =>
 	matchedAllergens.value.map((rule) => ({
 		key: rule.key,
 		label: rule.label,
-		isPersonal: personalAllergenAlerts.value.some((name) => name.toLowerCase() === rule.label.toLowerCase()),
+		isPersonal: personalAllergenAlerts.value.some((name: string) => name.toLowerCase() === rule.label.toLowerCase()),
 	})),
 )
 
@@ -300,14 +305,38 @@ const bestBeforeDate = ref('')
 const submitting = ref(false)
 const submitError = ref('')
 
+// True only while expirationDate still holds exactly what the AI detected —
+// cleared the moment the user edits it away from that value, since at that
+// point it's their corrected value, not an unverified AI guess anymore.
+const dateAutoDetected = ref(false)
+
+function normalizeDetectedDate(value: unknown): string | null {
+	// Backend already validates strictly to YYYY-MM-DD or null
+	// (normalizeToDateStringOrNull in scan/index.post.ts) — this is just a
+	// defensive re-check before trusting it as a form value.
+	return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null
+}
+
 function resetPantryForm() {
 	quantity.value = 1
 	unit.value = 'L'
 	storageLocation.value = 'Fridge'
-	expirationDate.value = ''
+	// Always into Expiration Date specifically — never Best Before —
+	// regardless of whether the label printed "EXP", "Best Before", or
+	// "Use By": every scanned item is inherently a packaged product with a
+	// printed label, matching this field's own existing hint text.
+	const detected = normalizeDetectedDate(product.value?.expiration_date_detected)
+	expirationDate.value = detected ?? ''
 	bestBeforeDate.value = ''
+	dateAutoDetected.value = !!detected
 	submitError.value = ''
 }
+
+watch(expirationDate, (newValue) => {
+	if (!dateAutoDetected.value) return
+	const detected = normalizeDetectedDate(product.value?.expiration_date_detected)
+	if (newValue !== detected) dateAutoDetected.value = false
+})
 
 const isFormValid = computed(
 	() => quantity.value > 0 && !!unit.value && !!storageLocation.value && (!!expirationDate.value || !!bestBeforeDate.value),
@@ -335,7 +364,7 @@ async function submitAddToPantry() {
 		emit('added')
 		handleDismiss()
 	} catch (err) {
-		submitError.value = err.message || 'Failed to add item to pantry.'
+		submitError.value = err instanceof Error ? err.message : 'Failed to add item to pantry.'
 	} finally {
 		submitting.value = false
 	}
@@ -761,6 +790,25 @@ function handleDismiss() {
 	border-color: #22c55e;
 	box-shadow: 0 0 0 1px #22c55e;
 	outline: none;
+}
+
+.ai-detected-banner {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	background: #fffbeb;
+	border: 1px solid #fde68a;
+	border-radius: 10px;
+	padding: 6px 10px;
+	margin: 6px 0;
+	color: #92400e;
+	font-size: 0.78rem;
+	font-weight: 500;
+}
+
+.ai-detected-banner ion-icon {
+	flex-shrink: 0;
+	font-size: 0.95rem;
 }
 
 .or-divider {

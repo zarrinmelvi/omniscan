@@ -38,6 +38,11 @@ interface ScanAiExtraction {
 	simplified_ingredients: string
 	halal_logo_detected: boolean
 	certifying_body: string
+	// AI-read expiration/best-before/use-by date, normalized to YYYY-MM-DD,
+	// or null if none was visible/legible. Validated server-side in
+	// normalizeToDateStringOrNull — never trust the model's own format
+	// compliance for something that feeds an <input type="date">.
+	expiration_date: string | null
 }
 
 interface HalalLogoRecord {
@@ -75,11 +80,12 @@ function buildPrompt(): string {
 		'Respond with ONLY a single JSON object, no prose, no markdown code fences,',
 		'matching exactly this shape:',
 		'{"is_food_product": boolean, "product_name": string, "brand": string, "ingredients_text": string,',
-		'"simplified_ingredients": string, "halal_logo_detected": boolean, "certifying_body": string}.',
+		'"simplified_ingredients": string, "halal_logo_detected": boolean, "certifying_body": string,',
+		'"expiration_date": string | null}.',
 		'"is_food_product" must be false for anything that is not meant for human consumption',
 		'(e.g. lotion, shampoo, shoes, electronics, toys, stationery) — when false, you may leave the',
-		'other string fields as empty strings and halal_logo_detected as false, since ingredient',
-		'extraction does not apply to a non-food item.',
+		'other string fields as empty strings, halal_logo_detected as false, and expiration_date as null,',
+		'since ingredient extraction does not apply to a non-food item.',
 		'When is_food_product is true, extract the remaining fields as follows:',
 		'"ingredients_text" should be the raw ingredient list as printed on the label.',
 		'"simplified_ingredients" should restate that list in plain, easy-to-understand language',
@@ -90,8 +96,14 @@ function buildPrompt(): string {
 		'IFANCA). Do not infer Halal status from ingredients alone — this field is strictly about a visible logo/mark.',
 		'"certifying_body" should be the name or initials of the certifying body as printed near/on the logo,',
 		'exactly as it appears, or an empty string if no logo was detected or the certifying body text is not legible.',
-		'If a field cannot be read from the image, use an empty string (or false for the boolean field).',
-		'Do not invent ingredients, certifications, or product identity that are not visibly present.',
+		'"expiration_date" should be any printed expiration date, best-before date, or use-by date visible on the',
+		'packaging — look for text labeled "EXP", "Expiry", "Best Before", "BB", "Use By", or similar, in any',
+		'position on the label. Convert whatever format is printed (e.g. "31 DEC 2026", "12/31/2026", "2026.12.31")',
+		'into strict ISO format YYYY-MM-DD. If the printed date is ambiguous, partially obscured, or you are not',
+		'confident you have read it correctly, return null rather than guessing — a wrong date is worse than no date.',
+		'If no date is visible on the packaging at all, return null.',
+		'If a field cannot be read from the image, use an empty string (or false for the boolean field, or null for expiration_date).',
+		'Do not invent ingredients, certifications, product identity, or a date that are not visibly present.',
 	].join(' ')
 }
 
@@ -107,6 +119,25 @@ function normalizeToString(value: unknown): string {
 	return ''
 }
 
+// The model was instructed to return YYYY-MM-DD or null, but nothing forces
+// it to comply — validate strictly rather than passing a malformed string
+// through to an <input type="date">, which just silently fails to populate
+// on anything that isn't exactly that format. Also rejects a technically
+// well-formed but impossible date (e.g. 2026-02-30).
+function normalizeToDateStringOrNull(value: unknown): string | null {
+	if (typeof value !== 'string') return null
+	const trimmed = value.trim()
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null
+
+	const parsed = new Date(`${trimmed}T00:00:00Z`)
+	if (isNaN(parsed.getTime())) return null
+	// Date normalizes an out-of-range day/month (e.g. Feb 30 -> Mar 2) rather
+	// than erroring — catch that by checking the round-trip matches exactly.
+	if (parsed.toISOString().slice(0, 10) !== trimmed) return null
+
+	return trimmed
+}
+
 function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 	if (!value || typeof value !== 'object') return null
 	const candidate = value as Record<string, unknown>
@@ -119,6 +150,7 @@ function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 		simplified_ingredients: normalizeToString(candidate.simplified_ingredients),
 		halal_logo_detected: normalizeToBoolean(candidate.halal_logo_detected),
 		certifying_body: normalizeToString(candidate.certifying_body),
+		expiration_date: normalizeToDateStringOrNull(candidate.expiration_date),
 	}
 }
 
@@ -319,6 +351,7 @@ export default defineEventHandler(async (event) => {
 			simplified_ingredients: mockText,
 			halal_logo_detected: false,
 			certifying_body: '',
+			expiration_date: null,
 		}
 	} else {
 		const imagesForAi = base64RawBack ? [base64Raw, base64RawBack] : [base64Raw]
@@ -501,6 +534,7 @@ export default defineEventHandler(async (event) => {
 					halal_unverified: product.halal_unverified,
 					image_base64: product.image_base64,
 					image_base64_back: product.image_base64_back,
+					expiration_date_detected: extraction.expiration_date,
 				},
 				safety_verdict: scan.safety_verdict,
 				flag_reason: scan.flag_reason,

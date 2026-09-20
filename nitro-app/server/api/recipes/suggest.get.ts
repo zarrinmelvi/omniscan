@@ -86,7 +86,7 @@ export default defineEventHandler(async (event) => {
 
 		const recipeRows = await prisma.recipe.findMany({
 			where: { id: { in: candidateIds } },
-			select: { id: true, name: true, instructions: true, raw_ingredients: true },
+			select: { id: true, name: true, instructions: true, raw_ingredients: true, image_url: true },
 		})
 		recipeRows.sort((a, b) => (rankById.get(a.id) ?? 0) - (rankById.get(b.id) ?? 0))
 
@@ -109,6 +109,7 @@ export default defineEventHandler(async (event) => {
 			missing_ingredients: string[]
 			liked: boolean
 			made: boolean
+			image_url: string | null
 		}[] = []
 
 		for (const recipe of recipeRows) {
@@ -148,6 +149,7 @@ export default defineEventHandler(async (event) => {
 				missing_ingredients: missingIngredientNames,
 				liked: interaction?.liked ?? false,
 				made: isMade,
+				image_url: recipe.image_url,
 			})
 
 			if (results.length >= RESULTS_LIMIT) break

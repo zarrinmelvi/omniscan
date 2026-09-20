@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
 				orderBy: { made_at: 'desc' },
 				select: {
 					liked: true,
-					recipe: { select: { id: true, name: true, instructions: true, raw_ingredients: true } },
+					recipe: { select: { id: true, name: true, instructions: true, raw_ingredients: true, image_url: true } },
 				},
 			}),
 			prisma.pantryItem.findMany({
@@ -58,6 +58,7 @@ export default defineEventHandler(async (event) => {
 				missing_ingredients: missingIngredientNames,
 				liked,
 				made: true,
+				image_url: recipe.image_url,
 			}
 		})
 

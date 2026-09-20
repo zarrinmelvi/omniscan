@@ -153,9 +153,15 @@
 
 				<!-- ALTERNATIVES -->
 				<template v-else>
-					<div class="info-card alternatives-placeholder">
+					<div v-if="!item.alternatives?.length" class="info-card alternatives-empty">
 						<ion-icon :icon="constructOutline" />
-						<p>Alternatives aren't available yet — this feature is still being built.</p>
+						<p>{{ item.alternatives_message || 'No alternatives available for this product.' }}</p>
+					</div>
+					<div v-for="alt in item.alternatives || []" :key="alt.id" class="info-card alt-item">
+						<div class="alt-item__image-placeholder">
+							<ion-icon :icon="imageOutline" />
+						</div>
+						<p class="alt-item__name">{{ alt.brand_name }} {{ alt.product_name }}</p>
 					</div>
 				</template>
 			</div>
@@ -187,6 +193,7 @@ import {
 	constructOutline,
 	closeCircleOutline,
 	warningOutline,
+	imageOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
@@ -210,6 +217,8 @@ interface PantryItemDetailDto {
 	product: Product
 	recipes_using_this: RecipeUsage[]
 	matched_user_allergens?: string[]
+	alternatives?: any[]
+	alternatives_message?: string | null
 }
 
 interface Product {
@@ -557,5 +566,23 @@ onIonViewWillEnter(fetchItem)
 	gap: 12px;
 	padding: 64px 16px;
 	text-align: center;
+}
+
+.alt-item__image-placeholder {
+	width: 40px;
+	height: 40px;
+	border-radius: 8px;
+	background: #f3f4f6;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #9ca3af;
+	flex-shrink: 0;
+}
+
+.alternatives-empty {
+	color: #6b7280;
+	font-size: 0.85rem;
+	margin: 0;
 }
 </style>

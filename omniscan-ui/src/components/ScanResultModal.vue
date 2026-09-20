@@ -66,15 +66,17 @@
 					</div>
 				</div>
 
-				<div v-if="alternatives.length" class="alternatives-section">
+				<div v-if="alternatives.length || alternativesMessage" class="alternatives-section">
 					<h3 class="section-title">Alternatives</h3>
-					<div v-for="alt in alternatives" :key="alt.name" class="alt-item">
-						<div class="alt-item__info">
-							<p class="alt-item__name">{{ alt.name }}</p>
-							<p class="alt-item__desc">{{ alt.description }}</p>
+					<p v-if="!alternatives.length" class="alternatives-empty">
+						{{ alternativesMessage }}
+					</p>
+					<div v-for="alt in alternatives" :key="alt.id" class="alt-item">
+						<div class="alt-item__image-placeholder">
+							<ion-icon :icon="imageOutline" />
 						</div>
-						<div class="alt-item__tags">
-							<span v-for="tag in alt.tags" :key="tag" class="alt-tag">{{ tag }}</span>
+						<div class="alt-item__info">
+							<p class="alt-item__name">{{ alt.brand_name }} {{ alt.product_name }}</p>
 						</div>
 					</div>
 				</div>
@@ -273,20 +275,8 @@ const dietaryWarnings = computed(() => {
 	return warnings
 })
 
-// -------- Alternatives (placeholder — no real recommendation engine yet) --------
-// TODO: replace with a real alternatives/recommendation source once one exists.
-const ALTERNATIVE_CATALOG = {
-	dairy: [
-		{ name: 'Selecta Full Cream Milk', description: 'Similar nutritional profile', tags: ['Halal', 'Gluten-free'] },
-		{ name: 'Alaska Powdered Milk', description: 'Shelf-stable option', tags: ['Halal', 'Shelf-stable'] },
-		{ name: 'Oatly Oat Drink', description: 'Dairy-free alternative', tags: ['Vegan', 'Dairy-free'] },
-	],
-}
-
-const alternatives = computed(() => {
-	const hasDairy = matchedAllergens.value.some((rule) => ['milk', 'dairy'].includes(rule.key))
-	return hasDairy ? ALTERNATIVE_CATALOG.dairy : []
-})
+const alternatives = computed(() => props.data?.alternatives ?? [])
+const alternativesMessage = computed(() => props.data?.alternatives_message ?? null)
 
 const ingredientsOpen = ref(true)
 
@@ -855,5 +845,23 @@ function handleDismiss() {
 	--color-disabled: #94a3b8;
 	font-weight: 600;
 	height: 48px;
+}
+
+.alt-item__image-placeholder {
+	width: 40px;
+	height: 40px;
+	border-radius: 8px;
+	background: #f3f4f6;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #9ca3af;
+	flex-shrink: 0;
+}
+
+.alternatives-empty {
+	color: #6b7280;
+	font-size: 0.85rem;
+	margin: 0;
 }
 </style>

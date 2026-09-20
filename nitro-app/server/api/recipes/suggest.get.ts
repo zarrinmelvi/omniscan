@@ -3,6 +3,7 @@ import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 import { findMatchedUserAllergens } from '../../lib/allergen-matching'
 import { matchIngredientsToPantry, findNonHalalKeywords, extractPantryKeywords, type RawIngredient } from '../../lib/recipe-matching'
+import { DIETARY_ALLERGEN_MAP } from '../../lib/dietary-map'
 
 const SQL_CANDIDATE_LIMIT = 60
 const RESULTS_LIMIT = 15
@@ -45,7 +46,7 @@ export default defineEventHandler(async (event) => {
 							ingredient_mapping: { select: { scientific_term: true, simplified_term: true } },
 						},
 					},
-					dietary_prof: { select: { halal_pref: true }, orderBy: { updated_at: 'desc' }, take: 1 },
+					dietary_prof: { select: { halal_pref: true, custom_preferences: true }, orderBy: { updated_at: 'desc' }, take: 1 },
 				},
 			}),
 		])
@@ -98,6 +99,7 @@ export default defineEventHandler(async (event) => {
 
 		const userAllergens = userWithProfile?.allergens ?? []
 		const halalPref = userWithProfile?.dietary_prof?.[0]?.halal_pref ?? false
+		const customPreferences = userWithProfile?.dietary_prof?.[0]?.custom_preferences ?? []
 
 		const results: {
 			id: number
@@ -117,7 +119,7 @@ export default defineEventHandler(async (event) => {
 			const ingredients = coerceRawIngredients(recipe.raw_ingredients)
 			if (ingredients.length === 0) continue
 
-			const combinedText = ingredients.map((i) => i.name).join(', ')
+			const combinedText = ingredients.map((i) => i.name).join(', ').toLowerCase()
 
 			// Was previously `if (allergenMatches.length > 0) continue` — a
 			// recipe containing an allergen is no longer hidden from
@@ -126,7 +128,23 @@ export default defineEventHandler(async (event) => {
 			// way Scan already surfaces allergen warnings without blocking
 			// "Add to Pantry". Halal exclusion below is untouched — only the
 			// allergen behavior changed, per what was actually asked for.
-			const allergenMatches = findMatchedUserAllergens(combinedText, userAllergens)
+			const directAllergenMatches = findMatchedUserAllergens(combinedText, userAllergens).map((a) => a.name)
+
+			// Evaluate Dietary Profile Custom Preferences (e.g., "Dairy-free", "avoid msg") against recipe ingredients
+			const preferenceWarnings = new Set<string>()
+			customPreferences.forEach((pref: string) => {
+				const prefKey = pref.toLowerCase().trim()
+				const rule = DIETARY_ALLERGEN_MAP[prefKey]
+				if (rule) {
+					const containsForbiddenItem = rule.keywords.some((kw) => combinedText.includes(kw))
+					if (containsForbiddenItem) {
+						preferenceWarnings.add(rule.label)
+					}
+				}
+			})
+
+			// Combine direct allergen entity matches and custom preference rule warnings
+			const combinedWarnings = Array.from(new Set([...directAllergenMatches, ...preferenceWarnings]))
 
 			if (halalPref && findNonHalalKeywords(combinedText).length > 0) continue
 
@@ -157,7 +175,7 @@ export default defineEventHandler(async (event) => {
 				liked: interaction?.liked ?? false,
 				made: isMade,
 				image_url: recipe.image_url,
-				allergen_warnings: allergenMatches.map((a) => a.name),
+				allergen_warnings: combinedWarnings,
 			})
 
 			if (results.length >= RESULTS_LIMIT) break

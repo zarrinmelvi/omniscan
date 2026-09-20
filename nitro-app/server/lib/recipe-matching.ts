@@ -119,6 +119,34 @@ export function matchIngredientsToPantryForDeduction(
 	return { deductions, missingIngredientNames }
 }
 
+// Recipes sometimes list the same ingredient on more than one line (e.g. one
+// line per step that uses it) — "1 small red onion (85g)" appearing twice
+// otherwise renders as two identical chips instead of one "2 small red
+// onion (85g)" chip. Merges by name+unit and sums quantity; if either side
+// of a duplicate has no parseable quantity, keeps whichever one does rather
+// than guessing, since summing null with a number isn't meaningful.
+function mergeDuplicateIngredients(items: RawIngredient[]): RawIngredient[] {
+	const merged = new Map<string, RawIngredient>()
+
+	for (const item of items) {
+		const key = `${item.name.trim().toLowerCase()}|${(item.unit ?? '').trim().toLowerCase()}`
+		const existing = merged.get(key)
+
+		if (!existing) {
+			merged.set(key, { ...item })
+			continue
+		}
+
+		if (existing.quantity != null && item.quantity != null) {
+			existing.quantity += item.quantity
+		} else if (existing.quantity == null && item.quantity != null) {
+			existing.quantity = item.quantity
+		}
+	}
+
+	return Array.from(merged.values())
+}
+
 // Kept for endpoints like suggest.get.ts, liked.get.ts, and made.get.ts that
 // only need item/ingredient lists — rebuilt on top of the quantity-aware matcher
 // above instead of duplicating the same matching heuristic a second time.
@@ -134,11 +162,13 @@ export function matchIngredientsToPantry(ingredients: RawIngredient[], pantryIte
 		matchedPantryItemIds: Array.from(new Set(deductions.map((d) => d.pantryItemId))),
 		matchedIngredientNames: deductions.map((d) => d.ingredientName),
 		missingIngredientNames,
-		matchedIngredients: deductions.map((d) => ({ name: d.ingredientName, quantity: d.neededQuantity, unit: d.neededUnit })),
+		matchedIngredients: mergeDuplicateIngredients(
+			deductions.map((d) => ({ name: d.ingredientName, quantity: d.neededQuantity, unit: d.neededUnit })),
+		),
 		// Filtered from the original `ingredients` list (not rebuilt from
 		// missingIngredientNames) specifically to keep quantity/unit, which
 		// the *Names-only list never carried in the first place.
-		missingIngredients: ingredients.filter((i) => missingSet.has(i.name)),
+		missingIngredients: mergeDuplicateIngredients(ingredients.filter((i) => missingSet.has(i.name))),
 	}
 }
 

@@ -106,7 +106,11 @@
 
 		<PhotoPantryUploadModal :is-open="isPhotoModalOpen" @close="isPhotoModalOpen = false" @created="onPhotoUploadCreated" />
 
-		<ScanResultModal :is-open="isResultModalOpen" :data="analysisResult" @close="isResultModalOpen = false" @added="onPantryItemAdded" />
+		<ScanResultModal
+			:is-open="isResultModalOpen"
+			:data="analysisResult || undefined"
+			@close="isResultModalOpen = false"
+			@added="onPantryItemAdded" />
 	</ion-page>
 </template>
 

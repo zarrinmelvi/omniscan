@@ -157,10 +157,17 @@ import {
 	sparklesOutline,
 } from 'ionicons/icons'
 
-const props = defineProps({
-	isOpen: { type: Boolean, default: false },
-	data: { type: Object, default: () => null },
-})
+// AFTER (Type-Based Syntax)
+const props = withDefaults(
+	defineProps<{
+		isOpen?: boolean
+		data?: Record<string, any> | null
+	}>(),
+	{
+		isOpen: false,
+		data: null,
+	},
+)
 
 const emit = defineEmits(['close', 'added'])
 

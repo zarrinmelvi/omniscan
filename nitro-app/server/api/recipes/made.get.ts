@@ -42,9 +42,18 @@ export default defineEventHandler(async (event) => {
 			return { success: true, recipes: [], message: "You haven't made any recipes yet." }
 		}
 
+		// Deduplicate interactions by recipe ID to guarantee unique records
+		const uniqueInteractionsMap = new Map<number, (typeof interactions)[number]>()
+		for (const interaction of interactions) {
+			if (!uniqueInteractionsMap.has(interaction.recipe.id)) {
+				uniqueInteractionsMap.set(interaction.recipe.id, interaction)
+			}
+		}
+		const uniqueInteractions = Array.from(uniqueInteractionsMap.values())
+
 		const pantryProducts = pantryItems.map((p) => ({ id: p.id, product_name: p.product.product_name }))
 
-		const results = interactions.map(({ recipe, liked }) => {
+		const results = uniqueInteractions.map(({ recipe, liked }) => {
 			const ingredients = coerceRawIngredients(recipe.raw_ingredients)
 			const { matchedIngredients, missingIngredients } = matchIngredientsToPantry(ingredients, pantryProducts)
 

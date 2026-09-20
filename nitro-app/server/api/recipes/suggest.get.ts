@@ -115,7 +115,17 @@ export default defineEventHandler(async (event) => {
 			allergen_warnings: string[]
 		}[] = []
 
+		// Deduplication tracking to prevent duplicate recipes in suggestion results
+		const seenRecipeIds = new Set<number>()
+		const seenRecipeNames = new Set<string>()
+
 		for (const recipe of recipeRows) {
+			// Prevent duplicate recipe entries by checking ID and normalized name
+			const normalizedName = recipe.name.trim().toLowerCase()
+			if (seenRecipeIds.has(recipe.id) || seenRecipeNames.has(normalizedName)) {
+				continue
+			}
+
 			const ingredients = coerceRawIngredients(recipe.raw_ingredients)
 			if (ingredients.length === 0) continue
 
@@ -163,6 +173,10 @@ export default defineEventHandler(async (event) => {
 			if (isMade && matchedCount < totalCount) {
 				continue
 			}
+
+			// Mark recipe as processed before adding to results
+			seenRecipeIds.add(recipe.id)
+			seenRecipeNames.add(normalizedName)
 
 			results.push({
 				id: recipe.id,

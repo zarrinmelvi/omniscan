@@ -84,15 +84,31 @@
 					<!-- Halal Status Card (certified / unverified / confirmed not halal) -->
 					<div v-if="hasHalalData" class="info-card">
 						<h3 class="info-card__title">Halal Status</h3>
-						<div class="halal-row" :class="{ 'halal-row--certified': isHalalCertified, 'halal-row--not-halal': isConfirmedNotHalal }">
+						<div
+							class="halal-row"
+							:class="{
+								'halal-row--certified': isHalalCertified,
+								'halal-row--not-halal': isConfirmedNotHalal,
+								'halal-row--unverified': isHalalUnverified,
+							}">
 							<ion-icon
-								:icon="isHalalCertified ? checkmarkCircleOutline : isConfirmedNotHalal ? closeCircleOutline : helpCircleOutline" />
+								:icon="
+									isHalalCertified
+										? checkmarkCircleOutline
+										: isConfirmedNotHalal
+											? closeCircleOutline
+											: isHalalUnverified
+												? warningOutline
+												: helpCircleOutline
+								" />
 							{{
 								isHalalCertified
 									? `Halal certified — ${halalCertifierNames}`
 									: isConfirmedNotHalal
 										? 'Confirmed not Halal'
-										: 'Not verified'
+										: isHalalUnverified
+											? 'Halal Mark Detected — Pending Verification'
+											: 'Not verified'
 							}}
 						</div>
 					</div>
@@ -156,7 +172,15 @@ import {
 	IonButton,
 	onIonViewWillEnter,
 } from '@ionic/vue'
-import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, helpCircleOutline, constructOutline, closeCircleOutline } from 'ionicons/icons'
+import {
+	alertCircleOutline,
+	calendarOutline,
+	checkmarkCircleOutline,
+	helpCircleOutline,
+	constructOutline,
+	closeCircleOutline,
+	warningOutline,
+} from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
 interface RecipeUsage {
@@ -460,6 +484,10 @@ onIonViewWillEnter(fetchItem)
 .halal-row--not-halal {
 	background: #fef2f2;
 	color: #b91c1c;
+}
+.halal-row--unverified {
+	color: #92400e;
+	background: #fef3c7;
 }
 
 .ingredients-text {

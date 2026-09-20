@@ -177,6 +177,7 @@ interface ScanResultDisplay {
 		is_accredited: boolean | null
 		matched_known_logo: boolean
 	}
+	isNotProduct?: boolean
 }
 
 const analysisResult = ref<ScanResultDisplay | null>(null)
@@ -248,9 +249,7 @@ async function processCapturedFile(file: File): Promise<void> {
 
 	if (captureStage.value === 'front') {
 		frontFile.value = file
-		captureStage.value = 'back'
-		lastFileName.value = file.name
-		analysisStatus.value = 'Front captured — now scan or upload the back'
+		await submitScan(file, null)
 		return
 	}
 
@@ -309,13 +308,59 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		if (response.status === 401) {
 			throw new Error('Your session has expired. Please log in again.')
 		}
+
 		const errorBody = await response.json().catch(() => null)
-		throw new Error(errorBody?.statusMessage || `Scan failed with status: ${response.status}`)
+		const errorMessage = errorBody?.statusMessage || `Scan failed with status: ${response.status}`
+
+		// Intercept the backend's 422 createError response for non-food items
+		if (response.status === 422) {
+			analysisResult.value = {
+				product: {
+					id: '0',
+					brand_name: '',
+					product_name: 'Non-Food Item',
+					ingredients_text: '',
+					simplified_ingredients: '',
+					halal_logo_id: null,
+					image_base64: null,
+					image_base64_back: null,
+				},
+				safety_verdict: 'Red',
+				reasons: [errorMessage],
+				scanned_at: new Date().toISOString(),
+				matched_user_allergens: [],
+				halal: {
+					logo_detected: false,
+					certifying_body: null,
+					is_accredited: null,
+					matched_known_logo: false,
+				},
+				isNotProduct: true,
+			} as any
+
+			// Reset scan state so user can immediately scan another item
+			captureStage.value = 'front'
+			frontFile.value = null
+
+			// Open the Analysis Results pop-up modal
+			isResultModalOpen.value = true
+			return
+		}
+
+		throw new Error(errorMessage)
 	}
 
 	const result = await response.json()
 	const scan = result.scan
 
+	// Prompt for back scan if valid food product lacks ingredient photo
+	if (!back && captureStage.value === 'front') {
+		captureStage.value = 'back'
+		analysisStatus.value = 'Front captured — now scan or upload the back'
+		return
+	}
+
+	// Valid food product scan complete — populate modal model
 	analysisResult.value = {
 		product: {
 			id: String(scan.product.id),
@@ -332,14 +377,12 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		scanned_at: scan.scan_time,
 		matched_user_allergens: Array.isArray(scan.matched_user_allergens) ? scan.matched_user_allergens : [],
 		halal: scan.halal,
+		isNotProduct: false,
 	}
 
 	analysisStatus.value = `Analysis complete — Verdict: ${scan.safety_verdict}`
 	isResultModalOpen.value = true
 
-	// The modal now owns displaying the result – revert the inline
-	// placeholder card back to its empty state rather than leaving stale
-	// "Analysis complete" text behind it.
 	lastFileName.value = null
 	analysisStatus.value = 'Idle'
 }
@@ -379,7 +422,6 @@ const BRIGHTNESS_SAMPLE_SIZE = 32
 const isCameraOpen = ref(false)
 const isCameraReady = ref(false)
 const isCapturing = ref(false)
-// State flag to handle the "Saving image..." pop-up and view blur
 const isSavingImage = ref(false)
 const cameraError = ref<string | null>(null)
 const liveInstruction = ref<string>('Align product within frame')
@@ -429,7 +471,7 @@ function closeCamera(): void {
 	mediaStream = null
 	isCameraReady.value = false
 	isCapturing.value = false
-	isSavingImage.value = false // Reset popup state on camera close
+	isSavingImage.value = false
 	isCameraOpen.value = false
 	cameraError.value = null
 }
@@ -491,12 +533,11 @@ function handleCapture(): void {
 	if (!videoRef.value || !canvasRef.value || isCapturing.value) return
 
 	isCapturing.value = true
-	isSavingImage.value = true // Triggers blur background and "Saving image..." pop-up
+	isSavingImage.value = true
 
 	const video = videoRef.value
 	const canvas = canvasRef.value
 
-	// Frame bounds calculated based on CSS bracket position percentages
 	const framePercent = {
 		x: 0.12,
 		y: 0.22,
@@ -519,7 +560,6 @@ function handleCapture(): void {
 		return
 	}
 
-	// Crop image output strictly to the green bracket framing region
 	ctx.drawImage(
 		video,
 		cropX,
@@ -541,7 +581,6 @@ function handleCapture(): void {
 				return
 			}
 
-			// Dismiss pop-up right as file creation completes
 			isSavingImage.value = false
 
 			try {
@@ -590,7 +629,6 @@ onBeforeUnmount(() => {
 	display: none;
 }
 
-/* Header Section */
 .header-section {
 	text-align: center;
 	margin-top: 8px;
@@ -612,7 +650,6 @@ onBeforeUnmount(() => {
 	padding: 0 16px;
 }
 
-/* Controls & Action Buttons */
 .controls-section {
 	display: flex;
 	flex-direction: column;
@@ -645,7 +682,6 @@ onBeforeUnmount(() => {
 	margin: 0;
 }
 
-/* Grayish Secondary Upload Button matching reference */
 .btn-secondary {
 	--background: #f1f5f9;
 	--background-activated: #e2e8f0;
@@ -686,7 +722,6 @@ onBeforeUnmount(() => {
 	text-align: center;
 }
 
-/* Camera Overlay Styles */
 .camera-overlay {
 	position: fixed;
 	inset: 0;
@@ -706,7 +741,6 @@ onBeforeUnmount(() => {
 	transition: filter 0.3s ease;
 }
 
-/* Blur video view during "Saving image..." phase */
 .viewfinder-video--blurred {
 	filter: blur(8px) brightness(0.7);
 }
@@ -779,7 +813,6 @@ onBeforeUnmount(() => {
 	border-bottom-right-radius: 8px;
 }
 
-/* Centered Pop-up Modal for "Saving image..." state */
 .processing-popup {
 	position: absolute;
 	top: 50%;

@@ -1,5 +1,23 @@
 <template>
-	<ion-modal :is-open="isOpen" :breakpoints="[0, 0.5, 0.95]" :initial-breakpoint="0.95" :backdrop-dismiss="true" @didDismiss="handleDismiss">
+	<!-- Centered Floating Alert Dialog for Non-Products (Picture 1 Style) -->
+	<ion-alert
+		:is-open="isOpen && !!data?.isNotProduct"
+		header="Analysis Results"
+		message="This doesn't look like a food or beverage product. OmniScan only tracks food items — try scanning the packaging of something edible or drinkable."
+		:buttons="['CLOSE RESULTS']"
+		class="non-product-alert"
+		@didDismiss="handleDismiss"
+	/>
+
+	<!-- Standard Bottom Sheet Modal for Valid Food Products -->
+	<ion-modal
+		v-if="!data?.isNotProduct"
+		:is-open="isOpen"
+		:breakpoints="[0, 0.5, 0.95]"
+		:initial-breakpoint="0.95"
+		:backdrop-dismiss="true"
+		@didDismiss="handleDismiss"
+	>
 		<ion-content class="sheet-ion-content" :scroll-y="true">
 			<div class="sheet-content">
 				<div class="sheet-header">
@@ -39,7 +57,8 @@
 						v-for="tag in allergenTags"
 						:key="tag.key"
 						class="badge"
-						:class="tag.isPersonal ? 'badge-allergen--personal' : 'badge-allergen'">
+						:class="tag.isPersonal ? 'badge-allergen--personal' : 'badge-allergen'"
+					>
 						<ion-icon :icon="warningOutline" />
 						{{ tag.label }}
 					</span>
@@ -100,7 +119,8 @@
 							type="button"
 							class="storage-btn"
 							:class="{ 'storage-btn--active': storageLocation === loc }"
-							@click="storageLocation = loc">
+							@click="storageLocation = loc"
+						>
 							{{ loc }}
 						</button>
 					</div>
@@ -146,7 +166,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { IonModal, IonContent, IonIcon, IonButton, IonSpinner } from '@ionic/vue'
+import { IonModal, IonAlert, IonContent, IonIcon, IonButton, IonSpinner } from '@ionic/vue'
 import { apiFetch } from '@/utils/api'
 import {
 	closeOutline,
@@ -283,7 +303,7 @@ const ingredientsOpen = ref(true)
 watch(
 	() => props.isOpen,
 	(open) => {
-		if (open) {
+		if (open && !props.data?.isNotProduct) {
 			ingredientsOpen.value = true
 			resetPantryForm()
 			fetchHalalPref()
@@ -382,6 +402,12 @@ function handleDismiss() {
 	padding: 16px 20px 48px;
 	max-width: 480px;
 	margin: 0 auto;
+}
+
+/* Green action button style for the Ionic alert */
+:deep(.non-product-alert .alert-button) {
+	color: #00b14f;
+	font-weight: 700;
 }
 
 .sheet-header {

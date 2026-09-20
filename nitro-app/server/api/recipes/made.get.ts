@@ -46,16 +46,16 @@ export default defineEventHandler(async (event) => {
 
 		const results = interactions.map(({ recipe, liked }) => {
 			const ingredients = coerceRawIngredients(recipe.raw_ingredients)
-			const { matchedIngredientNames, missingIngredientNames } = matchIngredientsToPantry(ingredients, pantryProducts)
+			const { matchedIngredients, missingIngredients } = matchIngredientsToPantry(ingredients, pantryProducts)
 
 			return {
 				id: recipe.id,
 				name: recipe.name,
 				instructions: recipe.instructions,
-				matched_ingredients: matchedIngredientNames, // FIXED: Attached matched ingredients array
-				matched_count: matchedIngredientNames.length,
+				matched_ingredients: matchedIngredients,
+				matched_count: matchedIngredients.length,
 				total_count: ingredients.length,
-				missing_ingredients: missingIngredientNames,
+				missing_ingredients: missingIngredients,
 				liked,
 				made: true,
 				image_url: recipe.image_url,

@@ -8,26 +8,14 @@
 
 				<!-- Custom Segment Tabs -->
 				<div class="tab-chips-container">
-					<button
-						type="button"
-						class="tab-chip"
-						:class="{ 'tab-chip--active-all': activeTab === 'all' }"
-						@click="setTab('all')">
+					<button type="button" class="tab-chip" :class="{ 'tab-chip--active-all': activeTab === 'all' }" @click="setTab('all')">
 						All Recipes
 					</button>
-					<button
-						type="button"
-						class="tab-chip"
-						:class="{ 'tab-chip--active-liked': activeTab === 'liked' }"
-						@click="setTab('liked')">
+					<button type="button" class="tab-chip" :class="{ 'tab-chip--active-liked': activeTab === 'liked' }" @click="setTab('liked')">
 						<ion-icon :icon="activeTab === 'liked' ? heart : heartOutline" class="chip-icon" />
 						Liked
 					</button>
-					<button
-						type="button"
-						class="tab-chip"
-						:class="{ 'tab-chip--active-made': activeTab === 'made' }"
-						@click="setTab('made')">
+					<button type="button" class="tab-chip" :class="{ 'tab-chip--active-made': activeTab === 'made' }" @click="setTab('made')">
 						<ion-icon :icon="archiveOutline" class="chip-icon" />
 						Made
 						<span v-if="madeCount > 0" class="tab-badge">{{ madeCount }}</span>
@@ -74,11 +62,7 @@
 							<span>Made</span>
 						</div>
 
-						<button
-							type="button"
-							class="heart-overlay-btn"
-							:disabled="likingId === recipe.id"
-							@click.stop="toggleLike(recipe)">
+						<button type="button" class="heart-overlay-btn" :disabled="likingId === recipe.id" @click.stop="toggleLike(recipe)">
 							<ion-icon :icon="recipe.liked ? heart : heartOutline" :class="{ 'heart-icon--liked': recipe.liked }" />
 						</button>
 					</div>
@@ -180,10 +164,10 @@ interface SuggestedRecipe {
 	id: number
 	name: string
 	instructions: string
-	matched_ingredients?: string[]
+	matched_ingredients?: { name: string; quantity: number | null; unit: string | null }[]
 	matched_count: number
 	total_count: number
-	missing_ingredients: string[]
+	missing_ingredients: { name: string; quantity: number | null; unit: string | null }[]
 	liked: boolean
 	made: boolean
 	image_url?: string

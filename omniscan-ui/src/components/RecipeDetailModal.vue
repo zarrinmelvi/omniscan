@@ -7,19 +7,11 @@
 				:class="{ 'detail-hero--no-img': !recipe.image_url }"
 				:style="recipe.image_url ? { backgroundImage: `url(${recipe.image_url})` } : {}">
 				<div class="hero-actions">
-					<button
-						type="button"
-						class="icon-btn"
-						aria-label="Toggle Like"
-						@click.stop="emit('toggle-like', recipe)">
+					<button type="button" class="icon-btn" aria-label="Toggle Like" @click.stop="emit('toggle-like', recipe)">
 						<ion-icon :icon="recipe.liked ? heart : heartOutline" :class="{ 'heart-icon--liked': recipe.liked }" />
 					</button>
 
-					<button
-						type="button"
-						class="icon-btn"
-						aria-label="Close modal"
-						@click="emit('close')">
+					<button type="button" class="icon-btn" aria-label="Close modal" @click="emit('close')">
 						<ion-icon :icon="closeOutline" />
 					</button>
 				</div>
@@ -36,11 +28,8 @@
 						<span>From your pantry</span>
 					</div>
 					<div class="chips-flex-container">
-						<span
-							v-for="(item, idx) in recipe.matched_ingredients"
-							:key="idx"
-							class="ingredient-chip green-chip">
-							{{ item }}
+						<span v-for="(item, idx) in recipe.matched_ingredients" :key="idx" class="ingredient-chip green-chip">
+							{{ formatIngredient(item) }}
 						</span>
 					</div>
 				</div>
@@ -52,11 +41,8 @@
 						<span>Still need</span>
 					</div>
 					<div class="chips-flex-container">
-						<span
-							v-for="(item, idx) in recipe.missing_ingredients"
-							:key="idx"
-							class="ingredient-chip orange-chip">
-							{{ item }}
+						<span v-for="(item, idx) in recipe.missing_ingredients" :key="idx" class="ingredient-chip orange-chip">
+							{{ formatIngredient(item) }}
 						</span>
 					</div>
 				</div>
@@ -78,9 +64,7 @@
 					{{ recipe.made ? 'Make Recipe Again' : 'Make Recipe' }}
 				</ion-button>
 
-				<button v-if="recipe.made" type="button" class="unmake-btn" @click="emit('unmake', recipe)">
-					Remove from Made History
-				</button>
+				<button v-if="recipe.made" type="button" class="unmake-btn" @click="emit('unmake', recipe)">Remove from Made History</button>
 			</div>
 		</div>
 	</ion-modal>
@@ -90,20 +74,26 @@
 import { IonModal, IonButton, IonIcon } from '@ionic/vue'
 import { closeOutline, heart, heartOutline, checkmarkCircle, bagHandleOutline, restaurantOutline } from 'ionicons/icons'
 
+interface RecipeIngredientRef {
+	name: string
+	quantity: number | null
+	unit: string | null
+}
+
 interface SuggestedRecipe {
 	id: number
 	name: string
 	instructions: string
-	matched_ingredients?: string[]
+	matched_ingredients?: RecipeIngredientRef[]
 	matched_count: number
 	total_count: number
-	missing_ingredients: string[]
+	missing_ingredients: RecipeIngredientRef[]
 	liked: boolean
 	made: boolean
 	image_url?: string
 }
 
-const props = defineProps<{
+defineProps<{
 	isOpen: boolean
 	recipe: SuggestedRecipe | null
 }>()
@@ -122,6 +112,31 @@ function parsedSteps(instructions: string): string[] {
 		.split(/(?:\r?\n|\s*(?=\d+\.\s+))/)
 		.map((step) => step.replace(/^\d+\.\s*/, '').trim())
 		.filter((step) => step.length > 0)
+}
+
+// Turns a parsed quantity like 0.5 back into a friendlier "½" for the small
+// set of fractions the ingredient parser commonly produces (see
+// VULGAR_FRACTIONS in import-recipes.ts) — purely cosmetic, falls back to a
+// plain number for anything else so nothing is ever hidden or dropped.
+const FRACTION_DISPLAY: [number, string][] = [
+	[0.25, '¼'],
+	[1 / 3, '⅓'],
+	[0.5, '½'],
+	[2 / 3, '⅔'],
+	[0.75, '¾'],
+]
+
+function formatQuantity(quantity: number): string {
+	for (const [value, symbol] of FRACTION_DISPLAY) {
+		if (Math.abs(quantity - value) < 0.01) return symbol
+	}
+	return Number.isInteger(quantity) ? String(quantity) : quantity.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')
+}
+
+function formatIngredient(item: RecipeIngredientRef): string {
+	if (item.quantity == null) return item.name
+	const qty = formatQuantity(item.quantity)
+	return item.unit ? `${qty} ${item.unit} ${item.name}` : `${qty} ${item.name}`
 }
 </script>
 

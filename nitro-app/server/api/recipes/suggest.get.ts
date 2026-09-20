@@ -103,10 +103,10 @@ export default defineEventHandler(async (event) => {
 			id: number
 			name: string
 			instructions: string
-			matched_ingredients: string[]
+			matched_ingredients: { name: string; quantity: number | null; unit: string | null }[]
 			matched_count: number
 			total_count: number
-			missing_ingredients: string[]
+			missing_ingredients: { name: string; quantity: number | null; unit: string | null }[]
 			liked: boolean
 			made: boolean
 			image_url: string | null
@@ -123,10 +123,10 @@ export default defineEventHandler(async (event) => {
 
 			if (halalPref && findNonHalalKeywords(combinedText).length > 0) continue
 
-			const { matchedIngredientNames, missingIngredientNames } = matchIngredientsToPantry(ingredients, pantryProducts)
+			const { matchedIngredients, missingIngredients } = matchIngredientsToPantry(ingredients, pantryProducts)
 			const interaction = interactionByRecipeId.get(recipe.id)
 			const isMade = interaction?.made_at != null
-			const matchedCount = matchedIngredientNames.length
+			const matchedCount = matchedIngredients.length
 			const totalCount = ingredients.length
 
 			// 1. Exclude recipes with 0 matching items in pantry
@@ -143,10 +143,10 @@ export default defineEventHandler(async (event) => {
 				id: recipe.id,
 				name: recipe.name,
 				instructions: recipe.instructions,
-				matched_ingredients: matchedIngredientNames,
+				matched_ingredients: matchedIngredients,
 				matched_count: matchedCount,
 				total_count: totalCount,
-				missing_ingredients: missingIngredientNames,
+				missing_ingredients: missingIngredients,
 				liked: interaction?.liked ?? false,
 				made: isMade,
 				image_url: recipe.image_url,

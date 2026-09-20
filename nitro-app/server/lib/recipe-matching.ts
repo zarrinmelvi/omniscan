@@ -13,6 +13,13 @@ export interface IngredientMatchResult {
 	matchedPantryItemIds: number[]
 	matchedIngredientNames: string[]
 	missingIngredientNames: string[]
+	// Same ingredients as the *Names arrays above, but carrying quantity/unit
+	// through instead of discarding it — added so consumers that want to
+	// actually display a portion (e.g. "½ tbsp lemon juice") don't have to
+	// re-derive it. The *Names arrays are kept as-is since matched_count/
+	// total_count and existing callers only ever needed the count/names.
+	matchedIngredients: RawIngredient[]
+	missingIngredients: RawIngredient[]
 }
 
 export interface PantryProductRefWithQuantity extends PantryProductRef {
@@ -80,17 +87,11 @@ export function matchIngredientsToPantryForDeduction(
 		if (!rawTarget) continue
 
 		// Normalized stemmed version of target (e.g. "eggs" -> "egg")
-		const targetStem = rawTarget
-			.split(/\s+/)
-			.map(stemWord)
-			.join(' ')
+		const targetStem = rawTarget.split(/\s+/).map(stemWord).join(' ')
 
 		const hit = pantryItems.find((item) => {
 			const cleanedProduct = cleanProductName(item.product_name)
-			const productStem = cleanedProduct
-				.split(/\s+/)
-				.map(stemWord)
-				.join(' ')
+			const productStem = cleanedProduct.split(/\s+/).map(stemWord).join(' ')
 
 			// 1. Direct or Stemmed Exact Matches
 			if (cleanedProduct === rawTarget || productStem === targetStem) return true
@@ -100,11 +101,7 @@ export function matchIngredientsToPantryForDeduction(
 			const stemRegex = new RegExp(`\\b${escapeRegExp(targetStem)}\\b`, 'i')
 			const prodStemRegex = new RegExp(`\\b${escapeRegExp(productStem)}\\b`, 'i')
 
-			return (
-				rawRegex.test(cleanedProduct) ||
-				stemRegex.test(productStem) ||
-				prodStemRegex.test(targetStem)
-			)
+			return rawRegex.test(cleanedProduct) || stemRegex.test(productStem) || prodStemRegex.test(targetStem)
 		})
 
 		if (hit) {
@@ -131,10 +128,17 @@ export function matchIngredientsToPantry(ingredients: RawIngredient[], pantryIte
 		pantryItems.map((item) => ({ ...item, quantity: 0, portion_unit: '' })),
 	)
 
+	const missingSet = new Set(missingIngredientNames)
+
 	return {
 		matchedPantryItemIds: Array.from(new Set(deductions.map((d) => d.pantryItemId))),
 		matchedIngredientNames: deductions.map((d) => d.ingredientName),
 		missingIngredientNames,
+		matchedIngredients: deductions.map((d) => ({ name: d.ingredientName, quantity: d.neededQuantity, unit: d.neededUnit })),
+		// Filtered from the original `ingredients` list (not rebuilt from
+		// missingIngredientNames) specifically to keep quantity/unit, which
+		// the *Names-only list never carried in the first place.
+		missingIngredients: ingredients.filter((i) => missingSet.has(i.name)),
 	}
 }
 
@@ -214,20 +218,14 @@ export function findMatchingIngredientLine(productName: string, ingredients: Raw
 	const cleanedProduct = cleanProductName(productName)
 	if (!cleanedProduct) return null
 
-	const productStem = cleanedProduct
-		.split(/\s+/)
-		.map(stemWord)
-		.join(' ')
+	const productStem = cleanedProduct.split(/\s+/).map(stemWord).join(' ')
 
 	return (
 		ingredients.find((ing) => {
 			const rawName = ing.name.trim().toLowerCase()
 			if (!rawName) return false
 
-			const nameStem = rawName
-				.split(/\s+/)
-				.map(stemWord)
-				.join(' ')
+			const nameStem = rawName.split(/\s+/).map(stemWord).join(' ')
 
 			if (rawName === cleanedProduct || nameStem === productStem) return true
 

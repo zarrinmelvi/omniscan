@@ -4,21 +4,13 @@
 		<div class="header-container">
 			<!-- Search bar -->
 			<div class="search-row">
-				<ion-searchbar
-					v-model="searchQuery"
-					placeholder="Search"
-					class="search-bar"
-					:show-clear-button="searchQuery ? 'always' : 'never'" />
+				<ion-searchbar v-model="searchQuery" placeholder="Search" class="search-bar" :show-clear-button="searchQuery ? 'always' : 'never'" />
 			</div>
 
 			<!-- Active / Archived Segment Container -->
 			<div class="view-toggle-wrap">
 				<div class="view-toggle">
-					<button
-						type="button"
-						class="toggle-btn"
-						:class="{ 'toggle-btn--active': view === 'active' }"
-						@click="view = 'active'">
+					<button type="button" class="toggle-btn" :class="{ 'toggle-btn--active': view === 'active' }" @click="view = 'active'">
 						Active
 					</button>
 					<button
@@ -53,6 +45,11 @@
 						@click="locationFilter = loc">
 						{{ loc }}
 					</button>
+				</div>
+
+				<div class="scanned-stat-row">
+					<span class="scanned-stat-row__label">Total Items Scanned</span>
+					<span class="scanned-stat-row__value">{{ totalItemsScanned }}</span>
 				</div>
 
 				<div class="sort-row">
@@ -270,6 +267,7 @@ type SortOption = 'soonest' | 'latest' | 'name'
 const items = ref<PantryItemDto[]>([])
 const isLoading = ref(true)
 const loadError = ref('')
+const totalItemsScanned = ref(0)
 
 const view = ref<ViewMode>('active')
 const locationOptions: LocationFilter[] = ['All', 'Fridge', 'Freezer', 'Cupboard']
@@ -380,9 +378,9 @@ function dotClass(item: PantryItemDto): string {
 	const date = getRelevantDate(item)
 	if (!date) return 'expiry-dot--warning'
 	const diff = daysBetween(new Date(), date)
-	if (diff <= 1) return 'expiry-dot--danger'   // Red: Expired, Today, or 1 day
-	if (diff <= 5) return 'expiry-dot--warning'  // Amber/Orange: 2 to 5 days left
-	return 'expiry-dot--success'                 // Green: 6+ days left
+	if (diff <= 1) return 'expiry-dot--danger' // Red: Expired, Today, or 1 day
+	if (diff <= 5) return 'expiry-dot--warning' // Amber/Orange: 2 to 5 days left
+	return 'expiry-dot--success' // Green: 6+ days left
 }
 
 function consumedLabel(item: PantryItemDto): string {
@@ -414,6 +412,20 @@ async function fetchPantryItems(): Promise<void> {
 		loadError.value = err instanceof ApiError ? err.message : 'Failed to load your pantry.'
 	} finally {
 		isLoading.value = false
+	}
+}
+
+// Same /api/users response ProfilePage.vue reads this from — moved here per
+// request, not duplicated logic against a different source. A failure here
+// is silent (falls back to 0) rather than surfacing its own error state,
+// since this is a minor stat, not core pantry functionality that should
+// block or degrade the rest of the page.
+async function fetchTotalItemsScanned(): Promise<void> {
+	try {
+		const data = await apiFetch<{ stats: { total_items_scanned: number } }>('/api/users', { method: 'GET' })
+		totalItemsScanned.value = data.stats.total_items_scanned
+	} catch (err) {
+		console.error('Failed to load total items scanned:', err)
 	}
 }
 
@@ -528,6 +540,7 @@ onIonViewWillEnter(() => {
 	expiringOnly.value = route.query.filter === 'expiring'
 	if (expiringOnly.value) sortOption.value = 'soonest'
 	fetchPantryItems()
+	fetchTotalItemsScanned()
 })
 </script>
 
@@ -636,6 +649,19 @@ onIonViewWillEnter(() => {
 	margin-bottom: 4px;
 	font-size: 0.82rem;
 	color: #64748b;
+}
+
+.scanned-stat-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+	font-size: 0.82rem;
+	color: #64748b;
+}
+.scanned-stat-row__value {
+	font-weight: 700;
+	color: #0f172a;
 }
 
 /* Sort dropdown text: font weight removed */

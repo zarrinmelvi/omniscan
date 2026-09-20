@@ -62,15 +62,6 @@
 							<ion-icon :icon="chevronForwardOutline" class="chevron" />
 						</button>
 					</div>
-
-					<!-- Stats section -->
-					<div class="stats-section">
-						<h2 class="section-title">Your Stats</h2>
-						<div class="stats-card">
-							<span class="stats-label">Total Items Scanned</span>
-							<span class="stats-value">{{ stats.total_items_scanned }}</span>
-						</div>
-					</div>
 				</div>
 			</template>
 
@@ -137,13 +128,7 @@
 								placeholder="Type a custom preference…"
 								class="custom-input pref-text-input"
 								@keyup.enter="addCustomPreference" />
-							<button
-								type="button"
-								class="add-btn"
-								:disabled="!customPrefDraft.trim()"
-								@click="addCustomPreference">
-								+ Add
-							</button>
+							<button type="button" class="add-btn" :disabled="!customPrefDraft.trim()" @click="addCustomPreference">+ Add</button>
 						</div>
 
 						<p class="quick-add-label">Quick add:</p>
@@ -180,15 +165,7 @@
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-	IonPage,
-	IonContent,
-	IonButton,
-	IonIcon,
-	IonSpinner,
-	IonToast,
-	IonModal,
-} from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToast, IonModal } from '@ionic/vue'
 import {
 	alertCircleOutline,
 	pencilOutline,
@@ -277,7 +254,6 @@ interface UserDto {
 interface ProfileResponse {
 	success: boolean
 	user: UserDto
-	stats: { total_items_scanned: number }
 }
 
 const isLoading = ref(true)
@@ -289,7 +265,6 @@ const showSuccessToast = ref(false)
 const allergenCatalog = ref<Allergen[]>([])
 
 const user = ref<UserDto>({ id: 0, name: '', email: '', avatar_base64: null, dietary_prof: [], allergens: [] })
-const stats = ref({ total_items_scanned: 0 })
 
 const isEditModalOpen = ref(false)
 const avatarInputRef = ref<HTMLInputElement | null>(null)
@@ -314,7 +289,6 @@ async function fetchProfile() {
 	try {
 		const data = await apiFetch<ProfileResponse>('/api/users', { method: 'GET' })
 		user.value = data.user
-		stats.value = data.stats
 	} catch (err) {
 		loadError.value = err instanceof ApiError ? err.message : 'Something went wrong while loading your profile.'
 	} finally {
@@ -617,39 +591,6 @@ onMounted(() => {
 	margin-left: auto;
 	color: #94a3b8;
 	font-size: 1rem;
-}
-
-/* Stats Section */
-.stats-section {
-	margin-top: 28px;
-}
-
-.section-title {
-	font-size: 1.1rem;
-	font-weight: 700;
-	color: #0f172a;
-	margin: 0 0 12px;
-}
-
-.stats-card {
-	background: #ffffff;
-	border-radius: 16px;
-	padding: 22px 20px;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.stats-label {
-	color: #475569;
-	font-weight: 500;
-	font-size: 0.95rem;
-}
-
-.stats-value {
-	font-weight: 700;
-	font-size: 1.1rem;
-	color: #0f172a;
 }
 </style>
 

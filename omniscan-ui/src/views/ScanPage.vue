@@ -52,22 +52,6 @@
 						<ion-icon :icon="cameraOutline" slot="start" />
 						UPLOAD A PHOTO
 					</ion-button>
-
-					<ion-card class="results-placeholder">
-						<ion-card-header>
-							<ion-card-title>Analysis Results</ion-card-title>
-						</ion-card-header>
-						<ion-card-content>
-							<div v-if="!lastFileName" class="placeholder-empty">
-								<ion-icon :icon="documentTextOutline" size="large"></ion-icon>
-								<p>No scan yet. Results will appear here after you upload an image.</p>
-							</div>
-							<div v-else>
-								<p><strong>File:</strong> {{ lastFileName }}</p>
-								<p><strong>Status:</strong> {{ analysisStatus }}</p>
-							</div>
-						</ion-card-content>
-					</ion-card>
 				</div>
 			</div>
 		</ion-content>
@@ -122,7 +106,7 @@
 		<ScanResultModal
 			:is-open="isResultModalOpen"
 			:data="analysisResult || undefined"
-			@close="isResultModalOpen = false"
+			@close="onModalClosed"
 			@added="onPantryItemAdded" />
 	</ion-page>
 </template>
@@ -135,16 +119,12 @@ import {
 	IonButton,
 	IonSpinner,
 	IonIcon,
-	IonCard,
-	IonCardHeader,
-	IonCardTitle,
-	IonCardContent,
 	onIonViewWillEnter,
 } from '@ionic/vue'
 
 import { API_BASE_URL } from '@/utils/api'
 
-import { cameraOutline, documentTextOutline, closeOutline, scanOutline } from 'ionicons/icons'
+import { cameraOutline, closeOutline, scanOutline } from 'ionicons/icons'
 import ScanResultModal from '../components/ScanResultModal.vue'
 import PhotoPantryUploadModal from '../components/PhotoPantryUploadModal.vue'
 
@@ -184,6 +164,15 @@ const analysisResult = ref<ScanResultDisplay | null>(null)
 const isResultModalOpen = ref(false)
 
 function onPantryItemAdded(): void {}
+
+function onModalClosed(): void {
+	isResultModalOpen.value = false
+	analysisResult.value = null
+	// Reset capture state so user returns to fresh "Scan Product" view
+	captureStage.value = 'front'
+	frontFile.value = null
+	isBackCaptured.value = false
+}
 
 const COOLDOWN_MS = 10_000
 const COOLDOWN_TICK_MS = 1_000
@@ -342,11 +331,9 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 				isNotProduct: true,
 			} as any
 
-			// Reset scan stage and clear inline placeholder card text
+			// Reset scan stage
 			captureStage.value = 'front'
 			frontFile.value = null
-			lastFileName.value = null
-			analysisStatus.value = 'Idle'
 
 			// Trigger modal (ScanResultModal renders ion-alert for non-products)
 			isResultModalOpen.value = true
@@ -386,11 +373,12 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		isNotProduct: false,
 	}
 
-	analysisStatus.value = `Analysis complete — Verdict: ${scan.safety_verdict}`
-	isResultModalOpen.value = true
+	// Reset stage once scan is completely finished
+	captureStage.value = 'front'
+	frontFile.value = null
+	isBackCaptured.value = false
 
-	lastFileName.value = null
-	analysisStatus.value = 'Idle'
+	isResultModalOpen.value = true
 }
 
 function lockButton(): void {
@@ -701,31 +689,6 @@ onBeforeUnmount(() => {
 	letter-spacing: 0.5px;
 	height: 48px;
 	margin: 0;
-}
-
-.results-placeholder {
-	margin-top: 8px;
-	--background: #f8fafc;
-	--color: #1f2937;
-	border: 1px solid #e2e8f0;
-	border-radius: 14px;
-	box-shadow: none;
-}
-
-.results-placeholder ion-card-title {
-	color: #1f2937;
-	font-size: 1rem;
-	font-weight: 600;
-}
-
-.placeholder-empty {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 8px;
-	padding: 16px 0;
-	color: #94a3b8;
-	text-align: center;
 }
 
 .camera-overlay {

@@ -88,3 +88,63 @@ ion-alert.custom-make-alert .alert-button-danger {
 ion-alert.custom-make-alert .alert-button-danger .alert-button-inner {
 	color: #ffffff !important;
 }
+
+/* Custom Non-Product Alert Overrides */
+ion-alert.non-product-alert {
+	--background: #ffffff;
+	--border-radius: 20px;
+}
+
+ion-alert.non-product-alert .alert-wrapper {
+	border-radius: 20px !important;
+	padding: 20px 16px !important;
+	max-width: 340px !important;
+	width: 86% !important;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+ion-alert.non-product-alert .alert-head {
+	padding: 4px 8px 8px !important;
+	text-align: center !important;
+}
+
+ion-alert.non-product-alert .alert-title {
+	font-size: 1.2rem !important;
+	font-weight: 700 !important;
+	color: #0f172a !important;
+}
+
+ion-alert.non-product-alert .alert-message {
+	color: #64748b !important;
+	font-size: 0.88rem !important;
+	line-height: 1.45 !important;
+	text-align: center !important;
+	padding: 8px 8px 20px !important;
+}
+
+/* Full-Width Green Pill Button */
+ion-alert.non-product-alert .alert-button-group {
+	display: flex !important;
+	justify-content: center !important;
+	padding: 0 !important;
+}
+
+ion-alert.non-product-alert .alert-button {
+	width: 100% !important;
+	height: 46px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: #00b14f !important;
+	border-radius: 9999px !important;
+	font-size: 0.88rem !important;
+	font-weight: 700 !important;
+	text-transform: uppercase !important;
+	letter-spacing: 0.5px !important;
+}
+
+ion-alert.non-product-alert .alert-button .alert-button-inner {
+	width: 100% !important;
+	height: 100% !important;
+	justify-content: center !important;
+	color: #ffffff !important;
+}

@@ -277,9 +277,12 @@ async function submitScan(front: File, back: File | null): Promise<void> {
 		analysisStatus.value = err instanceof Error ? err.message : 'Upload failed'
 		console.error('Scan upload failed:', err)
 	} finally {
-		frontFile.value = null
-		captureStage.value = 'front'
-		isBackCaptured.value = false
+		// ONLY reset capture state if we are done with the scan (not waiting for back photo)
+		if (captureStage.value !== 'back') {
+			frontFile.value = null
+			captureStage.value = 'front'
+			isBackCaptured.value = false
+		}
 		isUploading.value = false
 	}
 }

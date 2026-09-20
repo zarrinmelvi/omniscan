@@ -16,15 +16,19 @@
 					<!-- Prompt card for back photo step -->
 					<div v-if="captureStage === 'back' || isBackCaptured" class="back-prompt-card">
 						<p class="back-prompt-text">
-							<template v-if="isBackCaptured">
-								<strong>Back captured.</strong> Please wait, upload in progress.
-							</template>
+							<template v-if="isBackCaptured"> <strong>Back captured.</strong> Please wait, upload in progress. </template>
 							<template v-else>
-								<strong>Front captured.</strong> Now scan or upload the <strong>back</strong> of the product so the ingredients list can
-								be read.
+								<strong>Front captured.</strong> Now scan or upload the <strong>back</strong> of the product so the ingredients list
+								can be read.
 							</template>
 						</p>
-						<ion-button v-if="!isBackCaptured && !isUploading" expand="block" fill="clear" size="small" class="skip-btn" @click="skipBackPhoto">
+						<ion-button
+							v-if="!isBackCaptured && !isUploading"
+							expand="block"
+							fill="clear"
+							size="small"
+							class="skip-btn"
+							@click="skipBackPhoto">
 							Skip — use front photo only
 						</ion-button>
 					</div>
@@ -40,7 +44,11 @@
 					</ion-button>
 
 					<!-- Secondary Action Button (Updated to soft grayish styling) -->
-					<ion-button expand="block" class="btn-secondary" :disabled="isUploading || isCoolingDown || isResultModalOpen" @click="isPhotoModalOpen = true">
+					<ion-button
+						expand="block"
+						class="btn-secondary"
+						:disabled="isUploading || isCoolingDown || isResultModalOpen"
+						@click="isPhotoModalOpen = true">
 						<ion-icon :icon="cameraOutline" slot="start" />
 						UPLOAD A PHOTO
 					</ion-button>
@@ -104,7 +112,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { IonPage, IonContent, IonButton, IonSpinner, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, onIonViewWillEnter } from '@ionic/vue'
+import {
+	IonPage,
+	IonContent,
+	IonButton,
+	IonSpinner,
+	IonIcon,
+	IonCard,
+	IonCardHeader,
+	IonCardTitle,
+	IonCardContent,
+	onIonViewWillEnter,
+} from '@ionic/vue'
 
 import { API_BASE_URL } from '@/utils/api'
 
@@ -134,7 +153,7 @@ interface ScanResultDisplay {
 	safety_verdict: 'Red' | 'Yellow' | 'Green'
 	reasons: string[]
 	scanned_at: string
-	matched_user_allergens: string[]
+	matched_user_allergens: string[] | null
 	halal: {
 		logo_detected: boolean
 		certifying_body: string | null
@@ -294,7 +313,7 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		safety_verdict: scan.safety_verdict,
 		reasons: scan.flag_reason ? scan.flag_reason.split(', ') : [],
 		scanned_at: scan.scan_time,
-		matched_user_allergens: scan.matched_user_allergens ?? [],
+		matched_user_allergens: Array.isArray(scan.matched_user_allergens) ? scan.matched_user_allergens : [],
 		halal: scan.halal,
 	}
 
@@ -734,7 +753,9 @@ onBeforeUnmount(() => {
 	align-items: center;
 	justify-content: center;
 	padding: 0;
-	transition: transform 0.1s ease, border-color 0.1s ease;
+	transition:
+		transform 0.1s ease,
+		border-color 0.1s ease;
 	cursor: pointer;
 }
 

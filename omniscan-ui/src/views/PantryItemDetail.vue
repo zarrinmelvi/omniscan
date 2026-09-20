@@ -65,6 +65,13 @@
 
 				<!-- OVERVIEW -->
 				<template v-if="activeTab === 'overview'">
+					<div v-if="matchedUserAllergens.length" class="personal-allergen-alert">
+						<ion-icon :icon="warningOutline" />
+						<div>
+							<p class="personal-allergen-alert__title">Contains your allergen{{ matchedUserAllergens.length > 1 ? 's' : '' }}</p>
+							<p class="personal-allergen-alert__list">{{ matchedUserAllergens.join(', ') }}</p>
+						</div>
+					</div>
 					<!-- Non-clickable Static Recipe Usage Rows -->
 					<div v-if="item.recipes_using_this.length > 0" class="info-card">
 						<h3 class="info-card__title">Used in Recipes</h3>
@@ -202,6 +209,7 @@ interface PantryItemDetailDto {
 	updated_at: string
 	product: Product
 	recipes_using_this: RecipeUsage[]
+	matched_user_allergens?: string[]
 }
 
 interface Product {
@@ -228,6 +236,8 @@ const item = ref<PantryItemDetailDto | null>(null)
 const isLoading = ref(true)
 const loadError = ref('')
 const activeTab = ref<Tab>('overview')
+
+const matchedUserAllergens = computed(() => item.value?.matched_user_allergens ?? [])
 
 const isHalalCertified = computed(() => (item.value?.product.halal_certifiers.length ?? 0) > 0 || !!item.value?.product.halal_logo_id)
 const isConfirmedNotHalal = computed(() => !!item.value?.product.confirmed_not_halal && !isHalalCertified.value)

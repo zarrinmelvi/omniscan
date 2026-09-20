@@ -2,6 +2,7 @@ import { defineEventHandler, getRouterParam, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 import { findMatchingIngredientLine, type RawIngredient } from '../../lib/recipe-matching'
+import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens } from '../../lib/allergen-matching'
 
 const RECIPE_USAGE_LIMIT = 5
 
@@ -55,6 +56,29 @@ export default defineEventHandler(async (event) => {
 			throw createError({ statusCode: 403, statusMessage: 'You do not have access to this pantry item.' })
 		}
 
+		// Re-run allergen matching live against the user's CURRENT profile,
+		// same functions scan/index.post.ts uses — deliberately not trusting
+		// a stored snapshot from whenever this item was originally scanned,
+		// since the user's allergens may have changed since then.
+		const userWithAllergens = await prisma.user.findUnique({
+			where: { id: authUser.id },
+			select: {
+				allergens: {
+					select: {
+						id: true,
+						name: true,
+						scientific_name: true,
+						ingredient_mapping: { select: { scientific_term: true, simplified_term: true } },
+					},
+				},
+			},
+		})
+
+		const combinedIngredientText = `${item.product.ingredient_text} ${item.product.simplified_ingredients}`
+		const stringMatches = findMatchedUserAllergens(combinedIngredientText, userWithAllergens?.allergens ?? [])
+		const semanticMatches = await matchUserAllergensSemantically(combinedIngredientText, userWithAllergens?.allergens ?? [])
+		const matchedUserAllergens = mergeMatchedAllergens(stringMatches, semanticMatches)
+
 		const halalLinks = await prisma.productHalalLogo.findMany({
 			where: { product_id: item.product.id },
 			select: { halal_logo: { select: { certifier: true } } },
@@ -106,6 +130,7 @@ export default defineEventHandler(async (event) => {
 				is_archived: item.is_archived,
 				updated_at: item.updated_at.toISOString(),
 				product: { ...item.product, halal_certifiers },
+				matched_user_allergens: matchedUserAllergens.map((a) => a.name),
 				recipes_using_this: recipesUsingThis,
 			},
 		}

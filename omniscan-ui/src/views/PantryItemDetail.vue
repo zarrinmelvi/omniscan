@@ -476,6 +476,35 @@ onIonViewWillEnter(fetchItem)
 	font-size: 0.75rem;
 }
 
+.personal-allergen-alert {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	background: #fee2e2;
+	border: 1px solid #fca5a5;
+	color: #b91c1c;
+	border-radius: 12px;
+	padding: 12px 14px;
+	margin-bottom: 14px;
+	font-size: 0.85rem;
+}
+
+.personal-allergen-alert ion-icon {
+	font-size: 1.2rem;
+	margin-top: 1px;
+	flex-shrink: 0;
+}
+
+.personal-allergen-alert__title {
+	margin: 0;
+	font-weight: 700;
+}
+
+.personal-allergen-alert__list {
+	margin: 2px 0 0;
+	font-weight: 500;
+}
+
 .halal-row {
 	display: flex;
 	align-items: center;

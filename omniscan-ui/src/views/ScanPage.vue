@@ -43,7 +43,7 @@
 						<span v-else>Scan Product</span>
 					</ion-button>
 
-					<!-- Secondary Action Button (Updated to soft grayish styling) -->
+					<!-- Secondary Action Button -->
 					<ion-button
 						expand="block"
 						class="btn-secondary"
@@ -249,6 +249,7 @@ async function processCapturedFile(file: File): Promise<void> {
 
 	if (captureStage.value === 'front') {
 		frontFile.value = file
+		// Immediately submit the front photo to evaluate whether it's a food item
 		await submitScan(file, null)
 		return
 	}
@@ -312,7 +313,7 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		const errorBody = await response.json().catch(() => null)
 		const errorMessage = errorBody?.statusMessage || `Scan failed with status: ${response.status}`
 
-		// Intercept the backend's 422 createError response for non-food items
+		// Cleanly handle 422 for non-food items directly without throwing
 		if (response.status === 422) {
 			analysisResult.value = {
 				product: {
@@ -338,11 +339,13 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 				isNotProduct: true,
 			} as any
 
-			// Reset scan state so user can immediately scan another item
+			// Reset scan stage and clear inline placeholder card text
 			captureStage.value = 'front'
 			frontFile.value = null
+			lastFileName.value = null
+			analysisStatus.value = 'Idle'
 
-			// Open the Analysis Results pop-up modal
+			// Trigger modal (ScanResultModal renders ion-alert for non-products)
 			isResultModalOpen.value = true
 			return
 		}
@@ -353,7 +356,7 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 	const result = await response.json()
 	const scan = result.scan
 
-	// Prompt for back scan if valid food product lacks ingredient photo
+	// Prompt for back scan ONLY if valid food product lacks ingredient photo
 	if (!back && captureStage.value === 'front') {
 		captureStage.value = 'back'
 		analysisStatus.value = 'Front captured — now scan or upload the back'

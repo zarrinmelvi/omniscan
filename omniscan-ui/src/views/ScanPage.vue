@@ -74,7 +74,15 @@
 
 		<!-- ===== LIVE CAMERA VIEWFINDER OVERLAY ===== -->
 		<div v-if="isCameraOpen" class="camera-overlay">
-			<video ref="videoRef" class="viewfinder-video" autoplay muted playsinline></video>
+			<!-- Video element applies blur class during image capture -->
+			<video 
+				ref="videoRef" 
+				class="viewfinder-video" 
+				:class="{ 'viewfinder-video--blurred': isSavingImage }" 
+				autoplay 
+				muted 
+				playsinline
+			></video>
 			<canvas ref="canvasRef" class="hidden-canvas"></canvas>
 
 			<button type="button" class="camera-close-btn" aria-label="Close camera" @click="closeCamera">
@@ -88,18 +96,23 @@
 				<div class="bracket bracket-br"></div>
 			</div>
 
+			<!-- Dedicated Pop-up modal for "Saving image..." state -->
+			<div v-if="isSavingImage" class="processing-popup">
+				<ion-spinner name="crescent" color="light" />
+				<p class="processing-popup__text">Saving image…</p>
+			</div>
+
 			<div v-if="cameraError" class="camera-error">
 				<p>{{ cameraError }}</p>
 				<ion-button size="small" fill="outline" color="light" @click="fallbackToFilePicker"> Use Photo Library Instead </ion-button>
 			</div>
-			<template v-else>
+			<template v-else-if="!isSavingImage">
 				<div class="live-instruction" :class="{ 'live-instruction--warn': isLowLight }">
-					{{ isCapturing ? 'Saving image...' : liveInstruction }}
+					{{ liveInstruction }}
 				</div>
 
 				<button type="button" class="capture-btn" :disabled="!isCameraReady || isCapturing" aria-label="Capture photo" @click="handleCapture">
-					<ion-spinner v-if="isCapturing" name="crescent" color="dark" />
-					<span v-else class="capture-btn__ring"></span>
+					<span class="capture-btn__ring"></span>
 				</button>
 			</template>
 		</div>
@@ -366,6 +379,8 @@ const BRIGHTNESS_SAMPLE_SIZE = 32
 const isCameraOpen = ref(false)
 const isCameraReady = ref(false)
 const isCapturing = ref(false)
+// State flag to handle the "Saving image..." pop-up and view blur
+const isSavingImage = ref(false)
 const cameraError = ref<string | null>(null)
 const liveInstruction = ref<string>('Align product within frame')
 const isLowLight = ref(false)
@@ -414,6 +429,7 @@ function closeCamera(): void {
 	mediaStream = null
 	isCameraReady.value = false
 	isCapturing.value = false
+	isSavingImage.value = false // Reset popup state on camera close
 	isCameraOpen.value = false
 	cameraError.value = null
 }
@@ -475,26 +491,58 @@ function handleCapture(): void {
 	if (!videoRef.value || !canvasRef.value || isCapturing.value) return
 
 	isCapturing.value = true
+	isSavingImage.value = true // Triggers blur background and "Saving image..." pop-up
+
 	const video = videoRef.value
 	const canvas = canvasRef.value
-	canvas.width = video.videoWidth
-	canvas.height = video.videoHeight
+
+	// Frame bounds calculated based on CSS bracket position percentages
+	const framePercent = {
+		x: 0.12,
+		y: 0.22,
+		width: 0.76,
+		height: 0.48
+	}
+
+	const cropX = video.videoWidth * framePercent.x
+	const cropY = video.videoHeight * framePercent.y
+	const cropWidth = video.videoWidth * framePercent.width
+	const cropHeight = video.videoHeight * framePercent.height
+
+	canvas.width = cropWidth
+	canvas.height = cropHeight
 
 	const ctx = canvas.getContext('2d')
 	if (!ctx) {
 		isCapturing.value = false
+		isSavingImage.value = false
 		return
 	}
 
-	ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+	// Crop image output strictly to the green bracket framing region
+	ctx.drawImage(
+		video,
+		cropX,
+		cropY,
+		cropWidth,
+		cropHeight,
+		0,
+		0,
+		cropWidth,
+		cropHeight
+	)
 
 	canvas.toBlob(
 		(blob) => {
 			if (!blob) {
 				cameraError.value = 'Could not capture photo. Please try again.'
 				isCapturing.value = false
+				isSavingImage.value = false
 				return
 			}
+
+			// Dismiss pop-up right as file creation completes
+			isSavingImage.value = false
 
 			try {
 				const file = new File([blob], `scan-${Date.now()}.jpg`, { type: 'image/jpeg' })
@@ -655,6 +703,12 @@ onBeforeUnmount(() => {
 	height: 100%;
 	object-fit: cover;
 	display: block;
+	transition: filter 0.3s ease;
+}
+
+/* Blur video view during "Saving image..." phase */
+.viewfinder-video--blurred {
+	filter: blur(8px) brightness(0.7);
 }
 
 .hidden-canvas {
@@ -723,6 +777,30 @@ onBeforeUnmount(() => {
 	border-bottom-width: 4px;
 	border-right-width: 4px;
 	border-bottom-right-radius: 8px;
+}
+
+/* Centered Pop-up Modal for "Saving image..." state */
+.processing-popup {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background: rgba(0, 0, 0, 0.75);
+	padding: 20px 32px;
+	border-radius: 16px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	z-index: 10;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.processing-popup__text {
+	color: #ffffff;
+	font-size: 1rem;
+	font-weight: 600;
+	margin: 0;
 }
 
 .live-instruction {

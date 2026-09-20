@@ -301,11 +301,19 @@ model CatalogProduct {
 	halal_logos CatalogProductHalalLogo[]
 	ingredients CatalogProductIngredient[]
 
+	// Products sharing a non-null variant_group are treated as alternatives to
+	// each other for the Alternatives feature (e.g. a spicy vs. a milder
+	// flavor of the same base item) — manually curated, not inferred from
+	// names/ingredients. Indexed since it's queried to find sibling rows.
+	variant_group String?
+
 	confirmed_not_halal Boolean @default(false)
 	halal_unverified Boolean @default(false)
 	created_at DateTime @default(now())
   	updated_at DateTime @updatedAt
   	deleted_at DateTime?
+
+	@@index([variant_group])
 }
 
 model CatalogIngredient {

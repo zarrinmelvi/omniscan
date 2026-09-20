@@ -45,10 +45,11 @@ export async function findAlternativeProducts(
 		excludeProductId?: number
 		onlyVerified?: boolean
 		requireHalalCertified?: boolean
+		variantGroup?: string
 		limit?: number
 	} = {},
 ): Promise<AlternativeMatch[]> {
-	const { excludeProductId, onlyVerified = true, requireHalalCertified = false, limit = 20 } = options
+	const { excludeProductId, onlyVerified = true, requireHalalCertified = false, variantGroup, limit = 20 } = options
 
 	const normalizedDisallowed = disallowedIngredientNames.map((name) => name.toLowerCase().trim()).filter((name) => name.length > 0)
 
@@ -57,6 +58,7 @@ export async function findAlternativeProducts(
 			...(onlyVerified ? { is_verified: true } : {}),
 			...(excludeProductId ? { id: { not: excludeProductId } } : {}),
 			...(requireHalalCertified ? { halal_logo_id: { not: null } } : {}),
+			...(variantGroup ? { variant_group: variantGroup } : {}),
 			...(normalizedDisallowed.length > 0
 				? {
 						ingredients: {

@@ -4,7 +4,9 @@ import { requireAuth } from '../../utils/requireAuth'
 import { OLLAMA_ENDPOINT, SCAN_VISION_MODEL } from '../../lib/ollama-models'
 import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens } from '../../lib/allergen-matching'
 import { stripCodeFences } from '../../lib/ai-json'
-
+import { matchCatalogProduct, CATALOG_PRODUCT_SELECT } from '../../lib/catalog-matching'
+import { determineDisallowedCatalogIngredients } from '../../lib/alternative-reasoning'
+import { findAlternativeProducts } from '../../lib/alternative-matching'
 type SafetyVerdict = 'Red' | 'Yellow' | 'Green'
 
 interface OllamaChatMessage {
@@ -49,16 +51,6 @@ interface HalalLogoRecord {
 	id: number
 	certifier: string
 	is_accredited: boolean
-}
-
-interface CatalogProductRecord {
-	id: number
-	brand_name: string
-	product_name: string
-	ingredient_text: string
-	simplified_ingredients: string
-	halal_logo_id: number | null
-	halal_logos: { halal_logo: HalalLogoRecord }[]
 }
 
 const RED_KEYWORDS = ['milk', 'wheat', 'soy']
@@ -270,48 +262,6 @@ function resolveHalalLogoMatches(certifyingBodyText: string, logos: HalalLogoRec
 	return Array.from(matches.values())
 }
 
-function normalizeForCatalogMatch(text: string): string {
-	return text
-		.toLowerCase()
-		.replace(/[^a-z0-9\s]/g, '')
-		.replace(/\s+/g, ' ')
-		.trim()
-}
-
-function tokenize(text: string): Set<string> {
-	return new Set(
-		normalizeForCatalogMatch(text)
-			.split(' ')
-			.filter((w) => w.length > 1),
-	)
-}
-
-const CATALOG_MATCH_OVERLAP_THRESHOLD = 0.5
-
-function matchCatalogProduct(extraction: ScanAiExtraction, catalog: CatalogProductRecord[]): CatalogProductRecord | null {
-	const extractedBrand = normalizeForCatalogMatch(extraction.brand)
-	const extractedTokens = tokenize(`${extraction.brand} ${extraction.product_name}`)
-	if (!extractedBrand || extractedTokens.size === 0) return null
-
-	let best: { record: CatalogProductRecord; score: number } | null = null
-
-	for (const cp of catalog) {
-		const knownBrand = normalizeForCatalogMatch(cp.brand_name)
-		if (!knownBrand) continue
-		if (!(knownBrand.includes(extractedBrand) || extractedBrand.includes(knownBrand))) continue
-
-		const knownTokens = tokenize(`${cp.brand_name} ${cp.product_name}`)
-		const overlapCount = [...extractedTokens].filter((t) => knownTokens.has(t)).length
-		const score = overlapCount / Math.max(extractedTokens.size, knownTokens.size)
-
-		if (score > (best?.score ?? 0)) {
-			best = { record: cp, score }
-		}
-	}
-
-	return best && best.score >= CATALOG_MATCH_OVERLAP_THRESHOLD ? best.record : null
-}
-
 export default defineEventHandler(async (event) => {
 	const authUser = requireAuth(event)
 
@@ -377,6 +327,7 @@ export default defineEventHandler(async (event) => {
 						ingredient_mapping: { select: { scientific_term: true, simplified_term: true } },
 					},
 				},
+				dietary_prof: { select: { halal_pref: true, custom_preferences: true }, orderBy: { updated_at: 'desc' }, take: 1 },
 			},
 		}),
 		prisma.halalLogo.findMany({
@@ -384,19 +335,11 @@ export default defineEventHandler(async (event) => {
 		}),
 		prisma.catalogProduct.findMany({
 			where: { is_verified: true },
-			select: {
-				id: true,
-				brand_name: true,
-				product_name: true,
-				ingredient_text: true,
-				simplified_ingredients: true,
-				halal_logo_id: true,
-				halal_logos: { select: { halal_logo: { select: { id: true, certifier: true, is_accredited: true } } } },
-			},
+			select: CATALOG_PRODUCT_SELECT,
 		}),
 	])
 
-	const catalogMatch = matchCatalogProduct(extraction, catalogProducts)
+	const catalogMatch = matchCatalogProduct({ brand: extraction.brand, product_name: extraction.product_name }, catalogProducts)
 
 	if (catalogMatch && !extraction.ingredients_text.trim() && !extraction.simplified_ingredients.trim()) {
 		extraction.ingredients_text = catalogMatch.ingredient_text
@@ -521,6 +464,33 @@ export default defineEventHandler(async (event) => {
 
 		setResponseStatus(event, 201)
 
+		const halalPref = userWithAllergens?.dietary_prof?.[0]?.halal_pref ?? false
+
+		let alternatives: Awaited<ReturnType<typeof findAlternativeProducts>> = []
+		let alternativesMessage: string | null = null
+
+		if (catalogMatch?.variant_group) {
+			const dietaryProfile = {
+				allergens: userWithAllergens?.allergens ?? [],
+				halalPref,
+				customPreferences: userWithAllergens?.dietary_prof?.[0]?.custom_preferences ?? [],
+			}
+
+			const { disallowedIngredientNames } = await determineDisallowedCatalogIngredients(dietaryProfile)
+
+			alternatives = await findAlternativeProducts(disallowedIngredientNames, {
+				variantGroup: catalogMatch.variant_group,
+				excludeProductId: catalogMatch.id,
+				requireHalalCertified: halalPref,
+			})
+
+			if (alternatives.length === 0) {
+				alternativesMessage = 'No safe alternatives available for this product based on your preferences.'
+			}
+		} else {
+			alternativesMessage = 'No known alternatives for this product yet.'
+		}
+
 		return {
 			success: true,
 			scan: {
@@ -552,6 +522,8 @@ export default defineEventHandler(async (event) => {
 					certifiers: matchedHalalLogos.map((logo) => ({ id: logo.id, certifier: logo.certifier, is_accredited: logo.is_accredited })),
 				},
 				scan_time: scan.scan_time,
+				alternatives,
+				alternatives_message: alternativesMessage,
 			},
 		}
 	} catch (err: any) {

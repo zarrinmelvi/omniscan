@@ -3,6 +3,9 @@ import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 import { findMatchingIngredientLine, type RawIngredient } from '../../lib/recipe-matching'
 import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens } from '../../lib/allergen-matching'
+import { matchCatalogProduct, CATALOG_PRODUCT_SELECT } from '../../lib/catalog-matching'
+import { determineDisallowedCatalogIngredients } from '../../lib/alternative-reasoning'
+import { findAlternativeProducts } from '../../lib/alternative-matching'
 
 const RECIPE_USAGE_LIMIT = 5
 
@@ -85,6 +88,52 @@ export default defineEventHandler(async (event) => {
 		})
 		const halal_certifiers = halalLinks.map((l) => l.halal_logo.certifier)
 
+		const userWithProfile = await prisma.user.findUnique({
+			where: { id: authUser.id },
+			select: {
+				dietary_prof: { select: { halal_pref: true, custom_preferences: true } },
+			},
+		})
+		const halalPref = userWithProfile?.dietary_prof?.[0]?.halal_pref ?? false
+
+		const catalogProducts = await prisma.catalogProduct.findMany({
+			where: { is_verified: true },
+			select: CATALOG_PRODUCT_SELECT,
+		})
+
+		const catalogMatch = matchCatalogProduct(
+			{
+				brand: item.product.brand_name,
+				product_name: item.product.product_name,
+			},
+			catalogProducts,
+		)
+
+		let alternatives: Awaited<ReturnType<typeof findAlternativeProducts>> = []
+		let alternativesMessage: string | null = null
+
+		if (catalogMatch?.variant_group) {
+			const dietaryProfile = {
+				allergens: userWithAllergens?.allergens ?? [],
+				halalPref,
+				customPreferences: userWithProfile?.dietary_prof?.[0]?.custom_preferences ?? [],
+			}
+
+			const { disallowedIngredientNames } = await determineDisallowedCatalogIngredients(dietaryProfile)
+
+			alternatives = await findAlternativeProducts(disallowedIngredientNames, {
+				variantGroup: catalogMatch.variant_group,
+				excludeProductId: catalogMatch.id,
+				requireHalalCertified: halalPref,
+			})
+
+			if (alternatives.length === 0) {
+				alternativesMessage = 'No safe alternatives available for this product based on your preferences.'
+			}
+		} else {
+			alternativesMessage = 'No known alternatives for this product yet.'
+		}
+
 		const madeInteractions = await prisma.recipeInteraction.findMany({
 			where: { user_id: authUser.id, made_at: { not: null } },
 			select: {
@@ -132,6 +181,8 @@ export default defineEventHandler(async (event) => {
 				product: { ...item.product, halal_certifiers },
 				matched_user_allergens: matchedUserAllergens.map((a) => a.name),
 				recipes_using_this: recipesUsingThis,
+				alternatives,
+				alternatives_message: alternativesMessage,
 			},
 		}
 	} catch (err: any) {

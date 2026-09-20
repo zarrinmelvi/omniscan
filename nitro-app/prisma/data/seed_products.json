@@ -1,12 +1,27 @@
 [
 	{
 		"brand_name": "Lucky Me!",
-		"product_name": "Pancit Canton (Extra Hot Chili / Sweet & Spicy)",
+		"product_name": "Pancit Canton (Extra Hot Chili)",
 		"ingredient_text": "Wheat Flour, Vegetable Oil (Palm Oil With Green Tea Extract), Iodized Salt, Acidity Regulators (Sodium Carbonate, Potassium Carbonate), Sodium Carboxymethyl Cellulose (Thickener), Sodium Polyphosphate (Humectant), Artificial Colors (Tartrazine, Sunset Yellow), Sugar, Iodized Salt, Flavor Enhancers (Monosodium L-Glutamate, Disodium 5'-Inosinate, Disodium 5'-Guanylate), Spices (Red Pepper Flakes, Cayenne, Black Pepper), Natural Flavor, Artificial Flavors, Hydrolyzed Vegetable Protein, Maltodextrin, Citric Acid (Acidity Regulator), Iron (Ferrous Fumarate), Silicon Dioxide Amorphous (Anticaking Agent), Soy Sauce, Sugar, Caramel Iv (Color), Acidity Regulators (Lactic Acid, Citric Acid), Guar Gum (Stabilizer), Potassium Sorbate (Preservative), Flavor Enhancers (Disodium 5'-Inosinate, Disodium 5'-Guanylate), Vegetable Oil (Coconut And Palm Oil With Green Tea Extract), Spices (Garlic, Onion, Paprika Oleoresin), Natural Flavor",
 		"simplified_ingredients": "Wheat Flour, Vegetable Oil (Palm Oil With Green Tea Extract), Iodized Salt, Acidity Regulators (Sodium Carbonate, Potassium Carbonate), Sodium Carboxymethyl Cellulose (Thickener), Sodium Polyphosphate (Humectant), Artificial Colors (Tartrazine, Sunset Yellow), Sugar, Iodized Salt, Flavor Enhancers (Monosodium L-Glutamate, Disodium 5'-Inosinate, Disodium 5'-Guanylate), Spices (Red Pepper Flakes, Cayenne, Black Pepper), Natural Flavor, Artificial Flavors, Hydrolyzed Vegetable Protein, Maltodextrin, Citric Acid (Acidity Regulator), Iron (Ferrous Fumarate), Silicon Dioxide Amorphous (Anticaking Agent), Soy Sauce, Sugar, Caramel Iv (Color), Acidity Regulators (Lactic Acid, Citric Acid), Guar Gum (Stabilizer), Potassium Sorbate (Preservative), Flavor Enhancers (Disodium 5'-Inosinate, Disodium 5'-Guanylate), Vegetable Oil (Coconut And Palm Oil With Green Tea Extract), Spices (Garlic, Onion, Paprika Oleoresin), Natural Flavor",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": "pancit_canton_lucky_me"
+	},
+	{
+		"brand_name": "Lucky Me!",
+		"product_name": "Pancit Canton (Sweet & Spicy)",
+		"ingredient_text": "Wheat Flour, Vegetable Oil (Palm Oil With Green Tea Extract), Iodized Salt, Acidity Regulators (Sodium Carbonate, Potassium Carbonate), Sodium Carboxymethyl Cellulose (Thickener), Sodium Polyphosphate (Humectant), Artificial Colors (Tartrazine, Sunset Yellow), Sugar, Iodized Salt, Flavor Enhancers (Monosodium L-Glutamate, Disodium 5'-Inosinate, Disodium 5'-Guanylate), Spices (Red Pepper Flakes, Cayenne, Black Pepper), Natural Flavor, Artificial Flavors, Hydrolyzed Vegetable Protein, Maltodextrin, Citric Acid (Acidity Regulator), Iron (Ferrous Fumarate), Silicon Dioxide Amorphous (Anticaking Agent), Soy Sauce, Sugar, Caramel Iv (Color), Acidity Regulators (Lactic Acid, Citric Acid), Guar Gum (Stabilizer), Potassium Sorbate (Preservative), Flavor Enhancers (Disodium 5'-Inosinate, Disodium 5'-Guanylate), Vegetable Oil (Coconut And Palm Oil With Green Tea Extract), Spices (Garlic, Onion, Paprika Oleoresin), Natural Flavor",
+		"simplified_ingredients": "Wheat Flour, Vegetable Oil (Palm Oil With Green Tea Extract), Iodized Salt, Acidity Regulators (Sodium Carbonate, Potassium Carbonate), Sodium Carboxymethyl Cellulose (Thickener), Sodium Polyphosphate (Humectant), Artificial Colors (Tartrazine, Sunset Yellow), Sugar, Iodized Salt, Flavor Enhancers (Monosodium L-Glutamate, Disodium 5'-Inosinate, Disodium 5'-Guanylate), Spices (Red Pepper Flakes, Cayenne, Black Pepper), Natural Flavor, Artificial Flavors, Hydrolyzed Vegetable Protein, Maltodextrin, Citric Acid (Acidity Regulator), Iron (Ferrous Fumarate), Silicon Dioxide Amorphous (Anticaking Agent), Soy Sauce, Sugar, Caramel Iv (Color), Acidity Regulators (Lactic Acid, Citric Acid), Guar Gum (Stabilizer), Potassium Sorbate (Preservative), Flavor Enhancers (Disodium 5'-Inosinate, Disodium 5'-Guanylate), Vegetable Oil (Coconut And Palm Oil With Green Tea Extract), Spices (Garlic, Onion, Paprika Oleoresin), Natural Flavor",
+		"is_verified": true,
+		"_allergens_declared_on_label": [],
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": "pancit_canton_lucky_me"
 	},
 	{
 		"brand_name": "Lucky Me!",
@@ -15,7 +30,10 @@
 		"simplified_ingredients": "Wheat Flour, Vegetable Oil (Palm Oil With Green Tea Extract), Iodized Salt, Sodium Polyphosphate (Humectant), Acidity Regulators (Sodium Carbonate, Potassium Carbonate), Sodium Carboxymethyl Cellulose (Thickener), Artificial Colors (Tartrazine, Sunset Yellow), Iodized Salt, Flavor Enhancers (Monosodium L-Glutamate, Disodium 5'-Inosinate, Disodium 5'-Guanylate), Whey Powder, Sugar, Chicken Flavors, Spices, Cornstarch, Hydrolyzed Vegetable Protein, Dehydrated Chives, Tartrazine (Artificial Color), Vitamin A (Retinyl Acetate)",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": "lucky_me_noodle_soup"
 	},
 	{
 		"brand_name": "Lucky Me!",
@@ -24,20 +42,26 @@
 		"simplified_ingredients": "Wheat Flour, Vegetable Oil (Palm Oil With Green Tea Extract), Iodized Salt, Sodium Polyphosphate (Humectant), Acidity Regulators (Sodium Carbonate, Potassium Carbonate), Sodium Carboxymethylcellulose (Thickener), Artificial Colors (Tartrazine, Sunset Yellow), Iodized Salt, Flavor Enhancers (Monosodium L-Glutamate, Disodium 5'-Inosinate, Disodium 5'-Guanylate), Sugar, Artificial Beef Flavors, Cornstarch, Spices, Whey Powder, Caramel Iv (Color), Dehydrated Chives, Silicon Dioxide (Anticaking Agent), Elemental Iron",
 		"is_verified": false,
 		"_allergens_declared_on_label": [],
-		"_review_notes": ["'Elemental Iron' - unusual phrasing - verify against label (may be 'Ferrous'/'Elemental Iron' additive)"]
-	},
-	{
-		"brand_name": "Nissin",
-		"product_name": "Cup Noodles (Seafood / Batchoy)",
-		"ingredient_text": "Wheat Flour, Vegetable Oil (Palm Oil), Seasoning (Artificial Pork And Chicken Flavor, Soy Sauce, Natural Flavor, Artificial Flavors (Gluten), Lactose (Milk), Corn Syrup, Emulsifier (E385, E322 Soy Lecithin), Glycerin Fatty Ester, Modified Cassava Starch, Flavor Enhancers (E621, E635, E1450), Iodized Salt, Sugar, Milk Powder, Dextrin, Vegetable Oil (Palm Oil), Skimmed Milk Powder, Stabilizer (E385), Acidity Regulators (E340, E331), Emulsifier (E491), Hydrolyzed Soy Protein, Freeze Dried Imitation Crab (Crustacean), Freeze Dried Scrambled Egg , Dehydrated Vegetables (Leeks, Ginger, Spices, Artificial Chicken Flavor, Flour Treatment Agents (E500, E339, E412), Fish Sauce, Thickener (E415), Acidity Regulator (E330), Antioxidants (E310, E321, E307)",
-		"simplified_ingredients": "Wheat Flour, Vegetable Oil (Palm Oil), Seasoning (Artificial Pork And Chicken Flavor, Soy Sauce, Natural Flavor, Artificial Flavors (Gluten), Lactose (Milk), Corn Syrup, Emulsifier (E385, E322 Soy Lecithin), Glycerin Fatty Ester, Modified Cassava Starch, Flavor Enhancers (E621, E635, E1450), Iodized Salt, Sugar, Milk Powder, Dextrin, Vegetable Oil (Palm Oil), Skimmed Milk Powder, Stabilizer (E385), Acidity Regulators (E340, E331), Emulsifier (E491), Hydrolyzed Soy Protein, Freeze Dried Imitation Crab (Crustacean), Freeze Dried Scrambled Egg , Dehydrated Vegetables (Leeks, Ginger, Spices, Artificial Chicken Flavor, Flour Treatment Agents (E500, E339, E412), Fish Sauce, Thickener (E415), Acidity Regulator (E330), Antioxidants (E310, E321, E307)",
-		"is_verified": false,
-		"_allergens_declared_on_label": [],
-		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"]
+		"_review_notes": ["'Elemental Iron' - unusual phrasing - verify against label (may be 'Ferrous'/'Elemental Iron' additive)"],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": "lucky_me_noodle_soup"
 	},
 	{
 		"brand_name": "Nissin",
 		"product_name": "Cup Noodles (Batchoy)",
+		"ingredient_text": "Wheat Flour, Vegetable Oil (Palm Oil), Seasoning (Artificial Pork And Chicken Flavor, Soy Sauce, Natural Flavor, Artificial Flavors (Gluten), Lactose (Milk), Corn Syrup, Emulsifier (E385, E322 Soy Lecithin), Glycerin Fatty Ester, Modified Cassava Starch, Flavor Enhancers (E621, E635, E1450), Iodized Salt, Sugar, Milk Powder, Dextrin, Vegetable Oil (Palm Oil), Skimmed Milk Powder, Stabilizer (E385), Acidity Regulators (E340, E331), Emulsifier (E491), Hydrolyzed Soy Protein, Freeze Dried Imitation Crab (Crustacean), Freeze Dried Scrambled Egg , Dehydrated Vegetables (Leeks, Ginger, Spices, Artificial Chicken Flavor, Flour Treatment Agents (E500, E339, E412), Fish Sauce, Thickener (E415), Acidity Regulator (E330), Antioxidants (E310, E321, E307)",
+		"simplified_ingredients": "Wheat Flour, Vegetable Oil (Palm Oil), Seasoning (Artificial Pork And Chicken Flavor, Soy Sauce, Natural Flavor, Artificial Flavors (Gluten), Lactose (Milk), Corn Syrup, Emulsifier (E385, E322 Soy Lecithin), Glycerin Fatty Ester, Modified Cassava Starch, Flavor Enhancers (E621, E635, E1450), Iodized Salt, Sugar, Milk Powder, Dextrin, Vegetable Oil (Palm Oil), Skimmed Milk Powder, Stabilizer (E385), Acidity Regulators (E340, E331), Emulsifier (E491), Hydrolyzed Soy Protein, Freeze Dried Imitation Crab (Crustacean), Freeze Dried Scrambled Egg , Dehydrated Vegetables (Leeks, Ginger, Spices, Artificial Chicken Flavor, Flour Treatment Agents (E500, E339, E412), Fish Sauce, Thickener (E415), Acidity Regulator (E330), Antioxidants (E310, E321, E307)",
+		"is_verified": false,
+		"_allergens_declared_on_label": [],
+		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"],
+		"_halal_status": "not_halal",
+		"_halal_certifying_body": null,
+		"_variant_group": "nissin_cup_noodles"
+	},
+	{
+		"brand_name": "Nissin",
+		"product_name": "Cup Noodles (Seafood)",
 		"ingredient_text": "Wheat Flour, Palm Oil, Iodized Salt, Natural Flavor, Artificial Flavors (FISH, MILK), Dehydrated Vegetables (Cabbage, Corn), Flavor Enhancers (E621, E635), Sugar, Artificial Beef Flavor, Textured SOY Protein, Spices, Artificial Chicken Flavor, Cornstarch, Yeast Extract, Acidity Regulators (E452i, E451, E500, E501, E330), Anticaking Agent (E551), Thickener (E412), Color (E150 (SULFITE)), Stabilizer (E4115) And Antioxidants (E310, E320, E321), Vitamin E",
 		"simplified_ingredients": "Wheat Flour, Palm Oil, Iodized Salt, Natural Flavor, Artificial Flavors (FISH, MILK), Dehydrated Vegetables (Cabbage, Corn), Flavor Enhancers (E621, E635), Sugar, Artificial Beef Flavor, Textured SOY Protein, Spices, Artificial Chicken Flavor, Cornstarch, Yeast Extract, Acidity Regulators (E452i, E451, E500, E501, E330), Anticaking Agent (E551), Thickener (E412), Color (E150 (SULFITE)), Stabilizer (E4115) And Antioxidants (E310, E320, E321), Vitamin E",
 		"is_verified": false,
@@ -46,7 +70,10 @@
 			"'SULFITE)' - unmatched parenthesis around SULFITE - verify original bracketing",
 			"'E4115' - likely OCR misread additive code (no standard E4115 - possibly E415)",
 			"SEVERE OCR GARBLING: 'Stabilizer (E4115)' is not a recognized E-number; likely OCR misread (possibly E415). Verify against label."
-		]
+		],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "nissin_cup_noodles"
 	},
 	{
 		"brand_name": "Payless",
@@ -69,7 +96,10 @@
 		"_review_notes": [
 			"'· 6' - stray OCR character '·' before a number (likely garbled 'E' code)",
 			"SEVERE OCR GARBLING: Source text has a stray '·' character before '635' (likely a broken 'E635') and 'Vegetable Oils (Palma, Sesame)' likely misread of 'Palm'. Verify against label."
-		]
+		],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Royal",
@@ -78,7 +108,10 @@
 		"simplified_ingredients": "Hard Wheat Semolina, Vitamin A, Iron, Vitamin B2",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Gluten"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "royal_pasta_shapes"
 	},
 	{
 		"brand_name": "Royal",
@@ -87,7 +120,10 @@
 		"simplified_ingredients": "Hard Wheat Semolina, Vitamin A, Iron, Vitamin B2",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Gluten"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "royal_pasta_shapes"
 	},
 	{
 		"brand_name": "Excellent",
@@ -96,7 +132,10 @@
 		"simplified_ingredients": "Wheat Flour, Coconut Oil, Salt, Water, Fd & C Yellow #5 (As Colorant)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Wheat"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Century Tuna",
@@ -110,7 +149,10 @@
 			"'Chill' - possible OCR misread of 'Chili'",
 			"unbalanced '()' brackets in source text - verify grouping",
 			"SEVERE OCR GARBLING: Source text reads 'Tuna Flakes Mater Soybean Oil' - 'Mater' is very likely a misread of 'Water' or 'Water,'; also missing commas between several items. Verify against label."
-		]
+		],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": "century_tuna_flakes"
 	},
 	{
 		"brand_name": "Century Tuna",
@@ -119,7 +161,10 @@
 		"simplified_ingredients": "Tuna Flakes, Water, Soya Oil, Soy Protein Concentrate, Iodized Salt, Sugar, Chili, Spices, Seasonings [MSG (Flavor Enhancer)], Bay Leaf",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Fish", "Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": "century_tuna_flakes"
 	},
 	{
 		"brand_name": "Argentina",
@@ -128,7 +173,10 @@
 		"simplified_ingredients": "Cooked Corned Beef (Beef Cured With Water, Salt, Sugar, Sodium Phosphates, Sodium Nitrite), Beef Broth, Beef Tallow, Soy Protein Isolate, Textured Soy Concentrate (Caramel Color Added), Salt, Monosodium Glutamate, Flavor (Hydrolyzed Soy Protein, Corn Protein, And Wheat Gluten, Medium Chain Triglycerides, Sesame Oil, Yeast Extract), Garlic Powder, Sugar, Dextrose, Spice, Onion Powder, Xanthan Gum",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Soy", "Wheat"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Argentina",
@@ -140,7 +188,10 @@
 		"_review_notes": [
 			"'Comstarch' - possible OCR misread of 'Cornstarch'",
 			"SEVERE OCR GARBLING: 'Soy Protein Comstarch' likely missing a comma - should probably read 'Soy Protein, Cornstarch'. Verify against label."
-		]
+		],
+		"_halal_status": "not_halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Purefoods Hormel",
@@ -162,25 +213,34 @@
 			"Molluscs",
 			"Sulphites"
 		],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "555",
-		"product_name": "Sardines in Tomato Sauce (Regular / Hot)",
+		"product_name": "Sardines in Tomato Sauce (Hot)",
 		"ingredient_text": "Sardines, Tomato Sauce (Water, Tomato Paste), Thickener (Modified Cornstarch), Salt, Sugar, Seasonings (Onion, Garlic), Chili",
 		"simplified_ingredients": "Sardines, Tomato Sauce (Water, Tomato Paste), Thickener (Modified Cornstarch), Salt, Sugar, Seasonings (Onion, Garlic), Chili",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Fish", "Chili"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Ligo",
-		"product_name": "Sardines in Tomato Sauce",
+		"product_name": "Sardines in Tomato Sauce (Regular)",
 		"ingredient_text": "Sardines, Tomato Sauce (Water, Tomato Paste), Thickener (Modified Cornstarch), Salt, Sugar, Seasonings (Onion, Garlic)",
 		"simplified_ingredients": "Sardines, Tomato Sauce (Water, Tomato Paste), Thickener (Modified Cornstarch), Salt, Sugar, Seasonings (Onion, Garlic)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Fish", "Chili"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "CDO",
@@ -189,7 +249,10 @@
 		"simplified_ingredients": "Cooked Beef Beef Broth, Soy Protein, Iodized Salt, Spices, Phosphate (Water Binding Agent), Sodium Erythorbate (Color Retention Agent), Sodium Nitrite (Color Retention Agent)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "cdo_carne_norte"
 	},
 	{
 		"brand_name": "CDO",
@@ -198,7 +261,10 @@
 		"simplified_ingredients": "Poultry Meat, Beef, Beef Fat, Water, Cereals, Soy Protein, Iodized Salt, Spices, Phosphate (Water Binding Agent), and Sodium Nitrite (Color Retention Agent)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "555",
@@ -207,7 +273,10 @@
 		"simplified_ingredients": "Tuna Flakes, Tomato Sauce (Water, Tomato Paste), Soy Protein Concentrate, Potatoes, Vegetable Oil (Soya Oil, Palm Olein), Green Peas, Sugar, Bell Pepper, Spices, Iodized Salt, Soy Sauce, Msg (Flavor Enhancer), Thickeners (Cornstarch, Xanthan Gum), Seasonings And Vitamin A (Fortificant)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Tuna", "Soy", "Wheat", "Milk"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "555",
@@ -221,7 +290,10 @@
 			"'Bayleaf Monosodium' - missing punctuation/parenthesis - run-on phrase",
 			"unbalanced '()' brackets in source text - verify grouping",
 			"SEVERE OCR GARBLING: Source PDF text is a run-on with missing commas/parentheses (e.g. 'Icornstarch', 'Bayleaf Monosodium Glutamate (Flavor Enhancer Cheese Powder'). Ingredient list split is best-effort - verify grouping against physical label."
-		]
+		],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Argentina",
@@ -230,7 +302,10 @@
 		"simplified_ingredients": "Chicken, Water, Soy Protein, Cornstarch. Sugar, Iodized Salt, Spices, MSG (Flavor Enhancer), Sodium Erythorbate (Antioxidant), Phosphates (Water Retention Agent) and Sodium Nitrite (Color Retention Agent)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "SPAM",
@@ -241,7 +316,10 @@
 		"_allergens_declared_on_label": [],
 		"_review_notes": [
 			"SEVERE OCR GARBLING: Source text reads 'Water, Han,' - likely a misread of 'Water, Ham,' given the product; the source PDF also has no listed Allergens line for this item (unusual for a pork product - verify no allergen data was cut off)."
-		]
+		],
+		"_halal_status": "not_halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Highlands",
@@ -250,7 +328,10 @@
 		"simplified_ingredients": "Beef, Beef Broth, Soy Protein, Spices, Iodized Salt, MSG (Flavor Enhancer), Nature-Identical Flavors, Phosphate (Water Binding Agent) and Sodium Nitrite (Color Retention Agent)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soy", "Cereals", "Sulphites"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "CDO",
@@ -259,7 +340,10 @@
 		"simplified_ingredients": "Beef, Beef Broth, Soy Protein, Iodized Salt, Spices, Phosphate (Water Binding Agent), Sodium Erythorbate (Color Retention Agent), and Sodium Nitrite (Color Retention Agent)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "cdo_carne_norte"
 	},
 	{
 		"brand_name": "San Miguel Pure Foods",
@@ -268,7 +352,10 @@
 		"simplified_ingredients": "Pork, Beef, Water, Sugar, Potato Starch, Salt, Less Than 2% Natural Flavor, Extractives Of Paprika, Natural Smoke Flavor, Sodium Tripolyphosphate, Sodium Nitrite, Fd&C Red #40",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "not_halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "CDO",
@@ -277,7 +364,10 @@
 		"simplified_ingredients": "Poultry Meat, Water, Soy Protein, Sugar, Iodized Salt, Vegetable Protein, Skim Milk, Sodium Lactate (Acidity Regulator), Native and Modified Starches, Natural Flavors, Spices, Banana Catsup, Carrageenan (Emulsifier), Pentasodium Triphosphate, Tetrasodium Pyrophosphate (Emulsifiers), Garlic Powder, Natural Smoke Flavor, Sodium Nitrite (Preservative), Sodium Erythorbate (Antioxidant), FD&C Red No. 40",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Argentina",
@@ -286,7 +376,10 @@
 		"simplified_ingredients": "Pork, White Sugar, Water, Pineapple Juice (Pineapple Juice, Ascorbic Acid (Vitamin C), Vitamin E And Vitamin A), Salt, Sodium Phosphate, Flavoring (Salt, Hydrolyzed Soy Protein, Maltodextrin, Sugar, Autolyzed Yeast Extract, Monosodium Glutamate, Natural Pork Flavor, Soybean Oil, Silicon Dioxide, Sunflower, Sunflower Oil, Dextrose, Thiamine Hydrochloride, Disodium Inosinate And Disodium Guanylate, Food Starch Modified (Citric Acid), Sodium Nitrite, Sodium Erythorbate",
 		"is_verified": false,
 		"_allergens_declared_on_label": ["Soy", "Milk"],
-		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"]
+		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"],
+		"_halal_status": "not_halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Manila's Ihawan",
@@ -295,7 +388,10 @@
 		"simplified_ingredients": "Pork, Sugar, Soy Sauce (Water, Wheat, Soybean, Salt, Sodium, Hydrolyzed Vegetable Protein, Guar Gum, Caramel Color, Corn Syrup,Sodium Benzoate, Garlic, Salt, Monosodium Glutamate, Paprika, Pepper, Sodium Phosphate, Sodium Nitrite",
 		"is_verified": false,
 		"_allergens_declared_on_label": ["Wheat", "Soy"],
-		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"]
+		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"],
+		"_halal_status": "not_halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Datu Puti",
@@ -304,7 +400,10 @@
 		"simplified_ingredients": "Water, Hydrolyzed Soybean Protein, Iodized Salt (Salt, Potassium Iodate), Caramel Color, Monosodium Glutamate, Citric Acid, 0.1% Potassium Sorbate, Disodium Inosinate, Disodium Guanylate, FD&C Yellow No. 5, FD&C Yellow No. 6, FD&C Red No. 40",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Datu Puti",
@@ -313,7 +412,10 @@
 		"simplified_ingredients": "Water, Cane Vinegar, Emulsifier (Neutral Cloud), Antioxidant (Sodium Metabisulfite) and Color (Caramel)",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "OMA",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Silver Swan",
@@ -322,7 +424,10 @@
 		"simplified_ingredients": "Water, Soybean Extract, Wheat, Iodized Salt, Caramel And Less Than 0.1% Potassium Sorbate",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Silver Swan",
@@ -331,7 +436,10 @@
 		"simplified_ingredients": "Cane Vinegar, Water",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "OMA",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Mang Tomas",
@@ -340,7 +448,10 @@
 		"simplified_ingredients": "Water, Sugar, Breadcrumbs (Wheat Flour, Sugar and Palm Olein), Iodized Salt (Salt, Potassium Iodate), Modified Starch (Corn), Onion, Vinegar Garlic, Palm Olein, Chili, Black Pepper, Sodium Benzoate, BHA, TBHQ",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Del Monte",
@@ -349,7 +460,10 @@
 		"simplified_ingredients": "Water, Tomato Paste, Sugar, Vinegar, Modified Starch, Iodized Salt, Sodium Benzoate (Preservative), Spices, Potassium Sorbate (Preservative), Nature-identical Flavors, Citric Acid (Acidity Regulator), Disodium Inosinate (Flavor Enhancer), FD&C Red No. 40",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Del Monte",
@@ -358,7 +472,10 @@
 		"simplified_ingredients": "Water, Tomato Paste, Sugar, Modified Food Starch, Salt, Distilled Vinegar, Spices, Garlic Powder, Dehydrated Onions, Monosodium Glutamate, Hydrolyzed Vegetable Protein (Defatted Soybean, Caramel Color, Monosodium Glutamate, Disodium Inosinate, Disodium Guanylate), Buttermilk Powder, Soybean Oil, Parmesan Cheese Flavor (Milk), Preservatives (Sodium Benzoate, Potassium Sorbate), Citric Acid, Artificial Flavors, Natural Flavors, Paprika Extract (Color), Yellow 6, Red 40, Sucralose",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Soy", "Milk"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "UFC",
@@ -367,7 +484,10 @@
 		"simplified_ingredients": "Water, Sugar, Banana Modified Starch as Stabilizer, Iodized Salt, Spices, Vinegar, Sodium Benzoate as Preservative, Artificial Colors and Artificial Flavor added.",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Soybeans"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Mama Sita's",
@@ -379,7 +499,10 @@
 		"_review_notes": [
 			"'Insonate' - possible OCR misread of 'Inosinate'",
 			"SEVERE OCR GARBLING: Source text has garbled bracket/word order in the oyster-extract and flavor-enhancer clauses ('Insonate And Enhancer'). Verify against label."
-		]
+		],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "Prime Certification & Inspection Asia Pacific Inc. (Prime C&I)",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Knorr",
@@ -388,7 +511,10 @@
 		"simplified_ingredients": "Iodized Salt, Acidity Regulator (Citric Acid), Flavor Enhancers (Msg, Ribonucleotide), Tamarind, Wheat Flour, Thickener (Xanthan Gum), Sugar, Taro, Tomato, Onion, Natural Flavor, Shrimp, Non-Hydrogenated Palm Oil, Spices, Color (Caramel)",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "knorr_sinigang"
 	},
 	{
 		"brand_name": "Knorr",
@@ -397,7 +523,10 @@
 		"simplified_ingredients": "Iodized Salt, Food Acid (Citric), Flavor Enhancer (Msg), Tamarind, Sugar, Tomato, Onion, Palm Oil, Shrimp, Natural Flavor, Spices, Wheat Flour, Color (Caramel)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Crustacean", "Gluten"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "knorr_sinigang"
 	},
 	{
 		"brand_name": "Knorr",
@@ -406,7 +535,10 @@
 		"simplified_ingredients": "Salt, Vegetable Oil Shortening (Palm Stearin, Hydrogenated Palm Oil, Tbhq, Monosodium Glutamate, Maltodextrin, Hydrolyzed Corn And Soy Protein, Water, Enriched Wheat Flour With Zinc (Wheat Flour, Niacin, Reduced Iron, Zinc Oxide, Thiamin Mononitrate, Riboflavin, Folic Acid), Onion Powder, Sugar, Disodium Inosinate, Natural Flavor, Pork Fat, Caramel Color (Sulfites), Artificial Flavor",
 		"is_verified": false,
 		"_allergens_declared_on_label": [],
-		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"]
+		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"],
+		"_halal_status": "not_halal",
+		"_halal_certifying_body": null,
+		"_variant_group": "knorr_cubes"
 	},
 	{
 		"brand_name": "Knorr",
@@ -415,7 +547,10 @@
 		"simplified_ingredients": "Salt, Monosodium Glutamate, Palm Oil, Corn Starch, Hydrogenated Palm Oil, Sugar, Xanthan Gum, Chicken Fat, Natural Flavor, Water, Turmeric (Color), Disodium Guanylate, Disodium Inosinate, Maltodextrin, Dehydrated Parsley, Spices, Caramel Color, Tbhq (Used To Protect Quality)",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "knorr_cubes"
 	},
 	{
 		"brand_name": "Ajinomoto",
@@ -424,7 +559,10 @@
 		"simplified_ingredients": "Iodized Salt, Flavor Enhancer (Monasodium Glutamate, Disodium Inosinate and Guanylate), Dextrin Bulking Agent), Sugar, Spices (Garlic, Onion, Black Pepper), Meat Flavors, Silicon Dioxide (Anticaking Agent), Refined Vegetable Oil, Chicken Extract, Artificial Garlic Flavor",
 		"is_verified": false,
 		"_allergens_declared_on_label": ["Soybean", "Wheat Egg"],
-		"_review_notes": ["'Monasodium' - possible OCR misread of 'Monosodium'", "unbalanced '()' brackets in source text - verify grouping"]
+		"_review_notes": ["'Monasodium' - possible OCR misread of 'Monosodium'", "unbalanced '()' brackets in source text - verify grouping"],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Maggi",
@@ -433,7 +571,10 @@
 		"simplified_ingredients": "Iodized Salt, Monosodium Glutamata, Sugar, Chicken Fat, Flavor Enhancer, Garlic, Onion, Spices, Natural Flavor, Nature-Identical Flavors (Gluten), Egg Powder, Chicken Powder",
 		"is_verified": false,
 		"_allergens_declared_on_label": [],
-		"_review_notes": ["'Glutamata' - possible OCR misread of 'Glutamate'"]
+		"_review_notes": ["'Glutamata' - possible OCR misread of 'Glutamate'"],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Crispy Fry",
@@ -442,7 +583,10 @@
 		"simplified_ingredients": "Starch, Wheat Flour, Iodized Salt, Spices, Monosodium Glutamate, Black Pepper, Onion, Garlic, Spices, Artificial Garlic Flavors",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Wheat"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": "crispy_fry_breading"
 	},
 	{
 		"brand_name": "Crispy Fry",
@@ -451,7 +595,10 @@
 		"simplified_ingredients": "Wheat Flour, Starch, Modified Starch, Garlic, Iodized Salt, Flavor Enhancers (Monosodium Glutamate, Disodium Ribonucleotides). Breadcrumbs, Black Pepper, Spices, Artificial Garlic Flavors. Nature-identical Garlic Flavor",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Wheat"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "crispy_fry_breading"
 	},
 	{
 		"brand_name": "Datu Puti",
@@ -460,7 +607,10 @@
 		"simplified_ingredients": "Water Fish Extract, Iodized Salt, Sodium Benzoate, Monosodium Glutamate, Disodium Metabisulfite Flavor Enhancer, Caramel Color",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Fish"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Lorins",
@@ -469,7 +619,10 @@
 		"simplified_ingredients": "Anchovy Fish And Salt",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Knorr",
@@ -478,7 +631,10 @@
 		"simplified_ingredients": "Water, Hydrolyzed Soy, Corn Protein, Glucose Syrup, Salt, Monosodium Glutamate, Sugar, Caramel Color, Citric Acid, Potassium Sorbate (Preservative), Disodium Inosinate, Disodium Guanylate, Artificial Flavor",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "Prime Certification & Inspection Asia Pacific Inc. (PRIME)",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Lady's Choice",
@@ -487,7 +643,10 @@
 		"simplified_ingredients": "Soybean Oil, Water, Eggs, Sugar, Vinegar, Iodized Salt, Stabilizer (Propylene Glycol Alginate), Spices, Preservative (Potassium Sorbate), Nature Identical Flavor, Color (Beta Carotene). Calcium Disodium Edta",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Eggs", "Milk"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP, MUI, JAKIM",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Lady's Choice",
@@ -496,7 +655,10 @@
 		"simplified_ingredients": "Water, Soybean Oil, Sugar, Cucumber, Distilled Vinegar, Corn Starch, Modified Corn Starch, Eggs, Salt, Egg Yolks Lactic Acid, Xanthan Gum, Artificial Flavor Mustard Flour, Phosphoric Acid, Sorbic Acid, Potassium Sorbate Preservative, Aspartame Guar Gum, Acesulfame Potassium, Garlic Powder Natural Flavor (Milk), Onion Powder, Celery Powder, Calcium Disodium Edta (Preservative) Citric Acid, Spices, Beta-Carotene (Color)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Eggs", "Milk"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP, MUI, JAKIM",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Best Foods",
@@ -505,7 +667,10 @@
 		"simplified_ingredients": "Water, Soybean Oil, Modified Food Starch, Sugar, Eggs Vinegar, Iodized Salt, Food Acid (Lactic), Emulsifier (Pgpr), Salt Replacer (Potassium Chloride), Stabilizer (Xanthan Gum), Preservative (Sodium Benzoate), Flavors, Sweetener (Steviol Glycoside), Spice, Calcium Disodium Edta",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Eggs", "Mustard"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Bear Brand",
@@ -514,7 +679,10 @@
 		"simplified_ingredients": "Milk Products (Skimmed Milk, Buttermilk), Glucose Syrup, Vegetable Oil, Sugar, Minerals (Calcium, Iron, Zinc), Emulsifiers (Soy Lecithin, Mono- And Diglycerides Of Fatty Acids Sodium Polyphosphate, Disodium Phosphate Sodium Citrate), Caseinate, Vitamins (C, E, B6, BI Pantothenic Acid, A, B2, D, Biotin, B12), Natural Flavors (Milk)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soya"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Alaska",
@@ -523,7 +691,10 @@
 		"simplified_ingredients": "Milk Powder (Skimmed Milk, Buttermilk), Glucose, Vegetable Oil, Sugar, Emulsifier (Lecithin), Stabilizers (Dipotassium Phosphate, Trisodium Citrate), Minerals (Calcium, Iron, Sodium, Phosphorus, Zinc, Iodine), Vitamins (Vitamin C, E, Choline, B6, B1, A, B2, Niacin, B12, D3), Nature-Identical Flavor",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "HDIP",
+		"_variant_group": "alaska_milk_formats"
 	},
 	{
 		"brand_name": "Alaska",
@@ -532,7 +703,10 @@
 		"simplified_ingredients": "Water, Non-Hydrogenated Vegetable Oil (Coconut Oil, Palm Oil), Buttermilk Powder, Sugar, Emulsifiers (Glyceryl Monostearate, Lecithin), Stabilizers (Potassium Chloride, Guar Gum, Carrageenan), Modified Starch, Iodized Salt, Nature Identical Flavor, Artificial Sweetener (Sucralose), Artificial Color (Tartrazine)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soy", "Peanut Oil"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "HDIP",
+		"_variant_group": "alaska_milk_formats"
 	},
 	{
 		"brand_name": "Alaska",
@@ -541,7 +715,10 @@
 		"simplified_ingredients": "Sugar, Water, Milk Solids (Whey Powder, Butter Milk Powder, Lactose, Skimmed Milk Powder, Fortified Powdered Milk), Vegetable Oil, Maltodextrin, Stabilizers (Microcrystalline Cellulose, Xanthan Gum, Sodium Carboxymethyl Cellulose, Carrageenan), Sequestrant (Sodium Tripolyphosphate), Artificial Color (Titanium Dioxide), Nature Identical Flavor",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soy", "Peanut Oil"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "HDIP",
+		"_variant_group": "alaska_milk_formats"
 	},
 	{
 		"brand_name": "Angel",
@@ -550,7 +727,10 @@
 		"simplified_ingredients": "Water, Coconut Oil, Palm Olein Oil, Milk Solids (Whole Milk Buttermilk Powder, Skimmed Milk Powder, Whey Powder), Refined Cane Sugar Cellulose Gel, Carrageenan, Cellulose Gum, Soy Lecithin (Produced From Genetically Modified Soybeans), Modified Tapioca, Maize Starch, Flavouring, Disodium Phosphate, Sucralose (4 Mg Per Serving), Diglycerides, Tartrazine",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "angel_milk_formats"
 	},
 	{
 		"brand_name": "Angel",
@@ -559,7 +739,10 @@
 		"simplified_ingredients": "Water, Sweeteners (Glucose Syrup, Sugar), Non-hydrogenated, Fully hydrogenated Vegetable Oils, Milk Powder (Buttermilk, Skimmed Milk), Maltodextrin, Emulsifiers (Mono- and Diglycerides of Fatty Acids, Citric Acid Ester, Soy Lecithin, Tricalcium Phosphate), Stabilizers (Microcrystalline Cellulose, Cellulose Gum, Calcium Carbonate, Disodium Phosphate, Carrageenan), Flavors, Sweetener (Sucralose), Iodized Salt",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "angel_milk_formats"
 	},
 	{
 		"brand_name": "Eden",
@@ -568,7 +751,10 @@
 		"simplified_ingredients": "Water, Vegetable Oil (Coconut Oil, Palm Oil, Palm Olein), Milk Powders, Natural Cheese, Emulsifiers (Sodium Phosphate, Sodium Citrate, Monoglycerides), Mineral Salts (Potassium Chloride, Iodized Salt), Maltodextrin, Lactic Acid, Sugar, Preservative (Potassium Sorbate)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Magnolia",
@@ -577,7 +763,10 @@
 		"simplified_ingredients": "Water Refined Coconut, Palm Oil Milk Proteins (Rennet Casein, Milk Protein Concentrate) Cheddar Cheese (Pasteurized Cow's Milk, Salt, Cultures, Coagulating Enzymes) Vinegar. Corn-Starch. Maltodextrin Emulsifying Agents (Disodium Phosphate, Sodium Polyphosphates, Orthophosphates, Distilled Monoglyceride) Modified Food Starches (Tapioca, Sago) Buttermilk Powder. Salt Citric Acid Nature-Identical Cheese Flavor Preservatives (Potassium Sorbate, Nisin) Antioxidants (BHA, Propyl Gallate, Citric Acid, Propylene Glycol As Carrier). Beta-Carotene",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Cheez Whiz",
@@ -586,7 +775,10 @@
 		"simplified_ingredients": "Water, Vegetable Oil (May contain one or more of the following: Coconut Oil, Palm Kernel Oil, Palm Oil, Palm Kernel Olein, Palm Olein), Natural Cheese, Milk Powders, Glucose Syrup, Emulsifier (Sodium Phosphate), Sugar, Iodized Salt, Food Acid (Lactic Acid), Spices (Contains mustard), Natural Flavor, Nature Identical Cheese Flavor, Mineral (Calcium Phosphate), Modified Food Starch, Preservative (Potassium Sorbate), Natural Color (Oleoresin Paprika), Vitamins (Retinyl Palmitate, Cholecalciferol)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Anchovies", "Barley"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": "cheez_whiz"
 	},
 	{
 		"brand_name": "Cheez Whiz",
@@ -595,7 +787,10 @@
 		"simplified_ingredients": "Water, Natural Cheese, Vegetable Oil (Coconut Oil, Palm Oil, Palm Olein), Milk Powders, Glucose Syrup, Emulsifier (Sodium Phosphate), Iodized Salt, Sugar, Food Acid (Lactic Acid), Pimiento, Vitamins, Minerals (Calcium Phosphate, Retinyl Palmitate, Cholecalciferol Spices. Preservative (Potassium Sorbate). Modified Food Starch, Natural Color (Oleoresin Paprika)",
 		"is_verified": false,
 		"_allergens_declared_on_label": ["Milk", "Anchovies", "Barley"],
-		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"]
+		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": "cheez_whiz"
 	},
 	{
 		"brand_name": "Magnolia",
@@ -604,7 +799,10 @@
 		"simplified_ingredients": "Fresh Cow's Milk",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Birch Tree",
@@ -613,7 +811,10 @@
 		"simplified_ingredients": "Milk Powder (Whole Milk, Skimmed Milk, Buttermilk), Vegetable Oil (Palm Oil, Palm Olein, Soya Oil, Corn Oil, Coconut Oil), Sugar, Glucose Syrup, Inulin Fiber, Emulsifier (Soy Lecithin), Stabilizers (Carrageenan, Dextrin), Vitamins (Vitamins A, B1, B2, B6, C, B5), Minerals (Calcium, Phosphorus, Sodium, Potassium, Magnesium, Iron, Zinc), Nature-identical, Natural Flavors",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Nestlé",
@@ -622,7 +823,10 @@
 		"simplified_ingredients": "Water, Milk fat, Skimmed milk powder, Emulsifiers (distilled monoglycerides, soya lecithin) Stabilizer (Sodium alginate), Natural Flavor, nature-identical Flavors, Beta carotene",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soya"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Star",
@@ -631,7 +835,10 @@
 		"simplified_ingredients": "Blend Of Vegetable Oils (Coconut Oil, Palm Oil, Fully Hydrogenated Palm Stearin) Water, Iodized Salt, Skim Milk Powder, Artificial Flavor, Niacin, Vitamin E, Soya Lecithin As Emulsifier, Vitamin B1, Antioxidant (BHA, Propyl Gallate), Beta Carotene As Colorant, Vitamin A, Vitamin B2, Vitamin B6, Vitamin B12, Vitamin D3, Potassium Iodate, Folic Acid",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Nutella",
@@ -642,7 +849,10 @@
 		"_allergens_declared_on_label": ["Hazelnuts", "Milk", "Soy"],
 		"_review_notes": [
 			"LOW-CONFIDENCE brand/product_name split: source label had no clear brand-vs-product distinction; verify against physical packaging."
-		]
+		],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Lily's",
@@ -651,7 +861,10 @@
 		"simplified_ingredients": "Peanuts, Cane Sugar, Iodized Salt",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Peanut"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Best Foods",
@@ -663,7 +876,10 @@
 		"_review_notes": [
 			"'Vitaminate Acetate' - possible OCR misread of 'Vitamin B1 Acetate' or similar",
 			"SEVERE OCR GARBLING: 'Vitaminate Acetate' is an unclear OCR fragment, likely 'Vitamin B1 Acetate' or similar - verify against label."
-		]
+		],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Nescafé",
@@ -672,7 +888,10 @@
 		"simplified_ingredients": "Creamer [Glucose Syrup, Hydrogenated Palm Kernel Oil, Stabilisers (Ins340(Ii), Ins451 (I), Ins331 (Iii), Ins452(I)), Milk Protein (Cow's Milk), Anticaking Agent (Ins170(I)), Emulsifiers (Ins471, Ins472e), Salt, Flavourings], Maltodextrin, Sugar, Instant Coffee, Salt, Flavourings, Sweetener (Acesulfame Potassium, Aspartame). Contains Permitted Stabilisers, Anticaking Agent, Emulsifiers, Flavourings, Sweeteners, Food Additives.",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Pandesal Mate",
@@ -684,7 +903,10 @@
 		"_review_notes": [
 			"unbalanced '()' brackets in source text - verify grouping",
 			"LOW-CONFIDENCE brand/product_name split: source label had no clear brand-vs-product distinction; verify against physical packaging."
-		]
+		],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Kopiko",
@@ -693,7 +915,10 @@
 		"simplified_ingredients": "Non Dairy Creamer (Glucose Syrup, Hydrogenated Vegetable Fat [Coconut, Palm Kernel Oil], Sodium Caseinate, Stabilizer [Dipotassium Phosphate], Emulsifier [Mono Diglycerides Of Fatty Acids, Sodium Stearoyl Lactylate), Stabilizer [Sodium Polyphosphate]), Anticaking Agent [Silicon Dioxide]), Sugar, Instant Coffee, Coffee Flavor, Skim Milk Powder, Cocoa Powder, Malt Extract Powder, Sucralose",
 		"is_verified": false,
 		"_allergens_declared_on_label": ["Milk", "Malt", "Maize", "Sulphite"],
-		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping", "unbalanced '[]' brackets in source text - verify grouping"]
+		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping", "unbalanced '[]' brackets in source text - verify grouping"],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": "kopiko_3in1"
 	},
 	{
 		"brand_name": "Kopiko",
@@ -702,7 +927,10 @@
 		"simplified_ingredients": "Sugar, Non-Dairy Creamer (Glucose Syrup, Hydrogenated Vegetable Fat [Coconut, Palm Kernel Oil], Sodium Caseinate, Stabilizer [Dipotassium Phosphate), Emulsifier [Mono - And Diglycerides Of Fatty Acids, Sodium Stearoyl Lactylate], Stabilizer [Sodium Polyphosphate), Anticaking Agent [Silicon Dioxide]), Instant Coffee, Salt.",
 		"is_verified": false,
 		"_allergens_declared_on_label": ["Milk", "Malt", "Maize", "Sulphite"],
-		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping", "unbalanced '[]' brackets in source text - verify grouping"]
+		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping", "unbalanced '[]' brackets in source text - verify grouping"],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "MUI",
+		"_variant_group": "kopiko_3in1"
 	},
 	{
 		"brand_name": "Great Taste",
@@ -711,7 +939,10 @@
 		"simplified_ingredients": "Creamer [Glucose, Hydrogenated Vegetable Fat (Palm Kernel), Acidity Regulators (Phosphate, Sodium Citrate), Caseinate, Emulsifiers (Mono-And Diglycerides Of Fatty Acids, Diacetyltartaric Acid Esters Of Mono-And Diglycerides, Sodium Stearoyl Lactylate), Stabilizer (Modified Starch), Anticaking Agent (Silicon Dioxide), Sweetener (Sucralose), Color (Riboflavin)], Sugar, Coffee, Natural Flavor, Artificial Flavors, Stabilizer (Modified Starch). Sweetener (Sucralose)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Malt", "Maize", "Sulphite"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "great_taste_coffee"
 	},
 	{
 		"brand_name": "Great Taste",
@@ -720,7 +951,10 @@
 		"simplified_ingredients": "Creamer [Glucose Syrup, Hydrogenated Vegetable Fat (Palm, Palm Kernel Or Coconut), Acidity Regulators (Dipotassium Phosphate, Sodium Citrate), Caseinate, Emulsifiers (Mono-And Diglycerides Of Fatty Acids, Diacetyl Tartaric Acid Ester Of Mono- And Diglycerides, Sodium Stearoyl Lactylate), Stabilizer (Modified Starch), Anticaking Agent (Silicon Dioxide), Sweetener (Sucralose), Color (Riboflavin)], Sugar, Coffee (Coffee Beans, Glucose), Dextrose Monohydrate, Thickener (Gum Acacia), Sweetener (Sucralose)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Sulphites"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": "great_taste_coffee"
 	},
 	{
 		"brand_name": "Nestlé",
@@ -729,7 +963,10 @@
 		"simplified_ingredients": "Corn Syrup Solids, Hydrogenated Vegetable Oil (Coconut, Palm Kernel, Soybean), Dipotassium Phosphate, Sodium Caseinate (Milk Derivative), Sodium Aluminosilicate, Mono-And Diglycerides, Annatto Color",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Derivative"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Milo",
@@ -738,7 +975,10 @@
 		"simplified_ingredients": "Nonfat Milk, Water, Barley Malt Extract, Sugar, Cocoa Processed With Alkali, Palm Oil, Less Than 2% Of Carrageenan, Mono & Diglycerides, Soy Lecithin, Calcium Phosphate, Sodium Phosphate, Magnesium Carbonate, Ascorbic Acid (Vitamin C). Artificial Flavors, Ferric Pyrophosphate (Iron), Niacinamide (Vitamin B3), Calcium Pantothenate (Vitamin B5), Pyridoxine Hydrochloride (Vitamin B6), Thiamine Mononitrate (Vitamin B1), Riboflavin (Vitamin B2), Biotin, Cyanocobalamin (Vitamin B12)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Wheat", "Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Swiss Miss",
@@ -747,7 +987,10 @@
 		"simplified_ingredients": "Sugar, Nonfat Milk, Modified Whey, Cocoa (Processed With Alkali), Corn Syrup, Hydrogenated Coconut Oil, Less Than 2% Of: Salt, Dipotassium Phosphate, Mono-And Diglycerides, Sodium Caseinate, Disodium Phosphate, Natural Flavor",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Tang",
@@ -756,7 +999,10 @@
 		"simplified_ingredients": "Sugar, Acidity Regulator (330), Orange Fruit Powder (0.8%), Minerals (Tricalcium Phosphate, Ferrous Citrate), Stabiliser (415), Vitamins, Food Colours (171, 110, 102), Salt",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Food Colours", "Added Flavour"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Energen",
@@ -765,7 +1011,10 @@
 		"simplified_ingredients": "Sugar, Non-Dairy Creamer [Glucose Syrup, Hydrogenated Vegetable Oil (Coconut Oil), Sodium Caseinate, Dipotassium Phosphate, Sodium Polyphosphate, Sodium Stearoyl Lactate, Silicon Dioxide). Milk Powder, Wheat Flour, Oats, Corn, Calcium Carbonate, Salt, Soy Lecithin, Sodium Ascorbate, Artificial Vanilla Flavoring, Egg Powder, Malt Extract",
 		"is_verified": false,
 		"_allergens_declared_on_label": ["Tree Nut", "Wheat", "Milk", "Soy", "Eggs"],
-		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping", "unbalanced '[]' brackets in source text - verify grouping"]
+		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping", "unbalanced '[]' brackets in source text - verify grouping"],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Coca-Cola",
@@ -774,7 +1023,10 @@
 		"simplified_ingredients": "Carbonated Water, Sugar, Acidity Regulator (338), Caffeine. Contains Permitted Natural Colour (1500), Added Flavours (Natural Flavouring Substances)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Caffeine"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Sprite",
@@ -785,7 +1037,10 @@
 		"_allergens_declared_on_label": [],
 		"_review_notes": [
 			"LOW-CONFIDENCE brand/product_name split: source label had no clear brand-vs-product distinction; verify against physical packaging."
-		]
+		],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Royal",
@@ -794,7 +1049,10 @@
 		"simplified_ingredients": "Carbonated Water, Sugar, Acidulant (Citric Acid), Stabilizer (Acacia Gum), Polydextrose, Sweeteners (Acesulfame-K, Sucralose), Preservative (Sodium Benzoate), Sequestrant (Shmp), Natural, Nature-Identical, Artificial Flavors, Artificial Color (Sunset Yellow), Vitamins (B5, B3), Anti-Foaming Agent (Pdms)",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "C2",
@@ -803,7 +1061,10 @@
 		"simplified_ingredients": "Purified Water, Fresh Brew From Green Tea Leaves, Sugar, Acidity Regulators (Citric Acid, Sodium Citrate, Malic Acid), Antioxidant (Ascorbic Acid), Artificial Flavor, Color (Caramel)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Sucralose"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": "c2_green_tea"
 	},
 	{
 		"brand_name": "C2",
@@ -812,7 +1073,10 @@
 		"simplified_ingredients": "Purified Water, Fresh Brew From Green Tea Leaves, Sugar, Acidity Regulators (Citric Acid (E330), Sodium Citrate (E331), Malic Acid (E296), Artificial Flavor (Lemon), Antioxidant (Ascorbic Acid (E300)], Artificial Sweetener [Sucralose (E955)) And Color (Caramel Color (E150d) (Sulphite))",
 		"is_verified": false,
 		"_allergens_declared_on_label": ["Sucralose"],
-		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"]
+		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": "c2_green_tea"
 	},
 	{
 		"brand_name": "Del Monte",
@@ -821,7 +1085,10 @@
 		"simplified_ingredients": "Pineapple Juice (Natural Juice, Reconstituted Juice From Concentrate), Water, Natural Flavor, Nature-identical Flavors, Stevia Extract [Steviol Glycosides (Sweetener)], Ascorbic Acid (Vitamin C), Citric Acid (Acidity Regulator), Xanthan Gum (Stabilizer)",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Gatorade",
@@ -830,7 +1097,10 @@
 		"simplified_ingredients": "Water, Sugar, Dextrose, Citric Acid, Natural Flavor, Artificial Flavor, Salt, Sodium Citrate, Monopotassium Phosphate, Modified Food Starch, Glycerol Ester of Rosin, Blue 1",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Oishi",
@@ -839,7 +1109,10 @@
 		"simplified_ingredients": "Wheat, Tapioca Starch, Corn Starch, Vegetable Oil (may consist of Coconut Oil, Palm Olein), Sugar, Salt, Shrimp, Monosodium Glutamate (E621), Fiber, Succinic Acid (E363), Mono-And Di-glycerides (E471), Disodium Inosinate (E631), Disodium Guanylate (E627), FD&C Yellow No. 5 (E102), FD&C Red No. 40 (E129), TBHQ (E319), BHA (E320)/BHT (E321) Antioxidant",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Wheat", "Crustacean (Shrimp)"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Jack 'n Jill",
@@ -848,7 +1121,10 @@
 		"simplified_ingredients": "Corn, Vegetable Oil (Palm Oil, Palm Olein, Antioxidant [TBHQ (E319)]), Seasoning (Flavor Enhancer [Monosodium Glutamate (E621)], Autolyzed Yeast, Salt, Sugar, Maltodextrin, Paprika, Hydrolyzed Vegetable Protein [Soy, Corn], Yeast, Natural Flavor, Artificial Flavors [Autolyzed Yeast, Artificial Beef], Anticaking Agents [Tricalcium Phosphate (E341), Silicon Dioxide (E551)], Rusk Powder [Wheat, Salt, Yeast], Mustard Seed, Colors [Caramel (E150d) (Sulphites), Paprika Extract (E160c)]), Spices (Onion, Garlic, Pepper), Flavor Enhancer (Monosodium Glutamate [E621])",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Wheat", "Mustard Seed", "Soybean"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Jack 'n Jill",
@@ -857,7 +1133,10 @@
 		"simplified_ingredients": "Dehydrated Potato Starch, Potatoes, Vegetable Oil (May Contain One or More of the Following: Palm Olein, Palm Oil, Corn Oil, Coconut Oil), Cheese Powder (Whey, Cheddar Cheese [Cultured Pasteurized Milk, Salt, Enzymes], Butter or Soybean Oil, Dry Buttermilk, Natural Flavour, Disodium Phosphate, Colours), Sugar, Monosodium Glutamate, Iodized Salt, Potassium Chloride, Artificial Flavour, Natural Spices, Mono-And Diglycerides (from Soybean), Citric Acid, Antioxidant",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Jack 'n Jill",
@@ -866,7 +1145,10 @@
 		"simplified_ingredients": "Potatoes, Vegetable Oil (May Contain One or More of the Following: Palm Olein, Palm Oil, or Coconut Oil), Cheese Powder {Cheddar Cheese (Cultured Pasteurized Milk, Salt, Enzymes), Butter or Soybean Oil, Dry Buttermilk, Natural Flavors, Texturizer (Disodium Phosphate), Artificial Color [Contains FD&C Yellow #5 (Tartrazine), FD&C Yellow #6]}, Whey Powder, Flavor Enhancer (Monosodium Glutamate), Natural Flavor, Artificial Flavors (with Soybean Oil, Wheat, Milk), Sugar, Skimmed Milk Powder, Antioxidants (Butylated Hydroxyanisole, Butylated Hydroxytoluene, Propyl Gallate), Soya, Wheat",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Soya", "Wheat"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Nova",
@@ -875,7 +1157,10 @@
 		"simplified_ingredients": "Corn, Wheat, Vegetable Oil, Palm Oil, Antioxidant [TBHQ (E319)], Rice Flour, Oat Flour, Cheese (Whey, Cheddar Cheese [Cultured Pasteurized Milk, Butter (Cream, Salt), Dry Buttermilk, Salt, Natural Flavors (Cheese), Emulsifier (Disodium Phosphate [E339])], Colors [Annatto (E160b), Turmeric (E100), Artificial Color [Sunset Yellow FCF (E110)]], Sugar, Flavor Enhancers [Monosodium Glutamate (E621), Disodium Inosinate (E631), Disodium Guanylate (E627)], Iodized Salt, Seasoning (Lactose, Natural Flavor, Artificial Flavors [Beef], Maltodextrin, Vitamin B2), Spices (Onion, Garlic), Anticaking Agents (Silicon Dioxide [E551], Tricalcium Phosphate [E341])",
 		"is_verified": false,
 		"_allergens_declared_on_label": ["Wheat", "Oat", "Milk", "Sulphites"],
-		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"]
+		"_review_notes": ["unbalanced '()' brackets in source text - verify grouping"],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "SkyFlakes",
@@ -884,7 +1169,10 @@
 		"simplified_ingredients": "Wheat Flour, Coconut Oil, Vegetable Shortening (Coconut Oil, Palm Oil, Vitamin E (Antioxidant)), Iodized Salt, Sugar, Sodium Bicarbonate (Raising Agent), Yeast",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Wheat"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Rebisco",
@@ -893,7 +1181,10 @@
 		"simplified_ingredients": "Wheat Flour, Vegetable Oil (Palm, Coconut), Iodized Salt, Malt, Raising Agent [Sodium Bicarbonate (E500)], Yeast",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Wheat"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Fita",
@@ -902,7 +1193,10 @@
 		"simplified_ingredients": "Wheat Flour, Coconut Oil, Vegetable Shortening (Coconut Oil, Palm Oil, Vitamin E (Antioxidant)), Sugar, Skim Milk Powder, Raising Agents (Ammonium Bicarbonate, Sodium Bicarbonate, Monocalcium Phosphate), Iodized Salt, Malt Extract, Enzymes (Protease)",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Wheat", "Milk"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Hansel",
@@ -911,7 +1205,10 @@
 		"simplified_ingredients": "Wheat Flour, Sugar, Vegetable Fat (Palm, Coconut), Starch, Raising Agents [Ammonium Bicarbonate (E503), Sodium Bicarbonate (E500), Sodium Acid Pyrophosphate (E450i)], Skimmed Milk, Iodized Salt, Whey Powder, Soya Lecithin (E322), Sodium Metabisulfite (E223), Artificial Mocha Flavor, Caramel Color (E150), Soya Lecithin (E322), Iodized Salt",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Wheat", "Milk", "Soy", "Sulphite"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "OMA",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Cream-O",
@@ -924,7 +1221,10 @@
 			"unbalanced '()' brackets in source text - verify grouping",
 			"unbalanced '[]' brackets in source text - verify grouping",
 			"SEVERE OCR GARBLING: Source PDF text had garbled fragments in the cheese-powder sub-list (missing parentheses, 'Sottith' garble). Reconstructed for readability - verify against physical label."
-		]
+		],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "JAKIM",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Bread Stix",
@@ -937,7 +1237,10 @@
 			"unbalanced '()' brackets in source text - verify grouping",
 			"SEVERE OCR GARBLING: Source PDF text was heavily garbled by OCR/scan quality (e.g. illegible fragments). Ingredient list below is a best-effort reconstruction based on typical bread-stick formulations and partial legible fragments - MUST be verified against the physical product label before use.",
 			"LOW-CONFIDENCE brand/product_name split: source label had no clear brand-vs-product distinction; verify against physical packaging."
-		]
+		],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Ding Dong",
@@ -948,7 +1251,10 @@
 		"_allergens_declared_on_label": ["Peanuts", "Wheat", "Gluten", "Soya"],
 		"_review_notes": [
 			"SEVERE OCR GARBLING: Source PDF text had garbled/out-of-order fragments (bracket and comma placement unclear, especially around the color additives and soy protein line). Reconstructed for readability - verify against physical label."
-		]
+		],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "OMA",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Boy Bawang",
@@ -957,7 +1263,10 @@
 		"simplified_ingredients": "Corn, Coconut Oil, Palm Oil, Palm Olein, Garlic, Salt, Monosodium Glutamate, Sugar, Chili Powder",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Peanuts", "Tree nuts", "Wheat", "Soy", "Milk"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Cloud 9",
@@ -966,7 +1275,10 @@
 		"simplified_ingredients": "Glucose, Peanuts, Sugar, Skimmed Milk, Hydrogenated Fat (Animal Fat [Fish Oil], Vegetable Fat [Soya, Palm], Antioxidant [TBHQ]), Humectant (Sorbitol), Iodized Salt, Egg Albumen, Milk or Soy Protein, Emulsifier (Soya Lecithin), Natural Flavor, Artificial Flavors, Antioxidants (Citric Acid, Fatty Acid Esters of Glycerol, BHT, BHA, Propyl Gallate), Sugar, Hydrogenated Vegetable Fat (Palm, Emulsifier [Soya Lecithin], Antioxidant [Citric Acid]), Skimmed Milk, Cocoa, Whey, Emulsifiers (Soya Lecithin, Polyglycerol Esters of Interesterified Ricinoleic Acid).",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Peanuts", "Fish Product", "Milk Products", "Soybean Products", "Eggs", "Sulphite", "Wheat"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Choco Mucho",
@@ -975,7 +1287,10 @@
 		"simplified_ingredients": "Sugar, Hydrogenated Vegetable Oil, Skimmed Milk Powder, Cocoa Powder, Emulsifiers [Soya Lecithin (E322), Polyglycerol Polyricinoleate (E476)], Nature identical Flavor-Vanillin, Glucose Syrup, Sugar, Vegetable Fat, Glycerine (E422), Skimmed Milk Powder, Malt Extract, Iodized Salt, Citric Acid (E330), Sodium Bicarbonate (E500ii), Nature-identical Caramel Flavor, Wheat Flour, Sugar, Vegetable Fat, Whey Powder, Skimmed Milk Powder, Cocoa Powder, Starch, Soya Flour, Soya Lecithin (E322), Iodized Salt, Corn, Rice, Cocoa Powder",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Wheat", "Milk", "Soy"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "HDIP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Flat Tops",
@@ -984,7 +1299,10 @@
 		"simplified_ingredients": "Milk Solids, Refined Sugar, Hydrogenated Vegetable Fat (Palm Oil, Palm Kernel Oil), Cocoa Powder, Emulsifiers (Soya Lecithin, E476), Iodized Salt, Vanillin, Cinnamon",
 		"is_verified": true,
 		"_allergens_declared_on_label": ["Milk", "Nuts"],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "IDCP",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Choc-Nut",
@@ -995,10 +1313,13 @@
 		"_allergens_declared_on_label": ["Milk", "Peanuts"],
 		"_review_notes": [
 			"LOW-CONFIDENCE brand/product_name split: source label had no clear brand-vs-product distinction; verify against physical packaging."
-		]
+		],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
-		"brand_name": "Generic (Store Repacked)",
+		"brand_name": "Equal",
 		"product_name": "Washed / Refined Sugar",
 		"ingredient_text": "100% Cane Sugar",
 		"simplified_ingredients": "100% Cane Sugar",
@@ -1006,7 +1327,10 @@
 		"_allergens_declared_on_label": [],
 		"_review_notes": [
 			"LOW-CONFIDENCE brand/product_name split: source label had no clear brand-vs-product distinction; verify against physical packaging."
-		]
+		],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Fidel",
@@ -1015,7 +1339,10 @@
 		"simplified_ingredients": "Natural Sea Salt, Potassium Iodine (Fortificant)",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "unknown",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Baguio",
@@ -1024,7 +1351,10 @@
 		"simplified_ingredients": "Coconut Oil, Vitamin A Palmitate",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": null,
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Spring",
@@ -1033,7 +1363,10 @@
 		"simplified_ingredients": "Bleached Deodorized Coconut Oil, Vitamin A",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "OMA",
+		"_variant_group": null
 	},
 	{
 		"brand_name": "Golden Fiesta",
@@ -1042,6 +1375,9 @@
 		"simplified_ingredients": "Refined Canola Oil, Vitamin A Palmitate (Fortificant)",
 		"is_verified": true,
 		"_allergens_declared_on_label": [],
-		"_review_notes": []
+		"_review_notes": [],
+		"_halal_status": "halal",
+		"_halal_certifying_body": "OMA",
+		"_variant_group": null
 	}
 ]

@@ -316,6 +316,7 @@ export const CatalogProductScalarFieldEnum = {
   is_verified: 'is_verified',
   match_key: 'match_key',
   halal_logo_id: 'halal_logo_id',
+  variant_group: 'variant_group',
   confirmed_not_halal: 'confirmed_not_halal',
   halal_unverified: 'halal_unverified',
   created_at: 'created_at',

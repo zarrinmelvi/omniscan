@@ -9,6 +9,7 @@ type SeedRow = {
 	is_verified: boolean
 	_allergens_declared_on_label: string[]
 	_review_notes: string[]
+	_variant_group: string | null
 }
 
 /**
@@ -37,7 +38,7 @@ function generateMatchKey(brandName: string, productName: string): string {
  * shared transaction.
  */
 export default () => {
-	const dataPath = path.join(__dirname, '../data/seed_products.json')
+	const dataPath = path.join(__dirname, '../seed_products.json')
 	const rows: SeedRow[] = JSON.parse(readFileSync(dataPath, 'utf-8'))
 
 	const unverifiedCount = rows.filter((r) => !r.is_verified).length
@@ -55,5 +56,6 @@ export default () => {
 		simplified_ingredients: row.simplified_ingredients,
 		is_verified: row.is_verified,
 		match_key: generateMatchKey(row.brand_name, row.product_name),
+		variant_group: row._variant_group,
 	}))
 }

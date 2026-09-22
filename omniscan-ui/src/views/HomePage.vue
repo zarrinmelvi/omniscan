@@ -269,7 +269,7 @@ interface SuggestedRecipe {
 	liked: boolean
 	made: boolean
 	image_url?: string
-	allergen_warnings?: (string | RecipeWarning)[] // <--- UPDATE THIS LINE
+	allergen_warnings?: (string | RecipeWarning)[]
 }
 
 interface MadeRecipeResult {

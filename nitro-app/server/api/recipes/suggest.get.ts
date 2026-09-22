@@ -129,16 +129,21 @@ export default defineEventHandler(async (event) => {
 			const ingredients = coerceRawIngredients(recipe.raw_ingredients)
 			if (ingredients.length === 0) continue
 
-			const combinedText = ingredients.map((i) => i.name).join(', ').toLowerCase()
+			const combinedText = ingredients
+				.map((i) => i.name)
+				.join(', ')
+				.toLowerCase()
 
-			// Was previously `if (allergenMatches.length > 0) continue` — a
-			// recipe containing an allergen is no longer hidden from
-			// suggestions entirely. The user can still choose to make it;
-			// they just see which allergen(s) are present first, the same
-			// way Scan already surfaces allergen warnings without blocking
-			// "Add to Pantry". Halal exclusion below is untouched — only the
-			// allergen behavior changed, per what was actually asked for.
+			// Real allergens are excluded from suggestions entirely — make.post.ts
+			// will always reject making one of these (409, safety-critical), so
+			// showing it in the list with just a warning was misleading: the
+			// list previously said "you can still make it" while the backend
+			// would refuse every time. Custom dietary preferences (dairy-free,
+			// avoid MSG, etc.) are a softer, personal-choice category — those
+			// stay as warnings rather than exclusions, since make.post.ts
+			// doesn't block on them either.
 			const directAllergenMatches = findMatchedUserAllergens(combinedText, userAllergens).map((a) => a.name)
+			if (directAllergenMatches.length > 0) continue
 
 			// Evaluate Dietary Profile Custom Preferences (e.g., "Dairy-free", "avoid msg") against recipe ingredients
 			const preferenceWarnings = new Set<string>()

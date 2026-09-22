@@ -21,11 +21,15 @@
 
 			<!-- Body Details -->
 			<div class="detail-content">
-				<!-- Allergen Warning: informational only, never blocks Make Recipe -->
+				<!-- Dietary preference conflict: informational only, never blocks Make Recipe.
+				Recipes matching a real allergen never reach this modal — suggest.get.ts
+				excludes those entirely, since make.post.ts always refuses to make one
+				(safety-critical). This is only for the softer custom-preference category
+				(e.g. dairy-free, avoid MSG), which the backend doesn't block on. -->
 				<div v-if="recipe.allergen_warnings?.length" class="allergen-warning">
 					<ion-icon :icon="warningOutline" />
 					<div>
-						<p class="allergen-warning-title">Contains an allergen you've flagged</p>
+						<p class="allergen-warning-title">Conflicts with a preference you've set</p>
 						<p class="allergen-warning-text">
 							This recipe contains {{ recipe.allergen_warnings.join(', ') }}. You can still make it if you choose to.
 						</p>

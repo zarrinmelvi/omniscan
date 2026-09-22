@@ -1,7 +1,7 @@
 import { defineEventHandler, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
-import { findMatchedUserAllergens } from '../../lib/allergen-matching'
+import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens } from '../../lib/allergen-matching'
 import { matchIngredientsToPantry, findNonHalalKeywords, extractPantryKeywords, type RawIngredient } from '../../lib/recipe-matching'
 import { DIETARY_ALLERGEN_MAP } from '../../lib/dietary-map'
 
@@ -134,18 +134,35 @@ export default defineEventHandler(async (event) => {
 				.join(', ')
 				.toLowerCase()
 
-			// Real allergens are excluded from suggestions entirely — make.post.ts
-			// will always reject making one of these (409, safety-critical), so
-			// showing it in the list with just a warning was misleading: the
-			// list previously said "you can still make it" while the backend
-			// would refuse every time. Custom dietary preferences (dairy-free,
-			// avoid MSG, etc.) are a softer, personal-choice category — those
-			// stay as warnings rather than exclusions, since make.post.ts
-			// doesn't block on them either.
-			const directAllergenMatches = findMatchedUserAllergens(combinedText, userAllergens).map((a) => a.name)
-			if (directAllergenMatches.length > 0) continue
+			// 1. Halal Filter Check
+			if (halalPref && findNonHalalKeywords(combinedText).length > 0) continue
 
-			// Evaluate Dietary Profile Custom Preferences (e.g., "Dairy-free", "avoid msg") against recipe ingredients
+			// 2. Match Ingredients to Pantry
+			const { matchedIngredients, missingIngredients } = matchIngredientsToPantry(ingredients, pantryProducts)
+			const interaction = interactionByRecipeId.get(recipe.id)
+			const isMade = interaction?.made_at != null
+			const matchedCount = matchedIngredients.length
+			const totalCount = ingredients.length
+
+			// 3. Exclude recipes with 0 matching items in pantry or incomplete 'made' recipes
+			if (matchedCount === 0) continue
+			if (isMade && matchedCount < totalCount) continue
+
+			// 4. Real Allergen Safety Check (Ran ONLY on pantry-matched candidate recipes)
+			const stringMatches = findMatchedUserAllergens(combinedText, userAllergens)
+			const semanticMatches = await matchUserAllergensSemantically(combinedText, userAllergens)
+			const mergedAllergenMatches = mergeMatchedAllergens(stringMatches, semanticMatches)
+
+			// Exclude recipes with confirmed (confidence = 1) allergen matches outright
+			const confirmedAllergens = mergedAllergenMatches.filter((a) => a.confidence === 1)
+			if (confirmedAllergens.length > 0) continue
+
+			// Lower-confidence / AI-inferred matches become non-blocking warnings
+			const possibleAllergenWarnings = mergedAllergenMatches
+				.filter((a) => a.confidence < 1)
+				.map((a) => `Possibly contains ${a.name} - your allergen (${Math.round(a.confidence * 100)}% confidence)`)
+
+			// 5. Custom Preference Warnings (soft/preference choices)
 			const preferenceWarnings = new Set<string>()
 			customPreferences.forEach((pref: string) => {
 				const prefKey = pref.toLowerCase().trim()
@@ -158,26 +175,8 @@ export default defineEventHandler(async (event) => {
 				}
 			})
 
-			// Combine direct allergen entity matches and custom preference rule warnings
-			const combinedWarnings = Array.from(new Set([...directAllergenMatches, ...preferenceWarnings]))
-
-			if (halalPref && findNonHalalKeywords(combinedText).length > 0) continue
-
-			const { matchedIngredients, missingIngredients } = matchIngredientsToPantry(ingredients, pantryProducts)
-			const interaction = interactionByRecipeId.get(recipe.id)
-			const isMade = interaction?.made_at != null
-			const matchedCount = matchedIngredients.length
-			const totalCount = ingredients.length
-
-			// 1. Exclude recipes with 0 matching items in pantry
-			if (matchedCount === 0) {
-				continue
-			}
-
-			// 2. Exclude recipes marked as 'made' unless all required ingredients are present in pantry again
-			if (isMade && matchedCount < totalCount) {
-				continue
-			}
+			// Combine warnings for response payload
+			const combinedWarnings = Array.from(new Set([...possibleAllergenWarnings, ...preferenceWarnings]))
 
 			// Mark recipe as processed before adding to results
 			seenRecipeIds.add(recipe.id)

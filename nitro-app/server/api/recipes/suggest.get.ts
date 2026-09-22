@@ -1,7 +1,7 @@
 import { defineEventHandler, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
-import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens } from '../../lib/allergen-matching'
+import { findMatchedUserAllergens } from '../../lib/allergen-matching'
 import { matchIngredientsToPantry, findNonHalalKeywords, extractPantryKeywords, type RawIngredient } from '../../lib/recipe-matching'
 import { DIETARY_ALLERGEN_MAP } from '../../lib/dietary-map'
 
@@ -148,17 +148,15 @@ export default defineEventHandler(async (event) => {
 			if (matchedCount === 0) continue
 			if (isMade && matchedCount < totalCount) continue
 
-			// 4. Real Allergen Safety Check (Ran ONLY on pantry-matched candidate recipes)
+			// 4. Real Allergen Safety Check (Fast string matching to avoid 504 timeouts)
 			const stringMatches = findMatchedUserAllergens(combinedText, userAllergens)
-			const semanticMatches = await matchUserAllergensSemantically(combinedText, userAllergens)
-			const mergedAllergenMatches = mergeMatchedAllergens(stringMatches, semanticMatches)
 
-			// Exclude recipes with confirmed (confidence = 1) allergen matches outright
-			const confirmedAllergens = mergedAllergenMatches.filter((a) => a.confidence === 1)
+			// Exclude recipes with confirmed string allergen matches outright
+			const confirmedAllergens = stringMatches.filter((a) => a.confidence === 1)
 			if (confirmedAllergens.length > 0) continue
 
-			// Lower-confidence / AI-inferred matches become non-blocking warnings
-			const possibleAllergenWarnings = mergedAllergenMatches
+			// Lower-confidence / non-exact string matches become non-blocking warnings
+			const possibleAllergenWarnings = stringMatches
 				.filter((a) => a.confidence < 1)
 				.map((a) => `Possibly contains ${a.name} - your allergen (${Math.round(a.confidence * 100)}% confidence)`)
 

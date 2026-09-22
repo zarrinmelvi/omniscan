@@ -129,38 +129,18 @@ export default defineEventHandler(async (event) => {
 			const ingredients = coerceRawIngredients(recipe.raw_ingredients)
 			if (ingredients.length === 0) continue
 
-			const combinedText = ingredients
-				.map((i) => i.name)
-				.join(', ')
-				.toLowerCase()
+			const combinedText = ingredients.map((i) => i.name).join(', ').toLowerCase()
 
-			// 1. Halal Filter Check
-			if (halalPref && findNonHalalKeywords(combinedText).length > 0) continue
+			// Was previously `if (allergenMatches.length > 0) continue` — a
+			// recipe containing an allergen is no longer hidden from
+			// suggestions entirely. The user can still choose to make it;
+			// they just see which allergen(s) are present first, the same
+			// way Scan already surfaces allergen warnings without blocking
+			// "Add to Pantry". Halal exclusion below is untouched — only the
+			// allergen behavior changed, per what was actually asked for.
+			const directAllergenMatches = findMatchedUserAllergens(combinedText, userAllergens).map((a) => a.name)
 
-			// 2. Match Ingredients to Pantry
-			const { matchedIngredients, missingIngredients } = matchIngredientsToPantry(ingredients, pantryProducts)
-			const interaction = interactionByRecipeId.get(recipe.id)
-			const isMade = interaction?.made_at != null
-			const matchedCount = matchedIngredients.length
-			const totalCount = ingredients.length
-
-			// 3. Exclude recipes with 0 matching items in pantry or incomplete 'made' recipes
-			if (matchedCount === 0) continue
-			if (isMade && matchedCount < totalCount) continue
-
-			// 4. Real Allergen Safety Check (Fast string matching to avoid 504 timeouts)
-			const stringMatches = findMatchedUserAllergens(combinedText, userAllergens)
-
-			// Exclude recipes with confirmed string allergen matches outright
-			const confirmedAllergens = stringMatches.filter((a) => a.confidence === 1)
-			if (confirmedAllergens.length > 0) continue
-
-			// Lower-confidence / non-exact string matches become non-blocking warnings
-			const possibleAllergenWarnings = stringMatches
-				.filter((a) => a.confidence < 1)
-				.map((a) => `Possibly contains ${a.name} - your allergen (${Math.round(a.confidence * 100)}% confidence)`)
-
-			// 5. Custom Preference Warnings (soft/preference choices)
+			// Evaluate Dietary Profile Custom Preferences (e.g., "Dairy-free", "avoid msg") against recipe ingredients
 			const preferenceWarnings = new Set<string>()
 			customPreferences.forEach((pref: string) => {
 				const prefKey = pref.toLowerCase().trim()
@@ -173,8 +153,26 @@ export default defineEventHandler(async (event) => {
 				}
 			})
 
-			// Combine warnings for response payload
-			const combinedWarnings = Array.from(new Set([...possibleAllergenWarnings, ...preferenceWarnings]))
+			// Combine direct allergen entity matches and custom preference rule warnings
+			const combinedWarnings = Array.from(new Set([...directAllergenMatches, ...preferenceWarnings]))
+
+			if (halalPref && findNonHalalKeywords(combinedText).length > 0) continue
+
+			const { matchedIngredients, missingIngredients } = matchIngredientsToPantry(ingredients, pantryProducts)
+			const interaction = interactionByRecipeId.get(recipe.id)
+			const isMade = interaction?.made_at != null
+			const matchedCount = matchedIngredients.length
+			const totalCount = ingredients.length
+
+			// 1. Exclude recipes with 0 matching items in pantry
+			if (matchedCount === 0) {
+				continue
+			}
+
+			// 2. Exclude recipes marked as 'made' unless all required ingredients are present in pantry again
+			if (isMade && matchedCount < totalCount) {
+				continue
+			}
 
 			// Mark recipe as processed before adding to results
 			seenRecipeIds.add(recipe.id)

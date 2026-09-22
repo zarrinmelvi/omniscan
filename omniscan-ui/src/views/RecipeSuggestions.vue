@@ -76,10 +76,6 @@
 						<p class="card-instructions">{{ recipe.instructions }}</p>
 
 						<div class="card-footer">
-							<span v-if="recipe.allergen_warnings?.length" class="warning-badge">
-								<ion-icon :icon="warningOutline" />
-								Warning
-							</span>
 							<span class="pantry-count">{{ recipe.matched_count }} in pantry</span>
 						</div>
 					</div>
@@ -160,18 +156,9 @@ import {
 	IonAlert,
 	IonModal,
 } from '@ionic/vue'
-import {
-	restaurantOutline,
-	closeOutline,
-	heart,
-	heartOutline,
-	archiveOutline,
-	checkmarkCircle,
-	chevronForwardOutline,
-	warningOutline,
-} from 'ionicons/icons'
+import { restaurantOutline, closeOutline, heart, heartOutline, archiveOutline, checkmarkCircle, chevronForwardOutline } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
-import RecipeDetailModal, { type RecipeWarning } from '@/components/RecipeDetailModal.vue'
+import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
 
 interface SuggestedRecipe {
 	id: number
@@ -184,7 +171,7 @@ interface SuggestedRecipe {
 	liked: boolean
 	made: boolean
 	image_url?: string
-	allergen_warnings?: (string | RecipeWarning)[]
+	allergen_warnings?: string[]
 }
 
 interface MadeRecipeResult {
@@ -223,6 +210,7 @@ const madeCount = computed(() => {
 	return recipes.value.filter((r) => r.made).length
 })
 
+// Detail modal state
 const isDetailModalOpen = ref(false)
 const selectedRecipe = ref<SuggestedRecipe | null>(null)
 
@@ -302,6 +290,10 @@ async function toggleLike(recipe: SuggestedRecipe): Promise<void> {
 
 	likingId.value = recipe.id
 
+	// Optimistic update – flip immediately, revert below if the request fails.
+	// A card the user just liked while on the Liked tab stays visible until
+	// the next refetch rather than vanishing mid-tap, which reads as a bug
+	// even though it'd be technically correct.
 	const previousLiked = recipe.liked
 	recipe.liked = !previousLiked
 
@@ -393,6 +385,7 @@ onMounted(() => {
 	margin: 0 0 20px;
 }
 
+/* Custom Segment Tabs */
 .tab-chips-container {
 	display: flex;
 	gap: 10px;
@@ -609,19 +602,6 @@ onMounted(() => {
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
-}
-
-.warning-badge {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	font-size: 0.72rem;
-	font-weight: 600;
-	color: #d97706;
-	background: #fef3c7;
-	padding: 2px 8px;
-	border-radius: 9999px;
-	margin-right: auto;
 }
 
 .pantry-count {

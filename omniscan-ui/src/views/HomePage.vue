@@ -235,7 +235,7 @@ import {
 	closeOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
-import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
+import RecipeDetailModal, { type RecipeWarning } from '@/components/RecipeDetailModal.vue'
 
 const router = useRouter()
 
@@ -269,7 +269,7 @@ interface SuggestedRecipe {
 	liked: boolean
 	made: boolean
 	image_url?: string
-	allergen_warnings?: string[]
+	allergen_warnings?: (string | RecipeWarning)[] // <--- UPDATE THIS LINE
 }
 
 interface MadeRecipeResult {

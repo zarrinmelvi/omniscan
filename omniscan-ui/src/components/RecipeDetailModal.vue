@@ -21,17 +21,24 @@
 
 			<!-- Body Details -->
 			<div class="detail-content">
-				<!-- Dietary preference conflict: informational only, never blocks Make Recipe.
-				Recipes matching a real allergen never reach this modal — suggest.get.ts
-				excludes those entirely, since make.post.ts always refuses to make one
-				(safety-critical). This is only for the softer custom-preference category
-				(e.g. dairy-free, avoid MSG), which the backend doesn't block on. -->
-				<div v-if="recipe.allergen_warnings?.length" class="allergen-warning">
+				<!-- AI-Inferred Allergen Warning (High Priority Warning) -->
+				<div v-if="possibleAllergenWarnings.length" class="allergen-warning allergen-warning--amber">
+					<ion-icon :icon="warningOutline" />
+					<div>
+						<p class="allergen-warning-title">Possible Allergen Warning</p>
+						<p v-for="(w, idx) in possibleAllergenWarnings" :key="idx" class="allergen-warning-text">
+							{{ w.label }}
+						</p>
+					</div>
+				</div>
+
+				<!-- Custom Dietary Preference Conflict (Informational) -->
+				<div v-if="preferenceWarnings.length" class="allergen-warning allergen-warning--preference">
 					<ion-icon :icon="warningOutline" />
 					<div>
 						<p class="allergen-warning-title">Conflicts with a preference you've set</p>
 						<p class="allergen-warning-text">
-							This recipe contains {{ recipe.allergen_warnings.join(', ') }}. You can still make it if you choose to.
+							This recipe contains {{ preferenceWarnings.map((w) => w.label).join(', ') }}. You can still make it if you choose to.
 						</p>
 					</div>
 				</div>
@@ -86,8 +93,14 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { IonModal, IonButton, IonIcon } from '@ionic/vue'
 import { closeOutline, heart, heartOutline, checkmarkCircle, bagHandleOutline, restaurantOutline, warningOutline } from 'ionicons/icons'
+
+export interface RecipeWarning {
+	type: 'possible_allergen' | 'preference'
+	label: string
+}
 
 interface RecipeIngredientRef {
 	name: string
@@ -106,10 +119,10 @@ interface SuggestedRecipe {
 	liked: boolean
 	made: boolean
 	image_url?: string
-	allergen_warnings?: string[]
+	allergen_warnings?: (string | RecipeWarning)[]
 }
 
-defineProps<{
+const props = defineProps<{
 	isOpen: boolean
 	recipe: SuggestedRecipe | null
 }>()
@@ -121,6 +134,24 @@ const emit = defineEmits<{
 	(e: 'toggle-like', recipe: SuggestedRecipe): void
 }>()
 
+const normalizedWarnings = computed<RecipeWarning[]>(() => {
+	if (!props.recipe?.allergen_warnings?.length) return []
+	return props.recipe.allergen_warnings.map((w) => {
+		if (typeof w === 'string') {
+			const isPossibleAllergen = w.toLowerCase().startsWith('possibly contains')
+			return {
+				type: isPossibleAllergen ? 'possible_allergen' : 'preference',
+				label: w,
+			}
+		}
+		return w
+	})
+})
+
+const possibleAllergenWarnings = computed(() => normalizedWarnings.value.filter((w) => w.type === 'possible_allergen'))
+
+const preferenceWarnings = computed(() => normalizedWarnings.value.filter((w) => w.type === 'preference'))
+
 function parsedSteps(instructions: string): string[] {
 	if (!instructions) return []
 
@@ -130,10 +161,6 @@ function parsedSteps(instructions: string): string[] {
 		.filter((step) => step.length > 0)
 }
 
-// Turns a parsed quantity like 0.5 back into a friendlier "½" for the small
-// set of fractions the ingredient parser commonly produces (see
-// VULGAR_FRACTIONS in import-recipes.ts) — purely cosmetic, falls back to a
-// plain number for anything else so nothing is ever hidden or dropped.
 const FRACTION_DISPLAY: [number, string][] = [
 	[0.25, '¼'],
 	[1 / 3, '⅓'],
@@ -236,13 +263,23 @@ function formatIngredient(item: RecipeIngredientRef): string {
 	display: flex;
 	gap: 10px;
 	align-items: flex-start;
-	background: #fffbeb;
-	border: 1px solid #fde68a;
 	border-radius: 12px;
 	padding: 12px 14px;
-	margin-bottom: 20px;
-	color: #92400e;
+	margin-bottom: 16px;
 	font-size: 1.1rem;
+	border: 1px solid;
+}
+
+.allergen-warning--amber {
+	background: #fff7ed;
+	border-color: #fdba74;
+	color: #c2410c;
+}
+
+.allergen-warning--preference {
+	background: #fffbeb;
+	border-color: #fde68a;
+	color: #92400e;
 }
 
 .allergen-warning-title {
@@ -286,7 +323,6 @@ function formatIngredient(item: RecipeIngredientRef): string {
 	color: #f97316;
 }
 
-/* Chips Flex Wrap Layout */
 .chips-flex-container {
 	display: flex;
 	flex-wrap: wrap;
@@ -313,7 +349,6 @@ function formatIngredient(item: RecipeIngredientRef): string {
 	color: #9a3412;
 }
 
-/* Instructions Step Rows */
 .step-row {
 	display: flex;
 	gap: 12px;
@@ -341,7 +376,6 @@ function formatIngredient(item: RecipeIngredientRef): string {
 	line-height: 1.4;
 }
 
-/* Footer Container */
 .detail-footer {
 	position: sticky;
 	bottom: 0;

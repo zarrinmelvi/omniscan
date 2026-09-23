@@ -44,17 +44,33 @@
 					</ion-accordion>
 				</ion-accordion-group>
 
-				<p class="upload-limit-note"><ion-icon :icon="warningOutline" /> Daily upload limit: 7 photos per day</p>
+				<!-- Dynamic Upload Limit Note -->
+				<p class="upload-limit-note" :class="{ 'upload-limit-note--reached': remainingUploads <= 0 }">
+					<ion-icon :icon="warningOutline" />
+					<span v-if="remainingUploads > 0">Daily upload limit: {{ remainingUploads }} of {{ DAILY_MAX_LIMIT }} photos remaining</span>
+					<span v-else>Daily upload limit reached (7/7). Try again tomorrow.</span>
+				</p>
 
-				<input ref="fileInputRef" type="file" accept="image/*" class="hidden-input" @change="onFileSelected" />
+				<input
+					ref="fileInputRef"
+					type="file"
+					accept="image/*"
+					class="hidden-input"
+					:disabled="remainingUploads <= 0"
+					@change="onFileSelected" />
 
-				<div class="upload-dropzone" @click="fileInputRef?.click()">
+				<div
+					class="upload-dropzone"
+					:class="{ 'upload-dropzone--disabled': remainingUploads <= 0 }"
+					@click="remainingUploads > 0 && fileInputRef?.click()">
 					<template v-if="!previewUrl">
 						<div class="upload-icon-wrapper">
 							<ion-icon :icon="cloudUploadOutline" class="upload-icon" />
 						</div>
-						<p class="upload-title">Tap to upload a photo</p>
-						<p class="upload-subtitle">Take a photo or choose from your gallery</p>
+						<p class="upload-title">{{ remainingUploads > 0 ? 'Tap to upload a photo' : 'Limit Reached' }}</p>
+						<p class="upload-subtitle">
+							{{ remainingUploads > 0 ? 'Take a photo or choose from your gallery' : 'You have reached your 7 photo limit for today' }}
+						</p>
 					</template>
 					<template v-else>
 						<img :src="previewUrl" alt="Selected product photo" class="preview-image" />
@@ -64,8 +80,8 @@
 
 				<div v-if="fileError" class="form-error">{{ fileError }}</div>
 
-				<ion-button expand="block" class="primary-button" :disabled="!previewUrl" @click="goToStep2"> Continue </ion-button>
-				<p v-if="!previewUrl" class="required-note">A photo is required to continue</p>
+				<ion-button expand="block" class="primary-button" :disabled="!previewUrl || remainingUploads <= 0" @click="goToStep2"> Continue </ion-button>
+				<p v-if="!previewUrl && remainingUploads > 0" class="required-note">A photo is required to continue</p>
 			</div>
 
 			<!-- ============ STEP 2: DETAILS ============ -->
@@ -151,7 +167,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import {
 	IonModal,
 	IonIcon,
@@ -173,14 +189,16 @@ import {
 import { apiFetch, ApiError } from '@/utils/api'
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
+const DAILY_MAX_LIMIT = 7
 
-defineProps<{ isOpen: boolean }>()
+const props = defineProps<{ isOpen: boolean }>()
 const emit = defineEmits<{ close: []; created: [] }>()
 
 const step = ref<1 | 2>(1)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const previewUrl = ref<string | null>(null)
 const fileError = ref<string | null>(null)
+const remainingUploads = ref<number>(DAILY_MAX_LIMIT)
 
 const storageLocations = ['Fridge', 'Freezer', 'Cupboard'] as const
 const unitOptions = ['pcs', 'g', 'kg', 'ml', 'L']
@@ -196,6 +214,25 @@ const form = reactive({
 
 const isSubmitting = ref(false)
 const formError = ref<string | null>(null)
+
+// Check remaining daily upload limit whenever the modal opens
+watch(
+	() => props.isOpen,
+	async (isOpen) => {
+		if (isOpen) {
+			await checkDailyUploadLimit()
+		}
+	}
+)
+
+async function checkDailyUploadLimit(): Promise<void> {
+	try {
+		const data = await apiFetch<{ remaining: number }>('/api/upload_limit', { method: 'GET' })
+		remainingUploads.value = data.remaining
+	} catch (err) {
+		console.error('Failed to fetch daily upload limit:', err)
+	}
+}
 
 const isFormValid = computed(() => {
 	const hasName = form.productName.trim().length > 0
@@ -218,6 +255,11 @@ function resetAll(): void {
 }
 
 function onFileSelected(event: Event): void {
+	if (remainingUploads.value <= 0) {
+		fileError.value = 'Daily upload limit reached.'
+		return
+	}
+
 	fileError.value = null
 	const input = event.target as HTMLInputElement
 	const file = input.files?.[0]
@@ -246,7 +288,7 @@ function onFileSelected(event: Event): void {
 }
 
 function goToStep2(): void {
-	if (!previewUrl.value) return
+	if (!previewUrl.value || remainingUploads.value <= 0) return
 	step.value = 2
 }
 
@@ -264,7 +306,7 @@ function handleDismiss(): void {
 }
 
 async function handleSubmit(): Promise<void> {
-	if (!isFormValid.value) return
+	if (!isFormValid.value || remainingUploads.value <= 0) return
 	formError.value = null
 
 	isSubmitting.value = true
@@ -433,6 +475,10 @@ ion-accordion-group {
 	font-weight: 600;
 }
 
+.upload-limit-note--reached {
+	color: #ef4444;
+}
+
 .hidden-input {
 	display: none;
 }
@@ -445,6 +491,13 @@ ion-accordion-group {
 	cursor: pointer;
 	margin: 16px 0;
 	background: #ffffff;
+	transition: opacity 0.2s ease;
+}
+
+.upload-dropzone--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	background: #f8fafc;
 }
 
 .upload-icon-wrapper {

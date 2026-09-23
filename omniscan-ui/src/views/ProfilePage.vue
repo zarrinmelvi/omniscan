@@ -720,6 +720,7 @@ ion-modal.custom-edit-modal {
 	outline: none;
 	box-sizing: border-box;
 	-webkit-appearance: none;
+	appearance: none;
 }
 
 .custom-edit-modal .custom-input::placeholder {

@@ -25,11 +25,11 @@
 					     username, not email — kept functional over cosmetic fidelity
 					     here. -->
 					<label>
-						Admin Email
+						Admin Username
 						<input 
 							v-model="username" 
 							type="text" 
-							placeholder="you@omniscan.io"
+							placeholder="Username"
 							autocomplete="username" 
 							required 
 						/>
@@ -41,7 +41,7 @@
 							<input 
 								v-model="password" 
 								:type="showPassword ? 'text' : 'password'" 
-								placeholder="Enter password"
+								placeholder="Password"
 								autocomplete="current-password" 
 								required 
 							/>

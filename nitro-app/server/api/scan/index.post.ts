@@ -468,7 +468,7 @@ export default defineEventHandler(async (event) => {
 			})
 
 			if (alternatives.length === 0) {
-				alternativesMessage = 'No safe alternatives available for this product based on your preferences.'
+				alternativesMessage = 'No verified allergen-free alternatives found for this product group.'
 			}
 		} else {
 			alternativesMessage = 'No known alternatives for this product yet.'

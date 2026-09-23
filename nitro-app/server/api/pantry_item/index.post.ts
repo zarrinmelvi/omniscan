@@ -24,6 +24,29 @@ export default defineEventHandler(async (event) => {
 
 	const { product_name, image_base64, expiration_date, best_before_date, storage_location, quantity, unit } = body
 
+	// ONLY check daily limit if this is a manual photo upload (product_id is undefined)
+	if (body.product_id === undefined) {
+		const startOfToday = new Date()
+		startOfToday.setHours(0, 0, 0, 0)
+
+		const todayManualUploadsCount = await prisma.pantryItem.count({
+			where: {
+				user_id: authUser.id,
+				created_at: { gte: startOfToday },
+				product: {
+					brand_name: 'Manually Added',
+				},
+			},
+		})
+
+		if (todayManualUploadsCount >= 7) {
+			throw createError({
+				statusCode: 429,
+				statusMessage: 'Daily upload limit reached. You can only manually upload 7 photos per day.',
+			})
+		}
+	}
+
 	if (body.product_id === undefined) {
 		if (!product_name || typeof product_name !== 'string' || !product_name.trim()) {
 			throw createError({ statusCode: 400, statusMessage: 'product_name is required.' })
@@ -64,11 +87,6 @@ export default defineEventHandler(async (event) => {
 		let product: { id: number; product_name: string } | null = null
 
 		if (body.product_id !== undefined) {
-			// readBody's TS cast only asserts a shape, it doesn't coerce at
-			// runtime — a JSON payload with "product_id": "37" (string) still
-			// passes that cast, then fails Prisma's Int type check with a raw
-			// PrismaClientValidationError. Coerce explicitly rather than
-			// trusting the declared type.
 			const productId = typeof body.product_id === 'number' ? body.product_id : Number(body.product_id)
 			if (isNaN(productId)) {
 				throw createError({ statusCode: 400, statusMessage: 'product_id must be a valid number.' })

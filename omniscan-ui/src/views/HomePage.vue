@@ -128,18 +128,18 @@
 					<ion-button size="small" fill="clear" @click="loadDashboard">Retry</ion-button>
 				</div>
 
-				<div v-else-if="activities.length === 0" class="placeholder-card">
+				<div v-else-if="filteredActivities.length === 0" class="placeholder-card">
 					<ion-icon :icon="timeOutline" class="placeholder-icon" />
 					<p>Your recent scans, additions, and consumed items will show up here.</p>
 				</div>
 
 				<div v-else class="activity-list">
-					<div v-for="activity in activities" :key="activity.id" class="activity-row">
+					<div v-for="activity in filteredActivities" :key="activity.id" class="activity-row">
 						<div class="activity-icon" :class="`activity-icon--${activity.type}`">
 							<ion-icon :icon="iconForActivityType(activity.type)" />
 						</div>
 						<div class="activity-info">
-							<p class="activity-name">{{ activity.message }}</p>
+							<p class="activity-name">{{ activity.message.replace(/\s+was auto-archived$/i, '') }}</p>
 							<p class="activity-meta">{{ labelForActivityType(activity.type) }} · {{ formatRelativeTime(activity.occurred_at) }}</p>
 						</div>
 					</div>
@@ -229,9 +229,9 @@ import {
 	restaurantOutline,
 	timeOutline,
 	refreshCircleOutline,
-	warningOutline,
 	addCircleOutline,
 	checkmarkCircleOutline,
+	archiveOutline,
 	closeOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
@@ -286,7 +286,7 @@ interface UserDto {
 	avatar_base64: string | null
 }
 
-type ActivityType = 'scanned' | 'added' | 'consumed' | 'expiring'
+type ActivityType = 'scanned' | 'added' | 'consumed' | 'auto_archived'
 
 interface ActivityLogDto {
 	id: number
@@ -297,8 +297,6 @@ interface ActivityLogDto {
 	pantry_item_id: number | null
 }
 
-// Anything within this many days (and not yet expired) counts as "expiring soon" —
-// matches the danger/warning thresholds already used on the Pantry page.
 const EXPIRING_SOON_THRESHOLD_DAYS = 3
 
 const isLoading = ref(true)
@@ -310,6 +308,9 @@ const pantryItems = ref<PantryItemDto[]>([])
 const recommendedRecipes = ref<SuggestedRecipe[]>([])
 const activities = ref<ActivityLogDto[]>([])
 const activitiesLoadError = ref('')
+
+// Computed to safely filter out any legacy or backend-generated 'expiring' activity items
+const filteredActivities = computed(() => activities.value.filter((act) => (act.type as string) !== 'expiring'))
 
 // Recipe Modal States
 const isDetailModalOpen = ref(false)
@@ -492,12 +493,12 @@ function iconForActivityType(type: ActivityType) {
 	switch (type) {
 		case 'scanned':
 			return refreshCircleOutline
-		case 'expiring':
-			return warningOutline
 		case 'added':
 			return addCircleOutline
 		case 'consumed':
 			return checkmarkCircleOutline
+		case 'auto_archived':
+			return archiveOutline
 	}
 }
 
@@ -505,19 +506,15 @@ function labelForActivityType(type: ActivityType): string {
 	switch (type) {
 		case 'scanned':
 			return 'Scanned'
-		case 'expiring':
-			return 'Expiring'
 		case 'added':
 			return 'Added'
 		case 'consumed':
 			return 'Consumed'
+		case 'auto_archived':
+			return 'Auto-Archived'
 	}
 }
 
-// Simplification: uses one consistent granularity (hours, then Yesterday,
-// then "N Days Ago") rather than mixing hour- and day-based wording per
-// activity type – the mockup showed both styles across different rows,
-// which reads more like illustrative sample data than a strict spec.
 function formatRelativeTime(iso: string): string {
 	const then = new Date(iso)
 	const now = new Date()
@@ -577,8 +574,6 @@ async function loadDashboard() {
 		loadError.value = err instanceof ApiError ? err.message : 'Failed to load your dashboard.'
 	}
 
-	// Fetched separately so a broken activity feed doesn't block the rest
-	// of the dashboard (stats and expiring carousel) from rendering.
 	try {
 		const activityRes = await apiFetch<{ success: boolean; activities: ActivityLogDto[] }>('/api/activity_log', {
 			method: 'GET',
@@ -591,11 +586,6 @@ async function loadDashboard() {
 	}
 }
 
-// Ionic keeps tab views alive in the DOM when you switch tabs (it doesn't
-// unmount/remount them), so onMounted() only fires once, ever. Using
-// onIonViewWillEnter instead means this refetches every time you land back
-// on the Home tab, so the stats never go stale after adding/removing items
-// elsewhere.
 onIonViewWillEnter(() => {
 	loadDashboard()
 })
@@ -941,10 +931,6 @@ onIonViewWillEnter(() => {
 	background: #eff6ff;
 	color: #2563eb;
 }
-.activity-icon--expiring {
-	background: #fff7ed;
-	color: #ea580c;
-}
 .activity-icon--added {
 	background: #f0fdf4;
 	color: #22c55e;
@@ -952,6 +938,10 @@ onIonViewWillEnter(() => {
 .activity-icon--consumed {
 	background: #f2f2f7;
 	color: #8e8e93;
+}
+.activity-icon--auto_archived {
+	background: #f1f5f9;
+	color: #64748b;
 }
 .activity-info {
 	flex: 1;

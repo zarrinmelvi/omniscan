@@ -55,6 +55,7 @@ export default () => {
 		ingredient_text: row.ingredient_text,
 		simplified_ingredients: row.simplified_ingredients,
 		is_verified: row.is_verified,
+		allergens_declared: row._allergens_declared_on_label,
 		match_key: generateMatchKey(row.brand_name, row.product_name),
 		variant_group: row._variant_group,
 	}))

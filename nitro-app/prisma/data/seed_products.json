@@ -176,7 +176,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "IDCP",
-		"_variant_group": null
+		"_variant_group": "corned_beef"
 	},
 	{
 		"brand_name": "Argentina",
@@ -216,11 +216,12 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "IDCP",
-		"_variant_group": null
+		"_variant_group": "corned_beef"
 	},
 	{
 		"brand_name": "555",
 		"product_name": "Sardines in Tomato Sauce (Hot)",
+
 		"ingredient_text": "Sardines, Tomato Sauce (Water, Tomato Paste), Thickener (Modified Cornstarch), Salt, Sugar, Seasonings (Onion, Garlic), Chili",
 		"simplified_ingredients": "Sardines, Tomato Sauce (Water, Tomato Paste), Thickener (Modified Cornstarch), Salt, Sugar, Seasonings (Onion, Garlic), Chili",
 		"is_verified": true,
@@ -228,7 +229,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "IDCP",
-		"_variant_group": null
+		"_variant_group": "sardines_tomato"
 	},
 	{
 		"brand_name": "Ligo",
@@ -240,7 +241,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "IDCP",
-		"_variant_group": null
+		"_variant_group": "sardines_tomato"
 	},
 	{
 		"brand_name": "CDO",
@@ -252,7 +253,7 @@
 		"_review_notes": [],
 		"_halal_status": "unknown",
 		"_halal_certifying_body": null,
-		"_variant_group": "cdo_carne_norte"
+		"_variant_group": "corned_beef"
 	},
 	{
 		"brand_name": "CDO",
@@ -331,7 +332,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": null,
-		"_variant_group": null
+		"_variant_group": "corned_beef"
 	},
 	{
 		"brand_name": "CDO",
@@ -343,7 +344,7 @@
 		"_review_notes": [],
 		"_halal_status": "unknown",
 		"_halal_certifying_body": null,
-		"_variant_group": "cdo_carne_norte"
+		"_variant_group": "corned_beef"
 	},
 	{
 		"brand_name": "San Miguel Pure Foods",
@@ -403,7 +404,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "IDCP",
-		"_variant_group": null
+		"_variant_group": "soy_sauce"
 	},
 	{
 		"brand_name": "Datu Puti",
@@ -415,7 +416,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "OMA",
-		"_variant_group": null
+		"_variant_group": "vinegar"
 	},
 	{
 		"brand_name": "Silver Swan",
@@ -427,7 +428,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "IDCP",
-		"_variant_group": null
+		"_variant_group": "soy_sauce"
 	},
 	{
 		"brand_name": "Silver Swan",
@@ -439,7 +440,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "OMA",
-		"_variant_group": null
+		"_variant_group": "vinegar"
 	},
 	{
 		"brand_name": "Mang Tomas",
@@ -610,7 +611,7 @@
 		"_review_notes": [],
 		"_halal_status": "unknown",
 		"_halal_certifying_body": null,
-		"_variant_group": null
+		"_variant_group": "fish_sauce"
 	},
 	{
 		"brand_name": "Lorins",
@@ -622,7 +623,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": null,
-		"_variant_group": null
+		"_variant_group": "fish_sauce"
 	},
 	{
 		"brand_name": "Knorr",
@@ -646,7 +647,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "IDCP, MUI, JAKIM",
-		"_variant_group": null
+		"_variant_group": "mayo_spread"
 	},
 	{
 		"brand_name": "Lady's Choice",
@@ -658,7 +659,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "IDCP, MUI, JAKIM",
-		"_variant_group": null
+		"_variant_group": "mayo_spread"
 	},
 	{
 		"brand_name": "Best Foods",
@@ -670,7 +671,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": null,
-		"_variant_group": null
+		"_variant_group": "mayo_spread"
 	},
 	{
 		"brand_name": "Bear Brand",
@@ -682,7 +683,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": null,
-		"_variant_group": null
+		"_variant_group": "powdered_milk_drink"
 	},
 	{
 		"brand_name": "Alaska",
@@ -694,7 +695,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "HDIP",
-		"_variant_group": "alaska_milk_formats"
+		"_variant_group": "powdered_milk_drink"
 	},
 	{
 		"brand_name": "Alaska",
@@ -814,7 +815,7 @@
 		"_review_notes": [],
 		"_halal_status": "unknown",
 		"_halal_certifying_body": null,
-		"_variant_group": null
+		"_variant_group": "powdered_milk_drink"
 	},
 	{
 		"brand_name": "Nestlé",
@@ -864,7 +865,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": null,
-		"_variant_group": null
+		"_variant_group": "peanut_butter"
 	},
 	{
 		"brand_name": "Best Foods",
@@ -879,7 +880,7 @@
 		],
 		"_halal_status": "halal",
 		"_halal_certifying_body": null,
-		"_variant_group": null
+		"_variant_group": "peanut_butter"
 	},
 	{
 		"brand_name": "Nescafé",
@@ -1354,7 +1355,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": null,
-		"_variant_group": null
+		"_variant_group": "cooking_oil"
 	},
 	{
 		"brand_name": "Spring",
@@ -1366,7 +1367,7 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "OMA",
-		"_variant_group": null
+		"_variant_group": "cooking_oil"
 	},
 	{
 		"brand_name": "Golden Fiesta",
@@ -1378,6 +1379,6 @@
 		"_review_notes": [],
 		"_halal_status": "halal",
 		"_halal_certifying_body": "OMA",
-		"_variant_group": null
+		"_variant_group": "cooking_oil"
 	}
 ]

@@ -429,12 +429,16 @@ import {
 
 const router = useRouter()
 
-// Settings now lives inside /tabs/ (a sibling of Profile in the same nested
-// outlet), so this push is just normal same-outlet navigation – the earlier
-// crash was from Settings being a top-level route in a *different* outlet
-// than Profile, which Ionic's tabs outlet doesn't reliably restore from.
+// Use router.back() so the Settings page slides out to the right (reverse
+// of the forward-push animation used to enter it). router.push() would
+// incorrectly animate as a new forward navigation.
+// Guard: if no history exists (direct deep-link), replace instead.
 function goBackToProfile() {
-	router.push('/tabs/profile')
+	if (window.history.length <= 1) {
+		router.replace('/tabs/profile')
+	} else {
+		router.back()
+	}
 }
 
 const DARK_MODE_KEY = 'omniscan_dark_mode'

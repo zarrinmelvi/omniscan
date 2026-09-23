@@ -10,16 +10,18 @@ export type AlternativeMatch = {
 
 /**
  * Returns catalog products containing NONE of the given disallowed
- * ingredient names. Matching is case-insensitive and exact against
- * CatalogIngredient.name (which is already stored lowercased/trimmed —
- * see parse-catalog-ingredients.ts) — so callers should pass already-
- * normalized names, not raw label text.
+ * ingredient names. Applies TWO safety layers:
  *
- * @param disallowedIngredientNames - e.g. ["peanuts", "milk powder"].
+ * Layer 1 (DB-level): filters via CatalogProductIngredient rows — excludes
+ * products that have a linked CatalogIngredient matching a disallowed name.
+ *
+ * Layer 2 (post-query): filters via allergens_declared — excludes any product
+ * whose declared allergen list contains any disallowed name as a case-insensitive
+ * substring. This catches cases where CatalogIngredient links are incomplete.
+ *
+ * @param disallowedIngredientNames - e.g. ["milk", "milk powder"].
  *   Empty array returns every verified catalog product (no restrictions).
- * @param options.excludeProductId - omit a specific CatalogProduct from
- *   results, e.g. to avoid suggesting the same product as its own
- *   alternative once product-to-catalog matching exists.
+ * @param options.excludeProductId - omit a specific CatalogProduct from results.
  * @param options.onlyVerified - default true. The originally-flagged rows
  *   (is_verified=false) are excluded by default since their
  *   ingredient_text hasn't been confirmed against the physical label yet
@@ -37,6 +39,7 @@ export type AlternativeMatch = {
  *   until CatalogProduct rows actually have halal_logo_id populated —
  *   that's honest, correct behavior while that data-entry work is still
  *   in progress, not a bug.
+ * @param options.variantGroup - restrict to a specific variant group.
  * @param options.limit - default 20.
  */
 export async function findAlternativeProducts(
@@ -52,6 +55,10 @@ export async function findAlternativeProducts(
 	const { excludeProductId, onlyVerified = true, requireHalalCertified = false, variantGroup, limit = 20 } = options
 
 	const normalizedDisallowed = disallowedIngredientNames.map((name) => name.toLowerCase().trim()).filter((name) => name.length > 0)
+
+	// Fetch a larger set than `limit` to allow post-query filtering to still
+	// return enough results after the allergens_declared pass removes some rows.
+	const fetchLimit = limit * 3
 
 	const results = await prisma.catalogProduct.findMany({
 		where: {
@@ -77,9 +84,25 @@ export async function findAlternativeProducts(
 			product_name: true,
 			is_verified: true,
 			halal_logo_id: true,
+			allergens_declared: true,
 		},
-		take: limit,
+		take: fetchLimit,
 	})
 
-	return results
+	// Layer 2: post-query allergens_declared safety filter.
+	// Removes any product whose declared allergen label contains any disallowed
+	// name as a case-insensitive substring (e.g. disallowed "milk" matches
+	// declared "Milk", "Skim Milk", "Milk Products").
+	const safeResults =
+		normalizedDisallowed.length > 0
+			? results.filter((product) => {
+					const declaredLower = product.allergens_declared.map((a) => a.toLowerCase())
+					return !normalizedDisallowed.some((disallowed) =>
+						declaredLower.some((declared) => declared.includes(disallowed) || disallowed.includes(declared)),
+					)
+				})
+			: results
+
+	// Return only the AlternativeMatch fields, capped at the original limit.
+	return safeResults.slice(0, limit).map(({ allergens_declared: _drop, ...rest }) => rest)
 }

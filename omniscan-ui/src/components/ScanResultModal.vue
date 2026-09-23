@@ -235,65 +235,15 @@ const halalCertifiedLabel = computed(() => {
 	return certifier ? `${certifier} Certified` : 'Halal Certified'
 })
 
-// -------- Allergen detection (derived client-side from ingredients_text) --------
-// Placeholder heuristic — keyword matching against the AI-extracted ingredient
-// text, same spirit as the backend's Red/Yellow/Green keyword verdict logic.
-// Swap for a real allergen-classification step later if needed.
-const ALLERGEN_RULES = [
-	{ key: 'milk', label: 'Milk', keywords: ['milk'], warning: 'Contains milk — not suitable for those with a milk allergy' },
-	{
-		key: 'dairy',
-		label: 'Dairy',
-		keywords: ['dairy', 'cream', 'butter', 'cheese', 'whey', 'casein', 'lactose'],
-		warning: 'Contains dairy — not suitable for lactose intolerance',
-	},
-	{
-		key: 'gluten',
-		label: 'Gluten',
-		keywords: ['wheat', 'gluten', 'barley', 'rye'],
-		warning: 'Contains gluten — not suitable for those with celiac disease or gluten sensitivity',
-	},
-	{ key: 'soy', label: 'Soy', keywords: ['soy', 'soya'], warning: 'Contains soy — not suitable for those with a soy allergy' },
-	{ key: 'egg', label: 'Egg', keywords: ['egg'], warning: 'Contains egg — not suitable for those with an egg allergy' },
-	{
-		key: 'nuts',
-		label: 'Nuts',
-		keywords: ['peanut', 'almond', 'cashew', 'walnut', 'hazelnut', 'pistachio', 'pecan'],
-		warning: 'Contains nuts — not suitable for those with a nut allergy',
-	},
-	{
-		key: 'shellfish',
-		label: 'Shellfish',
-		keywords: ['shrimp', 'crab', 'lobster', 'shellfish', 'prawn'],
-		warning: 'Contains shellfish — not suitable for those with a shellfish allergy',
-	},
-]
-
-const sourceText = computed(() => {
-	const raw = `${product.value?.ingredients_text || ''} ${product.value?.simplified_ingredients || ''}`
-	return raw.toLowerCase()
-})
-
-const matchedAllergens = computed(() => ALLERGEN_RULES.filter((rule) => rule.keywords.some((k) => sourceText.value.includes(k))))
-
 const allergenTags = computed(() =>
-	matchedAllergens.value.map((rule) => ({
-		key: rule.key,
-		label: rule.label,
-		isPersonal: personalAllergenAlerts.value.some((name: string) => name.toLowerCase() === rule.label.toLowerCase()),
+	personalAllergenAlerts.value.map((name: string) => ({
+		key: name.toLowerCase(),
+		label: name,
+		isPersonal: true,
 	})),
 )
 
-const dietaryWarnings = computed(() => {
-	const warnings = matchedAllergens.value.map((rule) => rule.warning)
-
-	const hasDairyOrEgg = matchedAllergens.value.some((rule) => ['milk', 'dairy', 'egg'].includes(rule.key))
-	if (hasDairyOrEgg) {
-		warnings.push('Not suitable for vegans or dairy-free diets')
-	}
-
-	return warnings
-})
+const dietaryWarnings = computed(() => [])
 
 const alternatives = computed(() => props.data?.alternatives ?? [])
 const alternativesMessage = computed(() => props.data?.alternatives_message ?? null)
@@ -335,8 +285,17 @@ function normalizeDetectedDate(value: unknown): string | null {
 }
 
 function resetPantryForm() {
-	quantity.value = 1
-	unit.value = 'L'
+	// Use AI-detected quantity if available, otherwise default to 1
+	const detectedQty = product.value?.net_quantity_detected
+	quantity.value = typeof detectedQty === 'number' && detectedQty > 0 ? detectedQty : 1
+
+	// Map detected unit to one of the allowed unitOptions, or fall back to 'pcs'
+	const detectedUnit = product.value?.net_unit_detected
+	const UNIT_OPTIONS = ['pc', 'pack', 'g', 'kg', 'ml', 'L']
+	const unitMap: Record<string, string> = { pcs: 'pc', piece: 'pc', pieces: 'pc', liter: 'L', litre: 'L', liters: 'L', litres: 'L', gram: 'g', grams: 'g', kilogram: 'kg', kilograms: 'kg', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml', ounce: 'oz', ounces: 'oz', 'fl oz': 'ml' }
+	const normalizedUnit = typeof detectedUnit === 'string' ? (unitMap[detectedUnit] ?? detectedUnit) : null
+	unit.value = normalizedUnit && UNIT_OPTIONS.includes(normalizedUnit) ? normalizedUnit : 'pcs'
+
 	storageLocation.value = 'Fridge'
 	// Always into Expiration Date specifically — never Best Before —
 	// regardless of whether the label printed "EXP", "Best Before", or

@@ -25,14 +25,28 @@
 						<div class="form-group">
 							<label class="input-label">Full Name</label>
 							<div class="custom-input-wrapper">
-								<input v-model="name" type="text" placeholder="Enter your name" required class="custom-input" />
+								<input
+									v-model="name"
+									type="text"
+									placeholder="Enter your name"
+									required
+									class="custom-input"
+									:class="{ 'input-error': fieldErrors.name }"
+									@input="clearFieldError('name')" />
 							</div>
 						</div>
 
 						<div class="form-group">
 							<label class="input-label">Email Address</label>
 							<div class="custom-input-wrapper">
-								<input v-model="email" type="email" placeholder="your@email.com" required class="custom-input" />
+								<input
+									v-model="email"
+									type="text"
+									placeholder="your@email.com"
+									required
+									class="custom-input"
+									:class="{ 'input-error': fieldErrors.email }"
+									@input="clearFieldError('email')" />
 							</div>
 						</div>
 
@@ -44,7 +58,9 @@
 									:type="showPassword ? 'text' : 'password'"
 									placeholder="Create a password"
 									required
-									class="custom-input" />
+									class="custom-input"
+									:class="{ 'input-error': fieldErrors.password }"
+									@input="clearFieldError('password')" />
 								<ion-icon
 									:icon="showPassword ? eyeOffOutline : eyeOutline"
 									class="password-toggle"
@@ -61,7 +77,9 @@
 									:type="showPassword ? 'text' : 'password'"
 									placeholder="Re-enter your password"
 									required
-									class="custom-input" />
+									class="custom-input"
+									:class="{ 'input-error': fieldErrors.confirmPassword }"
+									@input="clearFieldError('confirmPassword')" />
 							</div>
 						</div>
 
@@ -103,7 +121,7 @@
 							type="button"
 							class="pref-card"
 							:class="{ 'pref-card--selected': halalSelected }"
-							@click="halalSelected = !halalSelected">
+							@click="toggleHalal()">
 							<span class="pref-emoji">🕌</span>
 							<span class="pref-label">Halal</span>
 						</button>
@@ -120,6 +138,8 @@
 						</button>
 					</div>
 
+					<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 dietary preferences.</p>
+
 					<div v-if="prefsError" class="form-error">{{ prefsError }}</div>
 
 					<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs" @click="completeSetup">
@@ -134,7 +154,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline } from 'ionicons/icons'
@@ -143,6 +163,8 @@ import { apiFetch, ApiError } from '@/utils/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+const PREF_MAX = 5
 
 const step = ref<1 | 2>(1)
 
@@ -154,6 +176,42 @@ const confirmPassword = ref('')
 const showPassword = ref(false)
 const isSubmitting = ref(false)
 const errorMessage = ref<string | null>(null)
+
+// Per-field validation error flags — drives red-border highlight
+const fieldErrors = reactive({
+	name: false,
+	email: false,
+	password: false,
+	confirmPassword: false,
+})
+
+function clearFieldError(field: keyof typeof fieldErrors) {
+	fieldErrors[field] = false
+}
+
+// Strict email validation — requires a recognised/common TLD drawn from an
+// explicit allowlist.  This prevents fake two-letter TLDs like ".xy" or
+// ".zz" that pass a generic [a-zA-Z]{2,6} check.
+//
+// The allowlist covers:
+//   • Generic TLDs: com, org, net, edu, gov, mil, int, info, biz, name, pro
+//   • Common new gTLDs: app, dev, io, ai, co, me, tv, cc, us, uk, ca, au,
+//     de, fr, jp, cn, br, in, mx, ph, sg, nz, za, ng, ke, pk, bd, id, my,
+//     th, vn, es, it, nl, pl, se, no, fi, dk, be, ch, at, ru, tr, sa, ae,
+//     eg, il, ar, cl, pe, ve, nz
+//   • Second-level ccTLD patterns (co.uk, com.au, com.ph, etc.) are covered
+//     because the regex matches the final segment after the last dot; "co"
+//     is in the list so "user@example.co.uk" passes on the ".uk" segment.
+//
+// Anything not on the list (e.g. ".xy", ".zz", ".lol") is rejected.
+const KNOWN_TLDS =
+	'com|org|net|edu|gov|mil|int|info|biz|name|pro|' +
+	'app|dev|io|ai|co|me|tv|cc|online|store|' +
+	'us|uk|ca|au|de|fr|jp|cn|br|in|mx|ph|sg|nz|za|' +
+	'ng|ke|pk|bd|id|my|th|vn|' +
+	'es|it|nl|pl|se|no|fi|dk|be|ch|at|ru|tr|' +
+	'sa|ae|eg|il|ar|cl|pe|ve'
+const EMAIL_RE = new RegExp(`^[^\\s@]+@[^\\s@]+(\\.[^\\s@]+)*\\.(${KNOWN_TLDS})$`, 'i')
 
 // Step 2 — dietary preferences
 interface Allergen {
@@ -169,6 +227,9 @@ const isLoadingAllergens = ref(false)
 const allergensLoadError = ref('')
 const isSavingPrefs = ref(false)
 const prefsError = ref('')
+const prefLimitWarning = ref(false)
+
+const prefTotal = computed(() => selectedAllergenIds.value.length + (halalSelected.value ? 1 : 0))
 
 // Emoji per allergen name – anything fetched from the catalog that isn't
 // in this map (e.g. a new allergen an admin adds later) still renders,
@@ -201,17 +262,49 @@ function handleBack(): void {
 		step.value = 1
 		return
 	}
-	router.back()
+	// Guard: if no history exists (e.g. direct deep-link to /register),
+	// router.back() would leave a blank screen — replace with Welcome instead.
+	if (window.history.length <= 1) {
+		router.replace('/')
+	} else {
+		router.back()
+	}
 }
 
 async function handleRegister(): Promise<void> {
 	errorMessage.value = null
+	// Reset all field highlights before re-validating
+	fieldErrors.name = false
+	fieldErrors.email = false
+	fieldErrors.password = false
+	fieldErrors.confirmPassword = false
+
+	// Strict email format (requires TLD of ≥2 chars — type="text" now, so
+	// we own validation fully instead of relying on the browser's lenient
+	// type="email" which accepts "user@domain" with no TLD).
+	if (!EMAIL_RE.test(email.value)) {
+		fieldErrors.email = true
+		errorMessage.value = 'Please enter a valid email address (e.g. user@example.com).'
+		return
+	}
 
 	if (password.value.length < 8) {
+		fieldErrors.password = true
 		errorMessage.value = 'Password must be at least 8 characters.'
 		return
 	}
+
+	// Name and password must not be identical
+	if (name.value.trim() === password.value) {
+		fieldErrors.name = true
+		fieldErrors.password = true
+		errorMessage.value = 'Name and password cannot be identical.'
+		return
+	}
+
 	if (password.value !== confirmPassword.value) {
+		fieldErrors.password = true
+		fieldErrors.confirmPassword = true
 		errorMessage.value = 'Passwords do not match.'
 		return
 	}
@@ -228,7 +321,17 @@ async function handleRegister(): Promise<void> {
 		step.value = 2
 		fetchAllergenCatalog()
 	} catch (err) {
-		errorMessage.value = err instanceof ApiError ? err.message : 'Registration failed. Please try again.'
+		if (err instanceof ApiError) {
+			// Surface a specific, user-friendly message for duplicate emails
+			if (err.status === 409 || err.message.toLowerCase().includes('email')) {
+				fieldErrors.email = true
+				errorMessage.value = 'This email address already exists.'
+			} else {
+				errorMessage.value = err.message
+			}
+		} else {
+			errorMessage.value = 'Registration failed. Please try again.'
+		}
 	} finally {
 		isSubmitting.value = false
 	}
@@ -249,13 +352,35 @@ async function fetchAllergenCatalog(): Promise<void> {
 
 function toggleAllergen(id: number): void {
 	if (selectedAllergenIds.value.includes(id)) {
+		// Deselection — always allowed
 		selectedAllergenIds.value = selectedAllergenIds.value.filter((existingId) => existingId !== id)
+		prefLimitWarning.value = false
 	} else {
+		// Addition — check limit
+		if (prefTotal.value >= PREF_MAX) {
+			prefLimitWarning.value = true
+			return
+		}
 		selectedAllergenIds.value.push(id)
 	}
 }
 
+function toggleHalal(): void {
+	if (!halalSelected.value && prefTotal.value >= PREF_MAX) {
+		prefLimitWarning.value = true
+		return
+	}
+	halalSelected.value = !halalSelected.value
+	if (!halalSelected.value) {
+		// Just deselected — clear warning
+		prefLimitWarning.value = false
+	}
+}
+
 async function completeSetup(): Promise<void> {
+	// Guard against double-invocation (rapid double-tap)
+	if (isSavingPrefs.value) return
+
 	isSavingPrefs.value = true
 	prefsError.value = ''
 
@@ -264,7 +389,10 @@ async function completeSetup(): Promise<void> {
 			method: 'PUT',
 			body: { halal_pref: halalSelected.value, allergen_ids: selectedAllergenIds.value },
 		})
-		router.replace('/tabs/home')
+		// Refresh the auth store so downstream pages see up-to-date user state
+		// without requiring a manual browser refresh.
+		await authStore.checkAuth()
+		await router.replace('/tabs/home')
 	} catch (err) {
 		prefsError.value = err instanceof ApiError ? err.message : 'Failed to save your preferences.'
 	} finally {
@@ -272,8 +400,14 @@ async function completeSetup(): Promise<void> {
 	}
 }
 
-function skipForNow(): void {
-	router.replace('/tabs/home')
+async function skipForNow(): Promise<void> {
+	// Guard against double-invocation while a save is in flight
+	if (isSavingPrefs.value) return
+	// Refresh auth state even when skipping so downstream pages see a valid
+	// session without requiring a manual browser refresh — matches the same
+	// pattern used by completeSetup().
+	await authStore.checkAuth()
+	await router.replace('/tabs/home')
 }
 </script>
 
@@ -384,6 +518,14 @@ function skipForNow(): void {
 
 .custom-input:focus {
 	border-color: #05c450;
+}
+
+.custom-input.input-error {
+	border-color: #ef4444 !important;
+}
+
+.custom-input.input-error:focus {
+	border-color: #ef4444 !important;
 }
 
 .custom-input::placeholder {
@@ -518,5 +660,11 @@ function skipForNow(): void {
 	font-size: 0.85rem;
 	padding: 16px 0 0;
 	cursor: pointer;
+}
+
+.pref-limit-warning {
+	color: #d97706;
+	font-size: 0.78rem;
+	margin: -12px 0 12px;
 }
 </style>

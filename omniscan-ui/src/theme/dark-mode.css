@@ -1,0 +1,564 @@
+/*
+ * OmniScan Dark Mode Overrides
+ * Applied when `html.ion-palette-dark` is set (toggled by SettingsPage.vue
+ * via document.documentElement.classList.toggle('ion-palette-dark', ...)).
+ *
+ * Strategy: target component CSS classes by their scoped-independent selectors
+ * inside the html.ion-palette-dark scope so every hardcoded #ffffff / #f8fafc
+ * light-mode value gets a dark counterpart without touching component files.
+ */
+
+/* === Shared token palette === */
+html.ion-palette-dark {
+  --dm-bg-page:        #0f172a;
+  --dm-bg-card:        #1e293b;
+  --dm-bg-input:       #1e293b;
+  --dm-bg-subtle:      #162032;
+  --dm-bg-chip:        #334155;
+  --dm-border:         #334155;
+  --dm-text-primary:   #f1f5f9;
+  --dm-text-secondary: #94a3b8;
+  --dm-text-input:     #f1f5f9;
+  --dm-header-bg:      #1e293b;
+}
+
+/* === Ion page-level backgrounds === */
+html.ion-palette-dark .auth-content,
+html.ion-palette-dark .profile-content,
+html.ion-palette-dark .home-content,
+html.ion-palette-dark .pantry-content,
+html.ion-palette-dark .detail-content,
+html.ion-palette-dark .notif-content,
+html.ion-palette-dark .scan-content,
+html.ion-palette-dark .settings-content {
+  --background: var(--dm-bg-page);
+  --color: var(--dm-text-primary);
+}
+
+/* === Modal content backgrounds === */
+html.ion-palette-dark .modal-content-custom {
+  --background: var(--dm-bg-card);
+}
+
+/* === Auth cards (Login / Register) === */
+html.ion-palette-dark .auth-card {
+  background: var(--dm-bg-page);
+}
+html.ion-palette-dark .auth-title {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .auth-subtitle,
+html.ion-palette-dark .hint-text,
+html.ion-palette-dark .step-label,
+html.ion-palette-dark .switch-auth,
+html.ion-palette-dark .legal-text,
+html.ion-palette-dark .required-note {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .input-label,
+html.ion-palette-dark .field-label-brown {
+  color: var(--dm-text-secondary);
+}
+
+/* === Native text inputs, selects, date pickers === */
+html.ion-palette-dark .custom-input,
+html.ion-palette-dark .native-text-input,
+html.ion-palette-dark .date-input,
+html.ion-palette-dark .quantity-input,
+html.ion-palette-dark .unit-select,
+html.ion-palette-dark .sort-text-select {
+  background: var(--dm-bg-input) !important;
+  background-color: var(--dm-bg-input) !important;
+  color: var(--dm-text-input) !important;
+  border-color: var(--dm-border) !important;
+  -webkit-text-fill-color: var(--dm-text-input) !important;
+}
+html.ion-palette-dark .custom-input::placeholder,
+html.ion-palette-dark .native-text-input::placeholder,
+html.ion-palette-dark .date-input::placeholder {
+  color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .custom-input:-webkit-autofill,
+html.ion-palette-dark .custom-input:-webkit-autofill:hover,
+html.ion-palette-dark .custom-input:-webkit-autofill:focus,
+html.ion-palette-dark .native-text-input:-webkit-autofill,
+html.ion-palette-dark .native-text-input:-webkit-autofill:hover,
+html.ion-palette-dark .native-text-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--dm-bg-input) inset !important;
+  -webkit-text-fill-color: var(--dm-text-input) !important;
+}
+html.ion-palette-dark .custom-input--disabled,
+html.ion-palette-dark .custom-input:disabled {
+  background-color: var(--dm-bg-input) !important;
+  color: var(--dm-text-secondary) !important;
+  -webkit-text-fill-color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .custom-input:focus {
+  border-color: #05c450 !important;
+}
+html.ion-palette-dark .date-input--has-value,
+html.ion-palette-dark .date-input:focus {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 0 1px #22c55e !important;
+}
+
+/* === Ion searchbar === */
+html.ion-palette-dark .search-bar {
+  --background: var(--dm-bg-subtle);
+  --color: var(--dm-text-primary);
+  --placeholder-color: var(--dm-text-secondary);
+  --icon-color: var(--dm-text-secondary);
+  --clear-button-color: var(--dm-text-secondary);
+}
+
+/* === Sticky header containers === */
+html.ion-palette-dark .header-container {
+  background: var(--dm-header-bg);
+  border-bottom-color: var(--dm-border);
+}
+
+/* === Toolbars === */
+html.ion-palette-dark .notif-toolbar,
+html.ion-palette-dark .settings-toolbar,
+html.ion-palette-dark .detail-toolbar {
+  --background: var(--dm-header-bg);
+  border-bottom-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .detail-title,
+html.ion-palette-dark .header-title,
+html.ion-palette-dark .notif-title {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .back-btn,
+html.ion-palette-dark .back-icon,
+html.ion-palette-dark .header-back-icon {
+  --color: var(--dm-text-primary);
+  color: var(--dm-text-primary);
+}
+
+/* === Cards and surface containers === */
+html.ion-palette-dark .pantry-card,
+html.ion-palette-dark .archived-card,
+html.ion-palette-dark .stat-card,
+html.ion-palette-dark .expiring-card,
+html.ion-palette-dark .recipe-card,
+html.ion-palette-dark .activity-row,
+html.ion-palette-dark .placeholder-card,
+html.ion-palette-dark .info-card,
+html.ion-palette-dark .notif-item,
+html.ion-palette-dark .back-prompt-card {
+  background: var(--dm-bg-card);
+  border-color: var(--dm-border);
+}
+html.ion-palette-dark .card-title,
+html.ion-palette-dark .archived-title,
+html.ion-palette-dark .activity-name,
+html.ion-palette-dark .recipe-title,
+html.ion-palette-dark .info-card__title,
+html.ion-palette-dark .info-row strong,
+html.ion-palette-dark .recipe-usage-row__name,
+html.ion-palette-dark .greeting-title,
+html.ion-palette-dark .section-title,
+html.ion-palette-dark .page-title,
+html.ion-palette-dark .expiring-name {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .card-meta,
+html.ion-palette-dark .expiry-days,
+html.ion-palette-dark .archived-meta-location,
+html.ion-palette-dark .archived-meta-consumed,
+html.ion-palette-dark .greeting-date,
+html.ion-palette-dark .activity-meta,
+html.ion-palette-dark .info-row,
+html.ion-palette-dark .ingredients-text,
+html.ion-palette-dark .recipe-usage-badge--neutral,
+html.ion-palette-dark .back-prompt-text,
+html.ion-palette-dark .page-subtitle {
+  color: var(--dm-text-secondary);
+}
+
+/* === Hero image and placeholder boxes === */
+html.ion-palette-dark .placeholder-box,
+html.ion-palette-dark .hero-image-container,
+html.ion-palette-dark .recipe-img-wrap,
+html.ion-palette-dark .alt-item__image-placeholder {
+  background: var(--dm-bg-subtle);
+}
+html.ion-palette-dark .placeholder-icon {
+  color: var(--dm-text-secondary);
+}
+
+/* === Profile page === */
+html.ion-palette-dark .header-section {
+  background: var(--dm-header-bg);
+}
+html.ion-palette-dark .user-name {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .user-email,
+html.ion-palette-dark .section-label {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .action-row {
+  background: var(--dm-bg-card);
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .action-icon {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .action-row--danger {
+  color: #f87171;
+}
+html.ion-palette-dark .action-row--danger .action-icon {
+  color: #f87171;
+}
+
+/* === Edit Profile modal === */
+html.ion-palette-dark .custom-edit-modal .modal-card {
+  background: var(--dm-bg-card);
+}
+html.ion-palette-dark .custom-edit-modal .modal-title {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .custom-edit-modal .modal-close-btn {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .custom-edit-modal .input-label {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .custom-edit-modal .avatar-initial--large {
+  background: var(--dm-bg-subtle);
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .custom-edit-modal .quick-add-label {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .custom-edit-modal .quick-add-chip {
+  background: var(--dm-bg-chip);
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .custom-edit-modal .pref-limit-warning {
+  color: #fbbf24;
+}
+html.ion-palette-dark .custom-edit-modal .pref-add-error {
+  color: #f87171;
+}
+
+/* === Dietary preference chips and grid cards === */
+html.ion-palette-dark .pref-chip {
+  background: #14532d;
+  color: #86efac;
+}
+html.ion-palette-dark .pref-card {
+  background: var(--dm-bg-card);
+  border-color: var(--dm-border);
+}
+html.ion-palette-dark .pref-card--selected {
+  background: #14532d;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 1px #22c55e;
+}
+html.ion-palette-dark .pref-label {
+  color: var(--dm-text-primary);
+}
+
+/* === Allergen and safety warning banners === */
+html.ion-palette-dark .personal-allergen-alert {
+  background: #450a0a;
+  border-color: #b91c1c;
+  color: #fca5a5;
+}
+html.ion-palette-dark .nonfood-alert {
+  background: #450a0a;
+  border-color: #b91c1c;
+  color: #fca5a5;
+}
+html.ion-palette-dark .status-banner--danger {
+  background: #450a0a;
+  color: #fca5a5;
+}
+html.ion-palette-dark .status-banner--warning {
+  background: #431407;
+  color: #fed7aa;
+}
+html.ion-palette-dark .status-banner--success {
+  background: #052e16;
+  color: #86efac;
+}
+html.ion-palette-dark .expiring-badge--urgent {
+  background: #450a0a;
+  color: #fca5a5;
+}
+html.ion-palette-dark .expiring-badge--warning {
+  background: #431407;
+  color: #fed7aa;
+}
+html.ion-palette-dark .delete-chip {
+  background: #431407;
+  color: #fed7aa;
+}
+
+/* === Halal status rows === */
+html.ion-palette-dark .halal-row {
+  background: var(--dm-bg-subtle);
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .halal-row--certified {
+  background: #052e16;
+  color: #86efac;
+}
+html.ion-palette-dark .halal-row--not-halal {
+  background: #450a0a;
+  color: #fca5a5;
+}
+html.ion-palette-dark .halal-row--unverified {
+  background: #431407;
+  color: #fed7aa;
+}
+
+/* === Filter pills and segment toggles === */
+html.ion-palette-dark .pill {
+  background: var(--dm-bg-chip);
+  border-color: var(--dm-border);
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .pill--active {
+  border-color: #00a651;
+  background: var(--dm-bg-chip);
+  color: #4ade80;
+}
+html.ion-palette-dark .view-toggle {
+  background: var(--dm-bg-subtle);
+}
+html.ion-palette-dark .toggle-btn {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .count-badge {
+  background: var(--dm-border);
+  color: var(--dm-text-primary);
+}
+
+/* === Pantry card extras === */
+html.ion-palette-dark .quantity-badge {
+  background: var(--dm-bg-subtle);
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .scanned-stat-row__value {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .soft-btn--restore {
+  background: #052e16;
+  color: #4ade80;
+}
+html.ion-palette-dark .soft-btn--delete {
+  background: #450a0a;
+  color: #f87171;
+}
+html.ion-palette-dark .filter-banner {
+  background: #1e3a5f;
+  color: #93c5fd;
+}
+html.ion-palette-dark .filter-clear {
+  color: #93c5fd;
+}
+
+/* === Tab row (PantryItemDetail) === */
+html.ion-palette-dark .tab-row {
+  border-bottom-color: var(--dm-border);
+}
+html.ion-palette-dark .tab-btn {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .tab-btn--active {
+  color: #4ade80;
+  border-bottom-color: #4ade80;
+}
+
+/* === Settings page === */
+html.ion-palette-dark .settings-card {
+  background: var(--dm-bg-card);
+}
+html.ion-palette-dark .row-title {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .row-subtitle,
+html.ion-palette-dark .version-text {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .modal-header-custom {
+  background: var(--dm-bg-card);
+  border-bottom-color: var(--dm-border);
+}
+html.ion-palette-dark .modal-title-custom {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .modal-subtitle-custom,
+html.ion-palette-dark .terms-updated {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .modal-close-icon-btn {
+  --color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .faq-accordion-item {
+  background: var(--dm-bg-card);
+  border-color: var(--dm-border);
+}
+html.ion-palette-dark .faq-accordion-header {
+  --background: var(--dm-bg-card);
+}
+html.ion-palette-dark .faq-question-label {
+  color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .faq-answer-text {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .faq-accordion-body {
+  background: var(--dm-bg-card);
+}
+html.ion-palette-dark .faq-badge {
+  background: #1e3a5f;
+  color: #93c5fd;
+}
+html.ion-palette-dark .terms-container h3 {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .terms-container p,
+html.ion-palette-dark .terms-container li,
+html.ion-palette-dark .about-description,
+html.ion-palette-dark .about-footer-tag,
+html.ion-palette-dark .about-team-list li {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .about-app-title,
+html.ion-palette-dark .about-section-heading {
+  color: var(--dm-text-primary);
+}
+
+/* === Scan page === */
+html.ion-palette-dark .scan-page {
+  --background: var(--dm-bg-page);
+}
+html.ion-palette-dark .btn-secondary {
+  --background: var(--dm-bg-chip);
+  --background-activated: var(--dm-border);
+  --color: var(--dm-text-primary);
+  --border-color: var(--dm-border);
+}
+
+/* === Notification items === */
+html.ion-palette-dark .notif-item {
+  border-color: var(--dm-border);
+}
+html.ion-palette-dark .notif-message {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .notif-time {
+  color: var(--dm-text-secondary);
+}
+
+/* === Home page header icons === */
+html.ion-palette-dark .bell-btn {
+  background: var(--dm-bg-chip);
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .avatar-wrap {
+  background: var(--dm-bg-chip);
+}
+html.ion-palette-dark .avatar-initial {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .carousel-nav {
+  background: var(--dm-bg-card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  color: var(--dm-text-primary);
+}
+
+/* === Recipe suggestions === */
+html.ion-palette-dark .tab-badge {
+  background: var(--dm-bg-chip);
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .notes-block {
+  background: var(--dm-bg-subtle);
+}
+html.ion-palette-dark .instructions-text {
+  color: var(--dm-text-secondary);
+}
+
+/* === Photo upload modal === */
+html.ion-palette-dark .light-content {
+  --background: var(--dm-bg-page);
+  --color: var(--dm-text-primary);
+}
+html.ion-palette-dark .upload-dropzone {
+  background: var(--dm-bg-card);
+  border-color: var(--dm-border);
+}
+html.ion-palette-dark .upload-dropzone--disabled {
+  background: var(--dm-bg-subtle);
+}
+html.ion-palette-dark .upload-title {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .upload-subtitle,
+html.ion-palette-dark .change-photo-link,
+html.ion-palette-dark .uploaded-label,
+html.ion-palette-dark .field-hint,
+html.ion-palette-dark .date-field-label {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .date-selection-box {
+  background: var(--dm-bg-card);
+  border-color: var(--dm-border);
+}
+html.ion-palette-dark .info-box {
+  color: #93c5fd;
+}
+html.ion-palette-dark .ingredients-display {
+  background: var(--dm-bg-card);
+  border-color: var(--dm-border);
+}
+html.ion-palette-dark .ingredients-text-readonly {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .guidelines-content,
+html.ion-palette-dark .light-accordion {
+  background: var(--dm-bg-card) !important;
+}
+html.ion-palette-dark .guidelines-header-item {
+  --background: var(--dm-bg-card);
+}
+html.ion-palette-dark .guidelines-header-label {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .guideline-item {
+  color: var(--dm-text-secondary);
+}
+
+/* === Form error banners === */
+html.ion-palette-dark .form-error {
+  background: #450a0a;
+  border-color: #b91c1c;
+  color: #fca5a5;
+}
+html.ion-palette-dark .inline-error {
+  color: #f87171;
+}
+
+/* === Alert overrides === */
+html.ion-palette-dark ion-alert.custom-make-alert {
+  --background: var(--dm-bg-card);
+}
+html.ion-palette-dark ion-alert.custom-make-alert .alert-title {
+  color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark ion-alert.custom-make-alert .alert-message {
+  color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark ion-alert.custom-make-alert .alert-button-cancel {
+  background: var(--dm-bg-chip) !important;
+  border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark ion-alert.custom-make-alert .alert-button-cancel .alert-button-inner {
+  color: var(--dm-text-primary) !important;
+}

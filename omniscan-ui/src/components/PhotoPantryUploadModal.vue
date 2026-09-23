@@ -80,7 +80,14 @@
 
 				<div v-if="fileError" class="form-error">{{ fileError }}</div>
 
-				<ion-button expand="block" class="primary-button" :disabled="!previewUrl || remainingUploads <= 0" @click="goToStep2"> Continue </ion-button>
+				<div v-if="nonFoodDetected" class="nonfood-alert">
+					Non-food product detected. Only edible food items can be added to your pantry.
+				</div>
+
+				<ion-button expand="block" class="primary-button" :disabled="!previewUrl || remainingUploads <= 0 || isAnalyzing || nonFoodDetected" @click="goToStep2">
+					<ion-spinner v-if="isAnalyzing" name="crescent" slot="start" />
+					{{ isAnalyzing ? 'Analyzing…' : 'Continue' }}
+				</ion-button>
 				<p v-if="!previewUrl && remainingUploads > 0" class="required-note">A photo is required to continue</p>
 			</div>
 
@@ -95,6 +102,11 @@
 				</div>
 
 				<div v-if="formError" class="form-error">{{ formError }}</div>
+
+				<div v-if="form.ingredientsText" class="ingredients-display">
+					<label class="field-label-brown">Detected Ingredients</label>
+					<p class="ingredients-text-readonly">{{ form.ingredientsText }}</p>
+				</div>
 
 				<form @submit.prevent="handleSubmit">
 					<div class="form-group">
@@ -186,10 +198,20 @@ import {
 	cloudUploadOutline,
 	addOutline,
 } from 'ionicons/icons'
-import { apiFetch, ApiError } from '@/utils/api'
+import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 const DAILY_MAX_LIMIT = 7
+const TOKEN_KEY = 'omniscan_token'
+
+interface AnalyzeResult {
+	is_food_product: boolean
+	product_name: string
+	expiration_date: string | null
+	ingredients_text: string
+	net_quantity: number | null
+	net_unit: string | null
+}
 
 const props = defineProps<{ isOpen: boolean }>()
 const emit = defineEmits<{ close: []; created: [] }>()
@@ -199,6 +221,9 @@ const fileInputRef = ref<HTMLInputElement | null>(null)
 const previewUrl = ref<string | null>(null)
 const fileError = ref<string | null>(null)
 const remainingUploads = ref<number>(DAILY_MAX_LIMIT)
+const selectedFile = ref<File | null>(null)
+const isAnalyzing = ref(false)
+const nonFoodDetected = ref(false)
 
 const storageLocations = ['Fridge', 'Freezer', 'Cupboard'] as const
 const unitOptions = ['pcs', 'g', 'kg', 'ml', 'L']
@@ -210,6 +235,7 @@ const form = reactive({
 	storageLocation: 'Cupboard' as (typeof storageLocations)[number],
 	quantity: 1,
 	unit: 'pcs',
+	ingredientsText: '',
 })
 
 const isSubmitting = ref(false)
@@ -246,15 +272,21 @@ function resetAll(): void {
 	previewUrl.value = null
 	fileError.value = null
 	formError.value = null
+	isAnalyzing.value = false
+	nonFoodDetected.value = false
+	selectedFile.value = null
 	form.productName = ''
 	form.expirationDate = ''
 	form.bestBeforeDate = ''
 	form.storageLocation = 'Cupboard'
 	form.quantity = 1
 	form.unit = 'pcs'
+	form.ingredientsText = ''
 }
 
 function onFileSelected(event: Event): void {
+	nonFoodDetected.value = false
+
 	if (remainingUploads.value <= 0) {
 		fileError.value = 'Daily upload limit reached.'
 		return
@@ -277,6 +309,8 @@ function onFileSelected(event: Event): void {
 		return
 	}
 
+	selectedFile.value = file
+
 	const reader = new FileReader()
 	reader.onload = () => {
 		previewUrl.value = reader.result as string
@@ -287,9 +321,47 @@ function onFileSelected(event: Event): void {
 	reader.readAsDataURL(file)
 }
 
-function goToStep2(): void {
+async function goToStep2(): Promise<void> {
 	if (!previewUrl.value || remainingUploads.value <= 0) return
-	step.value = 2
+	nonFoodDetected.value = false
+	isAnalyzing.value = true
+	try {
+		const token = localStorage.getItem(TOKEN_KEY)
+		const fd = new FormData()
+		fd.append('image', selectedFile.value!)
+		const response = await fetch(`${API_BASE_URL}/api/pantry_item/analyze`, {
+			method: 'POST',
+			headers: { Authorization: `Bearer ${token}` },
+			body: fd,
+		})
+		if (!response.ok) {
+			step.value = 2
+			return
+		}
+		const result: AnalyzeResult = await response.json()
+		if (!result.is_food_product) {
+			nonFoodDetected.value = true
+			return
+		}
+		if (result.product_name) form.productName = result.product_name
+		if (result.expiration_date) form.expirationDate = result.expiration_date
+		form.ingredientsText = result.ingredients_text || ''
+		// Pre-fill quantity and unit if the AI detected them
+		const UNIT_OPTIONS = ['pcs', 'g', 'kg', 'ml', 'L']
+		const unitMap: Record<string, string> = { pc: 'pcs', piece: 'pcs', pieces: 'pcs', pcs: 'pcs', liter: 'L', litre: 'L', liters: 'L', litres: 'L', gram: 'g', grams: 'g', kilogram: 'kg', kilograms: 'kg', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml' }
+		if (typeof result.net_quantity === 'number' && result.net_quantity > 0) {
+			form.quantity = result.net_quantity
+		}
+		if (typeof result.net_unit === 'string' && result.net_unit.trim()) {
+			const normalized = unitMap[result.net_unit.trim().toLowerCase()] ?? result.net_unit.trim().toLowerCase()
+			if (UNIT_OPTIONS.includes(normalized)) form.unit = normalized
+		}
+		step.value = 2
+	} catch {
+		step.value = 2
+	} finally {
+		isAnalyzing.value = false
+	}
 }
 
 function handleBack(): void {
@@ -771,5 +843,32 @@ ion-accordion-group {
 	padding: 8px 12px;
 	margin-bottom: 12px;
 	font-size: 0.825rem;
+}
+
+.nonfood-alert {
+	background: #fef2f2;
+	color: #b91c1c;
+	border: 1px solid #fca5a5;
+	border-radius: 10px;
+	padding: 10px 14px;
+	font-size: 0.825rem;
+	font-weight: 500;
+	margin: 10px 0;
+}
+
+.ingredients-display {
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 12px 14px;
+	margin: 12px 0;
+}
+
+.ingredients-text-readonly {
+	font-size: 0.825rem;
+	color: #374151;
+	line-height: 1.5;
+	margin: 4px 0 0;
+	white-space: pre-wrap;
 }
 </style>

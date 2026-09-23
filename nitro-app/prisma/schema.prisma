@@ -294,6 +294,11 @@ model CatalogProduct {
 	ingredient_text String
 	simplified_ingredients String
 	is_verified Boolean @default(false)
+	// Allergens declared on the physical label — populated from seed data.
+	// Used as a second safety layer in findAlternativeProducts alongside the
+	// CatalogProductIngredient join-table filter.
+	// NOTE: Run `prisma migrate dev` after adding this field.
+	allergens_declared   String[]   @default([])
 	match_key String @unique
 
 	halal_logo HalalLogo? @relation(fields: [halal_logo_id], references: [id])

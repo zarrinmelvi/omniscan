@@ -392,7 +392,9 @@ async function saveProfile() {
 
 function handleLogout() {
 	authStore.logout()
-	router.push('/login')
+	// Use replace so the profile page is removed from the history stack —
+	// pressing back after logout cannot restore the authenticated view.
+	router.replace('/login')
 }
 
 onMounted(() => {

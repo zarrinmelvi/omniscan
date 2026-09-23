@@ -27,8 +27,9 @@
 							<h1 class="user-name">{{ user.name }}</h1>
 							<p class="user-email">{{ user.email }}</p>
 						</div>
-						<button type="button" class="edit-trigger" @click="openEditModal">
-							<ion-icon :icon="pencilOutline" />
+						<button type="button" class="edit-profile-btn" @click="openEditModal">
+							Edit Profile
+							<ion-icon :icon="pencilOutline" class="edit-profile-btn__icon" />
 						</button>
 					</div>
 
@@ -482,7 +483,7 @@ onMounted(() => {
 
 .profile-header-top {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	gap: 16px;
 }
 
@@ -552,13 +553,25 @@ onMounted(() => {
 	text-overflow: ellipsis;
 }
 
-.edit-trigger {
+.edit-profile-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
 	background: transparent;
-	border: none;
-	color: #10b981;
-	font-size: 1.25rem;
-	padding: 4px;
+	border: 1px solid var(--ion-color-medium, #9ca3af);
+	border-radius: 10px;
+	padding: 7px 14px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--ion-text-color, #0f172a);
 	cursor: pointer;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.edit-profile-btn__icon {
+	color: #10b981;
+	font-size: 1rem;
 }
 
 /* Preferences Summary */

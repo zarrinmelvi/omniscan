@@ -146,6 +146,8 @@ interface ScanResultDisplay {
 		halal_logo_id: number | null
 		image_base64: string | null
 		image_base64_back: string | null
+		net_quantity_detected: number | null
+		net_unit_detected: string | null
 	}
 	safety_verdict: 'Red' | 'Yellow' | 'Green'
 	reasons: string[]

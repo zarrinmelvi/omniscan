@@ -2,7 +2,7 @@
 	<ion-page>
 		<ion-content class="auth-content">
 			<div class="auth-card">
-				<button type="button" class="back-button" @click="$router.back()">
+				<button type="button" class="back-button" @click="$router.push('/')">
 					<ion-icon :icon="chevronBackOutline" />
 				</button>
 

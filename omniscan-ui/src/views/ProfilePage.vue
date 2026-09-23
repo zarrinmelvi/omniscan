@@ -113,7 +113,7 @@
 						<div class="chip-row chip-row--editable">
 							<span v-if="form.halalPref" class="pref-chip">
 								Halal
-								<ion-icon :icon="closeOutline" class="chip-remove" @click="form.halalPref = false" />
+								<ion-icon :icon="closeOutline" class="chip-remove" @click="removeHalalPref()" />
 							</span>
 							<span v-for="pref in form.customPreferences" :key="pref" class="pref-chip">
 								{{ pref }}
@@ -127,9 +127,11 @@
 								type="text"
 								placeholder="Type a custom preference…"
 								class="custom-input pref-text-input"
-								@keyup.enter="addCustomPreference" />
+								@keyup.enter="addCustomPreference"
+								@input="prefAddError = null" />
 							<button type="button" class="add-btn" :disabled="!customPrefDraft.trim()" @click="addCustomPreference">+ Add</button>
 						</div>
+						<p v-if="prefAddError" class="pref-add-error">{{ prefAddError }}</p>
 
 						<p class="quick-add-label">Quick add:</p>
 						<div class="chip-row">
@@ -139,10 +141,11 @@
 								type="button"
 								class="quick-add-chip"
 								:disabled="suggestion === 'Halal' ? form.halalPref : form.customPreferences.includes(suggestion)"
-								@click="suggestion === 'Halal' ? (form.halalPref = true) : addQuickPreference(suggestion)">
+								@click="handleQuickAdd(suggestion)">
 								+ {{ suggestion }}
 							</button>
 						</div>
+						<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 dietary preferences.</p>
 
 						<button type="button" class="save-changes-btn" :disabled="isSaving" @click="saveProfile">
 							<ion-spinner v-if="isSaving" name="crescent" />
@@ -157,6 +160,21 @@
 
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted } from 'vue'
+
+const PREF_MAX = 5
+
+const NON_CONSUMABLE_TERMS: string[] = [
+	// Cosmetics / beauty
+	'shampoo', 'lotion', 'soap', 'perfume', 'conditioner',
+	'moisturiser', 'moisturizer', 'lipstick', 'mascara',
+	'foundation', 'serum', 'toner', 'sunscreen',
+	// Cleaning / household
+	'bleach', 'detergent', 'disinfectant', 'polish',
+	'cleaner', 'wax',
+	// Obvious non-food
+	'plastic', 'metal', 'fabric', 'electronics',
+	'medication', 'drug', 'pill', 'tablet', 'capsule', 'supplement',
+]
 import { useRouter } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToast, IonModal } from '@ionic/vue'
 import {
@@ -255,6 +273,8 @@ const loadError = ref('')
 const isSaving = ref(false)
 const saveError = ref('')
 const showSuccessToast = ref(false)
+const prefLimitWarning = ref(false)
+const prefAddError = ref<string | null>(null)
 
 const allergenCatalog = ref<Allergen[]>([])
 
@@ -267,6 +287,7 @@ const customPrefDraft = ref('')
 
 const halalPref = computed(() => user.value.dietary_prof?.[0]?.halal_pref ?? false)
 const customPreferences = computed(() => user.value.dietary_prof?.[0]?.custom_preferences ?? [])
+const prefTotal = computed(() => form.customPreferences.length + (form.halalPref ? 1 : 0))
 
 const form = reactive({
 	name: '',
@@ -311,6 +332,8 @@ function openEditModal() {
 	avatarError.value = ''
 	saveError.value = ''
 	customPrefDraft.value = ''
+	prefLimitWarning.value = false
+	prefAddError.value = null
 	isEditModalOpen.value = true
 }
 
@@ -345,13 +368,44 @@ function onAvatarSelected(event: Event) {
 	reader.readAsDataURL(file)
 }
 
+function isNonConsumable(value: string): boolean {
+	const lower = value.toLowerCase()
+	return NON_CONSUMABLE_TERMS.some((term) => lower.includes(term))
+}
+
 function addCustomPreference() {
 	const value = customPrefDraft.value.trim()
 	if (!value) return
+
+	// Non-consumable check runs first
+	if (isNonConsumable(value)) {
+		prefAddError.value = 'Please enter a food-related dietary preference.'
+		return
+	}
+
+	// Limit check
+	if (prefTotal.value >= PREF_MAX) {
+		prefLimitWarning.value = true
+		return
+	}
+
 	if (!form.customPreferences.includes(value)) {
 		form.customPreferences.push(value)
+		prefAddError.value = null
 	}
 	customPrefDraft.value = ''
+}
+
+function handleQuickAdd(suggestion: string) {
+	if (prefTotal.value >= PREF_MAX) {
+		prefLimitWarning.value = true
+		return
+	}
+	if (suggestion === 'Halal') {
+		form.halalPref = true
+	} else {
+		addQuickPreference(suggestion)
+	}
 }
 
 function addQuickPreference(suggestion: string) {
@@ -362,6 +416,12 @@ function addQuickPreference(suggestion: string) {
 
 function removeCustomPreference(pref: string) {
 	form.customPreferences = form.customPreferences.filter((p) => p !== pref)
+	prefLimitWarning.value = false
+}
+
+function removeHalalPref() {
+	form.halalPref = false
+	prefLimitWarning.value = false
 }
 
 async function saveProfile() {
@@ -392,9 +452,11 @@ async function saveProfile() {
 
 function handleLogout() {
 	authStore.logout()
-	// Use replace so the profile page is removed from the history stack —
+	// Replace so the profile page is removed from the history stack —
 	// pressing back after logout cannot restore the authenticated view.
-	router.replace('/login')
+	// Navigate to the root landing page, not /login, so the user lands on
+	// the welcome screen rather than being dropped straight into the auth form.
+	router.replace('/')
 }
 
 onMounted(() => {
@@ -830,5 +892,17 @@ ion-modal.custom-edit-modal {
 	padding: 8px 12px;
 	margin-bottom: 12px;
 	font-size: 0.85rem;
+}
+
+.custom-edit-modal .pref-limit-warning {
+	color: #d97706;
+	font-size: 0.78rem;
+	margin: 4px 0 8px;
+}
+
+.custom-edit-modal .pref-add-error {
+	color: #b91c1c;
+	font-size: 0.78rem;
+	margin: -10px 0 8px;
 }
 </style>

@@ -75,8 +75,8 @@ async function handleUnauthorized(isAdmin?: boolean): Promise<void> {
 	const authStore = useAuthStore()
 	authStore.logout()
 
-	if (router.currentRoute.value.name !== 'login') {
-		router.push({ path: '/login' })
+	if (router.currentRoute.value.name !== 'welcome') {
+		router.push({ path: '/' })
 	}
 }
 

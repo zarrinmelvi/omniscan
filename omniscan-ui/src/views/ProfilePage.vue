@@ -138,16 +138,9 @@
 								:key="suggestion"
 								type="button"
 								class="quick-add-chip"
-								:disabled="form.customPreferences.includes(suggestion)"
-								@click="addQuickPreference(suggestion)">
+								:disabled="suggestion === 'Halal' ? form.halalPref : form.customPreferences.includes(suggestion)"
+								@click="suggestion === 'Halal' ? (form.halalPref = true) : addQuickPreference(suggestion)">
 								+ {{ suggestion }}
-							</button>
-							<button
-								type="button"
-								class="quick-add-chip"
-								:class="{ 'quick-add-chip--active': form.halalPref }"
-								@click="form.halalPref = true">
-								+ Halal
 							</button>
 						</div>
 
@@ -182,37 +175,38 @@ import { useAuthStore } from '@/stores/authStore'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB raw, before base64 overhead
+const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB raw, before base64 overhead[cite: 10]
 
 const quickAddSuggestions = [
-	'Keto',
-	'Paleo',
-	'Low-sodium',
-	'Low-carb',
-	'Pescatarian',
-	'Gluten-free',
-	'Dairy-free',
-	'Egg-free',
+	'Peanuts-free',
+	'Milk-free',
+	'Eggs-free',
+	'Wheat-free',
 	'Soy-free',
-	'Peanut-free',
-	'Tree Nut-free',
-	'Shellfish-free',
-	'Sesame-free',
 	'Fish-free',
+	'Shellfish-free',
+	'TreeNuts-Free',
+	'Sesame-free',
 	'Mustard-free',
+	'Halal',
 ]
 
 // Maps a dietary tag to the real allergen name it should enforce at the safety-check
 // level. These tags are the only UI surface now – selecting one silently keeps the
 // underlying Allergen relation (used by scans/recipe suggestions) in sync. Anything
-// not listed here (Keto, Paleo, Pescatarian, etc.) is cosmetic and has no allergen mapping.
+// not listed here (Keto, Paleo, Pescatarian, etc.) is cosmetic and has no allergen mapping[cite: 10].
 const ALLERGEN_TAG_MAP: Record<string, string> = {
 	'Gluten-free': 'Wheat',
 	'Dairy-free': 'Milk',
 	'Egg-free': 'Eggs',
 	'Soy-free': 'Soy',
 	'Peanut-free': 'Peanuts',
+	'Peanuts-free': 'Peanuts',
+	'Milk-free': 'Milk',
+	'Eggs-free': 'Eggs',
+	'Wheat-free': 'Wheat',
 	'Tree Nut-free': 'Tree Nuts',
+	'TreeNuts-Free': 'Tree Nuts',
 	'Shellfish-free': 'Shellfish',
 	'Sesame-free': 'Sesame',
 	'Fish-free': 'Fish',
@@ -299,7 +293,7 @@ async function fetchProfile() {
 // Background lookup only – powers deriveAllergenIds() so the dietary tags above can
 // silently keep the safety-check Allergen relation in sync. Not shown in the UI, so
 // failures are logged rather than surfaced; worst case, allergen sync is skipped for
-// this save and scans/recipes fall back to whatever was already set.
+// this save and scans/recipes fall back to whatever was already set[cite: 10].
 async function fetchAllergens() {
 	try {
 		allergenCatalog.value = await apiFetch<Allergen[]>('/api/allergen', { method: 'GET' })
@@ -798,6 +792,11 @@ ion-modal.custom-edit-modal {
 	font-size: 0.8rem;
 	font-weight: 500;
 	cursor: pointer;
+}
+
+.custom-edit-modal .quick-add-chip:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 .custom-edit-modal .quick-add-chip--active {

@@ -2,6 +2,7 @@
 	<ion-page>
 		<ion-content class="auth-content">
 			<div class="auth-card">
+				<!-- Back button shown ONLY on Step 1 -->
 				<button v-if="step === 1" class="back-button" @click="handleBack">
 					<ion-icon :icon="chevronBackOutline" />
 				</button>
@@ -156,7 +157,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError } from '@/utils/api'
@@ -177,7 +178,7 @@ const showPassword = ref(false)
 const isSubmitting = ref(false)
 const errorMessage = ref<string | null>(null)
 
-// Per-field validation error flags — drives red-border highlight
+// Per-field validation error flags
 const fieldErrors = reactive({
 	name: false,
 	email: false,
@@ -189,21 +190,17 @@ function clearFieldError(field: keyof typeof fieldErrors) {
 	fieldErrors[field] = false
 }
 
-// Strict email validation — requires a recognised/common TLD drawn from an
-// explicit allowlist.  This prevents fake two-letter TLDs like ".xy" or
-// ".zz" that pass a generic [a-zA-Z]{2,6} check.
-//
-// The allowlist covers:
-//   • Generic TLDs: com, org, net, edu, gov, mil, int, info, biz, name, pro
-//   • Common new gTLDs: app, dev, io, ai, co, me, tv, cc, us, uk, ca, au,
-//     de, fr, jp, cn, br, in, mx, ph, sg, nz, za, ng, ke, pk, bd, id, my,
-//     th, vn, es, it, nl, pl, se, no, fi, dk, be, ch, at, ru, tr, sa, ae,
-//     eg, il, ar, cl, pe, ve, nz
-//   • Second-level ccTLD patterns (co.uk, com.au, com.ph, etc.) are covered
-//     because the regex matches the final segment after the last dot; "co"
-//     is in the list so "user@example.co.uk" passes on the ".uk" segment.
-//
-// Anything not on the list (e.g. ".xy", ".zz", ".lol") is rejected.
+async function showToast(message: string, color: 'success' | 'danger' | 'warning' = 'success') {
+	const toast = await toastController.create({
+		message,
+		duration: 3000,
+		color,
+		position: 'top',
+	})
+	await toast.present()
+}
+
+// Strict email validation
 const KNOWN_TLDS =
 	'com|org|net|edu|gov|mil|int|info|biz|name|pro|' +
 	'app|dev|io|ai|co|me|tv|cc|online|store|' +
@@ -231,9 +228,6 @@ const prefLimitWarning = ref(false)
 
 const prefTotal = computed(() => selectedAllergenIds.value.length + (halalSelected.value ? 1 : 0))
 
-// Emoji per allergen name – anything fetched from the catalog that isn't
-// in this map (e.g. a new allergen an admin adds later) still renders,
-// just with a generic fallback icon instead of a blank card.
 const ALLERGEN_EMOJI: Record<string, string> = {
 	milk: '🥛',
 	eggs: '🥚',
@@ -254,16 +248,6 @@ function formatAllergenName(name: string): string {
 }
 
 function handleBack(): void {
-	if (step.value === 2) {
-		// Account + session already exist at this point – going back just
-		// re-shows the form, it won't re-run account creation unless the
-		// user submits it again (which would correctly fail as a duplicate
-		// email, same as re-submitting any already-used signup form).
-		step.value = 1
-		return
-	}
-	// Guard: if no history exists (e.g. direct deep-link to /register),
-	// router.back() would leave a blank screen — replace with Welcome instead.
 	if (window.history.length <= 1) {
 		router.replace('/')
 	} else {
@@ -273,15 +257,11 @@ function handleBack(): void {
 
 async function handleRegister(): Promise<void> {
 	errorMessage.value = null
-	// Reset all field highlights before re-validating
 	fieldErrors.name = false
 	fieldErrors.email = false
 	fieldErrors.password = false
 	fieldErrors.confirmPassword = false
 
-	// Strict email format (requires TLD of ≥2 chars — type="text" now, so
-	// we own validation fully instead of relying on the browser's lenient
-	// type="email" which accepts "user@domain" with no TLD).
 	if (!EMAIL_RE.test(email.value)) {
 		fieldErrors.email = true
 		errorMessage.value = 'Please enter a valid email address (e.g. user@example.com).'
@@ -294,7 +274,6 @@ async function handleRegister(): Promise<void> {
 		return
 	}
 
-	// Name and password must not be identical
 	if (name.value.trim() === password.value) {
 		fieldErrors.name = true
 		fieldErrors.password = true
@@ -313,16 +292,14 @@ async function handleRegister(): Promise<void> {
 
 	try {
 		await authStore.register(name.value.trim(), email.value, password.value)
-		// register() doesn't return a token – log in immediately after so
-		// step 2 can call authenticated endpoints (saving prefs needs a
-		// session the same way the Profile page does).
 		await authStore.login(email.value, password.value)
+
+		await showToast('Account created successfully!', 'success')
 
 		step.value = 2
 		fetchAllergenCatalog()
 	} catch (err) {
 		if (err instanceof ApiError) {
-			// Surface a specific, user-friendly message for duplicate emails
 			if (err.status === 409 || err.message.toLowerCase().includes('email')) {
 				fieldErrors.email = true
 				errorMessage.value = 'This email address already exists.'
@@ -352,11 +329,9 @@ async function fetchAllergenCatalog(): Promise<void> {
 
 function toggleAllergen(id: number): void {
 	if (selectedAllergenIds.value.includes(id)) {
-		// Deselection — always allowed
 		selectedAllergenIds.value = selectedAllergenIds.value.filter((existingId) => existingId !== id)
 		prefLimitWarning.value = false
 	} else {
-		// Addition — check limit
 		if (prefTotal.value >= PREF_MAX) {
 			prefLimitWarning.value = true
 			return
@@ -372,27 +347,32 @@ function toggleHalal(): void {
 	}
 	halalSelected.value = !halalSelected.value
 	if (!halalSelected.value) {
-		// Just deselected — clear warning
 		prefLimitWarning.value = false
 	}
 }
 
 async function completeSetup(): Promise<void> {
-	// Guard against double-invocation (rapid double-tap)
 	if (isSavingPrefs.value) return
 
 	isSavingPrefs.value = true
 	prefsError.value = ''
 
+	// Convert selected Allergen IDs into formatted tag names (e.g. Milk-free) for custom_preferences
+	const customPrefTags = allergenCatalog.value
+		.filter((a) => selectedAllergenIds.value.includes(a.id))
+		.map((a) => `${formatAllergenName(a.name)}-free`)
+
 	try {
 		await apiFetch('/api/users', {
 			method: 'PUT',
-			body: { halal_pref: halalSelected.value, allergen_ids: selectedAllergenIds.value },
+			body: {
+				halal_pref: halalSelected.value,
+				allergen_ids: selectedAllergenIds.value,
+				custom_preferences: customPrefTags,
+			},
 		})
-		// Refresh the auth store so downstream pages see up-to-date user state
-		// without requiring a manual browser refresh.
 		await authStore.checkAuth()
-		await router.replace('/tabs/home')
+		window.location.href = '/tabs/home'
 	} catch (err) {
 		prefsError.value = err instanceof ApiError ? err.message : 'Failed to save your preferences.'
 	} finally {
@@ -401,13 +381,9 @@ async function completeSetup(): Promise<void> {
 }
 
 async function skipForNow(): Promise<void> {
-	// Guard against double-invocation while a save is in flight
 	if (isSavingPrefs.value) return
-	// Refresh auth state even when skipping so downstream pages see a valid
-	// session without requiring a manual browser refresh — matches the same
-	// pattern used by completeSetup().
 	await authStore.checkAuth()
-	await router.replace('/tabs/home')
+	window.location.href = '/tabs/home'
 }
 </script>
 

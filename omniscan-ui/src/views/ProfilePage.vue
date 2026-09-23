@@ -33,17 +33,17 @@
 						</button>
 					</div>
 
-					<!-- Dietary preference summary (matches mockup's top chip row) -->
-					<div v-if="halalPref || customPreferences.length > 0" class="pref-summary">
+					<!-- Dietary preference summary -->
+					<div v-if="halalPref || displayPreferences.length > 0" class="pref-summary">
 						<p class="section-label">Dietary Preferences:</p>
 						<div class="chip-row">
 							<span v-if="halalPref" class="pref-chip">Halal</span>
-							<span v-for="pref in customPreferences" :key="pref" class="pref-chip">{{ pref }}</span>
+							<span v-for="pref in displayPreferences" :key="pref" class="pref-chip">{{ pref }}</span>
 						</div>
 					</div>
 				</div>
 
-				<!-- Main Content Body (Gray Background Region) -->
+				<!-- Main Content Body -->
 				<div class="main-body">
 					<!-- Action rows -->
 					<div class="action-list">
@@ -156,23 +156,8 @@
 
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted } from 'vue'
-
-const PREF_MAX = 5
-
-const NON_CONSUMABLE_TERMS: string[] = [
-	// Cosmetics / beauty
-	'shampoo', 'lotion', 'soap', 'perfume', 'conditioner',
-	'moisturiser', 'moisturizer', 'lipstick', 'mascara',
-	'foundation', 'serum', 'toner', 'sunscreen',
-	// Cleaning / household
-	'bleach', 'detergent', 'disinfectant', 'polish',
-	'cleaner', 'wax',
-	// Obvious non-food
-	'plastic', 'metal', 'fabric', 'electronics',
-	'medication', 'drug', 'pill', 'tablet', 'capsule', 'supplement',
-]
 import { useRouter } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToast, IonModal } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToast, IonModal, onIonViewWillEnter } from '@ionic/vue'
 import {
 	alertCircleOutline,
 	pencilOutline,
@@ -188,7 +173,19 @@ import { useAuthStore } from '@/stores/authStore'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB raw, before base64 overhead[cite: 10]
+const PREF_MAX = 5
+
+const NON_CONSUMABLE_TERMS: string[] = [
+	'shampoo', 'lotion', 'soap', 'perfume', 'conditioner',
+	'moisturiser', 'moisturizer', 'lipstick', 'mascara',
+	'foundation', 'serum', 'toner', 'sunscreen',
+	'bleach', 'detergent', 'disinfectant', 'polish',
+	'cleaner', 'wax',
+	'plastic', 'metal', 'fabric', 'electronics',
+	'medication', 'drug', 'pill', 'tablet', 'capsule', 'supplement',
+]
+
+const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024
 
 const quickAddSuggestions = [
 	'Peanuts-free',
@@ -204,10 +201,6 @@ const quickAddSuggestions = [
 	'Halal',
 ]
 
-// Maps a dietary tag to the real allergen name it should enforce at the safety-check
-// level. These tags are the only UI surface now – selecting one silently keeps the
-// underlying Allergen relation (used by scans/recipe suggestions) in sync. Anything
-// not listed here (Keto, Paleo, Pescatarian, etc.) is cosmetic and has no allergen mapping[cite: 10].
 const ALLERGEN_TAG_MAP: Record<string, string> = {
 	'Gluten-free': 'Wheat',
 	'Dairy-free': 'Milk',
@@ -235,6 +228,10 @@ function deriveAllergenIds(customPreferences: string[], catalog: Allergen[]): nu
 		if (match) ids.push(match.id)
 	}
 	return ids
+}
+
+function formatAllergenName(name: string): string {
+	return name.replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
 interface Allergen {
@@ -281,7 +278,15 @@ const avatarError = ref('')
 const customPrefDraft = ref('')
 
 const halalPref = computed(() => user.value.dietary_prof?.[0]?.halal_pref ?? false)
-const customPreferences = computed(() => user.value.dietary_prof?.[0]?.custom_preferences ?? [])
+
+// Reads custom_preferences array or falls back to mapped user.allergens
+const displayPreferences = computed(() => {
+	const custom = user.value.dietary_prof?.[0]?.custom_preferences ?? []
+	if (custom.length > 0) return custom
+
+	return (user.value.allergens ?? []).map((a) => `${formatAllergenName(a.name)}-free`)
+})
+
 const prefTotal = computed(() => form.customPreferences.length + (form.halalPref ? 1 : 0))
 
 const form = reactive({
@@ -306,10 +311,6 @@ async function fetchProfile() {
 	}
 }
 
-// Background lookup only – powers deriveAllergenIds() so the dietary tags above can
-// silently keep the safety-check Allergen relation in sync. Not shown in the UI, so
-// failures are logged rather than surfaced; worst case, allergen sync is skipped for
-// this save and scans/recipes fall back to whatever was already set[cite: 10].
 async function fetchAllergens() {
 	try {
 		allergenCatalog.value = await apiFetch<Allergen[]>('/api/allergen', { method: 'GET' })
@@ -322,7 +323,7 @@ function openEditModal() {
 	form.name = user.value.name
 	form.email = user.value.email
 	form.halalPref = halalPref.value
-	form.customPreferences = [...customPreferences.value]
+	form.customPreferences = [...displayPreferences.value]
 	form.avatarBase64 = user.value.avatar_base64
 	avatarError.value = ''
 	saveError.value = ''
@@ -372,13 +373,11 @@ function addCustomPreference() {
 	const value = customPrefDraft.value.trim()
 	if (!value) return
 
-	// Non-consumable check runs first
 	if (isNonConsumable(value)) {
 		prefAddError.value = 'Please enter a food-related dietary preference.'
 		return
 	}
 
-	// Limit check
 	if (prefTotal.value >= PREF_MAX) {
 		prefLimitWarning.value = true
 		return
@@ -447,16 +446,20 @@ async function saveProfile() {
 
 function handleLogout() {
 	authStore.logout()
-	// Replace so the profile page is removed from the history stack —
-	// pressing back after logout cannot restore the authenticated view.
-	// Navigate to the root landing page, not /login, so the user lands on
-	// the welcome screen rather than being dropped straight into the auth form.
 	router.replace('/')
 }
 
-onMounted(() => {
+function loadData() {
 	fetchProfile()
 	fetchAllergens()
+}
+
+onMounted(() => {
+	loadData()
+})
+
+onIonViewWillEnter(() => {
+	loadData()
 })
 </script>
 
@@ -475,7 +478,6 @@ onMounted(() => {
 	text-align: center;
 }
 
-/* Header Section */
 .header-section {
 	background: #ffffff;
 	padding: 36px 24px 24px;
@@ -574,7 +576,6 @@ onMounted(() => {
 	font-size: 1rem;
 }
 
-/* Preferences Summary */
 .pref-summary {
 	margin-top: 24px;
 }
@@ -609,7 +610,6 @@ onMounted(() => {
 	font-size: 0.9rem;
 }
 
-/* Main Body Background */
 .main-body {
 	background-color: #f8fafc;
 	min-height: 100%;
@@ -617,7 +617,6 @@ onMounted(() => {
 	padding: 20px 20px 40px;
 }
 
-/* Action Rows */
 .action-list {
 	display: flex;
 	flex-direction: column;
@@ -659,9 +658,7 @@ onMounted(() => {
 }
 </style>
 
-<!-- Unscoped Style Block for Floating Modal, Input Fixing & Scrollbar Hiding -->
 <style>
-/* Hide scrollbar */
 .profile-content::part(scroll) {
 	overflow-y: auto;
 }
@@ -669,7 +666,6 @@ onMounted(() => {
 	display: none;
 }
 
-/* Edit Modal */
 ion-modal.custom-edit-modal {
 	--height: auto;
 	--width: 90%;
@@ -772,7 +768,6 @@ ion-modal.custom-edit-modal {
 	color: #475569;
 }
 
-/* Custom Input Box Styling - Fix for dark background */
 .custom-edit-modal .custom-input {
 	width: 100%;
 	height: 44px;
@@ -792,7 +787,6 @@ ion-modal.custom-edit-modal {
 	color: #94a3b8;
 }
 
-/* Chrome/Safari autofill override */
 .custom-edit-modal .custom-input:-webkit-autofill,
 .custom-edit-modal .custom-input:-webkit-autofill:hover,
 .custom-edit-modal .custom-input:-webkit-autofill:focus {
@@ -829,7 +823,6 @@ ion-modal.custom-edit-modal {
 	outline: none;
 }
 
-/* Base Add button - Disabled State */
 .custom-edit-modal .add-btn {
 	background: #a7f3d0;
 	color: #ffffff;
@@ -842,7 +835,6 @@ ion-modal.custom-edit-modal {
 	transition: background-color 0.2s ease;
 }
 
-/* Active Add button when input has text */
 .custom-edit-modal .add-btn:not(:disabled) {
 	background: #00b050;
 	cursor: pointer;

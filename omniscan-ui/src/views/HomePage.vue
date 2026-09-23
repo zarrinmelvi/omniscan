@@ -236,11 +236,8 @@ import {
 	refreshCircleOutline,
 	addCircleOutline,
 	checkmarkCircleOutline,
-<<<<<<< HEAD
-	archiveOutline,
-=======
 	notificationsOutline,
->>>>>>> aae623cefa8e0f2bcb4541735ce145000e7d9aa8
+	archiveOutline,
 	closeOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'

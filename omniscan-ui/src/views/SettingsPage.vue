@@ -382,7 +382,7 @@
 
 					<p class="about-section-heading">Our Team</p>
 					<ul class="about-team-list">
-						<li>ZarrinMelvi V. Delos Santos</li>
+						<li>Zarrin Melvi V. Delos Santos</li>
 						<li>Shanna Hazel A. Rogero</li>
 						<li>Angel Fea P. Roma Cruz</li>
 						<li>Ruben M. Sentales</li>

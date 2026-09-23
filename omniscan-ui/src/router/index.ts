@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from '@ionic/vue-router'
 import { RouteRecordRaw } from 'vue-router'
 import TabsPage from '../views/TabsPage.vue'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
+import { useAuthStore } from '@/stores/authStore'
 
 const routes: Array<RouteRecordRaw> = [
 	{
@@ -146,6 +147,19 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
 	routes,
+})
+
+router.beforeEach(async (to, from, next) => {
+	if (to.path.startsWith('/tabs')) {
+		const authStore = useAuthStore()
+		if (!authStore.isAuthenticated) {
+			await authStore.checkAuth()
+		}
+		if (!authStore.isAuthenticated) {
+			return next('/login')
+		}
+	}
+	next()
 })
 
 export default router

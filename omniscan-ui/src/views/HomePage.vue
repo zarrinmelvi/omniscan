@@ -8,10 +8,15 @@
 						<h1 class="greeting-title">{{ greeting }}, {{ userName || '…' }}!</h1>
 						<p class="greeting-date">{{ formattedDate }}</p>
 					</div>
-					<button type="button" class="avatar-wrap" @click="goToProfile" aria-label="Go to profile">
-						<img v-if="avatarBase64" :src="avatarBase64" alt="Profile photo" class="avatar-image" />
-						<span v-else class="avatar-initial">{{ (userName || '?').charAt(0) }}</span>
-					</button>
+					<div class="header-actions">
+						<button type="button" class="bell-btn" @click="goToNotifications" aria-label="Notifications">
+							<ion-icon :icon="notificationsOutline" />
+						</button>
+						<button type="button" class="avatar-wrap" @click="goToProfile" aria-label="Go to profile">
+							<img v-if="avatarBase64" :src="avatarBase64" alt="Profile photo" class="avatar-image" />
+							<span v-else class="avatar-initial">{{ (userName || '?').charAt(0) }}</span>
+						</button>
+					</div>
 				</div>
 
 				<div v-if="loadError" class="inline-error">
@@ -232,6 +237,7 @@ import {
 	warningOutline,
 	addCircleOutline,
 	checkmarkCircleOutline,
+	notificationsOutline,
 	closeOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
@@ -398,6 +404,10 @@ function goToPantry() {
 
 function goToProfile() {
 	router.push('/tabs/profile')
+}
+
+function goToNotifications() {
+	router.push('/tabs/notifications')
 }
 
 function goToPantryItemDetail(id: number) {
@@ -627,6 +637,27 @@ onIonViewWillEnter(() => {
 	color: #8e8e93;
 	margin: 2px 0 0;
 }
+.header-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.bell-btn {
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	background: #f1f5f9;
+	border: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #334155;
+	font-size: 1.2rem;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
 .avatar-wrap {
 	width: 44px;
 	height: 44px;

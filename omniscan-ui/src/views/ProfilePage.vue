@@ -51,11 +51,6 @@
 							<span>Settings</span>
 							<ion-icon :icon="chevronForwardOutline" class="chevron" />
 						</button>
-						<button type="button" class="action-row" @click="router.push('/tabs/notifications')">
-							<ion-icon :icon="notificationsOutline" class="action-icon" />
-							<span>Notifications</span>
-							<ion-icon :icon="chevronForwardOutline" class="chevron" />
-						</button>
 						<button type="button" class="action-row action-row--danger" @click="handleLogout">
 							<ion-icon :icon="logOutOutline" class="action-icon" />
 							<span>Log Out</span>
@@ -181,7 +176,6 @@ import {
 	alertCircleOutline,
 	pencilOutline,
 	settingsOutline,
-	notificationsOutline,
 	logOutOutline,
 	chevronForwardOutline,
 	closeOutline,

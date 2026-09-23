@@ -46,6 +46,10 @@ interface ScanAiExtraction {
 	// normalizeToDateStringOrNull — never trust the model's own format
 	// compliance for something that feeds an <input type="date">.
 	expiration_date: string | null
+	// Net quantity as a number (e.g. 500, 1, 250) or null if not found
+	net_quantity: number | null
+	// Unit string as printed (e.g. "ml", "g", "L", "kg", "oz") or null if not found
+	net_unit: string | null
 }
 
 interface HalalLogoRecord {
@@ -74,7 +78,7 @@ function buildPrompt(): string {
 		'matching exactly this shape:',
 		'{"is_food_product": boolean, "product_name": string, "brand": string, "ingredients_text": string,',
 		'"simplified_ingredients": string, "halal_logo_detected": boolean, "certifying_body": string,',
-		'"expiration_date": string | null}.',
+		'"expiration_date": string | null, "net_quantity": number | null, "net_unit": string | null}.',
 		'"is_food_product" must be false for anything that is not meant for human consumption',
 		'(e.g. lotion, shampoo, shoes, electronics, toys, stationery) — when false, you may leave the',
 		'other string fields as empty strings, halal_logo_detected as false, and expiration_date as null,',
@@ -96,6 +100,8 @@ function buildPrompt(): string {
 		'confident you have read it correctly, return null rather than guessing — a wrong date is worse than no date.',
 		'If no date is visible on the packaging at all, return null.',
 		'If a field cannot be read from the image, use an empty string (or false for the boolean field, or null for expiration_date).',
+		'"net_quantity" should be the numeric net quantity printed on the label (e.g. 500 for "500ml", 1 for "1L", 250 for "250g"). Return only the number, not the unit. If no net quantity is visible, return null.',
+		'"net_unit" should be the unit of measure as printed (e.g. "ml", "L", "g", "kg", "oz", "fl oz", "pcs", "pack"). Return only the unit string, lowercase. If no unit is visible or net_quantity is null, return null.',
 		'Do not invent ingredients, certifications, product identity, or a date that are not visibly present.',
 	].join(' ')
 }
@@ -126,6 +132,8 @@ function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 		halal_logo_detected: normalizeToBoolean(candidate.halal_logo_detected),
 		certifying_body: normalizeToString(candidate.certifying_body),
 		expiration_date: normalizeToDateStringOrNull(candidate.expiration_date),
+		net_quantity: typeof candidate.net_quantity === 'number' ? candidate.net_quantity : null,
+		net_unit: typeof candidate.net_unit === 'string' && candidate.net_unit.trim() ? candidate.net_unit.trim().toLowerCase() : null,
 	}
 }
 
@@ -285,6 +293,8 @@ export default defineEventHandler(async (event) => {
 			halal_logo_detected: false,
 			certifying_body: '',
 			expiration_date: null,
+			net_quantity: null,
+			net_unit: null,
 		}
 	} else {
 		const imagesForAi = base64RawBack ? [base64Raw, base64RawBack] : [base64Raw]
@@ -488,6 +498,8 @@ export default defineEventHandler(async (event) => {
 					image_base64: product.image_base64,
 					image_base64_back: product.image_base64_back,
 					expiration_date_detected: extraction.expiration_date,
+					net_quantity_detected: extraction.net_quantity,
+					net_unit_detected: extraction.net_unit,
 				},
 				safety_verdict: scan.safety_verdict,
 				flag_reason: scan.flag_reason,

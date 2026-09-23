@@ -29,6 +29,8 @@ interface UploadAiExtraction {
 	product_name: string
 	expiration_date: string | null
 	ingredients_text: string
+	net_quantity: number | null
+	net_unit: string | null
 }
 
 function buildAnalyzePrompt(): string {
@@ -36,13 +38,15 @@ function buildAnalyzePrompt(): string {
 		'You are a food-label analysis assistant.',
 		'Determine whether the attached photo shows a FOOD OR BEVERAGE product intended for human consumption.',
 		'Respond with ONLY a single JSON object, no prose, no markdown code fences, matching this shape exactly:',
-		'{"is_food_product": boolean, "product_name": string, "expiration_date": string | null, "ingredients_text": string}.',
+		'{"is_food_product": boolean, "product_name": string, "expiration_date": string | null, "ingredients_text": string, "net_quantity": number | null, "net_unit": string | null}.',
 		'Set is_food_product to false for any non-food item (cosmetics, cleaning supplies, electronics, clothing, etc.).',
 		'When is_food_product is false, set product_name and ingredients_text to "" and expiration_date to null.',
 		'When is_food_product is true:',
 		'product_name is the product name as printed on the label.',
 		'expiration_date is any printed expiry/best-before/use-by date converted to YYYY-MM-DD, or null if absent or unreadable.',
 		'ingredients_text is the raw ingredient list as printed on the label, or "" if not visible.',
+		'"net_quantity" is the numeric net quantity on the label (e.g. 500 for "500ml"). Return only the number or null.',
+		'"net_unit" is the unit of measure as printed, lowercase (e.g. "ml", "g", "L", "kg", "oz"). Return null if absent.',
 		'Do not invent information not visible on the packaging.',
 	].join(' ')
 }
@@ -55,6 +59,8 @@ function coerceUploadExtraction(value: unknown): UploadAiExtraction | null {
 		product_name: typeof c.product_name === 'string' ? c.product_name : '',
 		expiration_date: normalizeToDateStringOrNull(c.expiration_date),
 		ingredients_text: typeof c.ingredients_text === 'string' ? c.ingredients_text : '',
+		net_quantity: typeof c.net_quantity === 'number' ? c.net_quantity : null,
+		net_unit: typeof c.net_unit === 'string' && c.net_unit.trim() ? c.net_unit.trim().toLowerCase() : null,
 	}
 }
 
@@ -133,6 +139,8 @@ export default defineEventHandler(async (event) => {
 			product_name: '',
 			expiration_date: null,
 			ingredients_text: '',
+			net_quantity: null,
+			net_unit: null,
 		}
 	}
 

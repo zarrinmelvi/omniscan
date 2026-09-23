@@ -209,6 +209,8 @@ interface AnalyzeResult {
 	product_name: string
 	expiration_date: string | null
 	ingredients_text: string
+	net_quantity: number | null
+	net_unit: string | null
 }
 
 const props = defineProps<{ isOpen: boolean }>()
@@ -344,6 +346,16 @@ async function goToStep2(): Promise<void> {
 		if (result.product_name) form.productName = result.product_name
 		if (result.expiration_date) form.expirationDate = result.expiration_date
 		form.ingredientsText = result.ingredients_text || ''
+		// Pre-fill quantity and unit if the AI detected them
+		const UNIT_OPTIONS = ['pcs', 'g', 'kg', 'ml', 'L']
+		const unitMap: Record<string, string> = { pc: 'pcs', piece: 'pcs', pieces: 'pcs', pcs: 'pcs', liter: 'L', litre: 'L', liters: 'L', litres: 'L', gram: 'g', grams: 'g', kilogram: 'kg', kilograms: 'kg', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml' }
+		if (typeof result.net_quantity === 'number' && result.net_quantity > 0) {
+			form.quantity = result.net_quantity
+		}
+		if (typeof result.net_unit === 'string' && result.net_unit.trim()) {
+			const normalized = unitMap[result.net_unit.trim().toLowerCase()] ?? result.net_unit.trim().toLowerCase()
+			if (UNIT_OPTIONS.includes(normalized)) form.unit = normalized
+		}
 		step.value = 2
 	} catch {
 		step.value = 2

@@ -63,6 +63,26 @@ const routes: Array<RouteRecordRaw> = [
 				name: 'admin-verification',
 				component: () => import('../views/admin/VerificationPanel.vue'),
 			},
+			{
+				path: 'productsdata',
+				name: 'admin-productsdata',
+				component: () => import('../views/admin/AdminManageProductData.vue'),
+			},
+			{
+				path: 'usersprofile',
+				name: 'admin-usersprofile',
+				component: () => import('../views/admin/AdminManageUserProfile.vue'),
+			},
+			{
+				path: 'settings',
+				name: 'admin-settings',
+				component: () => import('../views/admin/AdminSettings.vue'),
+			},
+			{
+				path: 'systemlogs',
+				name: 'admin-systemlogs',
+				component: () => import('../views/admin/AdminSystemLogs.vue'),
+			},
 		],
 	},
 	{

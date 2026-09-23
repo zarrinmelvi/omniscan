@@ -87,10 +87,11 @@ export default defineEventHandler(async (event) => {
 			},
 		})
 
+		// Creates log entry specifically typed as 'auto_archived'
 		if (isNewlyConsumed) {
 			await prisma.activityLog.create({
 				data: {
-					type: 'consumed',
+					type: 'auto_archived',
 					message: existingItem.product.product_name,
 					user_id: authUser.id,
 					product_id: existingItem.product.id,

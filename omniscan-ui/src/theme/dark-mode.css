@@ -562,3 +562,100 @@ html.ion-palette-dark ion-alert.custom-make-alert .alert-button-cancel {
 html.ion-palette-dark ion-alert.custom-make-alert .alert-button-cancel .alert-button-inner {
   color: var(--dm-text-primary) !important;
 }
+
+/* === Recipes page content and empty state === */
+html.ion-palette-dark .recipe-content {
+  --background: var(--dm-bg-page);
+}
+html.ion-palette-dark .header-container {
+  background: var(--dm-header-bg);
+  border-bottom-color: var(--dm-border);
+}
+html.ion-palette-dark .empty-state {
+  background: transparent;
+}
+html.ion-palette-dark .empty-title {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .empty-subtext {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .light-gray-icon {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .tab-badge {
+  background: var(--dm-bg-chip);
+  color: var(--dm-text-primary);
+}
+
+/* === Profile page main-body white background === */
+html.ion-palette-dark .main-body {
+  background-color: var(--dm-bg-page);
+}
+
+/* === Pantry spinners and scroll area === */
+html.ion-palette-dark .pantry-content::part(scroll) {
+  background: var(--dm-bg-page);
+}
+html.ion-palette-dark .sort-row__label,
+html.ion-palette-dark .sort-row {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .sort-icon {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .scanned-stat-row__label {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .archived-subhead {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .auto-delete-info {
+  color: #fbbf24;
+}
+html.ion-palette-dark .archived-card {
+  background: var(--dm-bg-card);
+  border-color: var(--dm-border);
+}
+
+/* === Notifications empty state === */
+html.ion-palette-dark .empty-state p {
+  color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .mark-read-btn {
+  --color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .mark-read-btn--active {
+  --color: #05c450;
+}
+html.ion-palette-dark .notif-title {
+  color: var(--dm-text-primary);
+}
+
+/* === Settings row rows and version text === */
+html.ion-palette-dark .settings-row {
+  border-bottom-color: var(--dm-border);
+}
+html.ion-palette-dark .settings-row--button {
+  color: var(--dm-text-primary);
+}
+
+/* === IonSelect popover dark === */
+html.ion-palette-dark .compact-sort-popover .popover-content {
+  background: var(--dm-bg-card) !important;
+}
+html.ion-palette-dark .compact-sort-popover ion-item {
+  --background: var(--dm-bg-card);
+  --color: var(--dm-text-primary);
+  --border-color: var(--dm-border);
+}
+
+/* === Tab bar === */
+html.ion-palette-dark ion-tab-bar {
+  --background: var(--dm-header-bg);
+  --border-color: var(--dm-border);
+}
+html.ion-palette-dark ion-tab-button {
+  --color: var(--dm-text-secondary);
+  --color-selected: #05c450;
+}

@@ -364,6 +364,7 @@ onMounted(() => {
 <style scoped>
 .recipe-content {
 	--background: #f9fafb;
+	--color: #0f172a;
 }
 
 .header-container {
@@ -446,6 +447,8 @@ onMounted(() => {
 }
 
 .empty-state {
+	background: transparent;
+	color: inherit;
 	display: flex;
 	flex-direction: column;
 	align-items: center;

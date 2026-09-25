@@ -381,6 +381,24 @@ async function handleSubmit(): Promise<void> {
 	if (!isFormValid.value || remainingUploads.value <= 0) return
 	formError.value = null
 
+	// Guard: block adding already-expired items
+	const today = new Date()
+	today.setHours(0, 0, 0, 0)
+	if (form.expirationDate) {
+		const exp = new Date(form.expirationDate + 'T00:00:00')
+		if (exp < today) {
+			formError.value = 'This product has already expired and cannot be added to your pantry. Please update the expiration date or remove it.'
+			return
+		}
+	}
+	if (form.bestBeforeDate) {
+		const bbd = new Date(form.bestBeforeDate + 'T00:00:00')
+		if (bbd < today) {
+			formError.value = 'This product\'s best-before date has already passed. Please update the date or remove it.'
+			return
+		}
+	}
+
 	isSubmitting.value = true
 
 	try {
@@ -389,6 +407,7 @@ async function handleSubmit(): Promise<void> {
 			body: {
 				product_name: form.productName.trim(),
 				image_base64: previewUrl.value,
+				ingredient_text: form.ingredientsText || undefined,
 				expiration_date: form.expirationDate || undefined,
 				best_before_date: form.bestBeforeDate || undefined,
 				storage_location: form.storageLocation,

@@ -322,6 +322,25 @@ async function submitAddToPantry() {
 	if (!isFormValid.value || !product.value?.product_name) return
 
 	submitError.value = ''
+
+	// Guard: block adding already-expired items
+	const today = new Date()
+	today.setHours(0, 0, 0, 0)
+	if (expirationDate.value) {
+		const exp = new Date(expirationDate.value + 'T00:00:00')
+		if (exp < today) {
+			submitError.value = 'This product has already expired and cannot be added to your pantry.'
+			return
+		}
+	}
+	if (bestBeforeDate.value) {
+		const bbd = new Date(bestBeforeDate.value + 'T00:00:00')
+		if (bbd < today) {
+			submitError.value = 'This product\'s best-before date has already passed and cannot be added.'
+			return
+		}
+	}
+
 	submitting.value = true
 
 	try {

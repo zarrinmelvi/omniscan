@@ -6,6 +6,7 @@ interface CreatePantryItemBody {
 	product_id?: number
 	product_name?: string
 	image_base64?: string
+	ingredient_text?: string
 	expiration_date?: string
 	best_before_date?: string
 	storage_location?: string
@@ -22,7 +23,7 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid request body.' })
 	}
 
-	const { product_name, image_base64, expiration_date, best_before_date, storage_location, quantity, unit } = body
+	const { product_name, image_base64, ingredient_text, expiration_date, best_before_date, storage_location, quantity, unit } = body
 
 	// ONLY check daily limit if this is a manual photo upload (product_id is undefined)
 	if (body.product_id === undefined) {
@@ -113,8 +114,8 @@ export default defineEventHandler(async (event) => {
 					data: {
 						brand_name: 'Manually Added',
 						product_name: product_name.trim(),
-						ingredient_text: 'Unknown',
-						simplified_ingredients: 'Unknown',
+						ingredient_text: ingredient_text?.trim() || 'Unknown',
+						simplified_ingredients: ingredient_text?.trim() || 'Unknown',
 						image_base64: image_base64 || null,
 						is_verified: false,
 						halal_logo_id: null,

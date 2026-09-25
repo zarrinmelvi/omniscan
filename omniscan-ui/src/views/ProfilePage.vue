@@ -71,15 +71,18 @@
 			<!-- Floating Edit Profile Modal -->
 			<ion-modal :is-open="isEditModalOpen" class="custom-edit-modal" @didDismiss="closeEditModal">
 				<div class="modal-card">
-					<!-- Modal Header -->
-					<div class="modal-header">
-						<h2 class="modal-title">Edit Profile</h2>
-						<button type="button" class="modal-close-btn" @click="closeEditModal">
-							<ion-icon :icon="closeOutline" />
-						</button>
+					<!-- Modal Header — sticky, never scrolls -->
+					<div class="modal-header-sticky">
+						<div class="modal-header">
+							<h2 class="modal-title">Edit Profile</h2>
+							<button type="button" class="modal-close-btn" @click="closeEditModal">
+								<ion-icon :icon="closeOutline" />
+							</button>
+						</div>
 					</div>
 
-					<div class="modal-body">
+					<!-- Scrollable body -->
+					<div class="modal-scroll-body">
 						<div v-if="saveError" class="form-error">{{ saveError }}</div>
 
 						<!-- Avatar Edit -->
@@ -157,7 +160,7 @@
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToast, IonModal, onIonViewWillEnter } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToast, IonModal, alertController, onIonViewWillEnter } from '@ionic/vue'
 import {
 	alertCircleOutline,
 	pencilOutline,
@@ -444,9 +447,29 @@ async function saveProfile() {
 	}
 }
 
-function handleLogout() {
-	authStore.logout()
-	router.replace('/')
+async function handleLogout() {
+	const alert = await alertController.create({
+		header: 'Log Out',
+		message: 'Are you sure you want to log out?',
+		cssClass: 'custom-make-alert',
+		buttons: [
+			{
+				text: 'Cancel',
+				role: 'cancel',
+				cssClass: 'alert-button-cancel',
+			},
+			{
+				text: 'Log Out',
+				role: 'destructive',
+				cssClass: 'alert-button-danger',
+				handler: () => {
+					authStore.logout()
+					router.replace('/')
+				},
+			},
+		],
+	})
+	await alert.present()
 }
 
 function loadData() {
@@ -667,7 +690,7 @@ onIonViewWillEnter(() => {
 }
 
 ion-modal.custom-edit-modal {
-	--height: auto;
+	--height: 90%;
 	--width: 90%;
 	--max-width: 400px;
 	--border-radius: 20px;
@@ -678,9 +701,24 @@ ion-modal.custom-edit-modal {
 .custom-edit-modal .modal-card {
 	background: #ffffff;
 	border-radius: 20px;
-	padding: 24px 20px;
 	width: 100%;
 	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow: hidden;
+}
+
+.custom-edit-modal .modal-header-sticky {
+	padding: 24px 20px 16px;
+	flex-shrink: 0;
+}
+
+.custom-edit-modal .modal-scroll-body {
+	flex: 1;
+	overflow-y: auto;
+	padding: 0 20px 40px;
+	-webkit-overflow-scrolling: touch;
 }
 
 .custom-edit-modal .modal-header {

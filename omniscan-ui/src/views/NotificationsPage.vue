@@ -83,10 +83,15 @@ import { apiFetch, ApiError } from '@/utils/api'
 const router = useRouter()
 
 function goBackToProfile() {
-	// Notifications now lives inside /tabs/ (a sibling of Profile in the same
-	// nested outlet), so this push is just normal same-outlet navigation – see
-	// SettingsPage.vue for why the previous top-level-route setup crashed.
-	router.push('/tabs/profile')
+	// Navigate back to the Home tab — the bell icon that opens Notifications
+	// lives on the Home page, so going back should return to Home.
+	// Use router.back() with a safe fallback to avoid blank screen on direct
+	// deep-link.
+	if (window.history.length > 1) {
+		router.back()
+	} else {
+		router.replace('/tabs/home')
+	}
 }
 
 // Only 'expiring' has a real backend trigger today (see detect-expiring.post.ts).

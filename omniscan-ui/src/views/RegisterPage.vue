@@ -30,7 +30,6 @@
 									v-model="name"
 									type="text"
 									placeholder="Enter your name"
-									required
 									class="custom-input"
 									:class="{ 'input-error': fieldErrors.name }"
 									@input="clearFieldError('name')" />
@@ -44,7 +43,6 @@
 									v-model="email"
 									type="text"
 									placeholder="your@email.com"
-									required
 									class="custom-input"
 									:class="{ 'input-error': fieldErrors.email }"
 									@input="clearFieldError('email')" />
@@ -58,7 +56,6 @@
 									v-model="password"
 									:type="showPassword ? 'text' : 'password'"
 									placeholder="Create a password"
-									required
 									class="custom-input"
 									:class="{ 'input-error': fieldErrors.password }"
 									@input="clearFieldError('password')" />
@@ -67,7 +64,7 @@
 									class="password-toggle"
 									@click="showPassword = !showPassword" />
 							</div>
-							<p class="hint-text">Must be at least 8 characters</p>
+							<p class="hint-text">Min. 8 chars, 1 uppercase, 1 number, 1 special character</p>
 						</div>
 
 						<div class="form-group">
@@ -77,11 +74,26 @@
 									v-model="confirmPassword"
 									:type="showPassword ? 'text' : 'password'"
 									placeholder="Re-enter your password"
-									required
 									class="custom-input"
 									:class="{ 'input-error': fieldErrors.confirmPassword }"
 									@input="clearFieldError('confirmPassword')" />
 							</div>
+						</div>
+
+						<!-- Terms & Conditions checkbox -->
+						<div class="terms-row">
+							<label class="terms-label" :class="{ 'terms-label--error': termsError }">
+								<input
+									v-model="termsAccepted"
+									type="checkbox"
+									class="terms-checkbox"
+									@change="termsError = false" />
+								<span>
+									I agree to the
+									<button type="button" class="terms-link" @click.stop="isTermsOpen = true">Terms &amp; Conditions</button>
+								</span>
+							</label>
+							<p v-if="termsError" class="terms-error-msg">Please accept the Terms &amp; Conditions to continue.</p>
 						</div>
 
 						<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
@@ -94,11 +106,7 @@
 						<router-link to="/login" class="switch-link">Sign In</router-link>
 					</p>
 
-					<p class="legal-text">
-						By continuing you agree to OmniScan's
-						<a href="#" @click.prevent>Terms of Service</a> and
-						<a href="#" @click.prevent>Privacy Policy</a>
-					</p>
+
 				</template>
 
 				<!-- STEP 2: Dietary Preferences -->
@@ -151,14 +159,52 @@
 				</template>
 			</div>
 		</ion-content>
+
+		<!-- Terms & Conditions Sheet Modal -->
+		<ion-modal :is-open="isTermsOpen" @didDismiss="isTermsOpen = false" class="terms-sheet-modal">
+			<ion-header class="ion-no-border terms-modal-header">
+				<div class="terms-modal-header-flex">
+					<h2 class="terms-modal-title">Terms &amp; Conditions</h2>
+					<ion-button fill="clear" class="terms-modal-close-btn" @click="isTermsOpen = false">
+						<ion-icon :icon="closeOutline" slot="icon-only" />
+					</ion-button>
+				</div>
+			</ion-header>
+			<ion-content class="terms-modal-content">
+				<div class="terms-modal-body">
+					<p class="terms-updated">Last updated: September 7, 2026</p>
+					<p>OmniScan is designed to assist users in making more informed food purchasing and household food management decisions. The features include food product scanning, allergen detection, Halal compliance checking, digital pantry management, expiration reminders, and AI-generated recipe recommendations.</p>
+					<h3>Eligibility &amp; Account Registration</h3>
+					<p>You must provide accurate information, keep credentials confidential, and notify us of any unauthorized access. You are responsible for activities performed through your account.</p>
+					<h3>Dietary Profile</h3>
+					<p>Dietary profile data is used to personalise food analysis and recommendations. You are responsible for ensuring the accuracy of information in your profile.</p>
+					<h3>Food Safety Disclaimer</h3>
+					<p>OmniScan does not guarantee a product is completely safe, allergen-free, or Halal-certified. Always verify product packaging before consuming, especially for severe allergies or health conditions.</p>
+					<h3>Limitations of Detection</h3>
+					<p>Detection accuracy may be affected by image quality, packaging design, and the completeness of available data. Rare allergens or newly released products may not be detected.</p>
+					<h3>Acceptable Use</h3>
+					<p>Do not use OmniScan for unlawful purposes, attempt unauthorized access, upload malicious content, or misuse system features.</p>
+					<h3>Privacy</h3>
+					<p>Personal information is collected and stored in accordance with applicable privacy policies. Review our Privacy Policy for details on data collection and retention.</p>
+					<div class="terms-action-row">
+						<ion-button expand="block" class="terms-agree-btn" @click="acceptTerms">
+							I Agree
+						</ion-button>
+						<ion-button expand="block" fill="outline" class="terms-disagree-btn" @click="disagreeTerms">
+							I Disagree
+						</ion-button>
+					</div>
+				</div>
+			</ion-content>
+		</ion-modal>
 	</ion-page>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, toastController } from '@ionic/vue'
-import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline } from 'ionicons/icons'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, toastController } from '@ionic/vue'
+import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, closeOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError } from '@/utils/api'
 
@@ -176,6 +222,9 @@ const password = ref('')
 const confirmPassword = ref('')
 const showPassword = ref(false)
 const isSubmitting = ref(false)
+const termsAccepted = ref(false)
+const termsError = ref(false)
+const isTermsOpen = ref(false)
 const errorMessage = ref<string | null>(null)
 
 // Per-field validation error flags
@@ -257,10 +306,28 @@ function handleBack(): void {
 
 async function handleRegister(): Promise<void> {
 	errorMessage.value = null
+	// Terms agreement check
+	if (!termsAccepted.value) {
+		termsError.value = true
+		return
+	}
 	fieldErrors.name = false
 	fieldErrors.email = false
 	fieldErrors.password = false
 	fieldErrors.confirmPassword = false
+
+	// Empty-field checks — sets red border immediately so the user can see
+	// which fields they skipped, without relying on the browser's native
+	// required tooltip which intercepts the submit before our handler runs.
+	let hasEmptyField = false
+	if (!name.value.trim()) { fieldErrors.name = true; hasEmptyField = true }
+	if (!email.value.trim()) { fieldErrors.email = true; hasEmptyField = true }
+	if (!password.value) { fieldErrors.password = true; hasEmptyField = true }
+	if (!confirmPassword.value) { fieldErrors.confirmPassword = true; hasEmptyField = true }
+	if (hasEmptyField) {
+		errorMessage.value = 'Please fill in all required fields.'
+		return
+	}
 
 	if (!EMAIL_RE.test(email.value)) {
 		fieldErrors.email = true
@@ -271,6 +338,24 @@ async function handleRegister(): Promise<void> {
 	if (password.value.length < 8) {
 		fieldErrors.password = true
 		errorMessage.value = 'Password must be at least 8 characters.'
+		return
+	}
+
+	if (!/[A-Z]/.test(password.value)) {
+		fieldErrors.password = true
+		errorMessage.value = 'Password must contain at least one uppercase letter.'
+		return
+	}
+
+	if (!/[0-9]/.test(password.value)) {
+		fieldErrors.password = true
+		errorMessage.value = 'Password must contain at least one number.'
+		return
+	}
+
+	if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password.value)) {
+		fieldErrors.password = true
+		errorMessage.value = 'Password must contain at least one special character (e.g. !@#$%).'
 		return
 	}
 
@@ -312,6 +397,18 @@ async function handleRegister(): Promise<void> {
 	} finally {
 		isSubmitting.value = false
 	}
+}
+
+function acceptTerms(): void {
+	termsAccepted.value = true
+	termsError.value = false
+	isTermsOpen.value = false
+}
+
+function disagreeTerms(): void {
+	termsAccepted.value = false
+	termsError.value = true
+	isTermsOpen.value = false
 }
 
 async function fetchAllergenCatalog(): Promise<void> {
@@ -642,5 +739,150 @@ async function skipForNow(): Promise<void> {
 	color: #d97706;
 	font-size: 0.78rem;
 	margin: -12px 0 12px;
+}
+
+/* === Terms & Conditions checkbox === */
+.terms-row {
+	margin-top: 20px;
+	margin-bottom: 4px;
+}
+
+.terms-label {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	font-size: 0.85rem;
+	color: var(--ion-text-color, #374151);
+	cursor: pointer;
+	line-height: 1.4;
+}
+
+.terms-label--error .terms-checkbox {
+	outline: 2px solid #ef4444;
+	outline-offset: 1px;
+}
+
+.terms-checkbox {
+	width: 18px;
+	height: 18px;
+	border-radius: 4px;
+	border: 1px solid var(--ion-color-medium, #9ca3af);
+	accent-color: #05c450;
+	cursor: pointer;
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+
+.terms-link {
+	background: none;
+	border: none;
+	padding: 0;
+	color: #05c450;
+	font-weight: 600;
+	font-size: inherit;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.terms-error-msg {
+	color: #ef4444;
+	font-size: 0.78rem;
+	margin: 6px 0 0 28px;
+}
+
+/* === Terms modal === */
+.terms-sheet-modal {
+	--height: 85%;
+	--border-radius: 20px 20px 0 0;
+}
+
+.terms-modal-header {
+	background: var(--ion-background-color, #ffffff);
+	padding: 16px 20px 8px;
+	border-bottom: 1px solid var(--ion-color-light-shade, #e2e8f0);
+}
+
+.terms-modal-header-flex {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.terms-modal-title {
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: var(--ion-text-color, #111827);
+	margin: 0;
+}
+
+.terms-modal-close-btn {
+	--color: var(--ion-color-medium, #6b7280);
+	--padding-start: 0;
+	--padding-end: 0;
+}
+
+.terms-modal-content {
+	--background: var(--ion-background-color, #ffffff);
+}
+
+.terms-modal-body {
+	padding: 16px 20px 40px;
+}
+
+.terms-updated {
+	font-size: 0.78rem;
+	color: var(--ion-color-medium, #6b7280);
+	margin-bottom: 16px;
+}
+
+.terms-modal-body h3 {
+	font-size: 0.9rem;
+	font-weight: 700;
+	color: var(--ion-text-color, #111827);
+	margin: 16px 0 6px;
+}
+
+.terms-modal-body p {
+	font-size: 0.85rem;
+	color: var(--ion-color-medium-shade, #374151);
+	line-height: 1.5;
+	margin: 0;
+}
+
+.terms-accept-btn {
+	--background: #05c450;
+	--background-activated: #04ab45;
+	--border-radius: 9999px;
+	--color: #ffffff;
+	font-weight: 600;
+	height: 48px;
+	text-transform: none;
+	margin-top: 32px;
+}
+
+.terms-action-row {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 32px;
+}
+
+.terms-agree-btn {
+	--background: #05c450;
+	--background-activated: #04ab45;
+	--border-radius: 9999px;
+	--color: #ffffff;
+	font-weight: 600;
+	height: 48px;
+	text-transform: none;
+}
+
+.terms-disagree-btn {
+	--border-radius: 9999px;
+	--border-color: var(--ion-color-medium, #9ca3af);
+	--color: var(--ion-text-color, #374151);
+	font-weight: 600;
+	height: 48px;
+	text-transform: none;
 }
 </style>

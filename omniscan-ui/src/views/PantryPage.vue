@@ -53,7 +53,10 @@
 				</div>
 
 				<div class="sort-row">
-					<span class="sort-row__label">Sort ↕</span>
+					<span class="sort-row__label">
+    <ion-icon :icon="swapVerticalOutline" class="sort-icon" />
+    Sort
+</span>
 					<ion-select
 						v-model="sortOption"
 						interface="popover"
@@ -75,7 +78,10 @@
 				</div>
 
 				<div class="sort-row">
-					<span class="sort-row__label">Sort ↕</span>
+					<span class="sort-row__label">
+    <ion-icon :icon="swapVerticalOutline" class="sort-icon" />
+    Sort
+</span>
 					<ion-select
 						v-model="sortOption"
 						interface="popover"
@@ -247,6 +253,7 @@ import {
 	trashOutline,
 	closeOutline,
 	imageOutline,
+	swapVerticalOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
@@ -1008,6 +1015,13 @@ onIonViewWillEnter(() => {
 .empty-icon {
 	font-size: 3rem;
 	margin-bottom: 8px;
+}
+
+.sort-icon {
+	font-size: 1rem;
+	vertical-align: middle;
+	margin-right: 3px;
+	color: #64748b;
 }
 </style>
 

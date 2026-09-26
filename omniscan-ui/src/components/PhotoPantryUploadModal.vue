@@ -218,6 +218,7 @@ interface AnalyzeResult {
 	product_name: string
 	expiration_date: string | null
 	ingredients_text: string
+	simplified_ingredients: string
 	net_quantity: number | null
 	net_unit: string | null
 	matched_user_allergens: string[]
@@ -246,6 +247,7 @@ const form = reactive({
 	quantity: 1,
 	unit: 'pcs',
 	ingredientsText: '',
+	simplifiedIngredientsText: '',
 })
 
 const isSubmitting = ref(false)
@@ -294,6 +296,7 @@ function resetAll(): void {
 	form.quantity = 1
 	form.unit = 'pcs'
 	form.ingredientsText = ''
+	form.simplifiedIngredientsText = ''
 }
 
 function onFileSelected(event: Event): void {
@@ -358,6 +361,7 @@ async function goToStep2(): Promise<void> {
 		if (result.product_name) form.productName = result.product_name
 		if (result.expiration_date) form.expirationDate = result.expiration_date
 		form.ingredientsText = result.ingredients_text || ''
+		form.simplifiedIngredientsText = result.simplified_ingredients || ''
 		matchedUserAllergens.value = result.matched_user_allergens ?? []
 		// Pre-fill quantity and unit if the AI detected them
 		const UNIT_OPTIONS = ['pcs', 'g', 'kg', 'ml', 'L']
@@ -436,6 +440,7 @@ async function handleSubmit(): Promise<void> {
 				product_name: form.productName.trim(),
 				image_base64: previewUrl.value,
 				ingredient_text: form.ingredientsText || undefined,
+				simplified_ingredients: form.simplifiedIngredientsText || undefined,
 				expiration_date: form.expirationDate || undefined,
 				best_before_date: form.bestBeforeDate || undefined,
 				storage_location: form.storageLocation,

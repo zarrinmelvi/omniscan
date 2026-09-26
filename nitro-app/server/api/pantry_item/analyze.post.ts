@@ -32,6 +32,7 @@ interface UploadAiExtraction {
 	product_name: string
 	expiration_date: string | null
 	ingredients_text: string
+	simplified_ingredients: string
 	net_quantity: number | null
 	net_unit: string | null
 }
@@ -41,13 +42,14 @@ function buildAnalyzePrompt(): string {
 		'You are a food-label analysis assistant.',
 		'Determine whether the attached photo shows a FOOD OR BEVERAGE product intended for human consumption.',
 		'Respond with ONLY a single JSON object, no prose, no markdown code fences, matching this shape exactly:',
-		'{"is_food_product": boolean, "product_name": string, "expiration_date": string | null, "ingredients_text": string, "net_quantity": number | null, "net_unit": string | null}.',
+		'{"is_food_product": boolean, "product_name": string, "expiration_date": string | null, "ingredients_text": string, "simplified_ingredients": string, "net_quantity": number | null, "net_unit": string | null}.',
 		'Set is_food_product to false for any non-food item (cosmetics, cleaning supplies, electronics, clothing, etc.).',
 		'When is_food_product is false, set product_name and ingredients_text to "" and expiration_date to null.',
 		'When is_food_product is true:',
 		'product_name is the product name as printed on the label.',
 		'expiration_date is any printed expiry/best-before/use-by date converted to YYYY-MM-DD, or null if absent or unreadable.',
 		'ingredients_text is the raw ingredient list as printed on the label, or "" if not visible.',
+		'"simplified_ingredients" should restate the ingredient list as a comma-separated plain-language breakdown: (1) explain chemical names in parentheses e.g. "Carrageenan (seaweed thickener)", "Alpha-tocopherol (Vitamin E)"; (2) name hidden allergen derivatives e.g. "Casein (milk protein)", "Ovalbumin (egg white protein)"; (3) keep everyday names as-is; return "" if ingredients_text is empty.',
 		'"net_quantity" is the numeric net quantity on the label (e.g. 500 for "500ml"). Return only the number or null.',
 		'"net_unit" is the unit of measure as printed, lowercase (e.g. "ml", "g", "L", "kg", "oz"). Return null if absent.',
 		'Do not invent information not visible on the packaging.',
@@ -62,6 +64,7 @@ function coerceUploadExtraction(value: unknown): UploadAiExtraction | null {
 		product_name: typeof c.product_name === 'string' ? c.product_name : '',
 		expiration_date: normalizeToDateStringOrNull(c.expiration_date),
 		ingredients_text: typeof c.ingredients_text === 'string' ? c.ingredients_text : '',
+		simplified_ingredients: typeof c.simplified_ingredients === 'string' ? c.simplified_ingredients : '',
 		net_quantity: typeof c.net_quantity === 'number' ? c.net_quantity : null,
 		net_unit: typeof c.net_unit === 'string' && c.net_unit.trim() ? c.net_unit.trim().toLowerCase() : null,
 	}

@@ -139,14 +139,27 @@
 
 				<!-- INGREDIENTS -->
 				<template v-else-if="activeTab === 'ingredients'">
+					<!-- Plain English Breakdown — always visible first -->
 					<div class="info-card">
-						<h3 class="info-card__title">Ingredients</h3>
-						<p class="ingredients-text">
-							{{
-								item.product.simplified_ingredients ||
-								item.product.ingredient_text ||
-								'No ingredient information available for this item.'
-							}}
+						<h3 class="info-card__title">Plain English Breakdown</h3>
+						<p v-if="!hasSimplifiedIngredients && !item.product.ingredient_text" class="ingredients-text">
+							No ingredient information available for this item.
+						</p>
+						<p v-if="!hasSimplifiedIngredients && item.product.ingredient_text" class="ingredients-text ingredients-text--muted">
+							No simplified breakdown available yet.
+						</p>
+						<!-- eslint-disable-next-line vue/no-v-html -->
+						<p class="ingredients-text" v-html="highlightedSimplifiedIngredients" />
+					</div>
+
+					<!-- Full Ingredient List — collapsible, collapsed by default -->
+					<div v-if="item.product.ingredient_text" class="info-card">
+						<button type="button" class="ingredients-accordion-header" @click="rawIngredientsOpen = !rawIngredientsOpen">
+							<span class="info-card__title" style="margin:0">Full Ingredient List</span>
+							<ion-icon :icon="rawIngredientsOpen ? chevronUpOutline : chevronDownOutline" class="accordion-chevron" />
+						</button>
+						<p v-if="rawIngredientsOpen" class="ingredients-text ingredients-accordion-body">
+							{{ item.product.ingredient_text }}
 						</p>
 					</div>
 				</template>
@@ -194,6 +207,8 @@ import {
 	closeCircleOutline,
 	warningOutline,
 	imageOutline,
+	chevronUpOutline,
+	chevronDownOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
@@ -241,6 +256,7 @@ const item = ref<PantryItemDetailDto | null>(null)
 const isLoading = ref(true)
 const loadError = ref('')
 const activeTab = ref<Tab>('overview')
+const rawIngredientsOpen = ref(false)
 
 const matchedUserAllergens = computed(() => item.value?.matched_user_allergens ?? [])
 
@@ -251,6 +267,34 @@ const hasHalalData = computed(() => isHalalCertified.value || isConfirmedNotHala
 const halalCertifierNames = computed(() => {
 	const names = item.value?.product.halal_certifiers ?? []
 	return names.length > 0 ? names.join(', ') : 'certifying body unavailable'
+})
+
+const hasSimplifiedIngredients = computed(() => {
+	const s = item.value?.product.simplified_ingredients
+	return !!s && s.trim() !== '' && s.trim().toLowerCase() !== 'unknown'
+})
+
+function escapeHtml(str: string): string {
+	return str
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#039;')
+}
+
+const highlightedSimplifiedIngredients = computed(() => {
+	const text = hasSimplifiedIngredients.value
+		? item.value!.product.simplified_ingredients!
+		: item.value?.product.ingredient_text || 'No ingredient information available for this item.'
+	const allergens = item.value?.matched_user_allergens ?? []
+	let result = escapeHtml(text)
+	for (const allergen of allergens) {
+		const escaped = allergen.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+		const re = new RegExp(`(${escaped})`, 'gi')
+		result = result.replace(re, '<span class="ingredient-allergen-highlight">$1</span>')
+	}
+	return result
 })
 
 function formatQuantity(n: number): string {
@@ -584,5 +628,39 @@ onIonViewWillEnter(fetchItem)
 	color: #6b7280;
 	font-size: 0.85rem;
 	margin: 0;
+}
+
+.ingredient-allergen-highlight {
+	background: #fef2f2;
+	color: #b91c1c;
+	border: 1px solid #fca5a5;
+	border-radius: 4px;
+	padding: 1px 5px;
+	font-weight: 700;
+	display: inline;
+}
+.ingredients-accordion-header {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+}
+.accordion-chevron {
+	font-size: 1rem;
+	color: #94a3b8;
+	flex-shrink: 0;
+}
+.ingredients-accordion-body {
+	margin-top: 10px;
+}
+.ingredients-text--muted {
+	color: #94a3b8;
+	font-style: italic;
+	font-size: 0.8rem;
+	margin-bottom: 8px;
 }
 </style>

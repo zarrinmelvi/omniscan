@@ -38,14 +38,29 @@ function generateMatchKey(brandName: string, productName: string): string {
  * shared transaction.
  */
 export default () => {
-	const dataPath = path.join(__dirname, '../seed_products.json')
-	const rows: SeedRow[] = JSON.parse(readFileSync(dataPath, 'utf-8'))
+	const dataPath1 = path.join(__dirname, '../data/seed_products.json')
+	const dataPath2 = path.join(__dirname, '../data/packaged_food_india.json')
+
+	const rows1: SeedRow[] = JSON.parse(readFileSync(dataPath1, 'utf-8'))
+	const rows2: SeedRow[] = JSON.parse(readFileSync(dataPath2, 'utf-8'))
+
+	// Merge and deduplicate by match_key (existing rows take precedence)
+	const seenKeys = new Set<string>()
+	const rows: SeedRow[] = []
+	for (const row of [...rows1, ...rows2]) {
+		const key = generateMatchKey(row.brand_name, row.product_name)
+		if (!seenKeys.has(key)) {
+			seenKeys.add(key)
+			rows.push(row)
+		}
+	}
 
 	const unverifiedCount = rows.filter((r) => !r.is_verified).length
 	if (unverifiedCount > 0) {
 		console.log(
 			`${unverifiedCount} of ${rows.length} catalog products have is_verified=false — ` +
-				`flagged OCR/data issues, should get a manual label check (see review spreadsheet).`,
+				`flagged OCR/data issues, should get a manual label check (see review spreadsheet).` +
+				` (${rows1.length} original + ${rows2.length} India dataset = ${rows.length} total after dedup)`,
 		)
 	}
 

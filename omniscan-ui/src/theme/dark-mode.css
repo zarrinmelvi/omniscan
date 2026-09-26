@@ -706,3 +706,10 @@ html.ion-palette-dark .recipe-content::part(scroll) {
 html.ion-palette-dark .cards-list {
   background: var(--dm-bg-page);
 }
+
+/* === Ingredient allergen highlight — dark mode === */
+html.ion-palette-dark .ingredient-allergen-highlight {
+  background: #450a0a;
+  color: #fca5a5;
+  border-color: #b91c1c;
+}

@@ -38,7 +38,8 @@
 
 					<div class="form-row">
 						<label class="checkbox-container">
-							<input v-model="rememberMe" type="checkbox" class="custom-checkbox" />
+							<input v-model="rememberMe" type="checkbox" class="custom-checkbox-input" />
+							<span class="custom-checkbox-box"></span>
 							<span class="remember-label">Remember me</span>
 						</label>
 						<router-link to="/forgot-password" class="forgot-link">Forgot password?</router-link>
@@ -191,18 +192,61 @@ async function handleLogin(): Promise<void> {
 }
 
 .checkbox-container {
+	position: relative;
 	display: flex;
 	align-items: center;
 	cursor: pointer;
+	user-select: none;
 }
 
-.custom-checkbox {
-	width: 16px;
-	height: 16px;
-	border-radius: 4px;
-	border: 1px solid #d1d5db;
-	accent-color: #05c450;
+/* Hide native browser checkbox */
+.custom-checkbox-input {
+	position: absolute;
+	opacity: 0;
 	cursor: pointer;
+	height: 0;
+	width: 0;
+}
+
+/* Custom Checkbox Frame */
+.custom-checkbox-box {
+	width: 18px;
+	height: 18px;
+	background-color: #ffffff;
+	border: 1.5px solid #d1d5db;
+	border-radius: 5px;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.checkbox-container:hover .custom-checkbox-box {
+	border-color: #05c450;
+}
+
+/* Checked State Styling */
+.custom-checkbox-input:checked ~ .custom-checkbox-box {
+	background-color: #05c450;
+	border-color: #05c450;
+}
+
+/* White Checkmark Icon */
+.custom-checkbox-box::after {
+	content: '';
+	width: 4px;
+	height: 8px;
+	border: solid #ffffff;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+	opacity: 0;
+	margin-bottom: 2px;
+	transition: opacity 0.15s ease;
+}
+
+.custom-checkbox-input:checked ~ .custom-checkbox-box::after {
+	opacity: 1;
 }
 
 .remember-label {

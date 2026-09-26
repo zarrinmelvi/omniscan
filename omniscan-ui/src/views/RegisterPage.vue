@@ -588,13 +588,15 @@ async function skipForNow(): Promise<void> {
 <style scoped>
 .auth-content {
 	--background: #ffffff;
+	--overflow: auto;
 }
 
 .auth-card {
 	max-width: 380px;
 	margin: 0 auto;
-	padding: 12px 24px 32px;
+	padding: 12px 24px 120px;
 	background: #ffffff;
+	min-height: 100%;
 }
 
 .back-button {

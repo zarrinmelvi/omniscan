@@ -1,0 +1,10 @@
+{
+  "pbtResults": {
+    "1. Write bug condition exploration test": {
+      "status": "passed",
+      "failingExample": "Bug confirmed: on unfixed analyze.post.ts, the handler calls requireAuth(event) without capturing the return value, then returns extraction directly — so matched_user_allergens is always undefined. The allergen-matching functions (findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens) and the Prisma user.findUnique call are never invoked. Counterexample: user has Milk allergen, ingredients_text = \"whole milk, cream, live cultures\" — response.matched_user_allergens is undefined (field absent).",
+      "lastRunTimestamp": 1790406253608
+    }
+  },
+  "executionHistory": {}
+}

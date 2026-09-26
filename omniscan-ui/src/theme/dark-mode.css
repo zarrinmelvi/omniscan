@@ -94,7 +94,10 @@ html.ion-palette-dark .custom-input:disabled {
   -webkit-text-fill-color: var(--dm-text-secondary) !important;
 }
 html.ion-palette-dark .custom-input:focus {
-  border-color: #05c450 !important;
+  border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .custom-input {
+  color-scheme: dark;
 }
 html.ion-palette-dark .date-input--has-value,
 html.ion-palette-dark .date-input:focus {
@@ -695,3 +698,11 @@ html.ion-palette-dark .toggle-btn--archived-active { color: #ffffff !important; 
 
 /* ── Notification header title visibility (Bug 3) ─────────────────────────── */
 html.ion-palette-dark .notif-header-title { color: var(--dm-text-primary) !important; }
+
+/* === Recipes scroll area and card list dark background === */
+html.ion-palette-dark .recipe-content::part(scroll) {
+  background: var(--dm-bg-page);
+}
+html.ion-palette-dark .cards-list {
+  background: var(--dm-bg-page);
+}

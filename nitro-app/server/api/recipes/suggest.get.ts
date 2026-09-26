@@ -112,7 +112,6 @@ export default defineEventHandler(async (event) => {
 			liked: boolean
 			made: boolean
 			image_url: string | null
-			allergen_warnings: string[]
 		}[] = []
 
 		// Deduplication tracking to prevent duplicate recipes in suggestion results
@@ -156,6 +155,8 @@ export default defineEventHandler(async (event) => {
 			// Combine direct allergen entity matches and custom preference rule warnings
 			const combinedWarnings = Array.from(new Set([...directAllergenMatches, ...preferenceWarnings]))
 
+			if (combinedWarnings.length > 0) continue
+
 			if (halalPref && findNonHalalKeywords(combinedText).length > 0) continue
 
 			const { matchedIngredients, missingIngredients } = matchIngredientsToPantry(ingredients, pantryProducts)
@@ -189,7 +190,6 @@ export default defineEventHandler(async (event) => {
 				liked: interaction?.liked ?? false,
 				made: isMade,
 				image_url: recipe.image_url,
-				allergen_warnings: combinedWarnings,
 			})
 
 			if (results.length >= RESULTS_LIMIT) break

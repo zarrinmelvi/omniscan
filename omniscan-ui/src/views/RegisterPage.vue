@@ -80,20 +80,7 @@
 							</div>
 						</div>
 
-						<!-- Terms & Conditions checkbox -->
-						<div class="terms-row">
-							<label class="terms-label" :class="{ 'terms-label--error': termsError }">
-								<input
-									:checked="termsAccepted"
-									type="checkbox"
-									class="terms-checkbox" />
-								<span>
-									I agree to the
-									<button type="button" class="terms-link" @click.stop="isTermsOpen = true">Terms &amp; Conditions</button>
-								</span>
-							</label>
-							<p v-if="termsError" class="terms-error-msg">Please accept the Terms &amp; Conditions to continue.</p>
-						</div>
+						<!-- Terms & Conditions checkbox removed — modal opens after validation in handleRegister -->
 
 						<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
 							{{ isSubmitting ? 'Creating account...' : 'Continue' }}
@@ -221,8 +208,6 @@ const password = ref('')
 const confirmPassword = ref('')
 const showPassword = ref(false)
 const isSubmitting = ref(false)
-const termsAccepted = ref(false)
-const termsError = ref(false)
 const isTermsOpen = ref(false)
 const errorMessage = ref<string | null>(null)
 
@@ -305,11 +290,6 @@ function handleBack(): void {
 
 async function handleRegister(): Promise<void> {
 	errorMessage.value = null
-	// Terms agreement check
-	if (!termsAccepted.value) {
-		termsError.value = true
-		return
-	}
 	fieldErrors.name = false
 	fieldErrors.email = false
 	fieldErrors.password = false
@@ -372,14 +352,16 @@ async function handleRegister(): Promise<void> {
 		return
 	}
 
-	isSubmitting.value = true
+	isTermsOpen.value = true
+}
 
+async function acceptTerms(): Promise<void> {
+	isTermsOpen.value = false
+	isSubmitting.value = true
 	try {
 		await authStore.register(name.value.trim(), email.value, password.value)
 		await authStore.login(email.value, password.value)
-
 		await showToast('Account created successfully!', 'success')
-
 		step.value = 2
 		fetchAllergenCatalog()
 	} catch (err) {
@@ -398,15 +380,7 @@ async function handleRegister(): Promise<void> {
 	}
 }
 
-function acceptTerms(): void {
-	termsAccepted.value = true
-	termsError.value = false
-	isTermsOpen.value = false
-}
-
 function disagreeTerms(): void {
-	termsAccepted.value = false
-	termsError.value = true
 	isTermsOpen.value = false
 }
 

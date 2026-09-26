@@ -3,6 +3,9 @@ import { requireAuth } from '../../utils/requireAuth'
 import { OLLAMA_ENDPOINT, SCAN_VISION_MODEL } from '../../lib/ollama-models'
 import { stripCodeFences } from '../../lib/ai-json'
 import { normalizeToDateStringOrNull } from '../../lib/date-parse'
+import { prisma } from '../../lib/prisma'
+import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens } from '../../lib/allergen-matching'
+import { DIETARY_ALLERGEN_MAP } from '../../lib/dietary-map'
 
 interface OllamaChatMessage {
 	role: 'user' | 'assistant' | 'system'
@@ -65,7 +68,7 @@ function coerceUploadExtraction(value: unknown): UploadAiExtraction | null {
 }
 
 export default defineEventHandler(async (event) => {
-	requireAuth(event)
+	const authUser = requireAuth(event)
 
 	const form = await readMultipartFormData(event)
 	if (!form) {
@@ -144,5 +147,46 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	return extraction
+	// Load user allergens and run matching (same pattern as scan endpoint)
+	const userWithAllergens = await prisma.user.findUnique({
+		where: { id: authUser.id },
+		select: {
+			allergens: {
+				select: {
+					id: true,
+					name: true,
+					scientific_name: true,
+					ingredient_mapping: { select: { scientific_term: true, simplified_term: true } },
+				},
+			},
+			dietary_prof: { select: { custom_preferences: true }, orderBy: { updated_at: 'desc' }, take: 1 },
+		},
+	})
+
+	const userAllergens = userWithAllergens?.allergens ?? []
+	// Combine product_name + ingredients_text so raw whole-food products
+	// (e.g. a bowl of eggs with no printed ingredient list) are still matched
+	// against the user's allergen profile via the product name.
+	// Mirrors the scan endpoint's combinedIngredientText pattern.
+	const combinedText = `${extraction.product_name} ${extraction.ingredients_text}`.trim()
+	const stringMatches = findMatchedUserAllergens(combinedText, userAllergens)
+	const semanticMatches = await matchUserAllergensSemantically(combinedText, userAllergens)
+	const matchedAllergens = mergeMatchedAllergens(stringMatches, semanticMatches)
+
+	const customPreferences = userWithAllergens?.dietary_prof?.[0]?.custom_preferences ?? []
+	const preferenceWarnings = new Set<string>()
+	customPreferences.forEach((pref: string) => {
+		const rule = DIETARY_ALLERGEN_MAP[pref.toLowerCase().trim()]
+		if (rule) {
+			if (rule.keywords.some((kw) => combinedText.includes(kw))) {
+				preferenceWarnings.add(rule.label)
+			}
+		}
+	})
+	const allMatchedNames = Array.from(new Set([...matchedAllergens.map((a) => a.name), ...Array.from(preferenceWarnings)]))
+
+	return {
+		...extraction,
+		matched_user_allergens: allMatchedNames,
+	}
 })

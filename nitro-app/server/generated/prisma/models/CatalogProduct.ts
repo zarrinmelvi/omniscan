@@ -77,6 +77,7 @@ export type CatalogProductCountAggregateOutputType = {
   ingredient_text: number
   simplified_ingredients: number
   is_verified: number
+  allergens_declared: number
   match_key: number
   halal_logo_id: number
   variant_group: number
@@ -140,6 +141,7 @@ export type CatalogProductCountAggregateInputType = {
   ingredient_text?: true
   simplified_ingredients?: true
   is_verified?: true
+  allergens_declared?: true
   match_key?: true
   halal_logo_id?: true
   variant_group?: true
@@ -244,6 +246,7 @@ export type CatalogProductGroupByOutputType = {
   ingredient_text: string
   simplified_ingredients: string
   is_verified: boolean
+  allergens_declared: string[]
   match_key: string
   halal_logo_id: number | null
   variant_group: string | null
@@ -284,6 +287,7 @@ export type CatalogProductWhereInput = {
   ingredient_text?: Prisma.StringFilter<"CatalogProduct"> | string
   simplified_ingredients?: Prisma.StringFilter<"CatalogProduct"> | string
   is_verified?: Prisma.BoolFilter<"CatalogProduct"> | boolean
+  allergens_declared?: Prisma.StringNullableListFilter<"CatalogProduct">
   match_key?: Prisma.StringFilter<"CatalogProduct"> | string
   halal_logo_id?: Prisma.IntNullableFilter<"CatalogProduct"> | number | null
   variant_group?: Prisma.StringNullableFilter<"CatalogProduct"> | string | null
@@ -304,6 +308,7 @@ export type CatalogProductOrderByWithRelationInput = {
   ingredient_text?: Prisma.SortOrder
   simplified_ingredients?: Prisma.SortOrder
   is_verified?: Prisma.SortOrder
+  allergens_declared?: Prisma.SortOrder
   match_key?: Prisma.SortOrder
   halal_logo_id?: Prisma.SortOrderInput | Prisma.SortOrder
   variant_group?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -328,6 +333,7 @@ export type CatalogProductWhereUniqueInput = Prisma.AtLeast<{
   ingredient_text?: Prisma.StringFilter<"CatalogProduct"> | string
   simplified_ingredients?: Prisma.StringFilter<"CatalogProduct"> | string
   is_verified?: Prisma.BoolFilter<"CatalogProduct"> | boolean
+  allergens_declared?: Prisma.StringNullableListFilter<"CatalogProduct">
   halal_logo_id?: Prisma.IntNullableFilter<"CatalogProduct"> | number | null
   variant_group?: Prisma.StringNullableFilter<"CatalogProduct"> | string | null
   confirmed_not_halal?: Prisma.BoolFilter<"CatalogProduct"> | boolean
@@ -347,6 +353,7 @@ export type CatalogProductOrderByWithAggregationInput = {
   ingredient_text?: Prisma.SortOrder
   simplified_ingredients?: Prisma.SortOrder
   is_verified?: Prisma.SortOrder
+  allergens_declared?: Prisma.SortOrder
   match_key?: Prisma.SortOrder
   halal_logo_id?: Prisma.SortOrderInput | Prisma.SortOrder
   variant_group?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -372,6 +379,7 @@ export type CatalogProductScalarWhereWithAggregatesInput = {
   ingredient_text?: Prisma.StringWithAggregatesFilter<"CatalogProduct"> | string
   simplified_ingredients?: Prisma.StringWithAggregatesFilter<"CatalogProduct"> | string
   is_verified?: Prisma.BoolWithAggregatesFilter<"CatalogProduct"> | boolean
+  allergens_declared?: Prisma.StringNullableListFilter<"CatalogProduct">
   match_key?: Prisma.StringWithAggregatesFilter<"CatalogProduct"> | string
   halal_logo_id?: Prisma.IntNullableWithAggregatesFilter<"CatalogProduct"> | number | null
   variant_group?: Prisma.StringNullableWithAggregatesFilter<"CatalogProduct"> | string | null
@@ -388,6 +396,7 @@ export type CatalogProductCreateInput = {
   ingredient_text: string
   simplified_ingredients: string
   is_verified?: boolean
+  allergens_declared?: Prisma.CatalogProductCreateallergens_declaredInput | string[]
   match_key: string
   variant_group?: string | null
   confirmed_not_halal?: boolean
@@ -407,6 +416,7 @@ export type CatalogProductUncheckedCreateInput = {
   ingredient_text: string
   simplified_ingredients: string
   is_verified?: boolean
+  allergens_declared?: Prisma.CatalogProductCreateallergens_declaredInput | string[]
   match_key: string
   halal_logo_id?: number | null
   variant_group?: string | null
@@ -425,6 +435,7 @@ export type CatalogProductUpdateInput = {
   ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
   simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
   is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allergens_declared?: Prisma.CatalogProductUpdateallergens_declaredInput | string[]
   match_key?: Prisma.StringFieldUpdateOperationsInput | string
   variant_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -444,6 +455,7 @@ export type CatalogProductUncheckedUpdateInput = {
   ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
   simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
   is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allergens_declared?: Prisma.CatalogProductUpdateallergens_declaredInput | string[]
   match_key?: Prisma.StringFieldUpdateOperationsInput | string
   halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   variant_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -463,6 +475,7 @@ export type CatalogProductCreateManyInput = {
   ingredient_text: string
   simplified_ingredients: string
   is_verified?: boolean
+  allergens_declared?: Prisma.CatalogProductCreateallergens_declaredInput | string[]
   match_key: string
   halal_logo_id?: number | null
   variant_group?: string | null
@@ -479,6 +492,7 @@ export type CatalogProductUpdateManyMutationInput = {
   ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
   simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
   is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allergens_declared?: Prisma.CatalogProductUpdateallergens_declaredInput | string[]
   match_key?: Prisma.StringFieldUpdateOperationsInput | string
   variant_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -495,6 +509,7 @@ export type CatalogProductUncheckedUpdateManyInput = {
   ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
   simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
   is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allergens_declared?: Prisma.CatalogProductUpdateallergens_declaredInput | string[]
   match_key?: Prisma.StringFieldUpdateOperationsInput | string
   halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   variant_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -522,6 +537,7 @@ export type CatalogProductCountOrderByAggregateInput = {
   ingredient_text?: Prisma.SortOrder
   simplified_ingredients?: Prisma.SortOrder
   is_verified?: Prisma.SortOrder
+  allergens_declared?: Prisma.SortOrder
   match_key?: Prisma.SortOrder
   halal_logo_id?: Prisma.SortOrder
   variant_group?: Prisma.SortOrder
@@ -623,6 +639,15 @@ export type CatalogProductUncheckedUpdateManyWithoutHalal_logoNestedInput = {
   deleteMany?: Prisma.CatalogProductScalarWhereInput | Prisma.CatalogProductScalarWhereInput[]
 }
 
+export type CatalogProductCreateallergens_declaredInput = {
+  set: string[]
+}
+
+export type CatalogProductUpdateallergens_declaredInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
 export type CatalogProductCreateNestedOneWithoutIngredientsInput = {
   create?: Prisma.XOR<Prisma.CatalogProductCreateWithoutIngredientsInput, Prisma.CatalogProductUncheckedCreateWithoutIngredientsInput>
   connectOrCreate?: Prisma.CatalogProductCreateOrConnectWithoutIngredientsInput
@@ -657,6 +682,7 @@ export type CatalogProductCreateWithoutHalal_logoInput = {
   ingredient_text: string
   simplified_ingredients: string
   is_verified?: boolean
+  allergens_declared?: Prisma.CatalogProductCreateallergens_declaredInput | string[]
   match_key: string
   variant_group?: string | null
   confirmed_not_halal?: boolean
@@ -675,6 +701,7 @@ export type CatalogProductUncheckedCreateWithoutHalal_logoInput = {
   ingredient_text: string
   simplified_ingredients: string
   is_verified?: boolean
+  allergens_declared?: Prisma.CatalogProductCreateallergens_declaredInput | string[]
   match_key: string
   variant_group?: string | null
   confirmed_not_halal?: boolean
@@ -722,6 +749,7 @@ export type CatalogProductScalarWhereInput = {
   ingredient_text?: Prisma.StringFilter<"CatalogProduct"> | string
   simplified_ingredients?: Prisma.StringFilter<"CatalogProduct"> | string
   is_verified?: Prisma.BoolFilter<"CatalogProduct"> | boolean
+  allergens_declared?: Prisma.StringNullableListFilter<"CatalogProduct">
   match_key?: Prisma.StringFilter<"CatalogProduct"> | string
   halal_logo_id?: Prisma.IntNullableFilter<"CatalogProduct"> | number | null
   variant_group?: Prisma.StringNullableFilter<"CatalogProduct"> | string | null
@@ -738,6 +766,7 @@ export type CatalogProductCreateWithoutIngredientsInput = {
   ingredient_text: string
   simplified_ingredients: string
   is_verified?: boolean
+  allergens_declared?: Prisma.CatalogProductCreateallergens_declaredInput | string[]
   match_key: string
   variant_group?: string | null
   confirmed_not_halal?: boolean
@@ -756,6 +785,7 @@ export type CatalogProductUncheckedCreateWithoutIngredientsInput = {
   ingredient_text: string
   simplified_ingredients: string
   is_verified?: boolean
+  allergens_declared?: Prisma.CatalogProductCreateallergens_declaredInput | string[]
   match_key: string
   halal_logo_id?: number | null
   variant_group?: string | null
@@ -789,6 +819,7 @@ export type CatalogProductUpdateWithoutIngredientsInput = {
   ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
   simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
   is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allergens_declared?: Prisma.CatalogProductUpdateallergens_declaredInput | string[]
   match_key?: Prisma.StringFieldUpdateOperationsInput | string
   variant_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -807,6 +838,7 @@ export type CatalogProductUncheckedUpdateWithoutIngredientsInput = {
   ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
   simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
   is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allergens_declared?: Prisma.CatalogProductUpdateallergens_declaredInput | string[]
   match_key?: Prisma.StringFieldUpdateOperationsInput | string
   halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   variant_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -824,6 +856,7 @@ export type CatalogProductCreateWithoutHalal_logosInput = {
   ingredient_text: string
   simplified_ingredients: string
   is_verified?: boolean
+  allergens_declared?: Prisma.CatalogProductCreateallergens_declaredInput | string[]
   match_key: string
   variant_group?: string | null
   confirmed_not_halal?: boolean
@@ -842,6 +875,7 @@ export type CatalogProductUncheckedCreateWithoutHalal_logosInput = {
   ingredient_text: string
   simplified_ingredients: string
   is_verified?: boolean
+  allergens_declared?: Prisma.CatalogProductCreateallergens_declaredInput | string[]
   match_key: string
   halal_logo_id?: number | null
   variant_group?: string | null
@@ -875,6 +909,7 @@ export type CatalogProductUpdateWithoutHalal_logosInput = {
   ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
   simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
   is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allergens_declared?: Prisma.CatalogProductUpdateallergens_declaredInput | string[]
   match_key?: Prisma.StringFieldUpdateOperationsInput | string
   variant_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -893,6 +928,7 @@ export type CatalogProductUncheckedUpdateWithoutHalal_logosInput = {
   ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
   simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
   is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allergens_declared?: Prisma.CatalogProductUpdateallergens_declaredInput | string[]
   match_key?: Prisma.StringFieldUpdateOperationsInput | string
   halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   variant_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -911,6 +947,7 @@ export type CatalogProductCreateManyHalal_logoInput = {
   ingredient_text: string
   simplified_ingredients: string
   is_verified?: boolean
+  allergens_declared?: Prisma.CatalogProductCreateallergens_declaredInput | string[]
   match_key: string
   variant_group?: string | null
   confirmed_not_halal?: boolean
@@ -926,6 +963,7 @@ export type CatalogProductUpdateWithoutHalal_logoInput = {
   ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
   simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
   is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allergens_declared?: Prisma.CatalogProductUpdateallergens_declaredInput | string[]
   match_key?: Prisma.StringFieldUpdateOperationsInput | string
   variant_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -944,6 +982,7 @@ export type CatalogProductUncheckedUpdateWithoutHalal_logoInput = {
   ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
   simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
   is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allergens_declared?: Prisma.CatalogProductUpdateallergens_declaredInput | string[]
   match_key?: Prisma.StringFieldUpdateOperationsInput | string
   variant_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -962,6 +1001,7 @@ export type CatalogProductUncheckedUpdateManyWithoutHalal_logoInput = {
   ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
   simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
   is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allergens_declared?: Prisma.CatalogProductUpdateallergens_declaredInput | string[]
   match_key?: Prisma.StringFieldUpdateOperationsInput | string
   variant_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1018,6 +1058,7 @@ export type CatalogProductSelect<ExtArgs extends runtime.Types.Extensions.Intern
   ingredient_text?: boolean
   simplified_ingredients?: boolean
   is_verified?: boolean
+  allergens_declared?: boolean
   match_key?: boolean
   halal_logo_id?: boolean
   variant_group?: boolean
@@ -1039,6 +1080,7 @@ export type CatalogProductSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   ingredient_text?: boolean
   simplified_ingredients?: boolean
   is_verified?: boolean
+  allergens_declared?: boolean
   match_key?: boolean
   halal_logo_id?: boolean
   variant_group?: boolean
@@ -1057,6 +1099,7 @@ export type CatalogProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   ingredient_text?: boolean
   simplified_ingredients?: boolean
   is_verified?: boolean
+  allergens_declared?: boolean
   match_key?: boolean
   halal_logo_id?: boolean
   variant_group?: boolean
@@ -1075,6 +1118,7 @@ export type CatalogProductSelectScalar = {
   ingredient_text?: boolean
   simplified_ingredients?: boolean
   is_verified?: boolean
+  allergens_declared?: boolean
   match_key?: boolean
   halal_logo_id?: boolean
   variant_group?: boolean
@@ -1085,7 +1129,7 @@ export type CatalogProductSelectScalar = {
   deleted_at?: boolean
 }
 
-export type CatalogProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "brand_name" | "product_name" | "ingredient_text" | "simplified_ingredients" | "is_verified" | "match_key" | "halal_logo_id" | "variant_group" | "confirmed_not_halal" | "halal_unverified" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["catalogProduct"]>
+export type CatalogProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "brand_name" | "product_name" | "ingredient_text" | "simplified_ingredients" | "is_verified" | "allergens_declared" | "match_key" | "halal_logo_id" | "variant_group" | "confirmed_not_halal" | "halal_unverified" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["catalogProduct"]>
 export type CatalogProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   halal_logo?: boolean | Prisma.CatalogProduct$halal_logoArgs<ExtArgs>
   halal_logos?: boolean | Prisma.CatalogProduct$halal_logosArgs<ExtArgs>
@@ -1113,6 +1157,7 @@ export type $CatalogProductPayload<ExtArgs extends runtime.Types.Extensions.Inte
     ingredient_text: string
     simplified_ingredients: string
     is_verified: boolean
+    allergens_declared: string[]
     match_key: string
     halal_logo_id: number | null
     variant_group: string | null
@@ -1553,6 +1598,7 @@ export interface CatalogProductFieldRefs {
   readonly ingredient_text: Prisma.FieldRef<"CatalogProduct", 'String'>
   readonly simplified_ingredients: Prisma.FieldRef<"CatalogProduct", 'String'>
   readonly is_verified: Prisma.FieldRef<"CatalogProduct", 'Boolean'>
+  readonly allergens_declared: Prisma.FieldRef<"CatalogProduct", 'String[]'>
   readonly match_key: Prisma.FieldRef<"CatalogProduct", 'String'>
   readonly halal_logo_id: Prisma.FieldRef<"CatalogProduct", 'Int'>
   readonly variant_group: Prisma.FieldRef<"CatalogProduct", 'String'>

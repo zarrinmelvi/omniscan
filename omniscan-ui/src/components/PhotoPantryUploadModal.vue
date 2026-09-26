@@ -103,6 +103,14 @@
 
 				<div v-if="formError" class="form-error">{{ formError }}</div>
 
+				<div v-if="matchedUserAllergens.length > 0" class="personal-allergen-alert">
+					<ion-icon :icon="warningOutline" />
+					<div>
+						<p class="personal-allergen-alert__title">Contains your allergen{{ matchedUserAllergens.length > 1 ? 's' : '' }}</p>
+						<p class="personal-allergen-alert__list">{{ matchedUserAllergens.join(', ') }}</p>
+					</div>
+				</div>
+
 				<div v-if="form.ingredientsText" class="ingredients-display">
 					<label class="field-label-brown">Detected Ingredients</label>
 					<p class="ingredients-text-readonly">{{ form.ingredientsText }}</p>
@@ -190,6 +198,7 @@ import {
 	IonItem,
 	IonLabel,
 	IonSpinner,
+	alertController,
 } from '@ionic/vue'
 import {
 	arrowBackOutline,
@@ -211,6 +220,7 @@ interface AnalyzeResult {
 	ingredients_text: string
 	net_quantity: number | null
 	net_unit: string | null
+	matched_user_allergens: string[]
 }
 
 const props = defineProps<{ isOpen: boolean }>()
@@ -240,6 +250,7 @@ const form = reactive({
 
 const isSubmitting = ref(false)
 const formError = ref<string | null>(null)
+const matchedUserAllergens = ref<string[]>([])
 
 // Check remaining daily upload limit whenever the modal opens
 watch(
@@ -275,6 +286,7 @@ function resetAll(): void {
 	isAnalyzing.value = false
 	nonFoodDetected.value = false
 	selectedFile.value = null
+	matchedUserAllergens.value = []
 	form.productName = ''
 	form.expirationDate = ''
 	form.bestBeforeDate = ''
@@ -346,6 +358,7 @@ async function goToStep2(): Promise<void> {
 		if (result.product_name) form.productName = result.product_name
 		if (result.expiration_date) form.expirationDate = result.expiration_date
 		form.ingredientsText = result.ingredients_text || ''
+		matchedUserAllergens.value = result.matched_user_allergens ?? []
 		// Pre-fill quantity and unit if the AI detected them
 		const UNIT_OPTIONS = ['pcs', 'g', 'kg', 'ml', 'L']
 		const unitMap: Record<string, string> = { pc: 'pcs', piece: 'pcs', pieces: 'pcs', pcs: 'pcs', liter: 'L', litre: 'L', liters: 'L', litres: 'L', gram: 'g', grams: 'g', kilogram: 'kg', kilograms: 'kg', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml' }
@@ -380,6 +393,21 @@ function handleDismiss(): void {
 async function handleSubmit(): Promise<void> {
 	if (!isFormValid.value || remainingUploads.value <= 0) return
 	formError.value = null
+
+	// Allergen guardrail
+	if (matchedUserAllergens.value.length > 0) {
+		const alert = await alertController.create({
+			header: 'Allergen Warning',
+			message: `This item contains allergens matching your dietary profile (${matchedUserAllergens.value.join(', ')}). Are you sure you want to add it to your pantry?`,
+			buttons: [
+				{ text: 'Cancel', role: 'cancel' },
+				{ text: 'Add Anyway', role: 'confirm' },
+			],
+		})
+		await alert.present()
+		const { role } = await alert.onDidDismiss()
+		if (role !== 'confirm') return
+	}
 
 	// Guard: block adding already-expired items
 	const today = new Date()
@@ -873,6 +901,32 @@ ion-accordion-group {
 	font-size: 0.825rem;
 	font-weight: 500;
 	margin: 10px 0;
+}
+
+.personal-allergen-alert {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	background: #fee2e2;
+	border: 1px solid #fca5a5;
+	color: #b91c1c;
+	border-radius: 12px;
+	padding: 12px 14px;
+	margin-bottom: 14px;
+	font-size: 0.85rem;
+}
+.personal-allergen-alert ion-icon {
+	font-size: 1.2rem;
+	margin-top: 1px;
+	flex-shrink: 0;
+}
+.personal-allergen-alert__title {
+	margin: 0;
+	font-weight: 700;
+}
+.personal-allergen-alert__list {
+	margin: 2px 0 0;
+	font-weight: 500;
 }
 
 .ingredients-display {

@@ -60,6 +60,78 @@ async function main() {
 			await tx.allergen.createMany({ data: allergen, skipDuplicates: true })
 			console.log('Seeded 5 allergens.')
 
+			// Seed comprehensive IngredientMapping rows for all allergens.
+			// scientific_term is UNIQUE in the schema — skipDuplicates prevents re-run errors.
+			const INGREDIENT_MAPPINGS: Record<string, string[]> = {
+				Eggs: [
+					'egg', 'egg white', 'egg yolk', 'albumen', 'dried egg',
+					'powdered egg', 'egg solids', 'ovomucin', 'ovotransferrin',
+					'lysozyme', 'mayonnaise', 'meringue', 'ovalbumin',
+				],
+				Milk: [
+					'milk', 'cream', 'butter', 'cheese', 'lactose', 'whey',
+					'casein', 'caseinate', 'milk powder', 'lactalbumin',
+					'lactoglobulin', 'ghee', 'dairy', 'skimmed milk',
+				],
+				Peanuts: [
+					'peanut', 'peanut oil', 'groundnut', 'arachis oil',
+					'monkey nuts', 'groundnut oil', 'peanut butter',
+				],
+				Wheat: [
+					'wheat', 'flour', 'bread crumbs', 'gluten', 'semolina',
+					'spelt', 'kamut', 'bulgur', 'durum', 'farro', 'wheat starch',
+					'wheat flour', 'whole wheat',
+				],
+				Soy: [
+					'soy', 'soya', 'soybean', 'tofu', 'tempeh', 'miso',
+					'tamari', 'edamame', 'soy lecithin', 'textured vegetable protein',
+					'tvp', 'soy sauce', 'soya sauce',
+				],
+				Fish: [
+					'fish', 'anchovy', 'anchovy paste', 'bass', 'flounder',
+					'grouper', 'hake', 'herring', 'mackerel', 'perch', 'pollock',
+					'salmon', 'tilapia', 'trout', 'tuna', 'fish sauce', 'fish oil',
+					'worcestershire', 'cod', 'sardine',
+				],
+				Shellfish: [
+					'shellfish', 'shrimp', 'prawn', 'crab', 'lobster', 'crayfish',
+					'langoustine', 'scallop', 'clam', 'oyster', 'mussel', 'squid',
+					'octopus', 'abalone',
+				],
+				'Tree Nuts': [
+					'tree nut', 'almond', 'cashew', 'walnut', 'pecan',
+					'pistachio', 'hazelnut', 'macadamia', 'brazil nut', 'pine nut',
+					'chestnut', 'coconut', 'nut',
+				],
+				Sesame: [
+					'sesame', 'sesame oil', 'tahini', 'sesame seed', 'til',
+					'gingelly oil', 'benne',
+				],
+				Mustard: [
+					'mustard', 'mustard seed', 'mustard oil', 'mustard flour',
+					'mustard leaves', 'mustard powder',
+				],
+			}
+
+			let totalMappingsSeeded = 0
+			for (const [allergenName, terms] of Object.entries(INGREDIENT_MAPPINGS)) {
+				const allergenRecord = await tx.allergen.findFirst({ where: { name: allergenName } })
+				if (!allergenRecord) {
+					console.warn(`Allergen "${allergenName}" not found — skipping ingredient mappings.`)
+					continue
+				}
+				const result = await tx.ingredientMapping.createMany({
+					data: terms.map((term) => ({
+						allergen_id: allergenRecord.id,
+						scientific_term: term,
+						simplified_term: term,
+					})),
+					skipDuplicates: true,
+				})
+				totalMappingsSeeded += result.count
+			}
+			console.log(`Seeded ${totalMappingsSeeded} ingredient mappings across all allergens.`)
+
 			const catalogProduct = catalogProductSeeder()
 			const catalogResult = await tx.catalogProduct.createMany({
 				data: catalogProduct,

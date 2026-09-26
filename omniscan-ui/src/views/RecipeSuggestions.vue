@@ -204,11 +204,9 @@ const recipes = ref<SuggestedRecipe[]>([])
 const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 const makingId = ref<number | null>(null)
+const madeTotal = ref<number>(0)
 
-const madeCount = computed(() => {
-	if (activeTab.value === 'made') return recipes.value.length
-	return recipes.value.filter((r) => r.made).length
-})
+const madeCount = computed(() => madeTotal.value)
 
 // Detail modal state
 const isDetailModalOpen = ref(false)
@@ -276,6 +274,11 @@ async function fetchSuggestions(): Promise<void> {
 			method: 'GET',
 		})
 		recipes.value = data.recipes
+		if (activeTab.value === 'all') {
+			madeTotal.value = data.recipes.filter((r) => r.made).length
+		} else if (activeTab.value === 'made') {
+			madeTotal.value = data.recipes.length
+		}
 		emptyMessage.value = data.message ?? TAB_DEFAULT_EMPTY_MESSAGE[activeTab.value]
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load recipes.'
@@ -334,6 +337,7 @@ async function makeRecipe(recipeId: number): Promise<void> {
 			affected.liked = data.liked ?? affected.liked
 		}
 
+		madeTotal.value++
 		await fetchSuggestions()
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to update pantry after making this recipe.'
@@ -349,6 +353,7 @@ async function unmakeRecipe(recipeId: number): Promise<void> {
 			method: 'DELETE',
 			body: { recipe_id: recipeId },
 		})
+		madeTotal.value = Math.max(0, madeTotal.value - 1)
 		await fetchSuggestions()
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to remove recipe from Made list.'

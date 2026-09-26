@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<ion-page>
 		<ion-content class="auth-content">
 			<div class="auth-card">
@@ -84,10 +84,9 @@
 						<div class="terms-row">
 							<label class="terms-label" :class="{ 'terms-label--error': termsError }">
 								<input
-									v-model="termsAccepted"
+									:checked="termsAccepted"
 									type="checkbox"
-									class="terms-checkbox"
-									@change="termsError = false" />
+									class="terms-checkbox" />
 								<span>
 									I agree to the
 									<button type="button" class="terms-link" @click.stop="isTermsOpen = true">Terms &amp; Conditions</button>
@@ -768,7 +767,8 @@ async function skipForNow(): Promise<void> {
 	border-radius: 4px;
 	border: 1px solid var(--ion-color-medium, #9ca3af);
 	accent-color: #05c450;
-	cursor: pointer;
+	cursor: default;
+	pointer-events: none;
 	flex-shrink: 0;
 	margin-top: 1px;
 }

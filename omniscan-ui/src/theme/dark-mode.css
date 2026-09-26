@@ -659,3 +659,39 @@ html.ion-palette-dark ion-tab-button {
   --color: var(--dm-text-secondary);
   --color-selected: #05c450;
 }
+
+/* ── RecipeDetailModal ─────────────────────────────────────────────────────── */
+html.ion-palette-dark .detail-container,
+html.ion-palette-dark .detail-footer { background: var(--dm-bg-card); border-color: var(--dm-border); }
+html.ion-palette-dark .green-chip { background: #14532d; color: #86efac; }
+html.ion-palette-dark .orange-chip { background: #431407; color: #fed7aa; }
+html.ion-palette-dark .step-text { color: var(--dm-text-secondary); }
+html.ion-palette-dark .detail-content .section-label { color: var(--dm-text-secondary); }
+
+/* ── ScanResultModal ───────────────────────────────────────────────────────── */
+html.ion-palette-dark .sheet-ion-content { --background: var(--dm-bg-page); }
+html.ion-palette-dark .ingredients-card { background: var(--dm-bg-subtle); border-color: var(--dm-border); }
+html.ion-palette-dark .ingredients-card__title { color: var(--dm-text-primary); }
+html.ion-palette-dark .ingredients-card__body { color: var(--dm-text-secondary); }
+html.ion-palette-dark .storage-btn { background: var(--dm-bg-chip); border-color: var(--dm-border); color: var(--dm-text-primary); }
+html.ion-palette-dark .sheet-header { border-bottom-color: var(--dm-border); }
+html.ion-palette-dark .product-title { color: var(--dm-text-primary); }
+html.ion-palette-dark .product-subtitle { color: var(--dm-text-secondary); }
+html.ion-palette-dark .alt-item__name { color: var(--dm-text-primary); }
+html.ion-palette-dark .pantry-section { border-top-color: var(--dm-border); }
+html.ion-palette-dark .field-label { color: var(--dm-text-secondary); }
+html.ion-palette-dark .alternatives-empty { color: var(--dm-text-secondary); }
+html.ion-palette-dark ion-alert.non-product-alert { --background: var(--dm-bg-card); }
+
+/* ── RecipeSuggestions ─────────────────────────────────────────────────────── */
+html.ion-palette-dark .tab-chip { background: var(--dm-bg-chip); color: var(--dm-text-primary); }
+
+/* ── HomePage ──────────────────────────────────────────────────────────────── */
+html.ion-palette-dark .stat-value { color: var(--dm-text-primary, #f1f5f9) !important; }
+
+/* ── Active toggle button text contrast (Bug 2) ───────────────────────────── */
+html.ion-palette-dark .toggle-btn--active { color: #ffffff !important; }
+html.ion-palette-dark .toggle-btn--archived-active { color: #ffffff !important; }
+
+/* ── Notification header title visibility (Bug 3) ─────────────────────────── */
+html.ion-palette-dark .notif-header-title { color: var(--dm-text-primary) !important; }

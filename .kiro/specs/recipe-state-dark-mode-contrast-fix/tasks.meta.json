@@ -1,0 +1,14 @@
+{
+  "pbtResults": {
+    "1. Write bug condition exploration test": {
+      "status": "passed",
+      "failingExample": "madeCount observed as 0 during loading window: after recipes.value is cleared (isLoading=true) and before the fetch resolves, madeCount.value === 0 instead of the expected ≥1. Counterexample: recipes = [{id:1, made:true}] → madeCount=1 → isLoading=true, recipes=[] → madeCount=0 (bug confirmed).",
+      "lastRunTimestamp": 1790403402967
+    },
+    "2. Write preservation property tests (BEFORE implementing fix)": {
+      "status": "passed",
+      "lastRunTimestamp": 1790403407155
+    }
+  },
+  "executionHistory": {}
+}

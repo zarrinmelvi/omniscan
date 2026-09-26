@@ -6,6 +6,7 @@ interface UpdatePantryItemBody {
 	quantity?: number
 	expiration_date?: string
 	is_archived?: boolean
+	is_auto_archived?: boolean // Optional explicit flag for cron/automated jobs
 }
 
 export default defineEventHandler(async (event) => {
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid request body.' })
 	}
 
-	const { quantity, expiration_date, is_archived } = body
+	const { quantity, expiration_date, is_archived, is_auto_archived } = body
 
 	if (quantity === undefined && expiration_date === undefined && is_archived === undefined) {
 		throw createError({
@@ -87,11 +88,14 @@ export default defineEventHandler(async (event) => {
 			},
 		})
 
-		// Creates log entry specifically typed as 'auto_archived'
 		if (isNewlyConsumed) {
+			// Check if the item was auto-archived because it expired or was flagged by an automated process
+			const isExpired = existingItem.expiration_date && new Date(existingItem.expiration_date) <= new Date()
+			const activityType = is_auto_archived || isExpired ? 'auto_archived' : 'consumed'
+
 			await prisma.activityLog.create({
 				data: {
-					type: 'auto_archived',
+					type: activityType,
 					message: existingItem.product.product_name,
 					user_id: authUser.id,
 					product_id: existingItem.product.id,

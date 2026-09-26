@@ -631,6 +631,7 @@ onBeforeUnmount(() => {
 	text-align: center;
 	margin-top: 8px;
 	margin-bottom: 24px;
+	background: transparent;
 }
 
 .page-title {

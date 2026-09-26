@@ -179,7 +179,6 @@ import {
 	sparklesOutline,
 } from 'ionicons/icons'
 
-// AFTER (Type-Based Syntax)
 const props = withDefaults(
 	defineProps<{
 		isOpen?: boolean
@@ -198,12 +197,6 @@ const product = computed(() => props.data?.product || null)
 const personalAllergenAlerts = computed(() => props.data?.matched_user_allergens || [])
 const halalInfo = computed(() => props.data?.halal || null)
 
-// Halal badges (both "certified" and "pending verification") only mean
-// anything to a user who actually has Halal as a dietary preference —
-// previously these showed identically for every user regardless of their
-// profile. Fetched fresh each time the modal opens (see the isOpen watcher
-// below) rather than cached, matching how ProfilePage.vue and the rest of
-// this app fetch dietary profile data — no shared store for it exists yet.
 const userHalalPref = ref(false)
 
 async function fetchHalalPref() {
@@ -211,11 +204,6 @@ async function fetchHalalPref() {
 		const data = await apiFetch<{ user?: { dietary_prof?: { halal_pref: boolean }[] } }>('/api/users', { method: 'GET' })
 		userHalalPref.value = data?.user?.dietary_prof?.[0]?.halal_pref ?? false
 	} catch (err) {
-		// Fail closed on DISPLAY, not safety: if we can't confirm the
-		// user's preference, don't show a Halal badge that may not be
-		// relevant to them. This must never block the rest of the modal —
-		// Add to Pantry and everything else still needs to work even if
-		// this fetch fails.
 		console.error('Failed to fetch dietary profile for Halal badge gating:', err)
 		userHalalPref.value = false
 	}
@@ -272,24 +260,16 @@ const bestBeforeDate = ref('')
 const submitting = ref(false)
 const submitError = ref('')
 
-// True only while expirationDate still holds exactly what the AI detected —
-// cleared the moment the user edits it away from that value, since at that
-// point it's their corrected value, not an unverified AI guess anymore.
 const dateAutoDetected = ref(false)
 
 function normalizeDetectedDate(value: unknown): string | null {
-	// Backend already validates strictly to YYYY-MM-DD or null
-	// (normalizeToDateStringOrNull in scan/index.post.ts) — this is just a
-	// defensive re-check before trusting it as a form value.
 	return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null
 }
 
 function resetPantryForm() {
-	// Use AI-detected quantity if available, otherwise default to 1
 	const detectedQty = product.value?.net_quantity_detected
 	quantity.value = typeof detectedQty === 'number' && detectedQty > 0 ? detectedQty : 1
 
-	// Map detected unit to one of the allowed unitOptions, or fall back to 'pcs'
 	const detectedUnit = product.value?.net_unit_detected
 	const UNIT_OPTIONS = ['pc', 'pack', 'g', 'kg', 'ml', 'L']
 	const unitMap: Record<string, string> = { pcs: 'pc', piece: 'pc', pieces: 'pc', liter: 'L', litre: 'L', liters: 'L', litres: 'L', gram: 'g', grams: 'g', kilogram: 'kg', kilograms: 'kg', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml', ounce: 'oz', ounces: 'oz', 'fl oz': 'ml' }
@@ -297,10 +277,6 @@ function resetPantryForm() {
 	unit.value = normalizedUnit && UNIT_OPTIONS.includes(normalizedUnit) ? normalizedUnit : 'pcs'
 
 	storageLocation.value = 'Fridge'
-	// Always into Expiration Date specifically — never Best Before —
-	// regardless of whether the label printed "EXP", "Best Before", or
-	// "Use By": every scanned item is inherently a packaged product with a
-	// printed label, matching this field's own existing hint text.
 	const detected = normalizeDetectedDate(product.value?.expiration_date_detected)
 	expirationDate.value = detected ?? ''
 	bestBeforeDate.value = ''
@@ -323,7 +299,6 @@ async function submitAddToPantry() {
 
 	submitError.value = ''
 
-	// Allergen guardrail — mirrors PhotoPantryUploadModal.vue behavior
 	if (personalAllergenAlerts.value.length > 0) {
 		const allergenAlert = await alertController.create({
 			header: 'Allergen Warning',
@@ -338,7 +313,6 @@ async function submitAddToPantry() {
 		if (role !== 'confirm') return
 	}
 
-	// Guard: block adding already-expired items
 	const today = new Date()
 	today.setHours(0, 0, 0, 0)
 	if (expirationDate.value) {
@@ -397,7 +371,6 @@ function handleDismiss() {
 	margin: 0 auto;
 }
 
-/* Green action button style for the Ionic alert */
 :deep(.non-product-alert .alert-button) {
 	color: #00b14f;
 	font-weight: 700;
@@ -469,7 +442,6 @@ function handleDismiss() {
 	margin-bottom: 14px;
 }
 
-/* Unbolded Allergen Badges matching Picture 3 */
 .badge {
 	display: inline-flex;
 	align-items: center;
@@ -559,7 +531,6 @@ function handleDismiss() {
 	margin-bottom: 2px;
 }
 
-/* Ingredients Card Container matching Picture 1 */
 .ingredients-card {
 	background: #f8fafc;
 	border: 1px solid #e2e8f0;
@@ -628,7 +599,6 @@ function handleDismiss() {
 	border-bottom: none;
 }
 
-/* Lessened font weight for Alternatives in Picture 2 */
 .alt-item__name {
 	margin: 0;
 	font-weight: 500;
@@ -688,7 +658,6 @@ function handleDismiss() {
 	margin-bottom: 14px;
 }
 
-/* Lessened font weight for form inputs in Picture 2 */
 .quantity-input {
 	flex: 1;
 	border: 1px solid #e5e7eb;
@@ -733,10 +702,12 @@ function handleDismiss() {
 	padding: 10px 0;
 	border-radius: 12px;
 	border: 1px solid #e5e7eb;
-	background: #fff;
-	font-weight: 500;
+	background: #ffffff;
+	font-weight: 600;
 	font-size: 0.85rem;
 	color: #374151;
+	transition: all 0.2s ease;
+	cursor: pointer;
 }
 
 .storage-btn--active {
@@ -745,7 +716,6 @@ function handleDismiss() {
 	color: #ffffff;
 }
 
-/* Date Box Section */
 .date-selection-box {
 	background: #eff6ff;
 	border: 1px solid #dbeafe;

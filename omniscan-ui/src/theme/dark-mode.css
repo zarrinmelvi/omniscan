@@ -57,7 +57,23 @@ html.ion-palette-dark .required-note {
 }
 html.ion-palette-dark .input-label,
 html.ion-palette-dark .field-label-brown {
-  color: var(--dm-text-secondary);
+  color: var(--dm-text-primary) !important;
+}
+
+/* === Form field labels override in Dark Mode === */
+html.ion-palette-dark .field-label,
+html.ion-palette-dark .field-label-brown,
+html.ion-palette-dark .date-field-label {
+  color: var(--dm-text-primary) !important;
+}
+
+html.ion-palette-dark .field-hint {
+  color: var(--dm-text-secondary) !important;
+}
+
+html.ion-palette-dark .quantity-input,
+html.ion-palette-dark .unit-select {
+  color: var(--dm-text-primary) !important;
 }
 
 /* === Native text inputs, selects, date pickers === */
@@ -327,8 +343,8 @@ html.ion-palette-dark .pill {
 }
 html.ion-palette-dark .pill--active {
   border-color: #00a651;
-  background: var(--dm-bg-chip);
-  color: #4ade80;
+  background: #00b14f !important;
+  color: #ffffff !important;
 }
 html.ion-palette-dark .view-toggle {
   background: var(--dm-bg-subtle);
@@ -441,6 +457,17 @@ html.ion-palette-dark .about-section-heading {
 html.ion-palette-dark .scan-page {
   --background: var(--dm-bg-page);
 }
+html.ion-palette-dark .scan-page .header-section {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+html.ion-palette-dark .scan-page .page-title {
+  color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .scan-page .page-subtitle {
+  color: var(--dm-text-secondary) !important;
+}
 html.ion-palette-dark .btn-secondary {
   --background: var(--dm-bg-chip);
   --background-activated: var(--dm-border);
@@ -494,6 +521,7 @@ html.ion-palette-dark .upload-title {
 }
 html.ion-palette-dark .upload-subtitle,
 html.ion-palette-dark .change-photo-link,
+html.ion-palette-dark .uploaded-label,
 html.ion-palette-dark .uploaded-label,
 html.ion-palette-dark .field-hint,
 html.ion-palette-dark .date-field-label {
@@ -687,18 +715,31 @@ html.ion-palette-dark .orange-chip { background: #431407; color: #fed7aa; }
 html.ion-palette-dark .step-text { color: var(--dm-text-secondary); }
 html.ion-palette-dark .detail-content .section-label { color: var(--dm-text-secondary); }
 
-/* ── ScanResultModal ───────────────────────────────────────────────────────── */
+/* ── ScanResultModal & PhotoPantryUploadModal Dark Mode Storage Buttons ───── */
 html.ion-palette-dark .sheet-ion-content { --background: var(--dm-bg-page); }
 html.ion-palette-dark .ingredients-card { background: var(--dm-bg-subtle); border-color: var(--dm-border); }
 html.ion-palette-dark .ingredients-card__title { color: var(--dm-text-primary); }
 html.ion-palette-dark .ingredients-card__body { color: var(--dm-text-secondary); }
-html.ion-palette-dark .storage-btn { background: var(--dm-bg-chip); border-color: var(--dm-border); color: var(--dm-text-primary); }
+
+html.ion-palette-dark .storage-btn,
+html.ion-palette-dark .storage-buttons .pill {
+  background: var(--dm-bg-chip) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text-primary) !important;
+}
+
+html.ion-palette-dark .storage-btn--active,
+html.ion-palette-dark .storage-buttons .pill--active {
+  background: #00b14f !important;
+  border-color: #00b14f !important;
+  color: #ffffff !important;
+}
+
 html.ion-palette-dark .sheet-header { border-bottom-color: var(--dm-border); }
 html.ion-palette-dark .product-title { color: var(--dm-text-primary); }
 html.ion-palette-dark .product-subtitle { color: var(--dm-text-secondary); }
 html.ion-palette-dark .alt-item__name { color: var(--dm-text-primary); }
 html.ion-palette-dark .pantry-section { border-top-color: var(--dm-border); }
-html.ion-palette-dark .field-label { color: var(--dm-text-secondary); }
 html.ion-palette-dark .alternatives-empty { color: var(--dm-text-secondary); }
 html.ion-palette-dark ion-alert.non-product-alert { --background: var(--dm-bg-card); }
 

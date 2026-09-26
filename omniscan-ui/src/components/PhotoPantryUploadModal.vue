@@ -254,7 +254,6 @@ const isSubmitting = ref(false)
 const formError = ref<string | null>(null)
 const matchedUserAllergens = ref<string[]>([])
 
-// Check remaining daily upload limit whenever the modal opens
 watch(
 	() => props.isOpen,
 	async (isOpen) => {
@@ -363,7 +362,7 @@ async function goToStep2(): Promise<void> {
 		form.ingredientsText = result.ingredients_text || ''
 		form.simplifiedIngredientsText = result.simplified_ingredients || ''
 		matchedUserAllergens.value = result.matched_user_allergens ?? []
-		// Pre-fill quantity and unit if the AI detected them
+
 		const UNIT_OPTIONS = ['pcs', 'g', 'kg', 'ml', 'L']
 		const unitMap: Record<string, string> = { pc: 'pcs', piece: 'pcs', pieces: 'pcs', pcs: 'pcs', liter: 'L', litre: 'L', liters: 'L', litres: 'L', gram: 'g', grams: 'g', kilogram: 'kg', kilograms: 'kg', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml' }
 		if (typeof result.net_quantity === 'number' && result.net_quantity > 0) {
@@ -398,7 +397,6 @@ async function handleSubmit(): Promise<void> {
 	if (!isFormValid.value || remainingUploads.value <= 0) return
 	formError.value = null
 
-	// Allergen guardrail
 	if (matchedUserAllergens.value.length > 0) {
 		const alert = await alertController.create({
 			header: 'Allergen Warning',
@@ -413,7 +411,6 @@ async function handleSubmit(): Promise<void> {
 		if (role !== 'confirm') return
 	}
 
-	// Guard: block adding already-expired items
 	const today = new Date()
 	today.setHours(0, 0, 0, 0)
 	if (form.expirationDate) {
@@ -827,8 +824,10 @@ ion-accordion-group {
 	border-radius: 12px;
 	padding: 9px 0;
 	font-size: 0.825rem;
-	font-weight: 500;
+	font-weight: 600;
 	flex: 1;
+	transition: all 0.2s ease;
+	cursor: pointer;
 }
 
 .pill--active {

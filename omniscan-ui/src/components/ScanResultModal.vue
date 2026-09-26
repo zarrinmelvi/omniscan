@@ -166,7 +166,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { IonModal, IonAlert, IonContent, IonIcon, IonButton, IonSpinner } from '@ionic/vue'
+import { IonModal, IonAlert, IonContent, IonIcon, IonButton, IonSpinner, alertController } from '@ionic/vue'
 import { apiFetch } from '@/utils/api'
 import {
 	closeOutline,
@@ -322,6 +322,21 @@ async function submitAddToPantry() {
 	if (!isFormValid.value || !product.value?.product_name) return
 
 	submitError.value = ''
+
+	// Allergen guardrail — mirrors PhotoPantryUploadModal.vue behavior
+	if (personalAllergenAlerts.value.length > 0) {
+		const allergenAlert = await alertController.create({
+			header: 'Allergen Warning',
+			message: `This item contains allergens matching your dietary profile (${personalAllergenAlerts.value.join(', ')}). Are you sure you want to add it to your pantry?`,
+			buttons: [
+				{ text: 'Cancel', role: 'cancel' },
+				{ text: 'Add Anyway', role: 'confirm' },
+			],
+		})
+		await allergenAlert.present()
+		const { role } = await allergenAlert.onDidDismiss()
+		if (role !== 'confirm') return
+	}
 
 	// Guard: block adding already-expired items
 	const today = new Date()

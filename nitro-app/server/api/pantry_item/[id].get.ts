@@ -6,6 +6,7 @@ import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedA
 import { matchCatalogProduct, CATALOG_PRODUCT_SELECT } from '../../lib/catalog-matching'
 import { determineDisallowedCatalogIngredients } from '../../lib/alternative-reasoning'
 import { findAlternativeProducts } from '../../lib/alternative-matching'
+import { DIETARY_ALLERGEN_MAP } from '../../lib/dietary-map'
 
 const RECIPE_USAGE_LIMIT = 5
 
@@ -77,7 +78,7 @@ export default defineEventHandler(async (event) => {
 			},
 		})
 
-		const combinedIngredientText = `${item.product.ingredient_text} ${item.product.simplified_ingredients}`
+		const combinedIngredientText = `${item.product.product_name} ${item.product.ingredient_text ?? ''} ${item.product.simplified_ingredients ?? ''}`.trim()
 		const stringMatches = findMatchedUserAllergens(combinedIngredientText, userWithAllergens?.allergens ?? [])
 		const semanticMatches = await matchUserAllergensSemantically(combinedIngredientText, userWithAllergens?.allergens ?? [])
 		const matchedUserAllergens = mergeMatchedAllergens(stringMatches, semanticMatches)
@@ -95,6 +96,22 @@ export default defineEventHandler(async (event) => {
 			},
 		})
 		const halalPref = userWithProfile?.dietary_prof?.[0]?.halal_pref ?? false
+
+		// Evaluate custom_preferences via DIETARY_ALLERGEN_MAP (same pattern as analyze.post.ts)
+		const customPreferences = userWithProfile?.dietary_prof?.[0]?.custom_preferences ?? []
+		const preferenceWarnings = new Set<string>()
+		customPreferences.forEach((pref: string) => {
+			const rule = DIETARY_ALLERGEN_MAP[pref.toLowerCase().trim()]
+			if (rule) {
+				if (rule.keywords.some((kw) => combinedIngredientText.toLowerCase().includes(kw))) {
+					preferenceWarnings.add(rule.label)
+				}
+			}
+		})
+		const allMatchedAllergenNames = Array.from(new Set([
+			...matchedUserAllergens.map((a) => a.name),
+			...Array.from(preferenceWarnings),
+		]))
 
 		const catalogProducts = await prisma.catalogProduct.findMany({
 			where: { is_verified: true },
@@ -179,7 +196,7 @@ export default defineEventHandler(async (event) => {
 				is_archived: item.is_archived,
 				updated_at: item.updated_at.toISOString(),
 				product: { ...item.product, halal_certifiers },
-				matched_user_allergens: matchedUserAllergens.map((a) => a.name),
+				matched_user_allergens: allMatchedAllergenNames,
 				recipes_using_this: recipesUsingThis,
 				alternatives,
 				alternatives_message: alternativesMessage,

@@ -7,7 +7,8 @@ import { stripCodeFences } from '../../lib/ai-json'
 import { matchCatalogProduct, CATALOG_PRODUCT_SELECT } from '../../lib/catalog-matching'
 import { determineDisallowedCatalogIngredients } from '../../lib/alternative-reasoning'
 import { findAlternativeProducts } from '../../lib/alternative-matching'
-import { MONTH_NAMES, isValidYMD, tryParseRawDateString, normalizeToDateStringOrNull } from '../../lib/date-parse'
+import { normalizeToDateStringOrNull } from '../../lib/date-parse'
+
 type SafetyVerdict = 'Red' | 'Yellow' | 'Green'
 
 interface OllamaChatMessage {
@@ -41,14 +42,8 @@ interface ScanAiExtraction {
 	simplified_ingredients: string
 	halal_logo_detected: boolean
 	certifying_body: string
-	// AI-read expiration/best-before/use-by date, normalized to YYYY-MM-DD,
-	// or null if none was visible/legible. Validated server-side in
-	// normalizeToDateStringOrNull — never trust the model's own format
-	// compliance for something that feeds an <input type="date">.
 	expiration_date: string | null
-	// Net quantity as a number (e.g. 500, 1, 250) or null if not found
 	net_quantity: number | null
-	// Unit string as printed (e.g. "ml", "g", "L", "kg", "oz") or null if not found
 	net_unit: string | null
 }
 
@@ -120,7 +115,6 @@ function normalizeToString(value: unknown): string {
 	return ''
 }
 
-
 function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 	if (!value || typeof value !== 'object') return null
 	const candidate = value as Record<string, unknown>
@@ -153,8 +147,6 @@ async function extractProductInfoFromImage(base64Images: string[]): Promise<Scan
 		],
 	}
 
-	console.log('Images sent to gemma4:cloud:', requestPayload.messages[0].images?.length ?? 0)
-
 	let ollamaResponse: OllamaChatResponse
 
 	try {
@@ -165,15 +157,11 @@ async function extractProductInfoFromImage(base64Images: string[]): Promise<Scan
 			},
 			body: requestPayload,
 		})
-
-		console.log('==========================================')
-		console.log('RAW OLLAMA RESPONSE:', JSON.stringify(ollamaResponse))
-		console.log('==========================================')
 	} catch (err) {
 		throw createError({
 			statusCode: 502,
 			statusMessage:
-				'Could not reach the Ollama Cloud model via the local Ollama instance at :11434. Is `ollama serve` running and are you signed in (`ollama signin`) with access to "gemma4:cloud"?',
+				'Could not reach the Ollama Cloud model via the local Ollama instance at :11434.',
 			cause: err,
 		})
 	}
@@ -227,12 +215,6 @@ function determineVerdict(text: string): { verdict: SafetyVerdict; reasons: stri
 	return { verdict: 'Green', reasons: ['No flagged ingredients detected'] }
 }
 
-// The AI reads one photo, so certifying_body is usually a single name — but
-// occasionally a label genuinely shows more than one certifying mark, and
-// gemma4:cloud may read that as a comma-separated string (e.g.
-// "IDCP, MUI, JAKIM"). Split and resolve each candidate independently rather
-// than treating the whole string as one (likely unmatchable) name, and
-// return every match found, deduped by id.
 function resolveHalalLogoMatches(certifyingBodyText: string, logos: HalalLogoRecord[]): HalalLogoRecord[] {
 	const candidates = certifyingBodyText
 		.split(',')
@@ -307,9 +289,10 @@ export default defineEventHandler(async (event) => {
 		throw createError({
 			statusCode: 422,
 			statusMessage:
-				"This doesn't look like a food or beverage product. OmniScan only tracks food items — try scanning the packaging of something edible or drinkable.",
+				"This doesn't look like a food or beverage product. OmniScan only tracks food items.",
 		})
 	}
+
 	const [userWithAllergens, halalLogos, catalogProducts] = await Promise.all([
 		prisma.user.findUnique({
 			where: { id: authUser.id },
@@ -343,26 +326,13 @@ export default defineEventHandler(async (event) => {
 
 	let { verdict, reasons } = determineVerdict(extraction.ingredients_text)
 
-	// AI-detection-first, catalog-fallback-second — deliberately kept this
-	// precedence (not flipped to catalog-first) per an earlier explicit
-	// decision: with most CatalogProduct rows still lacking real Halal data,
-	// flipping it would have little practical effect yet and isn't worth
-	// revisiting until more catalog rows actually carry certifications.
 	const aiMatchedHalalLogos = extraction.halal_logo_detected ? resolveHalalLogoMatches(extraction.certifying_body, halalLogos) : []
-
 	const catalogHalalLogos = catalogMatch?.halal_logos.map((link) => link.halal_logo) ?? []
-
 	const matchedHalalLogos = aiMatchedHalalLogos.length > 0 ? aiMatchedHalalLogos : catalogHalalLogos
-
-	// Kept for anything still reading a single logo (e.g. the legacy
-	// halal_logo_id column) — first match is an arbitrary but stable choice
-	// when there's more than one.
 	const matchedHalalLogo = matchedHalalLogos[0] ?? null
 
 	const combinedIngredientText = `${extraction.ingredients_text} ${extraction.simplified_ingredients}`
-
 	const stringMatches = findMatchedUserAllergens(combinedIngredientText, userWithAllergens?.allergens ?? [])
-
 	const semanticMatches = mockTextField?.data
 		? []
 		: await matchUserAllergensSemantically(combinedIngredientText, userWithAllergens?.allergens ?? [])
@@ -376,7 +346,7 @@ export default defineEventHandler(async (event) => {
 			...matchedUserAllergens.map((a) =>
 				a.confidence >= 1
 					? `Contains ${a.name} — your allergen`
-					: `Possibly contains ${a.name} — your allergen (AI-inferred${a.matched_term ? ` from "${a.matched_term}"` : ''}, ${Math.round(a.confidence * 100)}% confidence)`,
+					: `Possibly contains ${a.name} — your allergen`,
 			),
 		]
 	}
@@ -391,7 +361,6 @@ export default defineEventHandler(async (event) => {
 				image_base64: imageDataUri,
 				image_base64_back: imageDataUriBack ?? undefined,
 				is_verified: false,
-
 				...(matchedHalalLogo ? { halal_logo_id: matchedHalalLogo.id } : {}),
 				halal_unverified: extraction.halal_logo_detected && matchedHalalLogos.length === 0,
 			},
@@ -409,7 +378,6 @@ export default defineEventHandler(async (event) => {
 				image_url: `uploads/${imageField.filename}`,
 				image_url_back: hasBackImage ? `uploads/${imageBackField!.filename}` : undefined,
 				scan_time: new Date(),
-
 				ai_confidence_score:
 					matchedUserAllergens.length > 0 ? Math.min(...matchedUserAllergens.map((a) => a.confidence)) : mockTextField?.data ? 0.75 : 0.9,
 				safety_verdict: verdict,
@@ -419,31 +387,35 @@ export default defineEventHandler(async (event) => {
 			},
 		})
 
-		await prisma.activityLog.create({
-			data: {
-				type: 'scanned',
-				message: product.product_name,
+		// Throttle: Prevent duplicate "Scanned" activity logs within 60 seconds for the same product
+		const sixtySecondsAgo = new Date(Date.now() - 60 * 1000)
+		const recentScanLog = await prisma.activityLog.findFirst({
+			where: {
 				user_id: authUser.id,
 				product_id: product.id,
+				type: 'scanned',
+				occurred_at: { gte: sixtySecondsAgo },
 			},
 		})
+
+		if (!recentScanLog) {
+			await prisma.activityLog.create({
+				data: {
+					type: 'scanned',
+					message: product.product_name,
+					user_id: authUser.id,
+					product_id: product.id,
+				},
+			})
+		}
 
 		const halalUnverified = extraction.halal_logo_detected && matchedHalalLogos.length === 0
 		const shouldAutoFlag = verdict === 'Red' || halalUnverified
 
 		if (shouldAutoFlag) {
 			const flagReasonParts: string[] = []
-
-			if (verdict === 'Red') {
-				flagReasonParts.push(`Red safety verdict: ${reasons.join(', ')}`)
-			}
-			if (halalUnverified) {
-				flagReasonParts.push(
-					`Halal logo detected on packaging but not matched to a known certifying body${
-						extraction.certifying_body ? ` (read as "${extraction.certifying_body}")` : ''
-					} — needs manual verification.`,
-				)
-			}
+			if (verdict === 'Red') flagReasonParts.push(`Red safety verdict: ${reasons.join(', ')}`)
+			if (halalUnverified) flagReasonParts.push('Halal logo detected on packaging but not matched to a known certifier.')
 
 			await prisma.flaggedScan
 				.create({
@@ -460,7 +432,6 @@ export default defineEventHandler(async (event) => {
 		setResponseStatus(event, 201)
 
 		const halalPref = userWithAllergens?.dietary_prof?.[0]?.halal_pref ?? false
-
 		let alternatives: Awaited<ReturnType<typeof findAlternativeProducts>> = []
 		let alternativesMessage: string | null = null
 
@@ -512,10 +483,6 @@ export default defineEventHandler(async (event) => {
 					known_certifier: matchedHalalLogo?.certifier ?? null,
 					is_accredited: matchedHalalLogo?.is_accredited ?? null,
 					matched_known_logo: matchedHalalLogos.length > 0,
-					// Full set — a product can genuinely hold more than one
-					// real certification (e.g. from the catalog fallback).
-					// known_certifier above is kept for anything still reading
-					// a single value.
 					certifiers: matchedHalalLogos.map((logo) => ({ id: logo.id, certifier: logo.certifier, is_accredited: logo.is_accredited })),
 				},
 				scan_time: scan.scan_time,

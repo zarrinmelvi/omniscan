@@ -233,7 +233,8 @@ import {
 	chevronForwardOutline,
 	restaurantOutline,
 	timeOutline,
-	refreshCircleOutline,
+	scanOutline,
+	cameraOutline,
 	addCircleOutline,
 	checkmarkCircleOutline,
 	notificationsOutline,
@@ -292,7 +293,7 @@ interface UserDto {
 	avatar_base64: string | null
 }
 
-type ActivityType = 'scanned' | 'added' | 'consumed' | 'auto_archived'
+type ActivityType = 'scanned' | 'uploaded' | 'added' | 'consumed' | 'auto_archived'
 
 interface ActivityLogDto {
 	id: number
@@ -502,7 +503,9 @@ async function unmakeRecipe(recipeId: number): Promise<void> {
 function iconForActivityType(type: ActivityType) {
 	switch (type) {
 		case 'scanned':
-			return refreshCircleOutline
+			return scanOutline
+		case 'uploaded':
+			return cameraOutline
 		case 'added':
 			return addCircleOutline
 		case 'consumed':
@@ -516,6 +519,8 @@ function labelForActivityType(type: ActivityType): string {
 	switch (type) {
 		case 'scanned':
 			return 'Scanned'
+		case 'uploaded':
+			return 'Uploaded'
 		case 'added':
 			return 'Added'
 		case 'consumed':
@@ -961,6 +966,10 @@ onIonViewWillEnter(() => {
 .activity-icon--scanned {
 	background: #eff6ff;
 	color: #2563eb;
+}
+.activity-icon--uploaded {
+	background: #f0fdf4;
+	color: #16a34a;
 }
 .activity-icon--added {
 	background: #f0fdf4;

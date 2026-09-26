@@ -51,7 +51,7 @@
 					<!-- Indicator bar for unread notifications -->
 					<div v-if="!notif.is_read" class="unread-bar" />
 
-					<div class="notif-icon" :style="{ background: bgForType(notif.type, notif.message), color: colorForType(notif.type, notif.message) }">
+					<div class="notif-icon" :class="`notif-icon--${typeKeyFor(notif.type, notif.message)}`">
 						<ion-icon :icon="iconForType(notif.type, notif.message)" />
 					</div>
 					<div class="notif-body">
@@ -83,10 +83,6 @@ import { apiFetch, ApiError } from '@/utils/api'
 const router = useRouter()
 
 function goBackToProfile() {
-	// Navigate back to the Home tab — the bell icon that opens Notifications
-	// lives on the Home page, so going back should return to Home.
-	// Use router.back() with a safe fallback to avoid blank screen on direct
-	// deep-link.
 	if (window.history.length > 1) {
 		router.back()
 	} else {
@@ -94,9 +90,6 @@ function goBackToProfile() {
 	}
 }
 
-// Only 'expiring' has a real backend trigger today (see detect-expiring.post.ts).
-// The rest render correctly if the API ever returns them, but nothing
-// currently generates them since Recipes isn't built yet.
 type NotificationType = 'expiring' | 'recipe_suggestion' | 'pantry_match'
 
 interface NotificationDto {
@@ -129,28 +122,17 @@ function titleForType(type: string, message: string = ''): string {
 	return 'Notification'
 }
 
+function typeKeyFor(type: string, message: string = ''): 'expiring' | 'recipe' {
+	const title = titleForType(type, message)
+	return title.includes('Expiring') ? 'expiring' : 'recipe'
+}
+
 function iconForType(type: string, message: string = '') {
 	const title = titleForType(type, message)
 	if (title.includes('Expiring')) {
 		return warningOutline
 	}
 	return restaurantOutline
-}
-
-function colorForType(type: string, message: string = ''): string {
-	const title = titleForType(type, message)
-	if (title.includes('Expiring')) {
-		return '#ea580c'
-	}
-	return '#16a34a'
-}
-
-function bgForType(type: string, message: string = ''): string {
-	const title = titleForType(type, message)
-	if (title.includes('Expiring')) {
-		return '#ffedd5'
-	}
-	return '#dcfce7'
 }
 
 function daysBetween(from: Date, to: Date): number {
@@ -327,6 +309,17 @@ onMounted(fetchNotifications)
 	font-size: 1.2rem;
 	flex-shrink: 0;
 }
+
+/* Icon theme styles */
+.notif-icon--expiring {
+	background: #ffedd5;
+	color: #ea580c;
+}
+.notif-icon--recipe {
+	background: #dcfce7;
+	color: #16a34a;
+}
+
 .notif-body {
 	flex: 1;
 	min-width: 0;

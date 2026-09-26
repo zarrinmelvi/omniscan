@@ -147,9 +147,12 @@ export default defineEventHandler(async (event) => {
 			include: { product: { select: { id: true, product_name: true, image_base64: true } } },
 		})
 
+		// Differentiate whether this item came from a barcode scan or a photo upload
+		const activityType: 'scanned' | 'uploaded' = body.product_id !== undefined ? 'scanned' : 'uploaded'
+
 		await prisma.activityLog.create({
 			data: {
-				type: 'added',
+				type: activityType,
 				message: product.product_name,
 				user_id: authUser.id,
 				product_id: product.id,

@@ -1,6 +1,6 @@
 ﻿<template>
 	<ion-page>
-		<ion-content class="auth-content">
+		<ion-content class="auth-content" :scroll-y="true">
 			<div class="auth-card">
 				<!-- Back button shown ONLY on Step 1 -->
 				<button v-if="step === 1" class="back-button" @click="handleBack">

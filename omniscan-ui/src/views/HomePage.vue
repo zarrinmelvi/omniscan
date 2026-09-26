@@ -316,8 +316,27 @@ const recommendedRecipes = ref<SuggestedRecipe[]>([])
 const activities = ref<ActivityLogDto[]>([])
 const activitiesLoadError = ref('')
 
-// Computed to safely filter out any legacy or backend-generated 'expiring' activity items
-const filteredActivities = computed(() => activities.value.filter((act) => (act.type as string) !== 'expiring'))
+// Filter out legacy 'expiring' logs and deduplicate rapid consecutive logs for the same item/action
+const filteredActivities = computed(() => {
+	const raw = activities.value.filter((act) => (act.type as string) !== 'expiring')
+
+	const deduped: ActivityLogDto[] = []
+	for (const act of raw) {
+		const cleanMessage = act.message.replace(/\s+was auto-archived$/i, '').trim().toLowerCase()
+		const isDuplicate = deduped.some(
+			(prev) =>
+				prev.type === act.type &&
+				prev.message.replace(/\s+was auto-archived$/i, '').trim().toLowerCase() === cleanMessage &&
+				Math.abs(new Date(prev.occurred_at).getTime() - new Date(act.occurred_at).getTime()) < 5 * 60 * 1000,
+		)
+
+		if (!isDuplicate) {
+			deduped.push(act)
+		}
+	}
+
+	return deduped
+})
 
 // Recipe Modal States
 const isDetailModalOpen = ref(false)

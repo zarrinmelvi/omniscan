@@ -121,7 +121,7 @@ export default defineEventHandler(async (event) => {
 						halal_logo_id: null,
 					},
 				})
-			} else if (image_base64 && !existing.image_base64) {
+			} else if (image_base64) {
 				existing = await prisma.product.update({
 					where: { id: existing.id },
 					data: { image_base64 },

@@ -591,10 +591,20 @@ async function skipForNow(): Promise<void> {
 	--overflow: auto;
 }
 
+/* Hide scrollbar track visually on mobile web views */
+.auth-content::part(scroll) {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.auth-content::part(scroll)::-webkit-scrollbar {
+	display: none;
+}
+
 .auth-card {
 	max-width: 380px;
 	margin: 0 auto;
-	padding: 12px 24px 120px;
+	padding: 12px 24px 140px;
 	background: #ffffff;
 	min-height: 100%;
 }

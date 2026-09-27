@@ -689,12 +689,12 @@ onIonViewWillEnter(() => {
 	font-weight: 600;
 }
 
-/* Sort Row & Alignment */
+/* Sort Row & Spacing */
 .sort-row {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-bottom: 4px;
+	margin-bottom: 6px;
 	font-size: 0.85rem;
 	color: #8a99ad;
 }
@@ -714,17 +714,39 @@ onIonViewWillEnter(() => {
 	margin-right: 2px;
 }
 
+/* Spacing above the sort row in Active view */
 .scanned-stat-row {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-bottom: 12px;
+	margin-top: 10px;
+	margin-bottom: 18px;
 	font-size: 0.82rem;
 	color: #64748b;
 }
 .scanned-stat-row__value {
 	font-weight: 700;
 	color: #0f172a;
+}
+
+/* Spacing above the sort row in Archived view */
+.archived-header-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 6px 0 16px;
+}
+.archived-subhead {
+	font-size: 0.78rem;
+	color: #64748b;
+}
+.auto-delete-info {
+	font-size: 0.74rem;
+	color: #d97706;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-weight: 500;
 }
 
 /* Select Box Right-Aligned Styling */
@@ -864,26 +886,6 @@ onIonViewWillEnter(() => {
 	color: #6b7280;
 	padding: 2px 6px;
 	border-radius: 6px;
-	font-weight: 500;
-}
-
-/* Archived Header Row */
-.archived-header-row {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 4px 0 6px;
-}
-.archived-subhead {
-	font-size: 0.78rem;
-	color: #64748b;
-}
-.auto-delete-info {
-	font-size: 0.74rem;
-	color: #d97706;
-	display: flex;
-	align-items: center;
-	gap: 4px;
 	font-weight: 500;
 }
 

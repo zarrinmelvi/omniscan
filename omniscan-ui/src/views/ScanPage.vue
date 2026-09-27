@@ -177,7 +177,7 @@ function onModalClosed(): void {
 	isBackCaptured.value = false
 }
 
-// Check if a scan or upload is in progress or waiting to be saved
+// Checks if an active process or modal state requires unsaved progress confirmation
 const hasUnsavedScan = computed(() => {
 	return (
 		isUploading.value ||
@@ -187,7 +187,7 @@ const hasUnsavedScan = computed(() => {
 	)
 })
 
-// Navigation Guard: Stops tab switching (Home, Pantry, Recipe, Profile) if an unsaved scan exists
+// Guards route navigation (e.g. switching tabs to Pantry, Home, Recipes, Profile)
 onBeforeRouteLeave(async (to, from, next) => {
 	if (hasUnsavedScan.value) {
 		const alert = await alertController.create({
@@ -198,7 +198,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 				{
 					text: 'Keep Editing',
 					role: 'cancel',
-					handler: () => next(false), // Cancel tab navigation
+					handler: () => next(false), // Stay on the current page
 				},
 				{
 					text: 'Discard Item',
@@ -206,7 +206,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 					cssClass: 'alert-button-danger',
 					handler: () => {
 						cancelCurrentScan()
-						next() // Proceed with tab navigation
+						next() // Allow tab switch
 					},
 				},
 			],

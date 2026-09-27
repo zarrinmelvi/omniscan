@@ -138,7 +138,14 @@
 								<ion-icon :icon="sparklesOutline" />
 								<span>Expiration Detected — please double-check for accuracy</span>
 							</div>
-							<input type="date" class="date-input" :class="{ 'date-input--has-value': !!expirationDate }" v-model="expirationDate" :disabled="submitting" />
+							<input 
+								type="date" 
+								class="date-input" 
+								:class="{ 'date-input--has-value': !!expirationDate }" 
+								v-model="expirationDate" 
+								:disabled="submitting"
+								@change="onExpirationDateChange"
+							/>
 						</div>
 
 						<div class="or-divider"><span>OR</span></div>
@@ -146,7 +153,14 @@
 						<div class="date-field">
 							<label class="date-field-label">Best Before Date</label>
 							<span class="field-hint">For fresh stocks and produce (e.g. fruits, vegetables, dry goods).</span>
-							<input type="date" class="date-input" :class="{ 'date-input--has-value': !!bestBeforeDate }" v-model="bestBeforeDate" :disabled="submitting" />
+							<input 
+								type="date" 
+								class="date-input" 
+								:class="{ 'date-input--has-value': !!bestBeforeDate }" 
+								v-model="bestBeforeDate" 
+								:disabled="submitting"
+								@change="onBestBeforeDateChange"
+							/>
 						</div>
 					</div>
 
@@ -289,8 +303,25 @@ watch(expirationDate, (newValue) => {
 	if (newValue !== detected) dateAutoDetected.value = false
 })
 
+function onExpirationDateChange() {
+	if (expirationDate.value) {
+		bestBeforeDate.value = ''
+	}
+}
+
+function onBestBeforeDateChange() {
+	if (bestBeforeDate.value) {
+		expirationDate.value = ''
+	}
+}
+
 const isFormValid = computed(
-	() => quantity.value > 0 && !!unit.value && !!storageLocation.value && (!!expirationDate.value || !!bestBeforeDate.value),
+	() =>
+		quantity.value > 0 &&
+		!!unit.value &&
+		!!storageLocation.value &&
+		(!!expirationDate.value || !!bestBeforeDate.value) &&
+		!(!!expirationDate.value && !!bestBeforeDate.value)
 )
 
 async function submitAddToPantry() {
@@ -360,7 +391,7 @@ async function handleDismiss() {
 	if (product.value) {
 		const alert = await alertController.create({
 			header: 'Unsaved Item',
-			message: 'you have not added this item to your pantry yet. are you sure you want to close without saving?',
+			message: 'You have not added this item to your pantry yet. Are you sure you want to close without saving?',
 			cssClass: 'custom-make-alert',
 			buttons: [
 				{ text: 'Keep Editing', role: 'cancel' },

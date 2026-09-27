@@ -143,6 +143,7 @@
 								class="date-input"
 								:class="{ 'date-input--has-value': !!form.expirationDate }"
 								:disabled="isSubmitting"
+								@change="onExpirationDateChange"
 							/>
 						</div>
 
@@ -157,6 +158,7 @@
 								class="date-input"
 								:class="{ 'date-input--has-value': !!form.bestBeforeDate }"
 								:disabled="isSubmitting"
+								@change="onBestBeforeDateChange"
 							/>
 						</div>
 					</div>
@@ -286,11 +288,24 @@ async function checkDailyUploadLimit(): Promise<void> {
 	}
 }
 
+function onExpirationDateChange(): void {
+	if (form.expirationDate) {
+		form.bestBeforeDate = ''
+	}
+}
+
+function onBestBeforeDateChange(): void {
+	if (form.bestBeforeDate) {
+		form.expirationDate = ''
+	}
+}
+
 const isFormValid = computed(() => {
 	const hasName = form.productName.trim().length > 0
 	const hasValidQty = form.quantity > 0
 	const hasAtLeastOneDate = !!form.expirationDate || !!form.bestBeforeDate
-	return hasName && hasValidQty && hasAtLeastOneDate
+	const hasBothDates = !!form.expirationDate && !!form.bestBeforeDate
+	return hasName && hasValidQty && hasAtLeastOneDate && !hasBothDates
 })
 
 function resetAll(): void {
@@ -408,7 +423,7 @@ async function handleDismiss(): Promise<void> {
 	if (previewUrl.value) {
 		const alert = await alertController.create({
 			header: 'Unsaved Item',
-			message: 'you have not added this item to your pantry yet. are you sure you want to close without saving?',
+			message: 'You have not added this item to your pantry yet. Are you sure you want to close without saving?',
 			cssClass: 'custom-make-alert',
 			buttons: [
 				{ text: 'Keep Editing', role: 'cancel' },

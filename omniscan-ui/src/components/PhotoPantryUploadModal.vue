@@ -143,6 +143,7 @@
 								class="date-input"
 								:class="{ 'date-input--has-value': !!form.expirationDate }"
 								:disabled="isSubmitting"
+								@change="onExpirationDateChange"
 							/>
 						</div>
 
@@ -157,6 +158,7 @@
 								class="date-input"
 								:class="{ 'date-input--has-value': !!form.bestBeforeDate }"
 								:disabled="isSubmitting"
+								@change="onBestBeforeDateChange"
 							/>
 						</div>
 					</div>
@@ -287,11 +289,24 @@ async function checkDailyUploadLimit(): Promise<void> {
 	}
 }
 
+function onExpirationDateChange(): void {
+	if (form.expirationDate) {
+		form.bestBeforeDate = ''
+	}
+}
+
+function onBestBeforeDateChange(): void {
+	if (form.bestBeforeDate) {
+		form.expirationDate = ''
+	}
+}
+
 const isFormValid = computed(() => {
 	const hasName = form.productName.trim().length > 0
 	const hasValidQty = form.quantity > 0
 	const hasAtLeastOneDate = !!form.expirationDate || !!form.bestBeforeDate
-	return hasName && hasValidQty && hasAtLeastOneDate
+	const hasBothDates = !!form.expirationDate && !!form.bestBeforeDate
+	return hasName && hasValidQty && hasAtLeastOneDate && !hasBothDates
 })
 
 function resetAll(): void {

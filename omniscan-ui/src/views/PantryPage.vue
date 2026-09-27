@@ -54,17 +54,20 @@
 
 				<div class="sort-row">
 					<span class="sort-row__label">
-						<ion-icon :icon="swapVerticalOutline" class="sort-icon" />
+						<span class="sort-arrows">
+							<ion-icon :icon="arrowDownOutline" />
+							<ion-icon :icon="arrowUpOutline" />
+						</span>
 						Sort
 					</span>
-					<ion-select
-						v-model="sortOption"
-						interface="popover"
-						:interface-options="{ cssClass: 'compact-sort-popover', side: 'bottom', alignment: 'end' }"
-						class="sort-text-select"
-						toggle-icon="caret-down">
-						<ion-select-option v-for="opt in currentSortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</ion-select-option>
-					</ion-select>
+					<div class="select-wrapper">
+						<select v-model="sortOption" class="native-sort-select">
+							<option v-for="opt in currentSortOptions" :key="opt.value" :value="opt.value">
+								{{ opt.label }}
+							</option>
+						</select>
+						<span class="select-arrow">▼</span>
+					</div>
 				</div>
 			</template>
 
@@ -80,17 +83,20 @@
 
 				<div class="sort-row">
 					<span class="sort-row__label">
-						<ion-icon :icon="swapVerticalOutline" class="sort-icon" />
+						<span class="sort-arrows">
+							<ion-icon :icon="arrowDownOutline" />
+							<ion-icon :icon="arrowUpOutline" />
+						</span>
 						Sort
 					</span>
-					<ion-select
-						v-model="sortOption"
-						interface="popover"
-						:interface-options="{ cssClass: 'compact-sort-popover', side: 'bottom', alignment: 'end' }"
-						class="sort-text-select"
-						toggle-icon="caret-down">
-						<ion-select-option v-for="opt in currentSortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</ion-select-option>
-					</ion-select>
+					<div class="select-wrapper">
+						<select v-model="sortOption" class="native-sort-select">
+							<option v-for="opt in currentSortOptions" :key="opt.value" :value="opt.value">
+								{{ opt.label }}
+							</option>
+						</select>
+						<span class="select-arrow">▼</span>
+					</div>
 				</div>
 			</template>
 		</div>
@@ -237,8 +243,6 @@ import {
 	IonPage,
 	IonContent,
 	IonSearchbar,
-	IonSelect,
-	IonSelectOption,
 	IonButton,
 	IonIcon,
 	IonSpinner,
@@ -255,7 +259,8 @@ import {
 	trashOutline,
 	closeOutline,
 	imageOutline,
-	swapVerticalOutline,
+	arrowDownOutline,
+	arrowUpOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
@@ -684,14 +689,29 @@ onIonViewWillEnter(() => {
 	font-weight: 600;
 }
 
-/* Sort Row */
+/* Sort Row & Alignment */
 .sort-row {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	margin-bottom: 4px;
-	font-size: 0.82rem;
-	color: #64748b;
+	font-size: 0.85rem;
+	color: #8a99ad;
+}
+
+.sort-row__label {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	color: #8a99ad;
+}
+
+.sort-arrows {
+	display: inline-flex;
+	align-items: center;
+	font-size: 0.85rem;
+	letter-spacing: -3px;
+	margin-right: 2px;
 }
 
 .scanned-stat-row {
@@ -707,19 +727,33 @@ onIonViewWillEnter(() => {
 	color: #0f172a;
 }
 
-.sort-text-select {
-	font-size: 0.82rem;
-	font-weight: 400;
-	color: #0f172a;
-	--padding-start: 0;
-	--padding-end: 0;
-	--padding-top: 0;
-	--padding-bottom: 0;
-	min-height: auto;
+/* Select Box Right-Aligned Styling */
+.select-wrapper {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
 }
 
-.sort-text-select::part(container) {
-	gap: 4px;
+.native-sort-select {
+	appearance: none;
+	-webkit-appearance: none;
+	background: transparent;
+	border: none;
+	padding-right: 18px;
+	font-size: 0.85rem;
+	font-weight: 400;
+	color: #0f172a;
+	cursor: pointer;
+	text-align-last: right;
+	outline: none;
+}
+
+.select-arrow {
+	position: absolute;
+	right: 0;
+	font-size: 0.65rem;
+	color: #0f172a;
+	pointer-events: none;
 }
 
 /* Cards Grid */
@@ -1003,27 +1037,5 @@ onIonViewWillEnter(() => {
 .empty-icon {
 	font-size: 3rem;
 	margin-bottom: 8px;
-}
-
-.sort-icon {
-	font-size: 1rem;
-	vertical-align: middle;
-	margin-right: 3px;
-	color: #64748b;
-}
-</style>
-
-<style>
-/* Popover Position & Compact Sizing */
-.compact-sort-popover .popover-content {
-	width: auto !important;
-	min-width: 140px !important;
-	border-radius: 12px !important;
-}
-.compact-sort-popover ion-item {
-	--min-height: 38px;
-	--padding-start: 12px;
-	--inner-padding-end: 12px;
-	font-size: 0.82rem;
 }
 </style>

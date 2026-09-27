@@ -352,7 +352,7 @@ export default defineEventHandler(async (event) => {
 		]
 	}
 
-	// Ensure the primary image saved to database is always the front packaging view
+	// Ensure primary image saved to database is always the front packaging view
 	let mainProductImage = imageDataUri
 	let secondaryProductImage = imageDataUriBack
 
@@ -397,26 +397,31 @@ export default defineEventHandler(async (event) => {
 			},
 		})
 
-		// Throttle: Prevent duplicate "Scanned" activity logs within 60 seconds for the same product
-		const sixtySecondsAgo = new Date(Date.now() - 60 * 1000)
-		const recentScanLog = await prisma.activityLog.findFirst({
-			where: {
-				user_id: authUser.id,
-				product_id: product.id,
-				type: 'scanned',
-				occurred_at: { gte: sixtySecondsAgo },
-			},
-		})
+		// Only log to Recent Activities if a valid product name was extracted (skip filename fallbacks)
+		const extractedName = extraction.product_name?.trim()
+		const isValidProductName = extractedName && extractedName.toLowerCase() !== imageField.filename.toLowerCase()
 
-		if (!recentScanLog) {
-			await prisma.activityLog.create({
-				data: {
-					type: 'scanned',
-					message: product.product_name,
+		if (isValidProductName) {
+			const sixtySecondsAgo = new Date(Date.now() - 60 * 1000)
+			const recentScanLog = await prisma.activityLog.findFirst({
+				where: {
 					user_id: authUser.id,
 					product_id: product.id,
+					type: 'scanned',
+					occurred_at: { gte: sixtySecondsAgo },
 				},
 			})
+
+			if (!recentScanLog) {
+				await prisma.activityLog.create({
+					data: {
+						type: 'scanned',
+						message: product.product_name,
+						user_id: authUser.id,
+						product_id: product.id,
+					},
+				})
+			}
 		}
 
 		const halalUnverified = extraction.halal_logo_detected && matchedHalalLogos.length === 0

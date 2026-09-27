@@ -1,5 +1,5 @@
 <template>
-	<!-- Centered Floating Alert Dialog for Non-Products (Picture 1 Style) -->
+	<!-- Centered Floating Alert Dialog for Non-Products -->
 	<ion-alert
 		:is-open="isOpen && !!data?.isNotProduct"
 		header="Analysis Results"
@@ -74,7 +74,6 @@
 					</ul>
 				</div>
 
-				<!-- Ingredients Card Layout matching Picture 1 -->
 				<div class="ingredients-card">
 					<button type="button" class="ingredients-card__header" @click="ingredientsOpen = !ingredientsOpen">
 						<span class="ingredients-card__title">Ingredients</span>
@@ -126,7 +125,6 @@
 						</button>
 					</div>
 
-					<!-- Blue Date Selection Box -->
 					<div class="date-selection-box">
 						<div class="info-box">
 							<ion-icon :icon="informationCircleOutline" />
@@ -140,14 +138,7 @@
 								<ion-icon :icon="sparklesOutline" />
 								<span>Expiration Detected — please double-check for accuracy</span>
 							</div>
-							<input 
-								type="date" 
-								class="date-input" 
-								:class="{ 'date-input--has-value': !!expirationDate }" 
-								v-model="expirationDate" 
-								:disabled="submitting" 
-								@change="onExpirationDateChange"
-							/>
+							<input type="date" class="date-input" :class="{ 'date-input--has-value': !!expirationDate }" v-model="expirationDate" :disabled="submitting" />
 						</div>
 
 						<div class="or-divider"><span>OR</span></div>
@@ -155,14 +146,7 @@
 						<div class="date-field">
 							<label class="date-field-label">Best Before Date</label>
 							<span class="field-hint">For fresh stocks and produce (e.g. fruits, vegetables, dry goods).</span>
-							<input 
-								type="date" 
-								class="date-input" 
-								:class="{ 'date-input--has-value': !!bestBeforeDate }" 
-								v-model="bestBeforeDate" 
-								:disabled="submitting" 
-								@change="onBestBeforeDateChange"
-							/>
+							<input type="date" class="date-input" :class="{ 'date-input--has-value': !!bestBeforeDate }" v-model="bestBeforeDate" :disabled="submitting" />
 						</div>
 					</div>
 
@@ -305,25 +289,8 @@ watch(expirationDate, (newValue) => {
 	if (newValue !== detected) dateAutoDetected.value = false
 })
 
-function onExpirationDateChange() {
-	if (expirationDate.value) {
-		bestBeforeDate.value = ''
-	}
-}
-
-function onBestBeforeDateChange() {
-	if (bestBeforeDate.value) {
-		expirationDate.value = ''
-	}
-}
-
 const isFormValid = computed(
-	() =>
-		quantity.value > 0 &&
-		!!unit.value &&
-		!!storageLocation.value &&
-		(!!expirationDate.value || !!bestBeforeDate.value) &&
-		!(!!expirationDate.value && !!bestBeforeDate.value),
+	() => quantity.value > 0 && !!unit.value && !!storageLocation.value && (!!expirationDate.value || !!bestBeforeDate.value),
 )
 
 async function submitAddToPantry() {
@@ -331,7 +298,6 @@ async function submitAddToPantry() {
 
 	submitError.value = ''
 
-	// Allergen guardrail — styled with custom-make-alert theme
 	if (personalAllergenAlerts.value.length > 0) {
 		const allergenAlert = await alertController.create({
 			header: 'Allergen Warning',
@@ -389,13 +355,12 @@ async function submitAddToPantry() {
 }
 
 async function handleDismiss() {
-	if (submitting.value) return // Block dismiss if currently saving
+	if (submitting.value) return
 
-	// If there is an unsaved product on screen, ask before closing
 	if (product.value) {
 		const alert = await alertController.create({
-			header: 'Unsaved Product',
-			message: 'You have not added this product to your pantry yet. Are you sure you want to close without saving?',
+			header: 'Unsaved Item',
+			message: 'you have not added this item to your pantry yet. are you sure you want to close without saving?',
 			cssClass: 'custom-make-alert',
 			buttons: [
 				{ text: 'Keep Editing', role: 'cancel' },

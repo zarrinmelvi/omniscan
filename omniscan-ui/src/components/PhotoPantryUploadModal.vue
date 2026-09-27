@@ -143,7 +143,6 @@
 								class="date-input"
 								:class="{ 'date-input--has-value': !!form.expirationDate }"
 								:disabled="isSubmitting"
-								@change="onExpirationDateChange"
 							/>
 						</div>
 
@@ -158,7 +157,6 @@
 								class="date-input"
 								:class="{ 'date-input--has-value': !!form.bestBeforeDate }"
 								:disabled="isSubmitting"
-								@change="onBestBeforeDateChange"
 							/>
 						</div>
 					</div>
@@ -177,7 +175,6 @@
 						</button>
 					</div>
 
-					<!-- Styled Quantity & Unit -->
 					<label class="field-label-brown">Quantity &amp; Unit</label>
 					<div class="quantity-row">
 						<input
@@ -289,24 +286,11 @@ async function checkDailyUploadLimit(): Promise<void> {
 	}
 }
 
-function onExpirationDateChange(): void {
-	if (form.expirationDate) {
-		form.bestBeforeDate = ''
-	}
-}
-
-function onBestBeforeDateChange(): void {
-	if (form.bestBeforeDate) {
-		form.expirationDate = ''
-	}
-}
-
 const isFormValid = computed(() => {
 	const hasName = form.productName.trim().length > 0
 	const hasValidQty = form.quantity > 0
 	const hasAtLeastOneDate = !!form.expirationDate || !!form.bestBeforeDate
-	const hasBothDates = !!form.expirationDate && !!form.bestBeforeDate
-	return hasName && hasValidQty && hasAtLeastOneDate && !hasBothDates
+	return hasName && hasValidQty && hasAtLeastOneDate
 })
 
 function resetAll(): void {
@@ -419,17 +403,16 @@ function handleBack(): void {
 }
 
 async function handleDismiss(): Promise<void> {
-	if (isSubmitting.value || isAnalyzing.value) return // Lock dismissal when busy
+	if (isSubmitting.value || isAnalyzing.value) return
 
-	// If a photo was selected or details filled, confirm before closing
 	if (previewUrl.value) {
 		const alert = await alertController.create({
-			header: 'Unsaved Upload',
-			message: 'You have selected a photo that has not been saved to your pantry. Are you sure you want to close?',
+			header: 'Unsaved Item',
+			message: 'you have not added this item to your pantry yet. are you sure you want to close without saving?',
 			cssClass: 'custom-make-alert',
 			buttons: [
 				{ text: 'Keep Editing', role: 'cancel' },
-				{ text: 'Discard Upload', role: 'confirm', cssClass: 'alert-button-danger' },
+				{ text: 'Discard Item', role: 'confirm', cssClass: 'alert-button-danger' },
 			],
 		})
 		await alert.present()
@@ -449,7 +432,6 @@ async function handleSubmit(): Promise<void> {
 	if (!isFormValid.value || remainingUploads.value <= 0) return
 	formError.value = null
 
-	// Allergen guardrail — styled with custom-make-alert theme
 	if (matchedUserAllergens.value.length > 0) {
 		const alert = await alertController.create({
 			header: 'Allergen Warning',

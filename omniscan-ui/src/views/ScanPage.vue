@@ -58,7 +58,6 @@
 
 		<!-- ===== LIVE CAMERA VIEWFINDER OVERLAY ===== -->
 		<div v-if="isCameraOpen" class="camera-overlay">
-			<!-- Video element applies blur class during image capture -->
 			<video 
 				ref="videoRef" 
 				class="viewfinder-video" 
@@ -80,7 +79,6 @@
 				<div class="bracket bracket-br"></div>
 			</div>
 
-			<!-- Dedicated Pop-up modal for "Saving image..." state -->
 			<div v-if="isSavingImage" class="processing-popup">
 				<ion-spinner name="crescent" color="light" />
 				<p class="processing-popup__text">Saving image…</p>
@@ -112,18 +110,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import {
 	IonPage,
 	IonContent,
 	IonButton,
 	IonSpinner,
 	IonIcon,
+	alertController,
 	onIonViewWillEnter,
 } from '@ionic/vue'
+import { onBeforeRouteLeave } from 'vue-router'
 
 import { API_BASE_URL } from '@/utils/api'
-
 import { cameraOutline, closeOutline, scanOutline } from 'ionicons/icons'
 import ScanResultModal from '../components/ScanResultModal.vue'
 import PhotoPantryUploadModal from '../components/PhotoPantryUploadModal.vue'
@@ -164,16 +163,69 @@ interface ScanResultDisplay {
 
 const analysisResult = ref<ScanResultDisplay | null>(null)
 const isResultModalOpen = ref(false)
+let scanAbortController: AbortController | null = null
 
-function onPantryItemAdded(): void {}
+function onPantryItemAdded(): void {
+	isResultModalOpen.value = false
+}
 
 function onModalClosed(): void {
 	isResultModalOpen.value = false
 	analysisResult.value = null
-	// Reset capture state so user returns to fresh "Scan Product" view
 	captureStage.value = 'front'
 	frontFile.value = null
 	isBackCaptured.value = false
+}
+
+// Check if a scan or upload is in progress or waiting to be saved
+const hasUnsavedScan = computed(() => {
+	return (
+		isUploading.value ||
+		captureStage.value === 'back' ||
+		isResultModalOpen.value ||
+		isPhotoModalOpen.value
+	)
+})
+
+// Navigation Guard: Stops tab switching (Home, Pantry, Recipe, Profile) if an unsaved scan exists
+onBeforeRouteLeave(async (to, from, next) => {
+	if (hasUnsavedScan.value) {
+		const alert = await alertController.create({
+			header: 'Unsaved Item',
+			message: 'you have not added this item to your pantry yet. are you sure you want to close without saving?',
+			cssClass: 'custom-make-alert',
+			buttons: [
+				{
+					text: 'Keep Editing',
+					role: 'cancel',
+					handler: () => next(false), // Cancel tab navigation
+				},
+				{
+					text: 'Discard Item',
+					role: 'confirm',
+					cssClass: 'alert-button-danger',
+					handler: () => {
+						cancelCurrentScan()
+						next() // Proceed with tab navigation
+					},
+				},
+			],
+		})
+		await alert.present()
+	} else {
+		next()
+	}
+})
+
+function cancelCurrentScan(): void {
+	if (scanAbortController) {
+		scanAbortController.abort()
+		scanAbortController = null
+	}
+	isResultModalOpen.value = false
+	isPhotoModalOpen.value = false
+	analysisResult.value = null
+	resetScanState()
 }
 
 const COOLDOWN_MS = 10_000
@@ -240,7 +292,6 @@ async function processCapturedFile(file: File): Promise<void> {
 
 	if (captureStage.value === 'front') {
 		frontFile.value = file
-		// Immediately submit the front photo to evaluate whether it's a food item
 		await submitScan(file, null)
 		return
 	}
@@ -264,11 +315,14 @@ async function submitScan(front: File, back: File | null): Promise<void> {
 	try {
 		await handleUpload(front, back)
 		hasScannedAtLeastOnce.value = true
-	} catch (err) {
-		analysisStatus.value = err instanceof Error ? err.message : 'Upload failed'
-		console.error('Scan upload failed:', err)
+	} catch (err: any) {
+		if (err.name === 'AbortError') {
+			console.log('Scan upload aborted by user navigation.')
+		} else {
+			analysisStatus.value = err instanceof Error ? err.message : 'Upload failed'
+			console.error('Scan upload failed:', err)
+		}
 	} finally {
-		// ONLY reset capture state if we are done with the scan (not waiting for back photo)
 		if (captureStage.value !== 'back') {
 			frontFile.value = null
 			captureStage.value = 'front'
@@ -291,12 +345,18 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		throw new Error('You must be logged in to scan an item.')
 	}
 
+	if (scanAbortController) {
+		scanAbortController.abort()
+	}
+	scanAbortController = new AbortController()
+
 	const response = await fetch(`${API_BASE_URL}/api/scan`, {
 		method: 'POST',
 		headers: {
 			Authorization: `Bearer ${token}`,
 		},
 		body: formData,
+		signal: scanAbortController.signal,
 	})
 
 	if (!response.ok) {
@@ -307,7 +367,6 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		const errorBody = await response.json().catch(() => null)
 		const errorMessage = errorBody?.statusMessage || `Scan failed with status: ${response.status}`
 
-		// Cleanly handle 422 for non-food items directly without throwing
 		if (response.status === 422) {
 			analysisResult.value = {
 				product: {
@@ -333,11 +392,9 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 				isNotProduct: true,
 			} as any
 
-			// Reset scan stage
 			captureStage.value = 'front'
 			frontFile.value = null
 
-			// Trigger modal (ScanResultModal renders ion-alert for non-products)
 			isResultModalOpen.value = true
 			return
 		}
@@ -348,14 +405,12 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 	const result = await response.json()
 	const scan = result.scan
 
-	// Prompt for back scan ONLY if valid food product lacks ingredient photo
 	if (!back && captureStage.value === 'front') {
 		captureStage.value = 'back'
 		analysisStatus.value = 'Front captured — now scan or upload the back'
 		return
 	}
 
-	// Valid food product scan complete — populate modal model
 	analysisResult.value = {
 		product: {
 			id: String(scan.product.id),
@@ -377,7 +432,6 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		isNotProduct: false,
 	}
 
-	// Reset stage once scan is completely finished
 	captureStage.value = 'front'
 	frontFile.value = null
 	isBackCaptured.value = false
@@ -601,6 +655,9 @@ onBeforeUnmount(() => {
 	clearTimers()
 	stopBrightnessLoop()
 	mediaStream?.getTracks().forEach((track) => track.stop())
+	if (scanAbortController) {
+		scanAbortController.abort()
+	}
 })
 </script>
 

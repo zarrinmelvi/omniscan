@@ -15,7 +15,7 @@
 		:is-open="isOpen"
 		:breakpoints="[0, 0.5, 0.95]"
 		:initial-breakpoint="0.95"
-		:backdrop-dismiss="true"
+		:backdrop-dismiss="!submitting"
 		@didDismiss="handleDismiss"
 	>
 		<ion-content class="sheet-ion-content" :scroll-y="true">
@@ -31,7 +31,7 @@
 							{{ product?.brand_name || 'Unknown Brand' }}<span v-if="product?.id"> - #{{ product.id }}</span>
 						</p>
 					</div>
-					<button type="button" class="close-btn" aria-label="Close" @click="handleDismiss">
+					<button type="button" class="close-btn" aria-label="Close" :disabled="submitting" @click="handleDismiss">
 						<ion-icon :icon="closeOutline" />
 					</button>
 				</div>
@@ -380,7 +380,7 @@ async function submitAddToPantry() {
 		})
 
 		emit('added')
-		handleDismiss()
+		forceDismiss()
 	} catch (err) {
 		submitError.value = err instanceof Error ? err.message : 'Failed to add item to pantry.'
 	} finally {
@@ -388,7 +388,29 @@ async function submitAddToPantry() {
 	}
 }
 
-function handleDismiss() {
+async function handleDismiss() {
+	if (submitting.value) return // Block dismiss if currently saving
+
+	// If there is an unsaved product on screen, ask before closing
+	if (product.value) {
+		const alert = await alertController.create({
+			header: 'Unsaved Product',
+			message: 'You have not added this product to your pantry yet. Are you sure you want to close without saving?',
+			cssClass: 'custom-make-alert',
+			buttons: [
+				{ text: 'Keep Editing', role: 'cancel' },
+				{ text: 'Discard Item', role: 'confirm', cssClass: 'alert-button-danger' },
+			],
+		})
+		await alert.present()
+		const { role } = await alert.onDidDismiss()
+		if (role !== 'confirm') return
+	}
+
+	forceDismiss()
+}
+
+function forceDismiss() {
 	emit('close')
 }
 </script>
@@ -467,6 +489,11 @@ function handleDismiss() {
 	line-height: 1;
 	padding: 4px;
 	cursor: pointer;
+}
+
+.close-btn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
 }
 
 .badge-row {

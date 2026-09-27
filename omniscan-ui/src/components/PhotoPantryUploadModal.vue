@@ -1,9 +1,9 @@
 <template>
-	<ion-modal :is-open="isOpen" @didDismiss="handleDismiss">
+	<ion-modal :is-open="isOpen" :backdrop-dismiss="!isSubmitting && !isAnalyzing" @didDismiss="handleDismiss">
 		<ion-content class="light-content ion-padding">
 			<!-- Header Block -->
 			<div class="modal-custom-header">
-				<button type="button" class="back-circle-btn" aria-label="Go back" @click="handleBack">
+				<button type="button" class="back-circle-btn" aria-label="Go back" :disabled="isSubmitting || isAnalyzing" @click="handleBack">
 					<ion-icon :icon="arrowBackOutline" />
 				</button>
 				<div class="header-text-block">
@@ -56,13 +56,13 @@
 					type="file"
 					accept="image/*"
 					class="hidden-input"
-					:disabled="remainingUploads <= 0"
+					:disabled="remainingUploads <= 0 || isAnalyzing"
 					@change="onFileSelected" />
 
 				<div
 					class="upload-dropzone"
-					:class="{ 'upload-dropzone--disabled': remainingUploads <= 0 }"
-					@click="remainingUploads > 0 && fileInputRef?.click()">
+					:class="{ 'upload-dropzone--disabled': remainingUploads <= 0 || isAnalyzing }"
+					@click="remainingUploads > 0 && !isAnalyzing && fileInputRef?.click()">
 					<template v-if="!previewUrl">
 						<div class="upload-icon-wrapper">
 							<ion-icon :icon="cloudUploadOutline" class="upload-icon" />
@@ -97,7 +97,7 @@
 					<img :src="previewUrl!" alt="Uploaded photo" class="thumbnail" />
 					<div>
 						<p class="uploaded-label">Uploaded photo</p>
-						<a href="#" class="change-photo-text" @click.prevent="step = 1">Change photo</a>
+						<a href="#" class="change-photo-text" @click.prevent="!isSubmitting && (step = 1)">Change photo</a>
 					</div>
 				</div>
 
@@ -418,7 +418,29 @@ function handleBack(): void {
 	}
 }
 
-function handleDismiss(): void {
+async function handleDismiss(): Promise<void> {
+	if (isSubmitting.value || isAnalyzing.value) return // Lock dismissal when busy
+
+	// If a photo was selected or details filled, confirm before closing
+	if (previewUrl.value) {
+		const alert = await alertController.create({
+			header: 'Unsaved Upload',
+			message: 'You have selected a photo that has not been saved to your pantry. Are you sure you want to close?',
+			cssClass: 'custom-make-alert',
+			buttons: [
+				{ text: 'Keep Editing', role: 'cancel' },
+				{ text: 'Discard Upload', role: 'confirm', cssClass: 'alert-button-danger' },
+			],
+		})
+		await alert.present()
+		const { role } = await alert.onDidDismiss()
+		if (role !== 'confirm') return
+	}
+
+	forceDismiss()
+}
+
+function forceDismiss(): void {
 	emit('close')
 	resetAll()
 }
@@ -479,7 +501,7 @@ async function handleSubmit(): Promise<void> {
 		})
 
 		emit('created')
-		handleDismiss()
+		forceDismiss()
 	} catch (err) {
 		formError.value = err instanceof ApiError ? err.message : 'Failed to add item to pantry.'
 		console.error('Add to pantry error:', err)
@@ -516,6 +538,11 @@ async function handleSubmit(): Promise<void> {
 	font-size: 1.1rem;
 	cursor: pointer;
 	flex-shrink: 0;
+}
+
+.back-circle-btn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
 }
 
 .header-text-block {

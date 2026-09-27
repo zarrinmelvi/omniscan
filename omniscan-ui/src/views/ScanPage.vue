@@ -16,10 +16,10 @@
 					<!-- Prompt card for second photo step -->
 					<div v-if="captureStage === 'back' || isUploading || isBackCaptured" class="back-prompt-card">
 						<p class="back-prompt-text">
-							<template v-if="isUploading"> <strong>Please wait, upload in progress…</strong> </template>
-							<template v-else-if="isBackCaptured"> <strong>Second photo captured.</strong> Please wait, upload in progress… </template>
+							<template v-if="isBackCaptured && isUploading"> <strong>Second photo captured.</strong> Please wait, upload in progress… </template>
+							<template v-else-if="isUploading"> <strong>Please wait, upload in progress…</strong> </template>
 							<template v-else>
-								<strong>First photo captured.</strong> Now press <strong>Scan Again</strong> to capture any remaining details (product name, ingredients list, or Halal logo).
+								<strong>First photo captured.</strong> Now press <strong>Scan Again</strong> to capture any remaining details (product name, ingredients, or Halal logo).
 							</template>
 						</p>
 						<ion-button

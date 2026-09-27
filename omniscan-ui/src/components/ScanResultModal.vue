@@ -105,8 +105,8 @@
 
 					<label class="field-label">Quantity &amp; Unit</label>
 					<div class="quantity-row">
-						<input type="number" min="0.01" step="any" class="quantity-input" v-model.number="quantity" />
-						<select class="unit-select" v-model="unit">
+						<input type="number" min="0.01" step="any" class="quantity-input" v-model.number="quantity" :disabled="submitting" />
+						<select class="unit-select" v-model="unit" :disabled="submitting">
 							<option v-for="opt in unitOptions" :key="opt" :value="opt">{{ opt }}</option>
 						</select>
 					</div>
@@ -119,6 +119,7 @@
 							type="button"
 							class="storage-btn"
 							:class="{ 'storage-btn--active': storageLocation === loc }"
+							:disabled="submitting"
 							@click="storageLocation = loc"
 						>
 							{{ loc }}
@@ -139,7 +140,7 @@
 								<ion-icon :icon="sparklesOutline" />
 								<span>Expiration Detected — please double-check for accuracy</span>
 							</div>
-							<input type="date" class="date-input" :class="{ 'date-input--has-value': !!expirationDate }" v-model="expirationDate" />
+							<input type="date" class="date-input" :class="{ 'date-input--has-value': !!expirationDate }" v-model="expirationDate" :disabled="submitting" />
 						</div>
 
 						<div class="or-divider"><span>OR</span></div>
@@ -147,7 +148,7 @@
 						<div class="date-field">
 							<label class="date-field-label">Best Before Date</label>
 							<span class="field-hint">For fresh stocks and produce (e.g. fruits, vegetables, dry goods).</span>
-							<input type="date" class="date-input" :class="{ 'date-input--has-value': !!bestBeforeDate }" v-model="bestBeforeDate" />
+							<input type="date" class="date-input" :class="{ 'date-input--has-value': !!bestBeforeDate }" v-model="bestBeforeDate" :disabled="submitting" />
 						</div>
 					</div>
 

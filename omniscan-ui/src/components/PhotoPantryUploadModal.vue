@@ -119,7 +119,13 @@
 				<form @submit.prevent="handleSubmit">
 					<div class="form-group">
 						<label class="field-label-brown">Product Name *</label>
-						<input v-model="form.productName" type="text" placeholder="e.g. Magnolia Full Cream Milk" required class="native-text-input" />
+						<input
+							v-model="form.productName"
+							type="text"
+							placeholder="e.g. Magnolia Full Cream Milk"
+							required
+							class="native-text-input"
+							:disabled="isSubmitting" />
 					</div>
 
 					<div class="date-selection-box">
@@ -136,6 +142,7 @@
 								type="date"
 								class="date-input"
 								:class="{ 'date-input--has-value': !!form.expirationDate }"
+								:disabled="isSubmitting"
 							/>
 						</div>
 
@@ -149,6 +156,7 @@
 								type="date"
 								class="date-input"
 								:class="{ 'date-input--has-value': !!form.bestBeforeDate }"
+								:disabled="isSubmitting"
 							/>
 						</div>
 					</div>
@@ -161,6 +169,7 @@
 							type="button"
 							class="pill"
 							:class="{ 'pill--active': form.storageLocation === loc }"
+							:disabled="isSubmitting"
 							@click="form.storageLocation = loc">
 							{{ loc }}
 						</button>
@@ -169,8 +178,14 @@
 					<!-- Styled Quantity & Unit -->
 					<label class="field-label-brown">Quantity &amp; Unit</label>
 					<div class="quantity-row">
-						<input type="number" min="0.01" step="any" class="quantity-input" v-model.number="form.quantity" />
-						<select class="unit-select" v-model="form.unit">
+						<input
+							type="number"
+							min="0.01"
+							step="any"
+							class="quantity-input"
+							v-model.number="form.quantity"
+							:disabled="isSubmitting" />
+						<select class="unit-select" v-model="form.unit" :disabled="isSubmitting">
 							<option v-for="opt in unitOptions" :key="opt" :value="opt">{{ opt }}</option>
 						</select>
 					</div>

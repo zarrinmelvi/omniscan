@@ -130,6 +130,7 @@ import PhotoPantryUploadModal from '../components/PhotoPantryUploadModal.vue'
 const TOKEN_KEY = 'omniscan_token'
 
 const isPhotoModalOpen = ref(false)
+const isRouteAlertOpen = ref(false)
 
 function onPhotoUploadCreated(): void {
 	isPhotoModalOpen.value = false
@@ -190,6 +191,7 @@ const hasUnsavedScan = computed(() => {
 // Guards route navigation (e.g. switching tabs to Pantry, Home, Recipes, Profile)
 onBeforeRouteLeave(async (to, from, next) => {
 	if (hasUnsavedScan.value) {
+		isRouteAlertOpen.value = true
 		const alert = await alertController.create({
 			header: 'Unsaved Item',
 			message: 'you have not added this item to your pantry yet. are you sure you want to close without saving?',
@@ -198,13 +200,17 @@ onBeforeRouteLeave(async (to, from, next) => {
 				{
 					text: 'Keep Editing',
 					role: 'cancel',
-					handler: () => next(false), // Stay on the current page
+					handler: () => {
+						isRouteAlertOpen.value = false
+						next(false) // Stay on the current page
+					},
 				},
 				{
 					text: 'Discard Item',
 					role: 'confirm',
 					cssClass: 'alert-button-danger',
 					handler: () => {
+						isRouteAlertOpen.value = false
 						cancelCurrentScan()
 						next() // Allow tab switch
 					},
@@ -222,6 +228,7 @@ function cancelCurrentScan(): void {
 		scanAbortController.abort()
 		scanAbortController = null
 	}
+	isRouteAlertOpen.value = false
 	isResultModalOpen.value = false
 	isPhotoModalOpen.value = false
 	analysisResult.value = null
@@ -396,6 +403,10 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		const errorMessage = errorBody?.statusMessage || `Scan failed with status: ${response.status}`
 
 		if (response.status === 422) {
+			if (isRouteAlertOpen.value || scanAbortController.signal.aborted) {
+				return
+			}
+
 			analysisResult.value = {
 				product: {
 					id: '0',
@@ -436,6 +447,10 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 	if (!back && captureStage.value === 'front') {
 		captureStage.value = 'back'
 		analysisStatus.value = 'First photo captured — now scan or upload the remaining details'
+		return
+	}
+
+	if (isRouteAlertOpen.value || scanAbortController.signal.aborted) {
 		return
 	}
 

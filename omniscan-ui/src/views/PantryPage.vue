@@ -54,14 +54,15 @@
 
 				<div class="sort-row">
 					<span class="sort-row__label">
-    <ion-icon :icon="swapVerticalOutline" class="sort-icon" />
-    Sort
-</span>
+						<ion-icon :icon="swapVerticalOutline" class="sort-icon" />
+						Sort
+					</span>
 					<ion-select
 						v-model="sortOption"
 						interface="popover"
-						:interface-options="{ cssClass: 'compact-sort-popover' }"
-						class="sort-text-select">
+						:interface-options="{ cssClass: 'compact-sort-popover', side: 'bottom', alignment: 'end' }"
+						class="sort-text-select"
+						toggle-icon="caret-down">
 						<ion-select-option v-for="opt in currentSortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</ion-select-option>
 					</ion-select>
 				</div>
@@ -79,14 +80,15 @@
 
 				<div class="sort-row">
 					<span class="sort-row__label">
-    <ion-icon :icon="swapVerticalOutline" class="sort-icon" />
-    Sort
-</span>
+						<ion-icon :icon="swapVerticalOutline" class="sort-icon" />
+						Sort
+					</span>
 					<ion-select
 						v-model="sortOption"
 						interface="popover"
-						:interface-options="{ cssClass: 'compact-sort-popover' }"
-						class="sort-text-select">
+						:interface-options="{ cssClass: 'compact-sort-popover', side: 'bottom', alignment: 'end' }"
+						class="sort-text-select"
+						toggle-icon="caret-down">
 						<ion-select-option v-for="opt in currentSortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</ion-select-option>
 					</ion-select>
 				</div>
@@ -278,8 +280,6 @@ interface PantryItemDto {
 
 type ViewMode = 'active' | 'archived'
 type LocationFilter = 'All' | 'Fridge' | 'Freezer' | 'Cupboard'
-// 'name_asc' is intentionally shared between both tabs (same comparator,
-// same label) rather than two separately-named-but-identical values.
 type SortOption = 'expiring_soonest' | 'expiring_latest' | 'name_asc' | 'recently_consumed' | 'deletes_soonest'
 
 interface SortOptionItem {
@@ -313,17 +313,10 @@ const currentSortOptions = computed<SortOptionItem[]>(() => {
 	]
 })
 
-// Active's and Archived's sort option sets are disjoint apart from
-// name_asc — switching tabs while, say, "Expiring latest" is selected
-// would leave Archived's sort silently doing nothing (that value isn't
-// handled in its switch below). Reset to each tab's own default instead.
 watch(view, (newView) => {
 	sortOption.value = newView === 'active' ? 'expiring_soonest' : 'recently_consumed'
 })
 
-// Set when arriving from the Home dashboard's "Expiring Soon" card/carousel
-// (/tabs/pantry?filter=expiring) – narrows the active view to items expiring
-// within the same window used on the dashboard, sorted soonest-first.
 const route = useRoute()
 const router = useRouter()
 const EXPIRING_SOON_THRESHOLD_DAYS = 3
@@ -338,11 +331,8 @@ const isDeletingId = ref<number | null>(null)
 const isRestoringId = ref<number | null>(null)
 
 const activeItems = computed(() => items.value.filter((item) => !item.is_archived))
-// Sorting now happens in filteredArchivedItems, driven by the Archived
-// tab's own sort options — this stays a plain filter.
 const archivedItems = computed(() => items.value.filter((item) => item.is_archived))
 
-/* Active View Search + Filter */
 const filteredActiveItems = computed(() => {
 	let result = activeItems.value
 
@@ -388,7 +378,6 @@ const filteredActiveItems = computed(() => {
 	return sorted
 })
 
-/* Search + Sort for Archived View */
 const filteredArchivedItems = computed(() => {
 	let result = archivedItems.value
 	const query = searchQuery.value.trim().toLowerCase()
@@ -433,14 +422,13 @@ function daysLabel(item: PantryItemDto): string {
 	return `${diff} days`
 }
 
-/* Threshold Logic */
 function dotClass(item: PantryItemDto): string {
 	const date = getRelevantDate(item)
 	if (!date) return 'expiry-dot--warning'
 	const diff = daysBetween(new Date(), date)
-	if (diff <= 1) return 'expiry-dot--danger' // Red: Expired, Today, or 1 day
-	if (diff <= 5) return 'expiry-dot--warning' // Amber/Orange: 2 to 5 days left
-	return 'expiry-dot--success' // Green: 6+ days left
+	if (diff <= 1) return 'expiry-dot--danger'
+	if (diff <= 5) return 'expiry-dot--warning'
+	return 'expiry-dot--success'
 }
 
 function consumedLabel(item: PantryItemDto): string {
@@ -475,11 +463,6 @@ async function fetchPantryItems(): Promise<void> {
 	}
 }
 
-// Same /api/users response ProfilePage.vue reads this from — moved here per
-// request, not duplicated logic against a different source. A failure here
-// is silent (falls back to 0) rather than surfacing its own error state,
-// since this is a minor stat, not core pantry functionality that should
-// block or degrade the rest of the page.
 async function fetchTotalItemsScanned(): Promise<void> {
 	try {
 		const data = await apiFetch<{ stats: { total_items_scanned: number } }>('/api/users', { method: 'GET' })
@@ -522,8 +505,6 @@ async function confirmConsume(targetId: number): Promise<void> {
 			body: { is_archived: true },
 		})
 
-		// Update in place so the UI reflects the change instantly without
-		// waiting on a full refetch.
 		const index = items.value.findIndex((item) => item.id === targetId)
 		if (index !== -1) items.value[index] = data.item
 	} catch (err) {
@@ -591,11 +572,6 @@ async function confirmDelete(targetId: number): Promise<void> {
 	}
 }
 
-// onMounted only fires once for the lifetime of this cached tab page –
-// Ionic keeps tab pages alive rather than destroying/recreating them on
-// each visit, so a plain onMounted fetch goes stale after the first
-// visit (e.g. items added via Scan never show up here without a full
-// page reload). onIonViewWillEnter re-fires on every re-entry instead.
 onIonViewWillEnter(() => {
 	expiringOnly.value = route.query.filter === 'expiring'
 	if (expiringOnly.value) sortOption.value = 'expiring_soonest'
@@ -667,13 +643,20 @@ onIonViewWillEnter(() => {
 	background: #334155;
 	color: #ffffff;
 }
+
+/* Circular Count Badge */
 .count-badge {
 	background: #ffffff;
 	color: #334155;
-	border-radius: 999px;
-	padding: 0 7px;
+	border-radius: 50%;
+	width: 20px;
+	height: 20px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	font-size: 0.72rem;
 	font-weight: 700;
+	line-height: 1;
 }
 
 /* Sub-location Filter Pills */
@@ -724,12 +707,19 @@ onIonViewWillEnter(() => {
 	color: #0f172a;
 }
 
-/* Sort dropdown text: font weight removed */
 .sort-text-select {
-	max-width: 160px;
 	font-size: 0.82rem;
 	font-weight: 400;
 	color: #0f172a;
+	--padding-start: 0;
+	--padding-end: 0;
+	--padding-top: 0;
+	--padding-bottom: 0;
+	min-height: auto;
+}
+
+.sort-text-select::part(container) {
+	gap: 4px;
 }
 
 /* Cards Grid */
@@ -821,7 +811,6 @@ onIonViewWillEnter(() => {
 	gap: 6px;
 }
 
-/* Item name: font weight removed */
 .card-title {
 	font-size: 0.85rem;
 	font-weight: 400;
@@ -905,7 +894,6 @@ onIonViewWillEnter(() => {
 	min-width: 0;
 }
 
-/* Archived title: font weight removed */
 .archived-title {
 	font-size: 0.88rem;
 	font-weight: 400;
@@ -1026,13 +1014,16 @@ onIonViewWillEnter(() => {
 </style>
 
 <style>
-/* Popover Sizing */
+/* Popover Position & Compact Sizing */
 .compact-sort-popover .popover-content {
-	width: 170px !important;
+	width: auto !important;
+	min-width: 140px !important;
 	border-radius: 12px !important;
 }
 .compact-sort-popover ion-item {
-	--min-height: 40px;
+	--min-height: 38px;
+	--padding-start: 12px;
+	--inner-padding-end: 12px;
 	font-size: 0.82rem;
 }
 </style>

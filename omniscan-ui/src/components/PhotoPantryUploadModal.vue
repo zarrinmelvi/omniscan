@@ -89,7 +89,7 @@
 				<div v-if="fileError" class="form-error">{{ fileError }}</div>
 
 				<div v-if="nonFoodDetected" class="nonfood-alert">
-					Non-food product detected. Only edible food items can be added to your pantry.
+					{{ nonFoodMessage || 'Non-food product detected. Only edible food items can be added to your pantry.' }}
 				</div>
 
 				<ion-button expand="block" class="primary-button" :disabled="!previewUrl || remainingUploads <= 0 || isAnalyzing || nonFoodDetected" @click="goToStep2">
@@ -239,6 +239,7 @@ const TOKEN_KEY = 'omniscan_token'
 
 interface AnalyzeResult {
 	is_food_product: boolean
+	is_real_photo?: boolean
 	product_name: string
 	expiration_date: string | null
 	ingredients_text: string
@@ -259,6 +260,7 @@ const remainingUploads = ref<number>(DAILY_MAX_LIMIT)
 const selectedFile = ref<File | null>(null)
 const isAnalyzing = ref(false)
 const nonFoodDetected = ref(false)
+const nonFoodMessage = ref('')
 
 const storageLocations = ['Fridge', 'Freezer', 'Cupboard'] as const
 const unitOptions = ['pcs', 'g', 'kg', 'ml', 'L']
@@ -323,6 +325,7 @@ function resetAll(): void {
 	formError.value = null
 	isAnalyzing.value = false
 	nonFoodDetected.value = false
+	nonFoodMessage.value = ''
 	selectedFile.value = null
 	matchedUserAllergens.value = []
 	form.productName = ''
@@ -390,8 +393,11 @@ async function goToStep2(): Promise<void> {
 			return
 		}
 		const result: AnalyzeResult = await response.json()
-		if (!result.is_food_product) {
+		if (!result.is_food_product || result.is_real_photo === false) {
 			nonFoodDetected.value = true
+			nonFoodMessage.value = result.is_real_photo === false
+				? 'Cartoons and drawings are not supported. Please upload a real photo of a food item.'
+				: 'Non-food product detected. Only edible food items can be added to your pantry.'
 			return
 		}
 		if (result.product_name) form.productName = result.product_name

@@ -36,6 +36,7 @@ interface OllamaChatResponse {
 
 interface ScanAiExtraction {
 	is_food_product: boolean
+	is_real_photo: boolean
 	front_image_index: number
 	product_name: string
 	brand: string
@@ -70,7 +71,7 @@ function buildPrompt(): string {
 		'Search across ALL attached images to locate and extract every field requested below.',
 		'Respond with ONLY a single JSON object, no prose, no markdown code fences,',
 		'matching exactly this shape:',
-		'{"is_food_product": boolean, "front_image_index": number, "product_name": string, "brand": string, "ingredients_text": string,',
+		'{"is_food_product": boolean, "is_real_photo": boolean, "front_image_index": number, "product_name": string, "brand": string, "ingredients_text": string,',
 		'"simplified_ingredients": string, "halal_logo_detected": boolean, "certifying_body": string,',
 		'"expiration_date": string | null, "net_quantity": number | null, "net_unit": string | null}.',
 		'"is_food_product" must be false for anything that is not meant for human consumption',
@@ -99,6 +100,7 @@ function buildPrompt(): string {
 		'"net_quantity" should be the numeric net quantity printed on the label (e.g. 500 for "500ml", 1 for "1L", 250 for "250g"). Return only the number, not the unit. If no net quantity is visible, return null.',
 		'"net_unit" should be the unit of measure as printed (e.g. "ml", "L", "g", "kg", "oz", "fl oz", "pcs", "pack"). Return only the unit string, lowercase. If no unit is visible or net_quantity is null, return null.',
 		'Do not invent ingredients, certifications, product identity, or a date that are not visibly present.',
+		'"is_real_photo" must be true ONLY when the image is a genuine real-world photograph of a physical food product. Set is_real_photo to false for cartoons, drawings, illustrations, anime, digital art, paintings, sketches, screenshots of apps, or any non-photographic depiction — even if it shows food.',
 	].join(' ')
 }
 
@@ -120,6 +122,7 @@ function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 
 	return {
 		is_food_product: normalizeToBoolean(candidate.is_food_product),
+		is_real_photo: normalizeToBoolean(candidate.is_real_photo),
 		front_image_index: typeof candidate.front_image_index === 'number' ? candidate.front_image_index : 0,
 		product_name: normalizeToString(candidate.product_name),
 		brand: normalizeToString(candidate.brand),
@@ -270,6 +273,7 @@ export default defineEventHandler(async (event) => {
 		const mockText = mockTextField.data.toString('utf-8')
 		extraction = {
 			is_food_product: true,
+			is_real_photo: true,
 			front_image_index: 0,
 			product_name: imageField.filename,
 			brand: 'Scanned Product',
@@ -291,6 +295,13 @@ export default defineEventHandler(async (event) => {
 			statusCode: 422,
 			statusMessage:
 				"This doesn't look like a food or beverage product. OmniScan only tracks food items.",
+		})
+	}
+
+	if (!extraction.is_real_photo) {
+		throw createError({
+			statusCode: 422,
+			statusMessage: 'Please scan a real photo of a food product — cartoons, drawings, and illustrations are not supported.',
 		})
 	}
 

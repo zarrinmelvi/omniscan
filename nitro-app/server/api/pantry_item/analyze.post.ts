@@ -29,6 +29,7 @@ interface OllamaChatResponse {
 
 interface UploadAiExtraction {
 	is_food_product: boolean
+	is_real_photo: boolean
 	product_name: string
 	expiration_date: string | null
 	ingredients_text: string
@@ -42,7 +43,7 @@ function buildAnalyzePrompt(): string {
 		'You are a food-label analysis assistant.',
 		'Determine whether the attached photo shows a FOOD OR BEVERAGE product intended for human consumption.',
 		'Respond with ONLY a single JSON object, no prose, no markdown code fences, matching this shape exactly:',
-		'{"is_food_product": boolean, "product_name": string, "expiration_date": string | null, "ingredients_text": string, "simplified_ingredients": string, "net_quantity": number | null, "net_unit": string | null}.',
+		'{"is_food_product": boolean, "is_real_photo": boolean, "product_name": string, "expiration_date": string | null, "ingredients_text": string, "simplified_ingredients": string, "net_quantity": number | null, "net_unit": string | null}.',
 		'Set is_food_product to false for any non-food item (cosmetics, cleaning supplies, electronics, clothing, etc.).',
 		'When is_food_product is false, set product_name and ingredients_text to "" and expiration_date to null.',
 		'When is_food_product is true:',
@@ -53,6 +54,7 @@ function buildAnalyzePrompt(): string {
 		'"net_quantity" is the numeric net quantity on the label (e.g. 500 for "500ml"). Return only the number or null.',
 		'"net_unit" is the unit of measure as printed, lowercase (e.g. "ml", "g", "L", "kg", "oz"). Return null if absent.',
 		'Do not invent information not visible on the packaging.',
+		'"is_real_photo" must be true only for genuine real-world photographs. Set to false for cartoons, drawings, illustrations, digital art, or any non-photographic image.',
 	].join(' ')
 }
 
@@ -61,6 +63,7 @@ function coerceUploadExtraction(value: unknown): UploadAiExtraction | null {
 	const c = value as Record<string, unknown>
 	return {
 		is_food_product: c.is_food_product === true,
+		is_real_photo: typeof c.is_real_photo === 'boolean' ? c.is_real_photo : true,
 		product_name: typeof c.product_name === 'string' ? c.product_name : '',
 		expiration_date: normalizeToDateStringOrNull(c.expiration_date),
 		ingredients_text: typeof c.ingredients_text === 'string' ? c.ingredients_text : '',
@@ -139,9 +142,10 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 502, statusMessage: 'AI service response did not match the expected shape.' })
 	}
 
-	if (!extraction.is_food_product) {
+	if (!extraction.is_food_product || !extraction.is_real_photo) {
 		return {
 			is_food_product: false,
+			is_real_photo: extraction.is_real_photo ?? true,
 			product_name: '',
 			expiration_date: null,
 			ingredients_text: '',

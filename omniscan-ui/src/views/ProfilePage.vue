@@ -33,11 +33,18 @@
 						</button>
 					</div>
 
-					<!-- Dietary preference summary -->
-					<div v-if="halalPref || displayPreferences.length > 0" class="pref-summary">
-						<p class="section-label">Dietary Preferences:</p>
+					<!-- Religious Preference section -->
+					<div v-if="halalPref" class="pref-summary">
+						<p class="section-label">Religious Preference:</p>
 						<div class="chip-row">
-							<span v-if="halalPref" class="pref-chip">Halal</span>
+							<span class="pref-chip pref-chip--halal">Halal</span>
+						</div>
+					</div>
+
+					<!-- Allergens / Allergy List section -->
+					<div v-if="displayPreferences.length > 0" class="pref-summary">
+						<p class="section-label">Allergens / Allergy List:</p>
+						<div class="chip-row">
 							<span v-for="pref in displayPreferences" :key="pref" class="pref-chip">{{ pref }}</span>
 						</div>
 					</div>
@@ -108,43 +115,33 @@
 						</div>
 
 						<!-- Dietary Preferences Edit -->
-						<label class="input-label">Dietary Preferences</label>
+						<label class="input-label">Allergens / Allergy List</label>
+						<div class="halal-toggle-row">
+							<div class="halal-toggle-label-block">
+								<span class="halal-toggle-label">Halal</span>
+								<span class="halal-toggle-sublabel">Religious dietary requirement</span>
+							</div>
+							<IonToggle v-model="form.halalPref" />
+						</div>
 						<div class="chip-row chip-row--editable">
-							<span v-if="form.halalPref" class="pref-chip">
-								Halal
-								<ion-icon :icon="closeOutline" class="chip-remove" @click="removeHalalPref()" />
-							</span>
 							<span v-for="pref in form.customPreferences" :key="pref" class="pref-chip">
 								{{ pref }}
 								<ion-icon :icon="closeOutline" class="chip-remove" @click="removeCustomPreference(pref)" />
 							</span>
 						</div>
 
-						<div class="custom-pref-input-row">
-							<input
-								v-model="customPrefDraft"
-								type="text"
-								placeholder="Type a custom preference…"
-								class="custom-input pref-text-input"
-								@keyup.enter="addCustomPreference"
-								@input="prefAddError = null" />
-							<button type="button" class="add-btn" :disabled="!customPrefDraft.trim()" @click="addCustomPreference">+ Add</button>
-						</div>
-						<p v-if="prefAddError" class="pref-add-error">{{ prefAddError }}</p>
-
-						<p class="quick-add-label">Quick add:</p>
-						<div class="chip-row">
-							<button
-								v-for="suggestion in quickAddSuggestions"
-								:key="suggestion"
-								type="button"
-								class="quick-add-chip"
-								:disabled="suggestion === 'Halal' ? form.halalPref : form.customPreferences.includes(suggestion)"
-								@click="handleQuickAdd(suggestion)">
-								+ {{ suggestion }}
-							</button>
-						</div>
 						<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 dietary preferences.</p>
+						<label class="input-label" style="margin-top: 16px;">Allergens / Allergy List</label>
+						<div class="who-allergen-list">
+							<label v-for="allergen in WHO_ALLERGENS" :key="allergen.value" class="who-allergen-item">
+								<input
+									type="checkbox"
+									class="who-allergen-checkbox"
+									:checked="form.customPreferences.includes(allergen.value)"
+									@change="toggleWhoAllergen(allergen.value)" />
+								<span>{{ allergen.label }}</span>
+							</label>
+						</div>
 
 						<button type="button" class="save-changes-btn" :disabled="isSaving" @click="saveProfile">
 							<ion-spinner v-if="isSaving" name="crescent" />
@@ -160,7 +157,7 @@
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToast, IonModal, alertController, onIonViewWillEnter } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToast, IonModal, IonToggle, alertController, onIonViewWillEnter } from '@ionic/vue'
 import {
 	alertCircleOutline,
 	pencilOutline,
@@ -177,6 +174,23 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const PREF_MAX = 5
+
+const WHO_ALLERGENS = [
+	{ label: 'Cereals / Gluten', value: 'Wheat-free' },
+	{ label: 'Crustaceans', value: 'Shellfish-free' },
+	{ label: 'Eggs', value: 'Eggs-free' },
+	{ label: 'Fish', value: 'Fish-free' },
+	{ label: 'Peanuts', value: 'Peanuts-free' },
+	{ label: 'Soybeans', value: 'Soy-free' },
+	{ label: 'Milk / Dairy', value: 'Milk-free' },
+	{ label: 'Tree Nuts', value: 'TreeNuts-Free' },
+	{ label: 'Celery', value: 'Celery-free' },
+	{ label: 'Mustard', value: 'Mustard-free' },
+	{ label: 'Sesame', value: 'Sesame-free' },
+	{ label: 'Sulphur Dioxide / Sulphites', value: 'Sulphites-free' },
+	{ label: 'Lupin', value: 'Lupin-free' },
+	{ label: 'Molluscs', value: 'Molluscs-free' },
+]
 
 const NON_CONSUMABLE_TERMS: string[] = [
 	'shampoo', 'lotion', 'soap', 'perfume', 'conditioner',
@@ -201,7 +215,6 @@ const quickAddSuggestions = [
 	'TreeNuts-Free',
 	'Sesame-free',
 	'Mustard-free',
-	'Halal',
 ]
 
 const ALLERGEN_TAG_MAP: Record<string, string> = {
@@ -269,7 +282,6 @@ const isSaving = ref(false)
 const saveError = ref('')
 const showSuccessToast = ref(false)
 const prefLimitWarning = ref(false)
-const prefAddError = ref<string | null>(null)
 
 const allergenCatalog = ref<Allergen[]>([])
 
@@ -278,16 +290,16 @@ const user = ref<UserDto>({ id: 0, name: '', email: '', avatar_base64: null, die
 const isEditModalOpen = ref(false)
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 const avatarError = ref('')
-const customPrefDraft = ref('')
 
 const halalPref = computed(() => user.value.dietary_prof?.[0]?.halal_pref ?? false)
 
 // Reads custom_preferences array or falls back to mapped user.allergens
 const displayPreferences = computed(() => {
 	const custom = user.value.dietary_prof?.[0]?.custom_preferences ?? []
-	if (custom.length > 0) return custom
-
-	return (user.value.allergens ?? []).map((a) => `${formatAllergenName(a.name)}-free`)
+	const filtered = custom.length > 0
+		? custom
+		: (user.value.allergens ?? []).map((a) => `${formatAllergenName(a.name)}-free`)
+	return filtered.filter((p) => p.toLowerCase() !== 'halal')
 })
 
 const prefTotal = computed(() => form.customPreferences.length + (form.halalPref ? 1 : 0))
@@ -330,9 +342,7 @@ function openEditModal() {
 	form.avatarBase64 = user.value.avatar_base64
 	avatarError.value = ''
 	saveError.value = ''
-	customPrefDraft.value = ''
 	prefLimitWarning.value = false
-	prefAddError.value = null
 	isEditModalOpen.value = true
 }
 
@@ -372,39 +382,6 @@ function isNonConsumable(value: string): boolean {
 	return NON_CONSUMABLE_TERMS.some((term) => lower.includes(term))
 }
 
-function addCustomPreference() {
-	const value = customPrefDraft.value.trim()
-	if (!value) return
-
-	if (isNonConsumable(value)) {
-		prefAddError.value = 'Please enter a food-related dietary preference.'
-		return
-	}
-
-	if (prefTotal.value >= PREF_MAX) {
-		prefLimitWarning.value = true
-		return
-	}
-
-	if (!form.customPreferences.includes(value)) {
-		form.customPreferences.push(value)
-		prefAddError.value = null
-	}
-	customPrefDraft.value = ''
-}
-
-function handleQuickAdd(suggestion: string) {
-	if (prefTotal.value >= PREF_MAX) {
-		prefLimitWarning.value = true
-		return
-	}
-	if (suggestion === 'Halal') {
-		form.halalPref = true
-	} else {
-		addQuickPreference(suggestion)
-	}
-}
-
 function addQuickPreference(suggestion: string) {
 	if (!form.customPreferences.includes(suggestion)) {
 		form.customPreferences.push(suggestion)
@@ -414,6 +391,19 @@ function addQuickPreference(suggestion: string) {
 function removeCustomPreference(pref: string) {
 	form.customPreferences = form.customPreferences.filter((p) => p !== pref)
 	prefLimitWarning.value = false
+}
+
+function toggleWhoAllergen(value: string) {
+	if (form.customPreferences.includes(value)) {
+		form.customPreferences = form.customPreferences.filter((p) => p !== value)
+		prefLimitWarning.value = false
+	} else {
+		if (prefTotal.value >= PREF_MAX) {
+			prefLimitWarning.value = true
+			return
+		}
+		form.customPreferences.push(value)
+	}
 }
 
 function removeHalalPref() {
@@ -679,6 +669,11 @@ onIonViewWillEnter(() => {
 	color: #94a3b8;
 	font-size: 1rem;
 }
+
+.pref-chip--halal {
+	background: #fef3c7;
+	color: #92400e;
+}
 </style>
 
 <style>
@@ -941,5 +936,56 @@ ion-modal.custom-edit-modal {
 	color: #b91c1c;
 	font-size: 0.78rem;
 	margin: -10px 0 8px;
+}
+
+.custom-edit-modal .halal-toggle-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 0;
+	border-bottom: 1px solid #e2e8f0;
+	margin-bottom: 12px;
+}
+
+.custom-edit-modal .halal-toggle-label-block {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.custom-edit-modal .halal-toggle-label {
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: #1e293b;
+}
+
+.custom-edit-modal .halal-toggle-sublabel {
+	font-size: 0.76rem;
+	color: #64748b;
+}
+
+.custom-edit-modal .who-allergen-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 8px;
+	margin-bottom: 16px;
+}
+
+.custom-edit-modal .who-allergen-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 0.875rem;
+	color: #334155;
+	cursor: pointer;
+}
+
+.custom-edit-modal .who-allergen-checkbox {
+	width: 16px;
+	height: 16px;
+	accent-color: #00b050;
+	cursor: pointer;
+	flex-shrink: 0;
 }
 </style>

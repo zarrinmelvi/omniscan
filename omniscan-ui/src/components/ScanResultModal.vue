@@ -84,11 +84,19 @@
 					</div>
 				</div>
 
-				<div v-if="alternatives.length || alternativesMessage" class="alternatives-section">
-					<h3 class="section-title">Alternatives</h3>
-					<p v-if="!alternatives.length" class="alternatives-empty">
-						{{ alternativesMessage }}
-					</p>
+				<div v-if="personalAllergenAlerts.length" class="show-alternatives-trigger">
+					<button type="button" class="show-alternatives-btn" @click="toggleAlternatives">
+						<ion-icon :icon="swapHorizontalOutline" />
+						{{ showAlternativesSection ? 'Hide Alternatives' : 'Show Alternatives' }}
+					</button>
+				</div>
+
+				<div v-if="showAlternativesSection" class="alternatives-section">
+					<div class="alternatives-disclaimer">
+						Always check the product label before purchasing — suggestions are AI-generated and may not reflect current availability.
+					</div>
+					<ion-spinner v-if="aiLoading" name="crescent" class="alternatives-spinner" />
+					<p v-if="aiError && !aiLoading" class="alternatives-error">{{ aiError }}</p>
 					<div v-for="alt in alternatives" :key="alt.id" class="alt-item">
 						<div class="alt-item__image-placeholder">
 							<ion-icon :icon="imageOutline" />
@@ -97,6 +105,18 @@
 							<p class="alt-item__name">{{ alt.brand_name }} {{ alt.product_name }}</p>
 						</div>
 					</div>
+					<div v-for="sug in aiSuggestions" :key="sug.product_name" class="alt-item alt-item--ai">
+						<div class="alt-item__image-placeholder alt-item__image-placeholder--ai">
+							<ion-icon :icon="sparklesOutline" />
+						</div>
+						<div class="alt-item__info">
+							<p class="alt-item__name">{{ sug.brand_name }} {{ sug.product_name }}</p>
+							<p class="alt-item__desc">{{ sug.reason }}</p>
+						</div>
+					</div>
+					<p v-if="!aiLoading && !aiError && alternatives.length === 0 && aiSuggestions.length === 0" class="alternatives-empty">
+						No alternatives found for this product.
+					</p>
 				</div>
 
 				<div class="pantry-section">
@@ -190,6 +210,7 @@ import {
 	addOutline,
 	imageOutline,
 	sparklesOutline,
+	swapHorizontalOutline,
 } from 'ionicons/icons'
 
 const props = withDefaults(
@@ -251,6 +272,11 @@ const alternativesMessage = computed(() => props.data?.alternatives_message ?? n
 
 const ingredientsOpen = ref(true)
 
+const showAlternativesSection = ref(false)
+const aiSuggestions = ref<{ product_name: string; brand_name: string; reason: string }[]>([])
+const aiLoading = ref(false)
+const aiError = ref('')
+
 watch(
 	() => props.isOpen,
 	(open) => {
@@ -258,6 +284,10 @@ watch(
 			ingredientsOpen.value = true
 			resetPantryForm()
 			fetchHalalPref()
+			showAlternativesSection.value = false
+			aiSuggestions.value = []
+			aiLoading.value = false
+			aiError.value = ''
 		}
 	},
 )
@@ -277,6 +307,41 @@ const dateAutoDetected = ref(false)
 
 function normalizeDetectedDate(value: unknown): string | null {
 	return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null
+}
+
+async function fetchAiAlternatives() {
+	if (!product.value?.product_name) return
+	aiLoading.value = true
+	aiError.value = ''
+	try {
+		const params = new URLSearchParams({
+			product_name: product.value.product_name ?? '',
+			brand_name: product.value.brand_name ?? '',
+			user_allergens: personalAllergenAlerts.value.join(','),
+		})
+		const data = await apiFetch<{ suggestions: { product_name: string; brand_name: string; reason: string }[] }>(
+			`/api/alternatives/ai-suggest?${params.toString()}`,
+			{ method: 'GET' },
+		)
+		aiSuggestions.value = data.suggestions ?? []
+	} catch (err) {
+		aiError.value = 'Could not load AI suggestions. Please try again.'
+		console.error('AI alternatives fetch error:', err)
+	} finally {
+		aiLoading.value = false
+	}
+}
+
+function toggleAlternatives() {
+	showAlternativesSection.value = !showAlternativesSection.value
+	if (
+		showAlternativesSection.value &&
+		aiSuggestions.value.length === 0 &&
+		alternatives.value.length === 0 &&
+		!aiLoading.value
+	) {
+		fetchAiAlternatives()
+	}
 }
 
 function resetPantryForm() {
@@ -909,5 +974,61 @@ function forceDismiss() {
 	color: #6b7280;
 	font-size: 0.85rem;
 	margin: 0;
+}
+
+.show-alternatives-trigger {
+	margin-bottom: 14px;
+}
+
+.show-alternatives-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	padding: 8px 14px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: #334155;
+	cursor: pointer;
+	transition: background 0.2s ease;
+}
+
+.show-alternatives-btn:hover {
+	background: #f1f5f9;
+}
+
+.alternatives-disclaimer {
+	background: #fff7ed;
+	border: 1px solid #fed7aa;
+	border-radius: 10px;
+	padding: 10px 12px;
+	font-size: 0.78rem;
+	color: #92400e;
+	margin-bottom: 12px;
+	line-height: 1.4;
+}
+
+.alternatives-spinner {
+	display: block;
+	margin: 12px auto;
+}
+
+.alternatives-error {
+	color: #dc2626;
+	font-size: 0.82rem;
+	margin: 8px 0;
+}
+
+.alternatives-note {
+	font-size: 0.78rem;
+	color: #94a3b8;
+	margin: 8px 0 0;
+}
+
+.alt-item__image-placeholder--ai {
+	background: #f0fdf4;
+	color: #16a34a;
 }
 </style>

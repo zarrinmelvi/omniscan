@@ -1,0 +1,575 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Write bug condition exploration test (Feature 1)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515477798
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515519123
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516721095
+      }
+    ],
+    "2. Write preservation property tests — Feature 1 (BEFORE implementing fix)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515478093
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516729312
+      }
+    ],
+    "3.1 Add `is_real_photo: boolean` to `ScanAiExtraction` interface": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515478203
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516737532
+      }
+    ],
+    "3.2 Update `buildPrompt()` with `is_real_photo` JSON field and instruction": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515478301
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516738096
+      }
+    ],
+    "3.3 Update `coerceAiExtraction()` to map `is_real_photo`": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515478442
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516738634
+      }
+    ],
+    "3.4 Add `is_real_photo` rejection guard after the `is_food_product` check": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515478543
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516739172
+      }
+    ],
+    "3.5 Verify bug condition exploration test now passes (scan endpoint)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515478646
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516740011
+      }
+    ],
+    "3.6 Verify preservation tests still pass (scan endpoint)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515478751
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516740560
+      }
+    ],
+    "4.1 Add `is_real_photo: boolean` to `UploadAiExtraction` interface": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515478866
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516741198
+      }
+    ],
+    "4.2 Update `buildAnalyzePrompt()` with `is_real_photo` JSON field and instruction": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515478957
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516741750
+      }
+    ],
+    "4.3 Update `coerceUploadExtraction()` to map `is_real_photo` with safe default": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515479089
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516742254
+      }
+    ],
+    "4.4 Widen the non-food early-return condition to include `is_real_photo`": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515479193
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516743107
+      }
+    ],
+    "5.1 Add `nonFoodMessage` ref and `is_real_photo` to `AnalyzeResult` interface": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515479282
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516743679
+      }
+    ],
+    "5.2 Update `goToStep2()` to set `nonFoodMessage` based on `is_real_photo`": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515479377
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516744220
+      }
+    ],
+    "5.3 Reset `nonFoodMessage` in `resetAll()`": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515479505
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516744762
+      }
+    ],
+    "5.4 Replace hardcoded `.nonfood-alert` text with `nonFoodMessage`": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515479630
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516745565
+      }
+    ],
+    "6. Write bug condition exploration test (Feature 2)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515479736
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516746129
+      }
+    ],
+    "7. Write preservation property tests — Feature 2 (BEFORE implementing fix)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515479854
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516746668
+      }
+    ],
+    "8. Fix Feature 2 — Create `server/api/alternatives/ai-suggest.get.ts`": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515479960
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516747216
+      }
+    ],
+    "9.1 Add new refs and imports for AI alternatives": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515480046
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516748114
+      }
+    ],
+    "9.2 Add `fetchAiAlternatives()` and `toggleAlternatives()` functions": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515482737
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516748672
+      }
+    ],
+    "9.3 Reset AI alternatives state in the `isOpen` watcher": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515483252
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516749221
+      }
+    ],
+    "9.4 Rework the alternatives section in the template": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515483602
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516749812
+      }
+    ],
+    "9.5 Verify bug condition exploration test now passes (Feature 2)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515483828
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516750363
+      }
+    ],
+    "9.6 Verify preservation tests still pass (Feature 2)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515483998
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516750907
+      }
+    ],
+    "10. Write bug condition exploration test (Feature 3)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515484180
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516751470
+      }
+    ],
+    "11. Write preservation property tests — Feature 3 (BEFORE implementing fix)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515484329
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516752013
+      }
+    ],
+    "12.1 Add `IonToggle` import and define `WHO_ALLERGENS` constant": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515484449
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516752562
+      }
+    ],
+    "12.2 Remove 'Halal' from `quickAddSuggestions` and remove freetext refs/functions": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515484559
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516753423
+      }
+    ],
+    "12.3 Add `toggleWhoAllergen()` function": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515484692
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516753970
+      }
+    ],
+    "12.4 Clean up `openEditModal()` — remove `customPrefDraft` reset": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515484814
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516754521
+      }
+    ],
+    "13.1 Replace the Halal chip in `chip-row--editable` with a standalone Halal toggle row": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515484926
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516755517
+      }
+    ],
+    "13.2 Remove the freetext input row and quick-add chip section from the template": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515485052
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516756324
+      }
+    ],
+    "13.3 Add the WHO allergen checklist below the editable chip row": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515485202
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516756885
+      }
+    ],
+    "13.4 Verify bug condition exploration test now passes (Feature 3)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515485353
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516757412
+      }
+    ],
+    "13.5 Verify preservation tests still pass (Feature 3)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515485476
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516757958
+      }
+    ],
+    "14. Write bug condition exploration test (Feature 4)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515485593
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516758628
+      }
+    ],
+    "15. Write preservation property tests — Feature 4 (BEFORE implementing fix)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515485739
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516759064
+      }
+    ],
+    "16.1 Filter 'Halal' out of the `displayPreferences` computed": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515485876
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516759620
+      }
+    ],
+    "16.2 Replace the single `pref-summary` block with two conditional sections in the template": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515486010
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516760706
+      }
+    ],
+    "16.3 Verify bug condition exploration test now passes (Feature 4)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515486191
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516761016
+      }
+    ],
+    "16.4 Verify preservation tests still pass (Feature 4)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515486490
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516761565
+      }
+    ],
+    "17. Checkpoint — Ensure all tests pass": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790515486665
+      },
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516762228
+      }
+    ],
+    "3. Fix Feature 1 — `server/api/scan/index.post.ts`": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516740643
+      }
+    ],
+    "4. Fix Feature 1 — `server/api/pantry_item/analyze.post.ts`": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516743184
+      }
+    ],
+    "5. Fix Feature 1 — `omniscan-ui/src/components/PhotoPantryUploadModal.vue`": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516745652
+      }
+    ],
+    "9. Fix Feature 2 — `omniscan-ui/src/components/ScanResultModal.vue`": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516750981
+      }
+    ],
+    "12. Fix Feature 3 — `omniscan-ui/src/views/ProfilePage.vue` — script changes": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516754616
+      }
+    ],
+    "13. Fix Feature 3 — `omniscan-ui/src/views/ProfilePage.vue` — template changes (edit modal)": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516758032
+      }
+    ],
+    "16. Fix Feature 4 — `omniscan-ui/src/views/ProfilePage.vue` — `displayPreferences` computed and template": [
+      {
+        "executionId": "8fa32c41-c2a0-4ab9-af94-55736a9c028e",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790516761649
+      }
+    ]
+  }
+}

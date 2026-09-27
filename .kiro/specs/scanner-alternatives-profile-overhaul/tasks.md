@@ -4,7 +4,7 @@
 
 ## Feature 1 — Real Food / Anti-Cartoon Validation (scan + upload)
 
-- [ ] 1. Write bug condition exploration test (Feature 1)
+- [x] 1. Write bug condition exploration test (Feature 1)
   - **Property 1: Bug Condition** — Non-Photographic Image Accepted
   - **CRITICAL**: This test MUST FAIL on unfixed code — failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -18,7 +18,7 @@
   - Mark task complete when tests are written, run, and failure is documented
   - _Requirements: 1.1, 1.7_
 
-- [ ] 2. Write preservation property tests — Feature 1 (BEFORE implementing fix)
+- [x] 2. Write preservation property tests — Feature 1 (BEFORE implementing fix)
   - **Property 2: Preservation** — Real Photos and Non-Food Rejection Are Unaffected
   - **IMPORTANT**: Follow observation-first methodology
   - Observe on unfixed code: `coerceAiExtraction({ is_food_product: false, ... })` → handler throws 422 with non-food message
@@ -30,25 +30,25 @@
   - Mark task complete when tests are written, run, and passing on unfixed code
   - _Requirements: 3.1, 3.2_
 
-- [ ] 3. Fix Feature 1 — `server/api/scan/index.post.ts`
+- [x] 3. Fix Feature 1 — `server/api/scan/index.post.ts`
 
-  - [ ] 3.1 Add `is_real_photo: boolean` to `ScanAiExtraction` interface
+  - [x] 3.1 Add `is_real_photo: boolean` to `ScanAiExtraction` interface
     - Open `nitro-app/server/api/scan/index.post.ts`
     - In the `ScanAiExtraction` interface, add `is_real_photo: boolean` on the line after `is_food_product: boolean`
     - _Bug_Condition: isBugCondition(input) where extraction.is_real_photo field does not exist in the interface_
     - _Requirements: 2.1_
 
-  - [ ] 3.2 Update `buildPrompt()` with `is_real_photo` JSON field and instruction
+  - [x] 3.2 Update `buildPrompt()` with `is_real_photo` JSON field and instruction
     - In `buildPrompt()`, add `"is_real_photo": boolean` to the JSON shape string after `"net_unit": string | null`
     - Append the instruction: `'"is_real_photo" must be true ONLY when the image is a genuine real-world photograph of a physical food product. Set is_real_photo to false for cartoons, drawings, illustrations, anime, digital art, paintings, sketches, screenshots of apps, or any non-photographic depiction — even if it shows food.'`
     - _Requirements: 2.1_
 
-  - [ ] 3.3 Update `coerceAiExtraction()` to map `is_real_photo`
+  - [x] 3.3 Update `coerceAiExtraction()` to map `is_real_photo`
     - In `coerceAiExtraction()`, add `is_real_photo: normalizeToBoolean(candidate.is_real_photo)` to the returned object
     - Place it after the `is_food_product` line, using the existing `normalizeToBoolean` helper (strict: absent/non-boolean → false)
     - _Requirements: 2.1_
 
-  - [ ] 3.4 Add `is_real_photo` rejection guard after the `is_food_product` check
+  - [x] 3.4 Add `is_real_photo` rejection guard after the `is_food_product` check
     - In the `defineEventHandler`, immediately after the `if (!extraction.is_food_product)` block, add:
       ```ts
       if (!extraction.is_real_photo) {
@@ -63,37 +63,37 @@
     - _Expected_Behavior: 422 with cartoon rejection message_
     - _Requirements: 2.1_
 
-  - [ ] 3.5 Verify bug condition exploration test now passes (scan endpoint)
+  - [x] 3.5 Verify bug condition exploration test now passes (scan endpoint)
     - **Property 1: Expected Behavior** — Non-Photographic Image Rejection
     - **IMPORTANT**: Re-run the SAME test from task 1 — do NOT write a new test
     - Run the scan endpoint exploration test from step 1
     - **EXPECTED OUTCOME**: Test PASSES — handler now throws 422 with cartoon rejection message
     - _Requirements: 2.1_
 
-  - [ ] 3.6 Verify preservation tests still pass (scan endpoint)
+  - [x] 3.6 Verify preservation tests still pass (scan endpoint)
     - **Property 2: Preservation** — Real Photos and Non-Food Rejection Are Unaffected
     - **IMPORTANT**: Re-run the SAME tests from task 2
     - Run both preservation tests from step 2
     - **EXPECTED OUTCOME**: Tests PASS — real-photo scans still complete; non-food 422 still fires before `is_real_photo` check
     - _Requirements: 3.1, 3.2_
 
-- [ ] 4. Fix Feature 1 — `server/api/pantry_item/analyze.post.ts`
+- [x] 4. Fix Feature 1 — `server/api/pantry_item/analyze.post.ts`
 
-  - [ ] 4.1 Add `is_real_photo: boolean` to `UploadAiExtraction` interface
+  - [x] 4.1 Add `is_real_photo: boolean` to `UploadAiExtraction` interface
     - In `analyze.post.ts`, add `is_real_photo: boolean` to `UploadAiExtraction` after `is_food_product: boolean`
     - _Requirements: 2.2_
 
-  - [ ] 4.2 Update `buildAnalyzePrompt()` with `is_real_photo` JSON field and instruction
+  - [x] 4.2 Update `buildAnalyzePrompt()` with `is_real_photo` JSON field and instruction
     - In `buildAnalyzePrompt()`, add `"is_real_photo": boolean` to the JSON shape string
     - Append the instruction: `'"is_real_photo" must be true only for genuine real-world photographs. Set to false for cartoons, drawings, illustrations, digital art, or any non-photographic image.'`
     - _Requirements: 2.2_
 
-  - [ ] 4.3 Update `coerceUploadExtraction()` to map `is_real_photo` with safe default
+  - [x] 4.3 Update `coerceUploadExtraction()` to map `is_real_photo` with safe default
     - In `coerceUploadExtraction()`, add `is_real_photo: typeof c.is_real_photo === 'boolean' ? c.is_real_photo : true` to the returned object
     - Safe default is `true` (absent field means "treat as real photo") to avoid false rejections in the upload flow
     - _Requirements: 2.2, 3.1_
 
-  - [ ] 4.4 Widen the non-food early-return condition to include `is_real_photo`
+  - [x] 4.4 Widen the non-food early-return condition to include `is_real_photo`
     - Change `if (!extraction.is_food_product)` to `if (!extraction.is_food_product || !extraction.is_real_photo)`
     - Include `is_real_photo: extraction.is_real_photo` in the returned early-exit object so the Vue component can distinguish the two cases
     - Returned shape: `{ is_food_product: false, is_real_photo: extraction.is_real_photo, product_name: '', expiration_date: null, ingredients_text: '', net_quantity: null, net_unit: null }`
@@ -102,14 +102,14 @@
     - _Preservation: is_food_product: false path still fires first_
     - _Requirements: 2.2, 3.2_
 
-- [ ] 5. Fix Feature 1 — `omniscan-ui/src/components/PhotoPantryUploadModal.vue`
+- [x] 5. Fix Feature 1 — `omniscan-ui/src/components/PhotoPantryUploadModal.vue`
 
-  - [ ] 5.1 Add `nonFoodMessage` ref and `is_real_photo` to `AnalyzeResult` interface
+  - [x] 5.1 Add `nonFoodMessage` ref and `is_real_photo` to `AnalyzeResult` interface
     - In `<script setup>`, add `const nonFoodMessage = ref('')` after the existing `nonFoodDetected` ref
     - In the `AnalyzeResult` interface, add `is_real_photo?: boolean`
     - _Requirements: 2.2_
 
-  - [ ] 5.2 Update `goToStep2()` to set `nonFoodMessage` based on `is_real_photo`
+  - [x] 5.2 Update `goToStep2()` to set `nonFoodMessage` based on `is_real_photo`
     - Replace the `if (!result.is_food_product)` block with:
       ```ts
       if (!result.is_food_product || result.is_real_photo === false) {
@@ -122,11 +122,11 @@
       ```
     - _Requirements: 2.2_
 
-  - [ ] 5.3 Reset `nonFoodMessage` in `resetAll()`
+  - [x] 5.3 Reset `nonFoodMessage` in `resetAll()`
     - In `resetAll()`, add `nonFoodMessage.value = ''` alongside `nonFoodDetected.value = false`
     - _Requirements: 2.2_
 
-  - [ ] 5.4 Replace hardcoded `.nonfood-alert` text with `nonFoodMessage`
+  - [x] 5.4 Replace hardcoded `.nonfood-alert` text with `nonFoodMessage`
     - In the template, replace the hardcoded text inside `<div v-if="nonFoodDetected" class="nonfood-alert">` with `{{ nonFoodMessage || 'Non-food product detected. Only edible food items can be added to your pantry.' }}`
     - _Requirements: 2.2_
 
@@ -134,7 +134,7 @@
 
 ## Feature 2 — AI Alternatives Endpoint + Show Alternatives Button
 
-- [ ] 6. Write bug condition exploration test (Feature 2)
+- [x] 6. Write bug condition exploration test (Feature 2)
   - **Property 3: Bug Condition** — No "Show Alternatives" Button When Allergen Alert Is Present
   - **CRITICAL**: This test MUST FAIL on unfixed code — failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -147,7 +147,7 @@
   - Mark task complete when tests are written, run, and failure is documented
   - _Requirements: 1.2, 1.3_
 
-- [ ] 7. Write preservation property tests — Feature 2 (BEFORE implementing fix)
+- [x] 7. Write preservation property tests — Feature 2 (BEFORE implementing fix)
   - **Property 4: Preservation** — No Alternatives Button Without Allergen Alert; Catalog Alternatives Unaffected
   - **IMPORTANT**: Follow observation-first methodology
   - Observe on unfixed code: mount `ScanResultModal` with `matched_user_allergens: []` and `alternatives: [{ id: 1, brand_name: 'X', product_name: 'Y' }]`; confirm the catalog alternatives section renders
@@ -158,7 +158,7 @@
   - **EXPECTED OUTCOME**: Tests PASS (confirms baseline to preserve)
   - _Requirements: 3.3, 3.4_
 
-- [ ] 8. Fix Feature 2 — Create `server/api/alternatives/ai-suggest.get.ts`
+- [x] 8. Fix Feature 2 — Create `server/api/alternatives/ai-suggest.get.ts`
   - Create the new file `nitro-app/server/api/alternatives/ai-suggest.get.ts`
   - Call `requireAuth(event)` — endpoint requires authentication
   - Read `product_name`, `brand_name`, `user_allergens` from `getQuery(event)`
@@ -172,9 +172,9 @@
   - _Expected_Behavior: endpoint returns { suggestions: [...] } for valid product_name_
   - _Requirements: 2.9_
 
-- [ ] 9. Fix Feature 2 — `omniscan-ui/src/components/ScanResultModal.vue`
+- [x] 9. Fix Feature 2 — `omniscan-ui/src/components/ScanResultModal.vue`
 
-  - [ ] 9.1 Add new refs and imports for AI alternatives
+  - [x] 9.1 Add new refs and imports for AI alternatives
     - In `<script setup>`, add the following refs:
       ```ts
       const showAlternativesSection = ref(false)
@@ -185,7 +185,7 @@
     - Import `swapHorizontalOutline` and `sparklesOutline` from `ionicons/icons` (add to the existing import block)
     - _Requirements: 2.3, 2.4, 2.5_
 
-  - [ ] 9.2 Add `fetchAiAlternatives()` and `toggleAlternatives()` functions
+  - [x] 9.2 Add `fetchAiAlternatives()` and `toggleAlternatives()` functions
     - Add `fetchAiAlternatives()`:
       - Build query params from `product.value.product_name`, `product.value.brand_name`, and `personalAllergenAlerts.value.join(',')`
       - Call `apiFetch('/api/alternatives/ai-suggest?...')` with GET
@@ -197,7 +197,7 @@
       - When opening (value becomes true) and `aiSuggestions.value` is empty and `alternatives.value` is empty and not currently loading: call `fetchAiAlternatives()`
     - _Requirements: 2.4, 2.5_
 
-  - [ ] 9.3 Reset AI alternatives state in the `isOpen` watcher
+  - [x] 9.3 Reset AI alternatives state in the `isOpen` watcher
     - In the existing `watch(() => props.isOpen, ...)` handler, add alongside `resetPantryForm()`:
       ```ts
       showAlternativesSection.value = false
@@ -207,7 +207,7 @@
       ```
     - _Requirements: 2.4_
 
-  - [ ] 9.4 Rework the alternatives section in the template
+  - [x] 9.4 Rework the alternatives section in the template
     - Remove the existing `<div v-if="alternatives.length || alternativesMessage" class="alternatives-section">` block entirely
     - After the `<div v-if="personalAllergenAlerts.length" class="personal-allergen-alert">` block, add a "Show Alternatives" trigger button:
       ```html
@@ -249,13 +249,13 @@
     - _Preservation: button NOT shown when personalAllergenAlerts.length === 0_
     - _Requirements: 2.3, 2.4, 2.5, 3.3, 3.4_
 
-  - [ ] 9.5 Verify bug condition exploration test now passes (Feature 2)
+  - [x] 9.5 Verify bug condition exploration test now passes (Feature 2)
     - **Property 3: Expected Behavior** — Show Alternatives Button Present When Allergen Alert Exists
     - **IMPORTANT**: Re-run the SAME test from task 6 — do NOT write a new test
     - **EXPECTED OUTCOME**: Test PASSES — "Show Alternatives" button is rendered when `matched_user_allergens` is non-empty
     - _Requirements: 2.3_
 
-  - [ ] 9.6 Verify preservation tests still pass (Feature 2)
+  - [x] 9.6 Verify preservation tests still pass (Feature 2)
     - **Property 4: Preservation** — No Alternatives Button Without Allergen Alert; Catalog Alternatives Unaffected
     - **IMPORTANT**: Re-run the SAME tests from task 7
     - **EXPECTED OUTCOME**: Tests PASS — no button when no allergen alerts; catalog alternatives still render in expanded section
@@ -265,7 +265,7 @@
 
 ## Feature 3 — Profile Edit Modal Redesign (Halal toggle + WHO checklist)
 
-- [ ] 10. Write bug condition exploration test (Feature 3)
+- [x] 10. Write bug condition exploration test (Feature 3)
   - **Property 5: Bug Condition** — Halal in Quick-Add and Freetext Input Present
   - **CRITICAL**: This test MUST FAIL on unfixed code — failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -277,7 +277,7 @@
   - Mark task complete when tests are written, run, and failure is documented
   - _Requirements: 1.4, 1.5_
 
-- [ ] 11. Write preservation property tests — Feature 3 (BEFORE implementing fix)
+- [x] 11. Write preservation property tests — Feature 3 (BEFORE implementing fix)
   - **Property 6: Preservation** — Profile Save Format and Old Chip Removal Unchanged
   - **IMPORTANT**: Follow observation-first methodology
   - Observe on unfixed code: call `removeCustomPreference('Peanuts-free')` with `form.customPreferences = ['Peanuts-free', 'Milk-free']`; observe resulting array is `['Milk-free']`
@@ -288,9 +288,9 @@
   - **EXPECTED OUTCOME**: Tests PASS (confirms baseline to preserve)
   - _Requirements: 3.5, 3.6_
 
-- [ ] 12. Fix Feature 3 — `omniscan-ui/src/views/ProfilePage.vue` — script changes
+- [x] 12. Fix Feature 3 — `omniscan-ui/src/views/ProfilePage.vue` — script changes
 
-  - [ ] 12.1 Add `IonToggle` import and define `WHO_ALLERGENS` constant
+  - [x] 12.1 Add `IonToggle` import and define `WHO_ALLERGENS` constant
     - Add `IonToggle` to the `@ionic/vue` named imports
     - Define the `WHO_ALLERGENS` constant above `quickAddSuggestions`:
       ```ts
@@ -313,14 +313,14 @@
       ```
     - _Requirements: 2.7_
 
-  - [ ] 12.2 Remove 'Halal' from `quickAddSuggestions` and remove freetext refs/functions
+  - [x] 12.2 Remove 'Halal' from `quickAddSuggestions` and remove freetext refs/functions
     - Remove `'Halal'` from the `quickAddSuggestions` array
     - Remove the `customPrefDraft` ref declaration
     - Remove the `addCustomPreference()` function
     - Remove the `handleQuickAdd()` function (replaced by direct `addQuickPreference` call or `toggleWhoAllergen`)
     - _Requirements: 2.6, 2.7_
 
-  - [ ] 12.3 Add `toggleWhoAllergen()` function
+  - [x] 12.3 Add `toggleWhoAllergen()` function
     - Add the function after `removeCustomPreference`:
       ```ts
       function toggleWhoAllergen(value: string) {
@@ -338,14 +338,14 @@
       ```
     - _Requirements: 2.7, 3.5_
 
-  - [ ] 12.4 Clean up `openEditModal()` — remove `customPrefDraft` reset
+  - [x] 12.4 Clean up `openEditModal()` — remove `customPrefDraft` reset
     - In `openEditModal()`, remove the line `customPrefDraft.value = ''`
     - Remove the line `prefAddError.value = null` if it references the removed freetext state
     - _Requirements: 2.6_
 
-- [ ] 13. Fix Feature 3 — `omniscan-ui/src/views/ProfilePage.vue` — template changes (edit modal)
+- [x] 13. Fix Feature 3 — `omniscan-ui/src/views/ProfilePage.vue` — template changes (edit modal)
 
-  - [ ] 13.1 Replace the Halal chip in `chip-row--editable` with a standalone Halal toggle row
+  - [x] 13.1 Replace the Halal chip in `chip-row--editable` with a standalone Halal toggle row
     - In the edit modal template, remove the `<span v-if="form.halalPref" class="pref-chip">Halal <ion-icon ... /></span>` from the `chip-row--editable` div
     - Above the `chip-row--editable` div, add:
       ```html
@@ -359,13 +359,13 @@
       ```
     - _Requirements: 2.6_
 
-  - [ ] 13.2 Remove the freetext input row and quick-add chip section from the template
+  - [x] 13.2 Remove the freetext input row and quick-add chip section from the template
     - Remove the entire `<div class="custom-pref-input-row">` div (freetext input + "Add" button)
     - Remove the `<p v-if="prefAddError" ...>` error paragraph
     - Remove the `<p class="quick-add-label">Quick add:</p>` paragraph and the `<div class="chip-row">` containing the `quick-add-chip` buttons
     - _Requirements: 2.7_
 
-  - [ ] 13.3 Add the WHO allergen checklist below the editable chip row
+  - [x] 13.3 Add the WHO allergen checklist below the editable chip row
     - After the `chip-row--editable` div and the `prefLimitWarning` paragraph, add:
       ```html
       <label class="input-label" style="margin-top: 16px;">Allergens / Allergy List</label>
@@ -384,13 +384,13 @@
     - _Preservation: removeCustomPreference still works for chips not in WHO_ALLERGENS_
     - _Requirements: 2.7, 3.5_
 
-  - [ ] 13.4 Verify bug condition exploration test now passes (Feature 3)
+  - [x] 13.4 Verify bug condition exploration test now passes (Feature 3)
     - **Property 5: Expected Behavior** — Dedicated Halal Toggle and WHO Checklist Present
     - **IMPORTANT**: Re-run the SAME test from task 10 — do NOT write a new test
     - **EXPECTED OUTCOME**: Test PASSES — `quickAddSuggestions` does not contain 'Halal'; freetext input is absent; `IonToggle` with "Halal" label is present; `.who-allergen-list` renders 14 items
     - _Requirements: 2.6, 2.7_
 
-  - [ ] 13.5 Verify preservation tests still pass (Feature 3)
+  - [x] 13.5 Verify preservation tests still pass (Feature 3)
     - **Property 6: Preservation** — Profile Save Format and Old Chip Removal Unchanged
     - **IMPORTANT**: Re-run the SAME tests from task 11
     - **EXPECTED OUTCOME**: Tests PASS — `removeCustomPreference` still works; `saveProfile` still posts same shape
@@ -400,7 +400,7 @@
 
 ## Feature 4 — Profile Summary Reorganization
 
-- [ ] 14. Write bug condition exploration test (Feature 4)
+- [x] 14. Write bug condition exploration test (Feature 4)
   - **Property 7: Bug Condition** — Halal and Allergens Under Single Heading
   - **CRITICAL**: This test MUST FAIL on unfixed code — failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -412,7 +412,7 @@
   - Mark task complete when tests are written, run, and failure is documented
   - _Requirements: 1.6_
 
-- [ ] 15. Write preservation property tests — Feature 4 (BEFORE implementing fix)
+- [x] 15. Write preservation property tests — Feature 4 (BEFORE implementing fix)
   - **Property 8: Preservation** — No Summary When No Preferences Set
   - **IMPORTANT**: Follow observation-first methodology
   - Observe on unfixed code: mount `ProfilePage.vue` with `dietary_prof: [{ halal_pref: false, custom_preferences: [] }]` and `allergens: []`; confirm no `.pref-summary` block renders
@@ -421,9 +421,9 @@
   - **EXPECTED OUTCOME**: Test PASSES (confirms baseline to preserve)
   - _Requirements: 3.7_
 
-- [ ] 16. Fix Feature 4 — `omniscan-ui/src/views/ProfilePage.vue` — `displayPreferences` computed and template
+- [x] 16. Fix Feature 4 — `omniscan-ui/src/views/ProfilePage.vue` — `displayPreferences` computed and template
 
-  - [ ] 16.1 Filter 'Halal' out of the `displayPreferences` computed
+  - [x] 16.1 Filter 'Halal' out of the `displayPreferences` computed
     - In the `displayPreferences` computed, update the returned array to filter out any entry that matches `'halal'` case-insensitively:
       ```ts
       const displayPreferences = computed(() => {
@@ -437,7 +437,7 @@
     - _Bug_Condition: isBugCondition(input) where displayPreferences contains Halal_
     - _Requirements: 2.8_
 
-  - [ ] 16.2 Replace the single `pref-summary` block with two conditional sections in the template
+  - [x] 16.2 Replace the single `pref-summary` block with two conditional sections in the template
     - Remove the existing `<div v-if="halalPref || displayPreferences.length > 0" class="pref-summary">` block
     - Replace with two independent conditional blocks:
       ```html
@@ -462,13 +462,13 @@
     - _Preservation: neither section renders when halalPref is false and displayPreferences is empty_
     - _Requirements: 2.8, 3.7_
 
-  - [ ] 16.3 Verify bug condition exploration test now passes (Feature 4)
+  - [x] 16.3 Verify bug condition exploration test now passes (Feature 4)
     - **Property 7: Expected Behavior** — Two Separate Summary Sections
     - **IMPORTANT**: Re-run the SAME test from task 14 — do NOT write a new test
     - **EXPECTED OUTCOME**: Test PASSES — "Religious Preference" section with Halal chip and "Allergens / Allergy List" section with Milk-free chip render as two independent blocks
     - _Requirements: 2.8_
 
-  - [ ] 16.4 Verify preservation tests still pass (Feature 4)
+  - [x] 16.4 Verify preservation tests still pass (Feature 4)
     - **Property 8: Preservation** — No Summary When No Preferences Set
     - **IMPORTANT**: Re-run the SAME tests from task 15
     - **EXPECTED OUTCOME**: Test PASSES — no summary blocks render when both `halalPref` is false and `displayPreferences` is empty
@@ -478,7 +478,7 @@
 
 ## Final Checkpoint
 
-- [ ] 17. Checkpoint — Ensure all tests pass
+- [x] 17. Checkpoint — Ensure all tests pass
   - Run the full test suite covering all four features
   - Confirm all exploration tests (tasks 1, 6, 10, 14) now PASS after their respective fixes
   - Confirm all preservation tests (tasks 2, 7, 11, 15) still PASS

@@ -29,15 +29,23 @@
 							<div class="guidelines-list">
 								<div class="guideline-item">
 									<span class="badge-number">1</span>
-									<span>Upload only clear and focused images of the stocks (eg. fruits, vegetables, dry goods).</span>
+									<span>Upload only clear and focused images of the stocks (eg. fruits, vegetables, dry goods) or food products.</span>
 								</div>
 								<div class="guideline-item">
 									<span class="badge-number">2</span>
-									<span>Do not upload unrelated or non-food images.</span>
+									<span>Ensure the product name, ingredients list, and other additional details are fully visible.</span>
 								</div>
 								<div class="guideline-item">
 									<span class="badge-number">3</span>
+									<span>Make sure text on the packaging is readable.</span>
+								</div>
+								<div class="guideline-item">
+									<span class="badge-number">4</span>
 									<span>Avoid blurry, dark, or obstructed photos.</span>
+								</div>
+								<div class="guideline-item">
+									<span class="badge-number">5</span>
+									<span>Do not upload unrelated or non-food images.</span>
 								</div>
 							</div>
 						</div>

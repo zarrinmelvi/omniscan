@@ -316,9 +316,17 @@ const recommendedRecipes = ref<SuggestedRecipe[]>([])
 const activities = ref<ActivityLogDto[]>([])
 const activitiesLoadError = ref('')
 
-// Filter out legacy 'expiring' logs and deduplicate rapid consecutive logs for the same item/action
+// Filter out image filenames, legacy 'expiring' logs, and deduplicate rapid consecutive logs
 const filteredActivities = computed(() => {
-	const raw = activities.value.filter((act) => (act.type as string) !== 'expiring')
+	const raw = activities.value.filter((act) => {
+		if ((act.type as string) === 'expiring') return false
+
+		// Hide activity entries where the message is just a filename (e.g., scan-12345.jpg)
+		const msg = act.message.trim().toLowerCase()
+		const isFilename = /\.(jpg|jpeg|png|webp|gif)$/i.test(msg) || /^scan-\d+/i.test(msg)
+
+		return !isFilename
+	})
 
 	const deduped: ActivityLogDto[] = []
 	for (const act of raw) {
@@ -335,7 +343,7 @@ const filteredActivities = computed(() => {
 		}
 	}
 
-	return deduped
+	return deduped.slice(0, 6)
 })
 
 // Recipe Modal States

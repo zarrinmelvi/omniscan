@@ -13,13 +13,13 @@
 
 				<!-- Interactive Controls Section -->
 				<div class="controls-section">
-					<!-- Prompt card for back photo step -->
+					<!-- Prompt card for second photo step -->
 					<div v-if="captureStage === 'back' || isUploading || isBackCaptured" class="back-prompt-card">
 						<p class="back-prompt-text">
-							<template v-if="isUploading"> <strong>Please wait, upload in progress.</strong> </template>
-							<template v-else-if="isBackCaptured"> <strong>Back captured.</strong> Please wait, upload in progress. </template>
+							<template v-if="isUploading"> <strong>Please wait, upload in progress…</strong> </template>
+							<template v-else-if="isBackCaptured"> <strong>Second photo captured.</strong> Please wait, upload in progress… </template>
 							<template v-else>
-								<strong>Front captured.</strong> Now press <strong>Scan Again</strong> to capture the back or side of the product where the ingredient list can be read.
+								<strong>First photo captured.</strong> Now press <strong>Scan Again</strong> to capture any remaining details (product name, ingredients, or Halal logo).
 							</template>
 						</p>
 						<ion-button
@@ -29,7 +29,7 @@
 							size="small"
 							class="skip-btn"
 							@click="confirmSkipBackPhoto">
-							SKIP — USE FRONT PHOTO ONLY
+							SKIP — USE FIRST PHOTO ONLY
 						</ion-button>
 					</div>
 
@@ -306,8 +306,8 @@ async function confirmSkipBackPhoto(): Promise<void> {
 	}
 
 	const alert = await alertController.create({
-		header: 'Skip Back Photo?',
-		message: 'If chosen skip, there might be no ingredients list, no allergen, and no Halal logo detection',
+		header: 'Skip Second Photo?',
+		message: 'If you skip, missing package details like product name and ingredients list will be empty, then allergens and Halal logo will not be detected.',
 		cssClass: 'custom-make-alert',
 		buttons: [
 			{
@@ -435,7 +435,7 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 
 	if (!back && captureStage.value === 'front') {
 		captureStage.value = 'back'
-		analysisStatus.value = 'Front captured — now scan or upload the back'
+		analysisStatus.value = 'First photo captured — now scan or upload the remaining details'
 		return
 	}
 

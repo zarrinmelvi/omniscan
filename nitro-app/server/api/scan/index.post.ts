@@ -36,6 +36,7 @@ interface OllamaChatResponse {
 
 interface ScanAiExtraction {
 	is_food_product: boolean
+	front_image_index: number
 	product_name: string
 	brand: string
 	ingredients_text: string
@@ -64,39 +65,37 @@ function buildPrompt(): string {
 		'cosmetics, toiletries, cleaning supplies, electronics, clothing, footwear, or any',
 		'other non-edible item.',
 		"You will be given either one or two photos of the SAME product's packaging.",
-		'If two images are attached, the first is the FRONT of the package (branding, product name)',
-		'and the second is the BACK of the package (ingredients list, nutrition facts, and any',
-		'certification marks) — treat them as one combined source of truth about this single product,',
-		'not as two different products. If only one image is attached, extract everything visible in',
-		'that single image.',
+		'Treat all attached images as a single combined source of truth about this single product.',
+		'The product name, brand, ingredients, Halal logo, net quantity, or expiration date may appear in ANY of the attached photos (front, back, side, top, or bottom).',
+		'Search across ALL attached images to locate and extract every field requested below.',
 		'Respond with ONLY a single JSON object, no prose, no markdown code fences,',
 		'matching exactly this shape:',
-		'{"is_food_product": boolean, "product_name": string, "brand": string, "ingredients_text": string,',
+		'{"is_food_product": boolean, "front_image_index": number, "product_name": string, "brand": string, "ingredients_text": string,',
 		'"simplified_ingredients": string, "halal_logo_detected": boolean, "certifying_body": string,',
 		'"expiration_date": string | null, "net_quantity": number | null, "net_unit": string | null}.',
 		'"is_food_product" must be false for anything that is not meant for human consumption',
 		'(e.g. lotion, shampoo, shoes, electronics, toys, stationery) — when false, you may leave the',
-		'other string fields as empty strings, halal_logo_detected as false, and expiration_date as null,',
+		'other string fields as empty strings, halal_logo_detected as false, front_image_index as 0, and expiration_date as null,',
 		'since ingredient extraction does not apply to a non-food item.',
 		'When is_food_product is true, extract the remaining fields as follows:',
-		'"ingredients_text" should be the raw ingredient list as printed on the label.',
+		'"front_image_index" should be 0 if the 1st attached image contains the primary front packaging/product name/brand logo, or 1 if the 2nd attached image contains the front packaging/brand logo instead. If only 1 image is attached, return 0.',
+		'"product_name" and "brand" should be extracted from whichever image contains the branding or primary product title.',
+		'"ingredients_text" should be the raw ingredient list as printed on any visible panel across the attached images.',
 		'"simplified_ingredients" should restate the ingredient list as a comma-separated plain-language breakdown following these rules:',
 		'(1) Explain technical and chemical names in parentheses — e.g. "Alpha-tocopherol (Vitamin E)", "Sodium ascorbate (Vitamin C)", "Carrageenan (seaweed thickener)", "Tartrazine (Yellow food dye No.5)".',
 		'(2) Identify hidden allergen derivatives and name their source — e.g. "Casein (milk protein)", "Ovalbumin (egg white protein)", "Hydrolyzed wheat protein (gluten source)", "Albumin (egg-derived)", "Lactose (milk sugar)", "Whey (milk-derived)", "Lecithin (may be soy-derived)".',
 		'(3) Keep everyday names as-is — e.g. "water", "sugar", "salt", "palm oil", "onion powder". (4) Output must be readable by someone who wants to know what they are actually eating — not a scientist.',
-		'"halal_logo_detected" should be true only if you can see an actual Halal certification mark on the',
-		'packaging — typically a circular or shield-shaped logo, often containing the word "HALAL" in Latin',
+		'"halal_logo_detected" should be true if an actual Halal certification mark is visible on ANY panel across the attached images — typically a circular or shield-shaped logo, often containing the word "HALAL" in Latin',
 		"or Arabic script, sometimes alongside a certifying body's name or initials (e.g. JAKIM, MUIS, ESMA,",
 		'IFANCA). Do not infer Halal status from ingredients alone — this field is strictly about a visible logo/mark.',
 		'"certifying_body" should be the name or initials of the certifying body as printed near/on the logo,',
 		'exactly as it appears, or an empty string if no logo was detected or the certifying body text is not legible.',
-		'"expiration_date" should be any printed expiration date, best-before date, or use-by date visible on the',
-		'packaging — look for text labeled "EXP", "Expiry", "Best Before", "BB", "Use By", or similar, in any',
-		'position on the label. Convert whatever format is printed (e.g. "31 DEC 2026", "12/31/2026", "2026.12.31")',
+		'"expiration_date" should be any printed expiration date, best-before date, or use-by date visible on any part of the packaging — look for text labeled "EXP", "Expiry", "Best Before", "BB", "Use By", or similar.',
+		'Convert whatever format is printed (e.g. "31 DEC 2026", "12/31/2026", "2026.12.31")',
 		'into strict ISO format YYYY-MM-DD. If the printed date is ambiguous, partially obscured, or you are not',
 		'confident you have read it correctly, return null rather than guessing — a wrong date is worse than no date.',
 		'If no date is visible on the packaging at all, return null.',
-		'If a field cannot be read from the image, use an empty string (or false for the boolean field, or null for expiration_date).',
+		'If a field cannot be read from the image(s), use an empty string (or false for the boolean field, or null for expiration_date).',
 		'"net_quantity" should be the numeric net quantity printed on the label (e.g. 500 for "500ml", 1 for "1L", 250 for "250g"). Return only the number, not the unit. If no net quantity is visible, return null.',
 		'"net_unit" should be the unit of measure as printed (e.g. "ml", "L", "g", "kg", "oz", "fl oz", "pcs", "pack"). Return only the unit string, lowercase. If no unit is visible or net_quantity is null, return null.',
 		'Do not invent ingredients, certifications, product identity, or a date that are not visibly present.',
@@ -121,6 +120,7 @@ function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 
 	return {
 		is_food_product: normalizeToBoolean(candidate.is_food_product),
+		front_image_index: typeof candidate.front_image_index === 'number' ? candidate.front_image_index : 0,
 		product_name: normalizeToString(candidate.product_name),
 		brand: normalizeToString(candidate.brand),
 		ingredients_text: normalizeToString(candidate.ingredients_text),
@@ -270,6 +270,7 @@ export default defineEventHandler(async (event) => {
 		const mockText = mockTextField.data.toString('utf-8')
 		extraction = {
 			is_food_product: true,
+			front_image_index: 0,
 			product_name: imageField.filename,
 			brand: 'Scanned Product',
 			ingredients_text: mockText,
@@ -351,6 +352,15 @@ export default defineEventHandler(async (event) => {
 		]
 	}
 
+	// Ensure the primary image saved to database is always the front packaging view
+	let mainProductImage = imageDataUri
+	let secondaryProductImage = imageDataUriBack
+
+	if (hasBackImage && extraction.front_image_index === 1) {
+		mainProductImage = imageDataUriBack!
+		secondaryProductImage = imageDataUri
+	}
+
 	try {
 		const product = await prisma.product.create({
 			data: {
@@ -358,8 +368,8 @@ export default defineEventHandler(async (event) => {
 				product_name: extraction.product_name || imageField.filename,
 				ingredient_text: extraction.ingredients_text,
 				simplified_ingredients: extraction.simplified_ingredients,
-				image_base64: imageDataUri,
-				image_base64_back: imageDataUriBack ?? undefined,
+				image_base64: mainProductImage,
+				image_base64_back: secondaryProductImage ?? undefined,
 				is_verified: false,
 				...(matchedHalalLogo ? { halal_logo_id: matchedHalalLogo.id } : {}),
 				halal_unverified: extraction.halal_logo_detected && matchedHalalLogos.length === 0,

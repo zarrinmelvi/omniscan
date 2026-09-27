@@ -802,3 +802,20 @@ html.ion-palette-dark .alternatives-disclaimer { background: #431407; border-col
 html.ion-palette-dark .alternatives-note { color: var(--dm-text-secondary); }
 html.ion-palette-dark .alt-item--ai .alt-item__image-placeholder--ai { background: #052e16; color: #4ade80; }
 html.ion-palette-dark .alt-item__desc { color: var(--dm-text-secondary); }
+
+/* === Sort dropdown dark mode === */
+html.ion-palette-dark .native-sort-select {
+  color: var(--dm-text-primary) !important;
+  background: transparent !important;
+  color-scheme: dark;
+}
+html.ion-palette-dark .native-sort-select option {
+  background: var(--dm-bg-card);
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .select-arrow {
+  color: var(--dm-text-primary);
+}
+html.ion-palette-dark .sort-row__label {
+  color: var(--dm-text-secondary);
+}

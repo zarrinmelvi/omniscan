@@ -531,7 +531,14 @@ async function restoreItem(id: number): Promise<void> {
 		const index = items.value.findIndex((item) => item.id === id)
 		if (index !== -1) items.value[index] = data.item
 	} catch (err) {
-		loadError.value = err instanceof ApiError ? err.message : 'Failed to restore this item.'
+		const message = err instanceof ApiError ? err.message : 'Failed to restore this item.'
+		const alert = await alertController.create({
+			header: 'Cannot Restore',
+			message,
+			cssClass: 'custom-make-alert',
+			buttons: [{ text: 'OK', role: 'cancel', cssClass: 'alert-button-cancel' }],
+		})
+		await alert.present()
 	} finally {
 		isRestoringId.value = null
 	}

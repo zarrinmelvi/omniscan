@@ -7,6 +7,11 @@
 					<ion-back-button default-href="/tabs/pantry" text="" class="back-btn"></ion-back-button>
 				</ion-buttons>
 				<ion-title class="detail-title">{{ item?.product?.product_name ?? 'Loading…' }}</ion-title>
+				<ion-buttons slot="end">
+					<ion-button fill="clear" class="edit-btn" @click="openEditModal">
+						<ion-icon :icon="createOutline" slot="icon-only" />
+					</ion-button>
+				</ion-buttons>
 			</ion-toolbar>
 		</ion-header>
 
@@ -179,11 +184,78 @@
 				</template>
 			</div>
 		</ion-content>
+
+		<!-- Edit Details Modal -->
+		<ion-modal :is-open="isEditModalOpen" @didDismiss="isEditModalOpen = false" class="edit-item-modal">
+			<div class="edit-modal-card">
+				<div class="edit-modal-header">
+					<h2 class="edit-modal-title">Edit Details</h2>
+					<button type="button" class="edit-modal-close" @click="isEditModalOpen = false">✕</button>
+				</div>
+
+				<div class="edit-modal-body">
+					<div v-if="editError" class="edit-error">{{ editError }}</div>
+
+					<!-- Storage Location -->
+					<label class="edit-label">Storage Location</label>
+					<div class="storage-option-row">
+						<button
+							v-for="loc in ['Fridge', 'Freezer', 'Cupboard']"
+							:key="loc"
+							type="button"
+							class="storage-option-btn"
+							:class="{ 'storage-option-btn--active': editForm.storage_location === loc }"
+							@click="editForm.storage_location = loc">
+							{{ loc }}
+						</button>
+					</div>
+
+					<!-- Quantity & Unit -->
+					<label class="edit-label">Quantity &amp; Unit</label>
+					<div class="edit-qty-row">
+						<input
+							v-model.number="editForm.quantity"
+							type="number"
+							min="0.01"
+							step="any"
+							class="edit-qty-input" />
+						<select v-model="editForm.unit" class="edit-unit-select">
+							<option v-for="u in ['pcs', 'g', 'kg', 'ml', 'L', 'pack']" :key="u" :value="u">{{ u }}</option>
+						</select>
+					</div>
+
+					<!-- Expiration Date -->
+					<label class="edit-label">Expiration Date</label>
+					<input
+						v-model="editForm.expiration_date"
+						type="date"
+						class="edit-date-input"
+						:class="{ 'edit-date-input--filled': !!editForm.expiration_date }" />
+
+					<!-- Best Before Date -->
+					<label class="edit-label">Best Before Date</label>
+					<input
+						v-model="editForm.best_before_date"
+						type="date"
+						class="edit-date-input"
+						:class="{ 'edit-date-input--filled': !!editForm.best_before_date }" />
+
+					<button
+						type="button"
+						class="save-edit-btn"
+						:disabled="isSaving"
+						@click="saveEdit">
+						<ion-spinner v-if="isSaving" name="crescent" style="width:18px;height:18px;margin-right:6px" />
+						{{ isSaving ? 'Saving…' : 'Save Changes' }}
+					</button>
+				</div>
+			</div>
+		</ion-modal>
 	</ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import {
 	IonPage,
@@ -196,7 +268,9 @@ import {
 	IonSpinner,
 	IonIcon,
 	IonButton,
+	IonModal,
 	onIonViewWillEnter,
+	toastController,
 } from '@ionic/vue'
 import {
 	alertCircleOutline,
@@ -209,6 +283,7 @@ import {
 	imageOutline,
 	chevronUpOutline,
 	chevronDownOutline,
+	createOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
@@ -257,6 +332,17 @@ const isLoading = ref(true)
 const loadError = ref('')
 const activeTab = ref<Tab>('overview')
 const rawIngredientsOpen = ref(false)
+
+const isEditModalOpen = ref(false)
+const isSaving = ref(false)
+const editError = ref('')
+const editForm = reactive({
+  storage_location: '',
+  quantity: 1,
+  unit: '',
+  expiration_date: '',
+  best_before_date: '',
+})
 
 const matchedUserAllergens = computed(() => item.value?.matched_user_allergens ?? [])
 
@@ -339,6 +425,55 @@ const expiryBanner = computed(() => {
 	if (diff <= 5) return { text: `Expires in ${diff} days`, tone: 'status-banner--warning' }
 	return { text: `Expires in ${diff} days`, tone: 'status-banner--success' }
 })
+
+function openEditModal(): void {
+  if (!item.value) return
+  editForm.storage_location = item.value.storage_location
+  editForm.quantity = item.value.quantity
+  editForm.unit = item.value.portion_unit
+  editForm.expiration_date = item.value.expiration_date
+    ? item.value.expiration_date.split('T')[0]
+    : ''
+  editForm.best_before_date = item.value.best_before_date
+    ? item.value.best_before_date.split('T')[0]
+    : ''
+  editError.value = ''
+  isEditModalOpen.value = true
+}
+
+async function saveEdit(): Promise<void> {
+  if (!item.value) return
+  isSaving.value = true
+  editError.value = ''
+  try {
+    const data = await apiFetch<{ success: boolean; item: PantryItemDetailDto }>(
+      `/api/pantry_item/${item.value.id}`,
+      {
+        method: 'PUT',
+        body: {
+          storage_location: editForm.storage_location,
+          quantity: editForm.quantity,
+          unit: editForm.unit,
+          expiration_date: editForm.expiration_date || undefined,
+          best_before_date: editForm.best_before_date || undefined,
+        },
+      },
+    )
+    item.value = data.item
+    isEditModalOpen.value = false
+    const toast = await toastController.create({
+      message: 'Item updated.',
+      duration: 2000,
+      color: 'success',
+      position: 'top',
+    })
+    await toast.present()
+  } catch (err) {
+    editError.value = err instanceof ApiError ? err.message : 'Failed to save changes.'
+  } finally {
+    isSaving.value = false
+  }
+}
 
 async function fetchItem(): Promise<void> {
 	isLoading.value = true
@@ -662,5 +797,170 @@ onIonViewWillEnter(fetchItem)
 	font-style: italic;
 	font-size: 0.8rem;
 	margin-bottom: 8px;
+}
+
+.edit-btn {
+  --color: #1e293b;
+  font-size: 1.2rem;
+}
+
+.edit-item-modal {
+  --height: auto;
+  --border-radius: 20px 20px 0 0;
+  align-items: flex-end;
+}
+
+.edit-modal-card {
+  background: #ffffff;
+  border-radius: 20px 20px 0 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.edit-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.edit-modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.edit-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.edit-modal-body {
+  padding: 16px 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.storage-option-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.storage-option-btn {
+  flex: 1;
+  padding: 9px 0;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.storage-option-btn--active {
+  border-color: #00b14f;
+  background: #00b14f;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.edit-qty-row {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-qty-input {
+  flex: 1;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #ffffff;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.edit-qty-input::-webkit-outer-spin-button,
+.edit-qty-input::-webkit-inner-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.edit-unit-select {
+  flex: 1;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #ffffff;
+}
+
+.edit-date-input {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #374151;
+  background: #ffffff;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.edit-date-input:focus {
+  border-color: #22c55e;
+  outline: none;
+}
+
+.edit-date-input--filled {
+  border-color: #22c55e;
+}
+
+.save-edit-btn {
+  width: 100%;
+  height: 48px;
+  background: #00b14f;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-edit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.edit-error {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
 }
 </style>

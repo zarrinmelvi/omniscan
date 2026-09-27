@@ -5,6 +5,9 @@ import { requireAuth } from '../../utils/requireAuth'
 interface UpdatePantryItemBody {
 	quantity?: number
 	expiration_date?: string
+	best_before_date?: string
+	storage_location?: string
+	unit?: string
 	is_archived?: boolean
 	is_auto_archived?: boolean // Optional explicit flag for cron/automated jobs
 }
@@ -25,9 +28,9 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid request body.' })
 	}
 
-	const { quantity, expiration_date, is_archived, is_auto_archived } = body
+	const { quantity, expiration_date, best_before_date, storage_location, unit, is_archived, is_auto_archived } = body
 
-	if (quantity === undefined && expiration_date === undefined && is_archived === undefined) {
+	if (quantity === undefined && expiration_date === undefined && best_before_date === undefined && storage_location === undefined && unit === undefined && is_archived === undefined) {
 		throw createError({
 			statusCode: 400,
 			statusMessage: 'At least one of quantity, expiration_date, or is_archived must be provided.',
@@ -42,6 +45,10 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'is_archived must be a boolean.' })
 	}
 
+	if (storage_location !== undefined && typeof storage_location !== 'string') {
+		throw createError({ statusCode: 400, statusMessage: 'storage_location must be a string.' })
+	}
+
 	let parsedExpirationDate: Date | undefined
 	if (expiration_date !== undefined) {
 		if (typeof expiration_date !== 'string') {
@@ -50,6 +57,17 @@ export default defineEventHandler(async (event) => {
 		parsedExpirationDate = new Date(expiration_date)
 		if (isNaN(parsedExpirationDate.getTime())) {
 			throw createError({ statusCode: 400, statusMessage: 'expiration_date must be a valid ISO date.' })
+		}
+	}
+
+	let parsedBestBeforeDate: Date | undefined
+	if (best_before_date !== undefined) {
+		if (typeof best_before_date !== 'string') {
+			throw createError({ statusCode: 400, statusMessage: 'best_before_date must be a string.' })
+		}
+		parsedBestBeforeDate = new Date(best_before_date)
+		if (isNaN(parsedBestBeforeDate.getTime())) {
+			throw createError({ statusCode: 400, statusMessage: 'best_before_date must be a valid ISO date.' })
 		}
 	}
 
@@ -69,11 +87,25 @@ export default defineEventHandler(async (event) => {
 
 		const isNewlyConsumed = is_archived === true && !existingItem.is_archived
 
+		// Zero-quantity restore guard: cannot restore items with 0 quantity
+		if (is_archived === false && existingItem.is_archived) {
+			const currentQty = Number(existingItem.quantity)
+			if (currentQty <= 0) {
+				throw createError({
+					statusCode: 409,
+					statusMessage: 'Cannot restore this item because its quantity is 0. It has been fully used.',
+				})
+			}
+		}
+
 		const updatedItem = await prisma.pantryItem.update({
 			where: { id: itemId },
 			data: {
 				...(quantity !== undefined && { quantity }),
 				...(parsedExpirationDate !== undefined && { expiration_date: parsedExpirationDate }),
+				...(parsedBestBeforeDate !== undefined && { best_before_date: parsedBestBeforeDate }),
+				...(storage_location !== undefined && { storage_location: storage_location.trim() }),
+				...(unit !== undefined && { portion_unit: unit }),
 				...(is_archived !== undefined && { is_archived }),
 				...(is_archived === false && { deleted_at: null }),
 			},

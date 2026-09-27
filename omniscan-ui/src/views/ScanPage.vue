@@ -14,22 +14,22 @@
 				<!-- Interactive Controls Section -->
 				<div class="controls-section">
 					<!-- Prompt card for back photo step -->
-					<div v-if="captureStage === 'back' || isBackCaptured" class="back-prompt-card">
+					<div v-if="captureStage === 'back' || isUploading || isBackCaptured" class="back-prompt-card">
 						<p class="back-prompt-text">
-							<template v-if="isBackCaptured"> <strong>Back captured.</strong> Please wait, upload in progress. </template>
+							<template v-if="isUploading"> <strong>Please wait, upload in progress.</strong> </template>
+							<template v-else-if="isBackCaptured"> <strong>Back captured.</strong> Please wait, upload in progress. </template>
 							<template v-else>
-								<strong>Front captured.</strong> Now scan or upload the <strong>back</strong> of the product so the ingredients list
-								can be read.
+								<strong>Front captured.</strong> Now press <strong>Scan Again</strong> to capture the back or side of the product where the ingredient list can be read.
 							</template>
 						</p>
 						<ion-button
-							v-if="!isBackCaptured && !isUploading"
+							v-if="captureStage === 'back' && !isBackCaptured && !isUploading"
 							expand="block"
 							fill="clear"
 							size="small"
 							class="skip-btn"
-							@click="skipBackPhoto">
-							Skip — use front photo only
+							@click="confirmSkipBackPhoto">
+							SKIP — USE FRONT PHOTO ONLY
 						</ion-button>
 					</div>
 
@@ -38,8 +38,8 @@
 						<ion-spinner v-if="isCoolingDown" name="crescent" slot="start" />
 						<ion-icon v-else :icon="scanOutline" slot="start" />
 						<span v-if="isCoolingDown">Processing… ({{ remainingSeconds }}s)</span>
+						<span v-else-if="captureStage === 'back'">Scan Again</span>
 						<span v-else-if="hasScannedAtLeastOnce || isUploading">Scan Again</span>
-						<span v-else-if="captureStage === 'back'">Scan Back of Item</span>
 						<span v-else>Scan Product</span>
 					</ion-button>
 
@@ -47,7 +47,7 @@
 					<ion-button
 						expand="block"
 						class="btn-secondary"
-						:disabled="isUploading || isCoolingDown || isResultModalOpen"
+						:disabled="isUploading || isCoolingDown || isResultModalOpen || captureStage === 'back' || isBackCaptured"
 						@click="isPhotoModalOpen = true">
 						<ion-icon :icon="cameraOutline" slot="start" />
 						UPLOAD A PHOTO
@@ -298,6 +298,34 @@ async function processCapturedFile(file: File): Promise<void> {
 
 	isBackCaptured.value = true
 	await submitScan(frontFile.value!, file)
+}
+
+async function confirmSkipBackPhoto(): Promise<void> {
+	if (!frontFile.value || isCoolingDown.value || isUploading.value) {
+		return
+	}
+
+	const alert = await alertController.create({
+		header: 'Skip Back Photo?',
+		message: 'If chosen skip, there might be no ingredients list, no allergen, and no Halal logo detection',
+		cssClass: 'custom-make-alert',
+		buttons: [
+			{
+				text: 'Cancel',
+				role: 'cancel',
+				cssClass: 'alert-button-cancel',
+			},
+			{
+				text: 'Skip',
+				role: 'confirm',
+				cssClass: 'alert-button-danger',
+				handler: () => {
+					skipBackPhoto()
+				},
+			},
+		],
+	})
+	await alert.present()
 }
 
 async function skipBackPhoto(): Promise<void> {

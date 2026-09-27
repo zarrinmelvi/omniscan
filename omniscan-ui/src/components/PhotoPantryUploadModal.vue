@@ -397,13 +397,15 @@ async function handleSubmit(): Promise<void> {
 	if (!isFormValid.value || remainingUploads.value <= 0) return
 	formError.value = null
 
+	// Allergen guardrail — styled with custom-make-alert theme
 	if (matchedUserAllergens.value.length > 0) {
 		const alert = await alertController.create({
 			header: 'Allergen Warning',
 			message: `This item contains allergens matching your dietary profile (${matchedUserAllergens.value.join(', ')}). Are you sure you want to add it to your pantry?`,
+			cssClass: 'custom-make-alert',
 			buttons: [
-				{ text: 'Cancel', role: 'cancel' },
-				{ text: 'Add Anyway', role: 'confirm' },
+				{ text: 'Cancel', role: 'cancel', cssClass: 'alert-button-cancel' },
+				{ text: 'Add Anyway', role: 'confirm', cssClass: 'alert-button-danger' },
 			],
 		})
 		await alert.present()

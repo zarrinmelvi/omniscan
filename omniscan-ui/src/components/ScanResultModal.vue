@@ -299,13 +299,15 @@ async function submitAddToPantry() {
 
 	submitError.value = ''
 
+	// Allergen guardrail — styled with custom-make-alert theme
 	if (personalAllergenAlerts.value.length > 0) {
 		const allergenAlert = await alertController.create({
 			header: 'Allergen Warning',
 			message: `This item contains allergens matching your dietary profile (${personalAllergenAlerts.value.join(', ')}). Are you sure you want to add it to your pantry?`,
+			cssClass: 'custom-make-alert',
 			buttons: [
-				{ text: 'Cancel', role: 'cancel' },
-				{ text: 'Add Anyway', role: 'confirm' },
+				{ text: 'Cancel', role: 'cancel', cssClass: 'alert-button-cancel' },
+				{ text: 'Add Anyway', role: 'confirm', cssClass: 'alert-button-danger' },
 			],
 		})
 		await allergenAlert.present()

@@ -55,16 +55,15 @@ html.ion-palette-dark .legal-text,
 html.ion-palette-dark .required-note {
   color: var(--dm-text-secondary);
 }
-html.ion-palette-dark .input-label,
-html.ion-palette-dark .field-label-brown {
-  color: var(--dm-text-primary) !important;
+html.ion-palette-dark .input-label {
+  color: var(--dm-text-secondary);
 }
 
-/* === Form field labels override in Dark Mode === */
+/* === Form field labels override in Dark Mode (Amber Highlight) === */
 html.ion-palette-dark .field-label,
 html.ion-palette-dark .field-label-brown,
 html.ion-palette-dark .date-field-label {
-  color: var(--dm-text-primary) !important;
+  color: #f59e0b !important;
 }
 
 html.ion-palette-dark .field-hint {
@@ -522,9 +521,7 @@ html.ion-palette-dark .upload-title {
 html.ion-palette-dark .upload-subtitle,
 html.ion-palette-dark .change-photo-link,
 html.ion-palette-dark .uploaded-label,
-html.ion-palette-dark .uploaded-label,
-html.ion-palette-dark .field-hint,
-html.ion-palette-dark .date-field-label {
+html.ion-palette-dark .uploaded-label {
   color: var(--dm-text-secondary);
 }
 html.ion-palette-dark .date-selection-box {

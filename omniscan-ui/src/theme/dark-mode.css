@@ -174,9 +174,10 @@ html.ion-palette-dark .notif-title {
 }
 html.ion-palette-dark .back-btn,
 html.ion-palette-dark .back-icon,
-html.ion-palette-dark .header-back-icon {
-  --color: var(--dm-text-primary);
-  color: var(--dm-text-primary);
+html.ion-palette-dark .header-back-icon,
+html.ion-palette-dark .edit-btn {
+  --color: var(--dm-text-primary) !important;
+  color: var(--dm-text-primary) !important;
 }
 
 /* === Cards and surface containers === */
@@ -846,68 +847,58 @@ html.ion-palette-dark .sort-row__label {
 }
 
 /* === Pantry Edit Details Modal / Sheet Dark Mode Overrides === */
-html.ion-palette-dark .sheet-content,
-html.ion-palette-dark .sheet-ion-content {
+html.ion-palette-dark .edit-item-modal,
+html.ion-palette-dark .edit-item-modal::part(content),
+html.ion-palette-dark .edit-modal-card {
   --background: var(--dm-bg-card) !important;
   background-color: var(--dm-bg-card) !important;
   color: var(--dm-text-primary) !important;
 }
 
-html.ion-palette-dark .sheet-header {
+html.ion-palette-dark .edit-modal-header {
   border-bottom-color: var(--dm-border) !important;
 }
 
-html.ion-palette-dark .sheet-header .product-title,
-html.ion-palette-dark .sheet-header h2,
-html.ion-palette-dark .sheet-header h3 {
+html.ion-palette-dark .edit-modal-title {
   color: var(--dm-text-primary) !important;
 }
 
-html.ion-palette-dark .sheet-header .close-btn {
+html.ion-palette-dark .edit-modal-close {
   color: var(--dm-text-secondary) !important;
 }
 
-/* Container boxes */
-html.ion-palette-dark .date-selection-box,
-html.ion-palette-dark .pantry-section {
-  background: var(--dm-bg-subtle) !important;
-  border-color: var(--dm-border) !important;
+html.ion-palette-dark .edit-label {
+  color: #f59e0b !important;
 }
 
-/* Labels, hints, and divider text */
-html.ion-palette-dark .field-label,
-html.ion-palette-dark .date-field-label {
-  color: var(--dm-text-primary) !important;
-}
-
-html.ion-palette-dark .field-hint,
-html.ion-palette-dark .or-divider span {
-  color: var(--dm-text-secondary) !important;
-}
-
-html.ion-palette-dark .or-divider::before,
-html.ion-palette-dark .or-divider::after {
-  border-top-color: var(--dm-border) !important;
-}
-
-/* Form inputs, selects, and storage location buttons */
-html.ion-palette-dark .quantity-input,
-html.ion-palette-dark .unit-select,
-html.ion-palette-dark .date-input {
-  background-color: var(--dm-bg-input) !important;
-  color: var(--dm-text-input) !important;
-  border-color: var(--dm-border) !important;
-  color-scheme: dark !important;
-}
-
-html.ion-palette-dark .storage-btn {
+html.ion-palette-dark .storage-option-btn {
   background: var(--dm-bg-chip) !important;
   border-color: var(--dm-border) !important;
   color: var(--dm-text-primary) !important;
 }
 
-html.ion-palette-dark .storage-btn--active {
+html.ion-palette-dark .storage-option-btn--active {
   background: #00b14f !important;
   border-color: #00b14f !important;
   color: #ffffff !important;
+}
+
+html.ion-palette-dark .edit-qty-input,
+html.ion-palette-dark .edit-unit-select,
+html.ion-palette-dark .edit-date-input {
+  background-color: var(--dm-bg-input) !important;
+  color: var(--dm-text-input) !important;
+  border-color: var(--dm-border) !important;
+  color-scheme: dark !important;
+  -webkit-text-fill-color: var(--dm-text-input) !important;
+}
+
+html.ion-palette-dark .edit-date-input--filled {
+  border-color: #22c55e !important;
+}
+
+html.ion-palette-dark .edit-error {
+  background: #450a0a !important;
+  color: #fca5a5 !important;
+  border: 1px solid #b91c1c !important;
 }

@@ -800,7 +800,8 @@ onIonViewWillEnter(fetchItem)
 }
 
 .edit-btn {
-  --color: #1e293b;
+  --color: var(--dm-text-primary, #1e293b);
+  color: var(--dm-text-primary, #1e293b);
   font-size: 1.2rem;
 }
 
@@ -811,7 +812,7 @@ onIonViewWillEnter(fetchItem)
 }
 
 .edit-modal-card {
-  background: #ffffff;
+  background: var(--ion-card-background, #ffffff);
   border-radius: 20px 20px 0 0;
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -866,7 +867,7 @@ onIonViewWillEnter(fetchItem)
   padding: 9px 0;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
-  background: #ffffff;
+  background: transparent;
   font-size: 0.85rem;
   font-weight: 500;
   color: #374151;
@@ -893,7 +894,7 @@ onIonViewWillEnter(fetchItem)
   padding: 10px 12px;
   font-size: 0.9rem;
   color: #111827;
-  background: #ffffff;
+  background: transparent;
   appearance: textfield;
   -moz-appearance: textfield;
 }
@@ -911,7 +912,7 @@ onIonViewWillEnter(fetchItem)
   padding: 10px 12px;
   font-size: 0.9rem;
   color: #111827;
-  background: #ffffff;
+  background: transparent;
 }
 
 .edit-date-input {
@@ -921,7 +922,7 @@ onIonViewWillEnter(fetchItem)
   padding: 10px 12px;
   font-size: 0.9rem;
   color: #374151;
-  background: #ffffff;
+  background: transparent;
   box-sizing: border-box;
   transition: border-color 0.2s ease;
 }

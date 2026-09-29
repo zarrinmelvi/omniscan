@@ -847,12 +847,20 @@ html.ion-palette-dark .sort-row__label {
 }
 
 /* === Pantry Edit Details Modal / Sheet Dark Mode Overrides === */
-html.ion-palette-dark .edit-item-modal,
-html.ion-palette-dark .edit-item-modal::part(content),
+html.ion-palette-dark .edit-item-modal {
+  --background: transparent !important;
+  --backdrop-opacity: 0.55 !important;
+}
+
+html.ion-palette-dark .edit-item-modal::part(content) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
 html.ion-palette-dark .edit-modal-card {
-  --background: var(--dm-bg-card) !important;
-  background-color: var(--dm-bg-card) !important;
+  background: var(--dm-bg-card) !important;
   color: var(--dm-text-primary) !important;
+  border-top: 1px solid var(--dm-border) !important;
 }
 
 html.ion-palette-dark .edit-modal-header {

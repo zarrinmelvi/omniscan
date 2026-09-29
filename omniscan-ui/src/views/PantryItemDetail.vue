@@ -466,20 +466,20 @@ async function saveEdit(): Promise<void> {
   isSaving.value = true
   editError.value = ''
   try {
-    const data = await apiFetch<{ success: boolean; item: PantryItemDetailDto }>(
-      `/api/pantry_item/${item.value.id}`,
-      {
-        method: 'PUT',
-        body: {
-          storage_location: editForm.storage_location,
-          quantity: editForm.quantity,
-          unit: editForm.unit,
-          expiration_date: editForm.expiration_date || undefined,
-          best_before_date: editForm.best_before_date || undefined,
-        },
+    await apiFetch(`/api/pantry_item/${item.value.id}`, {
+      method: 'PUT',
+      body: {
+        storage_location: editForm.storage_location,
+        quantity: editForm.quantity,
+        unit: editForm.unit,
+        expiration_date: editForm.expiration_date || undefined,
+        best_before_date: editForm.best_before_date || undefined,
       },
-    )
-    item.value = data.item
+    })
+
+    // Re-fetch full item details to update view immediately without crashing
+    await fetchItem()
+
     isEditModalOpen.value = false
     const toast = await toastController.create({
       message: 'Item updated.',
@@ -543,7 +543,6 @@ onIonViewWillEnter(fetchItem)
 	font-size: 1.2rem;
 }
 
-/* Updated Hero Container & Image Styling to display cropped images in exact scale */
 .hero-image-container {
 	display: flex;
 	align-items: center;
@@ -561,7 +560,7 @@ onIonViewWillEnter(fetchItem)
 .hero-photo {
 	width: 100%;
 	height: 100%;
-	object-fit: contain; /* Retains original cropped aspect ratio without stretching */
+	object-fit: contain;
 	border-radius: 12px;
 }
 
@@ -828,13 +827,21 @@ onIonViewWillEnter(fetchItem)
 .edit-item-modal {
   --height: auto;
   --border-radius: 20px 20px 0 0;
+  --background: transparent;
+  --backdrop-opacity: 0.5;
   align-items: flex-end;
+}
+
+.edit-item-modal::part(content) {
+  background: transparent;
+  box-shadow: none;
 }
 
 .edit-modal-card {
   background: var(--ion-card-background, #ffffff);
   border-radius: 20px 20px 0 0;
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  width: 100%;
 }
 
 .edit-modal-header {

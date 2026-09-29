@@ -474,8 +474,8 @@ async function saveEdit(): Promise<void> {
           storage_location: editForm.storage_location,
           quantity: editForm.quantity,
           unit: editForm.unit,
-          expiration_date: editForm.expiration_date || null,
-          best_before_date: editForm.best_before_date || null,
+          expiration_date: editForm.expiration_date.trim() ? editForm.expiration_date : null,
+          best_before_date: editForm.best_before_date.trim() ? editForm.best_before_date : null,
         },
       },
     )

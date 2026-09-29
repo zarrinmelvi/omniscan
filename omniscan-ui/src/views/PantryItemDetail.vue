@@ -474,8 +474,8 @@ async function saveEdit(): Promise<void> {
           storage_location: editForm.storage_location,
           quantity: editForm.quantity,
           unit: editForm.unit,
-          expiration_date: editForm.expiration_date.trim() ? editForm.expiration_date : null,
-          best_before_date: editForm.best_before_date.trim() ? editForm.best_before_date : null,
+          expiration_date: editForm.expiration_date || undefined,
+          best_before_date: editForm.best_before_date || undefined,
         },
       },
     )
@@ -939,7 +939,7 @@ onIonViewWillEnter(fetchItem)
   width: 100%;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 10px 14px;
   font-size: 0.9rem;
   color: #374151;
   background: transparent;

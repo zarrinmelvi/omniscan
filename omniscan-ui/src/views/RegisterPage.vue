@@ -80,8 +80,6 @@
 							</div>
 						</div>
 
-						<!-- Terms & Conditions checkbox removed — modal opens after validation in handleRegister -->
-
 						<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
 							{{ isSubmitting ? 'Creating account...' : 'Continue' }}
 						</ion-button>
@@ -91,8 +89,6 @@
 						Already have an account?
 						<router-link to="/login" class="switch-link">Sign In</router-link>
 					</p>
-
-
 				</template>
 
 				<!-- STEP 2: Dietary Preferences -->
@@ -295,9 +291,6 @@ async function handleRegister(): Promise<void> {
 	fieldErrors.password = false
 	fieldErrors.confirmPassword = false
 
-	// Empty-field checks — sets red border immediately so the user can see
-	// which fields they skipped, without relying on the browser's native
-	// required tooltip which intercepts the submit before our handler runs.
 	let hasEmptyField = false
 	if (!name.value.trim()) { fieldErrors.name = true; hasEmptyField = true }
 	if (!email.value.trim()) { fieldErrors.email = true; hasEmptyField = true }
@@ -427,7 +420,6 @@ async function completeSetup(): Promise<void> {
 	isSavingPrefs.value = true
 	prefsError.value = ''
 
-	// Convert selected Allergen IDs into formatted tag names (e.g. Milk-free) for custom_preferences
 	const customPrefTags = allergenCatalog.value
 		.filter((a) => selectedAllergenIds.value.includes(a.id))
 		.map((a) => `${formatAllergenName(a.name)}-free`)
@@ -463,7 +455,6 @@ async function skipForNow(): Promise<void> {
 	--overflow: auto;
 }
 
-/* Hide scrollbar track visually on mobile web views */
 .auth-content::part(scroll) {
 	scrollbar-width: none;
 	-ms-overflow-style: none;
@@ -669,7 +660,6 @@ async function skipForNow(): Promise<void> {
 	padding: 24px 0;
 }
 
-/* Step 2 Cards Grid */
 .pref-grid {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
@@ -726,7 +716,6 @@ async function skipForNow(): Promise<void> {
 	margin: -12px 0 12px;
 }
 
-/* === Terms & Conditions checkbox === */
 .terms-row {
 	margin-top: 20px;
 	margin-bottom: 4px;
@@ -776,7 +765,6 @@ async function skipForNow(): Promise<void> {
 	margin: 6px 0 0 28px;
 }
 
-/* === Terms modal === */
 .terms-sheet-modal {
 	--height: 85%;
 	--border-radius: 20px 20px 0 0;

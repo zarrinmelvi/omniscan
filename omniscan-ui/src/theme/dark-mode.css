@@ -59,6 +59,20 @@ html.ion-palette-dark .input-label {
   color: var(--dm-text-secondary);
 }
 
+/* Back button ("<") visibility in dark mode */
+html.ion-palette-dark .back-button {
+  color: var(--dm-text-primary) !important;
+}
+
+/* "Remember me" label color (matches 3rd screenshot text) & checkbox frame */
+html.ion-palette-dark .remember-label {
+  color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .custom-checkbox-box {
+  background-color: var(--dm-bg-input) !important;
+  border-color: var(--dm-border) !important;
+}
+
 /* === Form field labels override in Dark Mode (Amber Highlight) === */
 html.ion-palette-dark .field-label,
 html.ion-palette-dark .field-label-brown,

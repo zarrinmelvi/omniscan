@@ -981,11 +981,30 @@ ion-modal.custom-edit-modal {
 	cursor: pointer;
 }
 
+/* Standalone, theme-aware checkbox styling */
 .custom-edit-modal .who-allergen-checkbox {
-	width: 16px;
-	height: 16px;
-	accent-color: #00b050;
+	appearance: none;
+	-webkit-appearance: none;
+	width: 18px;
+	height: 18px;
+	border: 1.5px solid #cbd5e1;
+	border-radius: 4px;
+	background-color: #ffffff;
+	outline: none;
 	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	flex-shrink: 0;
+	transition: background-color 0.2s, border-color 0.2s;
+}
+
+.custom-edit-modal .who-allergen-checkbox:checked {
+	background-color: #00b050;
+	border-color: #00b050;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+	background-size: 12px 12px;
+	background-position: center;
+	background-repeat: no-repeat;
 }
 </style>

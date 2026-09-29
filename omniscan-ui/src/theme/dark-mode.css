@@ -829,6 +829,21 @@ html.ion-palette-dark .alternatives-note { color: var(--dm-text-secondary); }
 html.ion-palette-dark .alt-item--ai .alt-item__image-placeholder--ai { background: #052e16; color: #4ade80; }
 html.ion-palette-dark .alt-item__desc { color: var(--dm-text-secondary); }
 
+/* === WHO Allergen Checklist Dark Mode Overrides === */
+html.ion-palette-dark .custom-edit-modal .who-allergen-item {
+  color: var(--dm-text-primary) !important;
+}
+
+html.ion-palette-dark .custom-edit-modal .who-allergen-checkbox {
+  background-color: var(--dm-bg-input) !important;
+  border-color: var(--dm-border) !important;
+}
+
+html.ion-palette-dark .custom-edit-modal .who-allergen-checkbox:checked {
+  background-color: #05c450 !important;
+  border-color: #05c450 !important;
+}
+
 /* === Sort dropdown dark mode === */
 html.ion-palette-dark .native-sort-select {
   color: var(--dm-text-primary) !important;

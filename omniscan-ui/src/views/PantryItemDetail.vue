@@ -230,7 +230,8 @@
 						v-model="editForm.expiration_date"
 						type="date"
 						class="edit-date-input"
-						:class="{ 'edit-date-input--filled': !!editForm.expiration_date }" />
+						:class="{ 'edit-date-input--filled': !!editForm.expiration_date }"
+						@change="onExpirationDateChange" />
 
 					<!-- Best Before Date -->
 					<label class="edit-label">Best Before Date</label>
@@ -238,12 +239,13 @@
 						v-model="editForm.best_before_date"
 						type="date"
 						class="edit-date-input"
-						:class="{ 'edit-date-input--filled': !!editForm.best_before_date }" />
+						:class="{ 'edit-date-input--filled': !!editForm.best_before_date }"
+						@change="onBestBeforeDateChange" />
 
 					<button
 						type="button"
 						class="save-edit-btn"
-						:disabled="isSaving"
+						:disabled="!isEditFormValid || isSaving"
 						@click="saveEdit">
 						<ion-spinner v-if="isSaving" name="crescent" style="width:18px;height:18px;margin-right:6px" />
 						{{ isSaving ? 'Saving…' : 'Save Changes' }}
@@ -426,6 +428,24 @@ const expiryBanner = computed(() => {
 	return { text: `Expires in ${diff} days`, tone: 'status-banner--success' }
 })
 
+function onExpirationDateChange() {
+  if (editForm.expiration_date) {
+    editForm.best_before_date = ''
+  }
+}
+
+function onBestBeforeDateChange() {
+  if (editForm.best_before_date) {
+    editForm.expiration_date = ''
+  }
+}
+
+const isEditFormValid = computed(() => {
+  const hasExp = !!editForm.expiration_date
+  const hasBbd = !!editForm.best_before_date
+  return editForm.quantity > 0 && !!editForm.unit && !!editForm.storage_location && (hasExp || hasBbd) && !(hasExp && hasBbd)
+})
+
 function openEditModal(): void {
   if (!item.value) return
   editForm.storage_location = item.value.storage_location
@@ -442,7 +462,7 @@ function openEditModal(): void {
 }
 
 async function saveEdit(): Promise<void> {
-  if (!item.value) return
+  if (!item.value || !isEditFormValid.value) return
   isSaving.value = true
   editError.value = ''
   try {
@@ -454,8 +474,8 @@ async function saveEdit(): Promise<void> {
           storage_location: editForm.storage_location,
           quantity: editForm.quantity,
           unit: editForm.unit,
-          expiration_date: editForm.expiration_date || undefined,
-          best_before_date: editForm.best_before_date || undefined,
+          expiration_date: editForm.expiration_date || null,
+          best_before_date: editForm.best_before_date || null,
         },
       },
     )

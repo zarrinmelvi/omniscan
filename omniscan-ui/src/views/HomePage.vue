@@ -727,11 +727,11 @@ onIonViewWillEnter(() => {
 		-webkit-overflow-scrolling: touch;
 		scrollbar-width: none;
 	}
-	
+
 	.stats-row::-webkit-scrollbar {
 		display: none;
 	}
-	
+
 	.stat-card {
 		flex: 1 0 calc(50% - 6px);
 		min-width: 140px;
@@ -1010,7 +1010,8 @@ onIonViewWillEnter(() => {
 	margin: 0 0 2px;
 	line-height: 1.25;
 	display: -webkit-box;
-	-webkit-line-clamp: 2; /* Wraps up to 2 lines cleanly */
+	line-clamp: 2;
+	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
 	text-overflow: ellipsis;

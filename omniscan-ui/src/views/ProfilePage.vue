@@ -480,7 +480,7 @@ onIonViewWillEnter(() => {
 
 <style scoped>
 .profile-content {
-	--background: #f8fafc;
+	--background: #ffffff;
 	--overflow: hidden;
 }
 
@@ -691,9 +691,6 @@ onIonViewWillEnter(() => {
 	.header-section {
 		padding-left: 40px;
 		padding-right: 40px;
-		margin-top: 16px;
-		border-radius: 16px;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 	}
 
 	.main-body {
@@ -712,7 +709,7 @@ onIonViewWillEnter(() => {
 	}
 
 	.main-body {
-		background-color: #f8fafc;
+		background-color: transparent;
 		min-height: 0;
 		padding: 24px 40px 48px;
 	}

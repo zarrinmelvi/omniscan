@@ -175,7 +175,6 @@ function onPantryItemAdded(): void {
 }
 
 function onModalClosed(): void {
-	// Clears analysisResult immediately so navigation checks evaluate to false
 	analysisResult.value = null
 	isResultModalOpen.value = false
 	captureStage.value = 'front'
@@ -183,9 +182,7 @@ function onModalClosed(): void {
 	isBackCaptured.value = false
 }
 
-// Checks if an active upload or modal state requires unsaved progress confirmation upon tab route change
 const hasUnsavedScan = computed(() => {
-	// If it's a non-food product, bypass the unsaved item guard completely
 	if (analysisResult.value?.isNotProduct) {
 		return false
 	}
@@ -197,7 +194,6 @@ const hasUnsavedScan = computed(() => {
 	)
 })
 
-// Guards route navigation (e.g. switching tabs to Pantry, Home, Recipes, Profile)
 onBeforeRouteLeave(async (to, from, next) => {
 	if (hasUnsavedScan.value) {
 		isRouteAlertOpen.value = true
@@ -211,7 +207,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 					role: 'cancel',
 					handler: () => {
 						isRouteAlertOpen.value = false
-						next(false) // Stay on current tab
+						next(false)
 					},
 				},
 				{
@@ -221,7 +217,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 					handler: () => {
 						isRouteAlertOpen.value = false
 						cancelCurrentScan()
-						next() // Allow tab switch
+						next()
 					},
 				},
 			],
@@ -416,6 +412,7 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 				return
 			}
 
+			// Cleanly handle non-food/unrelated captures (including invalid second photos)
 			analysisResult.value = {
 				product: {
 					id: '0',
@@ -442,6 +439,7 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 
 			captureStage.value = 'front'
 			frontFile.value = null
+			isBackCaptured.value = false
 
 			isResultModalOpen.value = true
 			return
@@ -731,14 +729,12 @@ onBeforeUnmount(() => {
 	box-sizing: border-box;
 }
 
-/* Mobile: no max-width constraint */
 @media (max-width: 767px) {
 	.page-container {
 		padding: 16px;
 	}
 }
 
-/* Tablet and Desktop: center and constrain camera */
 @media (min-width: 768px) {
 	.page-container {
 		padding: 20px;
@@ -764,7 +760,6 @@ onBeforeUnmount(() => {
 	width: 100%;
 }
 
-/* Tablet and Desktop: constrain header width */
 @media (min-width: 768px) {
 	.header-section {
 		max-width: 640px;
@@ -793,7 +788,6 @@ onBeforeUnmount(() => {
 	width: 100%;
 }
 
-/* Tablet and Desktop: constrain controls width */
 @media (min-width: 768px) {
 	.controls-section {
 		max-width: 640px;
@@ -878,14 +872,12 @@ onBeforeUnmount(() => {
 	aspect-ratio: 4/3;
 }
 
-/* Mobile: 100% width */
 @media (max-width: 767px) {
 	.viewfinder-video {
 		max-width: 100%;
 	}
 }
 
-/* Tablet and Desktop: constrain to 640px and center */
 @media (min-width: 768px) {
 	.viewfinder-video {
 		max-width: 640px;
@@ -1027,7 +1019,6 @@ onBeforeUnmount(() => {
 	cursor: pointer;
 }
 
-/* Mobile: fixed position in bottom 20% of viewport */
 @media (max-width: 767px) {
 	.capture-btn {
 		position: fixed;
@@ -1035,7 +1026,6 @@ onBeforeUnmount(() => {
 	}
 }
 
-/* Desktop: sticky position */
 @media (min-width: 768px) {
 	.capture-btn {
 		position: sticky;

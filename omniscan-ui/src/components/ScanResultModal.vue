@@ -3,7 +3,7 @@
 	<ion-alert
 		:is-open="isOpen && !!data?.isNotProduct"
 		header="Analysis Results"
-		message="This doesn't look like a food or beverage product. OmniScan only tracks food items — try scanning the packaging of something edible or drinkable."
+		:message="data?.reasons?.[0] || 'This doesn\'t look like a food or beverage product. OmniScan only tracks food items — try scanning the packaging of something edible or drinkable.'"
 		:buttons="['CLOSE RESULTS']"
 		class="non-product-alert"
 		@didDismiss="handleDismiss"
@@ -453,7 +453,6 @@ async function submitAddToPantry() {
 async function handleDismiss() {
 	if (submitting.value) return
 
-	// Bypasses the "Unsaved Item" confirmation popup entirely if it's a non-food item
 	if (props.data?.isNotProduct) {
 		forceDismiss()
 		return

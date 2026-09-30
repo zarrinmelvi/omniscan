@@ -147,12 +147,19 @@
 					/>
 				</div>
 
-				<select v-model="filterStatus" class="filter-select">
-					<option value="All">All</option>
-					<option value="Active">Active</option>
-					<option value="Inactive">Inactive</option>
-					<option value="Archived">Archived</option>
-				</select>
+				<div class="controls-right">
+					<select v-model="filterStatus" class="filter-select">
+						<option value="All">All Statuses</option>
+						<option value="Active">Active</option>
+						<option value="Inactive">Inactive</option>
+						<option value="Archived">Archived</option>
+					</select>
+
+					<select v-model="sortOrder" class="filter-select">
+						<option value="Latest">Latest</option>
+						<option value="Oldest">Oldest</option>
+					</select>
+				</div>
 			</div>
 
 			<!-- Loading / error / empty states -->
@@ -250,6 +257,8 @@ interface UserProfile {
 	email: string
 	created: string
 	lastActive: string
+	/** Raw epoch ms of last-active (falls back to created) — used for sorting. */
+	sortTs: number
 	inactiveFor: string | null
 	inactiveForClass?: string
 	status: 'Active' | 'Inactive' | 'Archived'
@@ -258,6 +267,7 @@ interface UserProfile {
 
 const searchQuery = ref('')
 const filterStatus = ref('All')
+const sortOrder = ref<'Latest' | 'Oldest'>('Latest')
 const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
 
@@ -308,6 +318,7 @@ function mapRow(r: ApiUserRow): UserProfile {
 		email: r.email,
 		created: formatDate(r.created_at),
 		lastActive: formatDate(r.last_active),
+		sortTs: new Date(r.last_active || r.created_at).getTime() || 0,
 		inactiveFor: inactiveLabel,
 		inactiveForClass: inactiveForClass(r.inactive_days, r.deletion_due),
 		status: r.status,
@@ -343,12 +354,18 @@ function getRowClass(user: UserProfile) {
 const userStats = computed(() => stats.value)
 
 const filteredUsers = computed(() => {
-	return users.value.filter((user) => {
+	const filtered = users.value.filter((user) => {
 		const query = searchQuery.value.trim().toLowerCase()
 		const matchesQuery = !query || user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query)
 		const matchesStatus = filterStatus.value === 'All' || user.status === filterStatus.value
 		return matchesQuery && matchesStatus
 	})
+
+	// Sort by last-active timestamp: Latest = newest first, Oldest = oldest first.
+	// Copy first so we never mutate the source array in place.
+	return [...filtered].sort((a, b) =>
+		sortOrder.value === 'Latest' ? b.sortTs - a.sortTs : a.sortTs - b.sortTs
+	)
 })
 
 onMounted(fetchUsers)
@@ -615,6 +632,12 @@ h1 {
 	color: #334155;
 	outline: none;
 	cursor: pointer;
+}
+
+.controls-right {
+	display: flex;
+	align-items: center;
+	gap: 10px;
 }
 
 /* Data Table */

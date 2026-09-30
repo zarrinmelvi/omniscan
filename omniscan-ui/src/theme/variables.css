@@ -158,3 +158,24 @@ ion-alert.non-product-alert .alert-button .alert-button-inner {
 	justify-content: center !important;
 	color: #ffffff !important;
 }
+
+/* Responsive Photo Pantry Upload Modal Sizing */
+ion-modal.responsive-upload-modal {
+	--width: 92%;
+	--max-width: 640px;
+	--height: 88vh;
+	--border-radius: 20px;
+	--box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+/* Ensure internal ionic wrapper honors full container width */
+ion-modal.responsive-upload-modal::part(content) {
+	border-radius: 20px;
+	overflow: hidden;
+	height: 88vh;
+}
+
+ion-modal.responsive-upload-modal .light-content {
+	height: 100%;
+	max-width: 100%;
+}

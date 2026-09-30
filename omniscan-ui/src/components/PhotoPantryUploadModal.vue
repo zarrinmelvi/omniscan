@@ -1,5 +1,5 @@
 <template>
-	<ion-modal :is-open="isOpen" :backdrop-dismiss="!isSubmitting && !isAnalyzing" @didDismiss="handleDismiss">
+	<ion-modal :is-open="isOpen" class="responsive-upload-modal" :backdrop-dismiss="!isSubmitting && !isAnalyzing" @didDismiss="handleDismiss">
 		<ion-content class="light-content ion-padding">
 			<!-- Header Block -->
 			<div class="modal-custom-header">
@@ -677,12 +677,16 @@ ion-accordion-group {
 .upload-dropzone {
 	border: 1px dashed #cbd5e1;
 	border-radius: 16px;
-	padding: 32px 16px;
+	padding: 24px 16px;
 	text-align: center;
 	cursor: pointer;
 	margin: 16px 0;
 	background: #ffffff;
 	transition: opacity 0.2s ease;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
 
 .upload-dropzone--disabled {
@@ -720,15 +724,20 @@ ion-accordion-group {
 }
 
 .preview-image {
+	width: auto;
 	max-width: 100%;
-	max-height: 200px;
+	max-height: 220px;
 	border-radius: 12px;
+	object-fit: contain;
+	display: block;
+	margin: 0 auto;
 }
 
 .change-photo-link {
 	color: #00b14f;
 	font-size: 0.825rem;
-	margin-top: 8px;
+	margin-top: 10px;
+	text-align: center;
 }
 
 .required-note {

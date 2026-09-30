@@ -221,6 +221,32 @@
 								<span class="field-label">Scientific name</span>
 								<input v-model="form.scientific_name" type="text" class="field-input" placeholder="e.g. Triticum aestivum" />
 							</label>
+
+							<!-- Mappings / Aliases tag editor -->
+							<div class="field">
+								<span class="field-label">Mappings / Aliases ({{ aliasTags.length }})</span>
+								<div class="tag-input" @click="($refs.aliasField as HTMLInputElement)?.focus()">
+									<span v-for="(tag, idx) in aliasTags" :key="idx" class="tag-chip">
+										{{ tag }}
+										<button type="button" class="tag-remove" aria-label="Remove alias" @click.stop="removeAliasTag(idx)">
+											<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+												<line x1="18" y1="6" x2="6" y2="18"></line>
+												<line x1="6" y1="6" x2="18" y2="18"></line>
+											</svg>
+										</button>
+									</span>
+									<input
+										ref="aliasField"
+										v-model="aliasInput"
+										class="tag-field"
+										:placeholder="aliasTags.length ? 'Add alias…' : 'e.g. wheat, barley, rye'"
+										@keydown="onAliasKeydown"
+										@blur="addAliasTag"
+									/>
+								</div>
+								<span class="field-hint">Press Enter or comma to add. These become ingredient mappings linked to this allergen.</span>
+							</div>
+
 							<label class="field-check">
 								<input v-model="form.is_predefined" type="checkbox" />
 								<span>Predefined (core seed allergen)</span>
@@ -291,6 +317,12 @@ import { apiFetch, ApiError } from '@/utils/api'
 
 type TabType = 'allergen' | 'halal' | 'ingredient'
 
+interface AllergenMapping {
+	id: number
+	scientific_term: string
+	simplified_term: string
+}
+
 interface AllergenRow {
 	id: number
 	name: string
@@ -298,6 +330,8 @@ interface AllergenRow {
 	is_predefined: boolean
 	mapping_count: number
 	updated_at: string
+	mappings?: AllergenMapping[]
+	aliases?: string[]
 }
 
 interface CertifierRow {
@@ -335,6 +369,45 @@ const modalError = ref<string | null>(null)
 const saving = ref(false)
 const editingId = ref<number | null>(null)
 const form = ref<Record<string, any>>({})
+
+// Alias/mapping editor state (Allergen modal only)
+const aliasTags = ref<string[]>([])
+const aliasInput = ref('')
+// Snapshot of the aliases as loaded, so we only PUT the mapping sync when changed.
+const aliasOriginal = ref<string[]>([])
+
+function addAliasTag(): void {
+	const raw = aliasInput.value.trim().replace(/,+$/, '').trim()
+	if (!raw) return
+	// Support pasting a comma-separated batch.
+	const parts = raw.split(',').map((p) => p.trim()).filter(Boolean)
+	for (const p of parts) {
+		if (!aliasTags.value.some((t) => t.toLowerCase() === p.toLowerCase())) {
+			aliasTags.value.push(p)
+		}
+	}
+	aliasInput.value = ''
+}
+
+function removeAliasTag(index: number): void {
+	aliasTags.value.splice(index, 1)
+}
+
+function onAliasKeydown(e: KeyboardEvent): void {
+	if (e.key === 'Enter' || e.key === ',') {
+		e.preventDefault()
+		addAliasTag()
+	} else if (e.key === 'Backspace' && aliasInput.value === '' && aliasTags.value.length) {
+		aliasTags.value.pop()
+	}
+}
+
+function aliasesChanged(): boolean {
+	if (aliasTags.value.length !== aliasOriginal.value.length) return true
+	const a = [...aliasTags.value].map((s) => s.toLowerCase()).sort()
+	const b = [...aliasOriginal.value].map((s) => s.toLowerCase()).sort()
+	return a.some((v, i) => v !== b[i])
+}
 
 const getTabTitle = computed(() => {
 	if (activeTab.value === 'halal') return 'Maintain halal certifier library'
@@ -423,6 +496,9 @@ function openCreateModal(): void {
 	modalError.value = null
 	if (activeTab.value === 'allergen') {
 		form.value = { name: '', scientific_name: '', is_predefined: false }
+		aliasTags.value = []
+		aliasOriginal.value = []
+		aliasInput.value = ''
 	} else if (activeTab.value === 'halal') {
 		form.value = { certifier: '', full_name: '', image_path: '', source_url: '', is_accredited: false }
 	} else {
@@ -437,6 +513,14 @@ function openEditModal(item: any): void {
 	modalError.value = null
 	if (activeTab.value === 'allergen') {
 		form.value = { name: item.name, scientific_name: item.scientific_name, is_predefined: item.is_predefined }
+		const loaded: string[] = Array.isArray(item.aliases)
+			? item.aliases
+			: Array.isArray(item.mappings)
+				? item.mappings.map((m: AllergenMapping) => m.scientific_term)
+				: []
+		aliasTags.value = [...loaded]
+		aliasOriginal.value = [...loaded]
+		aliasInput.value = ''
 	} else if (activeTab.value === 'halal') {
 		form.value = { certifier: item.certifier, full_name: item.full_name, image_path: item.image_path, source_url: item.source_url, is_accredited: item.is_accredited }
 	} else {
@@ -465,11 +549,36 @@ async function saveModal(): Promise<void> {
 		const payload: Record<string, any> = { ...form.value }
 		if (modalMode.value === 'edit' && editingId.value != null) payload.id = editingId.value
 
-		await apiFetch(endpoint, {
+		// 1. Save the core record (create or update). Capture the id for new allergens
+		//    so we can attach aliases to it immediately after.
+		const saved = await apiFetch<any>(endpoint, {
 			method: modalMode.value === 'create' ? 'POST' : 'PUT',
 			body: payload,
 			isAdmin: true,
 		})
+
+		// 2. For allergens, reconcile the linked alias/mapping list if it changed
+		//    (or always on create when tags were provided).
+		if (activeTab.value === 'allergen') {
+			const targetId =
+				modalMode.value === 'edit'
+					? editingId.value
+					: (saved?.allergen?.id ?? saved?.id ?? null)
+
+			if (targetId != null && (modalMode.value === 'create' ? aliasTags.value.length > 0 : aliasesChanged())) {
+				const res = await apiFetch<{ skipped?: string[] }>('/api/allergen/mappings', {
+					method: 'PUT',
+					body: { allergen_id: targetId, aliases: aliasTags.value },
+					isAdmin: true,
+				})
+				if (res?.skipped && res.skipped.length) {
+					modalError.value = `Saved. These aliases are already mapped to another allergen and were skipped: ${res.skipped.join(', ')}`
+					await fetchTabContent(activeTab.value)
+					saving.value = false
+					return
+				}
+			}
+		}
 
 		modalOpen.value = false
 		await fetchTabContent(activeTab.value)
@@ -605,6 +714,13 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 .field-input { border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 12px; font-size: 0.88rem; color: #1e293b; outline: none; font-family: inherit; transition: border-color 0.12s; background: #fff; }
 .field-input:focus { border-color: #008744; }
 .field-check { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #334155; cursor: pointer; }
+.field-hint { font-size: 0.72rem; color: #94a3b8; margin-top: 2px; }
+.tag-input { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; min-height: 42px; cursor: text; background: #fff; transition: border-color 0.12s; }
+.tag-input:focus-within { border-color: #008744; }
+.tag-chip { display: inline-flex; align-items: center; gap: 5px; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 20px; padding: 3px 6px 3px 10px; font-size: 0.78rem; font-weight: 500; }
+.tag-remove { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border: none; background: rgba(21,128,61,0.12); color: #15803d; border-radius: 50%; cursor: pointer; padding: 0; transition: background 0.12s; }
+.tag-remove:hover { background: rgba(21,128,61,0.28); }
+.tag-field { flex: 1; min-width: 120px; border: none; outline: none; font-size: 0.85rem; color: #1e293b; background: transparent; padding: 2px 0; font-family: inherit; }
 .modal-error { margin: 0; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 0.82rem; }
 .modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 16px 24px; border-top: 1px solid #f1f5f9; }
 .btn-modal-cancel { background: transparent; border: 1px solid #e2e8f0; color: #64748b; padding: 8px 18px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; transition: background 0.12s; }

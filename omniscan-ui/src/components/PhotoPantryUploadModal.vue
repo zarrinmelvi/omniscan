@@ -1,5 +1,5 @@
 <template>
-	<ion-modal :is-open="isOpen" class="responsive-upload-modal" :backdrop-dismiss="!isSubmitting && !isAnalyzing" @didDismiss="handleDismiss">
+	<ion-modal :is-open="isOpen" :backdrop-dismiss="!isSubmitting && !isAnalyzing" @didDismiss="handleDismiss">
 		<ion-content class="light-content ion-padding">
 			<!-- Header Block -->
 			<div class="modal-custom-header">

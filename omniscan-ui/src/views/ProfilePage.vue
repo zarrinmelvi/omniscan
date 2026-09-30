@@ -14,59 +14,64 @@
 
 			<template v-else>
 				<div class="profile-inner">
-				<!-- Top Header Area -->
-				<div class="header-section">
-					<div class="profile-header-top">
-						<div class="avatar-wrap">
-							<img v-if="user.avatar_base64" :src="user.avatar_base64" alt="Profile photo" class="avatar-image" />
-							<span v-else class="avatar-initial">{{ user.name.charAt(0) }}</span>
-							<div class="avatar-camera-badge" @click="openEditModal">
-								<ion-icon :icon="cameraOutline" />
+					<!-- Top Header Area -->
+					<div class="header-section">
+						<div class="profile-header-top">
+							<div class="avatar-wrap">
+								<img v-if="user.avatar_base64" :src="user.avatar_base64" alt="Profile photo" class="avatar-image" />
+								<span v-else class="avatar-initial">{{ user.name.charAt(0) }}</span>
+								<div class="avatar-camera-badge" @click="openEditModal">
+									<ion-icon :icon="cameraOutline" />
+								</div>
+							</div>
+							<div class="header-info">
+								<h1 class="user-name">{{ user.name }}</h1>
+								<p class="user-email">{{ user.email }}</p>
+							</div>
+							<button type="button" class="edit-profile-btn" @click="openEditModal">
+								Edit Profile
+								<ion-icon :icon="pencilOutline" class="edit-profile-btn__icon" />
+							</button>
+						</div>
+
+						<!-- Religious Preference section -->
+						<div v-if="halalPref" class="pref-summary">
+							<p class="section-label">Religious Preference:</p>
+							<div class="chip-row">
+								<span class="pref-chip pref-chip--halal">Halal</span>
 							</div>
 						</div>
-						<div class="header-info">
-							<h1 class="user-name">{{ user.name }}</h1>
-							<p class="user-email">{{ user.email }}</p>
-						</div>
-						<button type="button" class="edit-profile-btn" @click="openEditModal">
-							Edit Profile
-							<ion-icon :icon="pencilOutline" class="edit-profile-btn__icon" />
-						</button>
-					</div>
 
-					<!-- Religious Preference section -->
-					<div v-if="halalPref" class="pref-summary">
-						<p class="section-label">Religious Preference:</p>
-						<div class="chip-row">
-							<span class="pref-chip pref-chip--halal">Halal</span>
+						<!-- Allergens / Allergy List section -->
+						<div v-if="displayPreferences.length > 0" class="pref-summary">
+							<p class="section-label">Allergens / Allergy List:</p>
+							<div class="chip-row">
+								<span v-for="pref in displayPreferences" :key="pref" class="pref-chip">{{ pref }}</span>
+							</div>
 						</div>
 					</div>
 
-					<!-- Allergens / Allergy List section -->
-					<div v-if="displayPreferences.length > 0" class="pref-summary">
-						<p class="section-label">Allergens / Allergy List:</p>
-						<div class="chip-row">
-							<span v-for="pref in displayPreferences" :key="pref" class="pref-chip">{{ pref }}</span>
+					<!-- Main Content Body -->
+					<div class="main-body">
+						<!-- Unified Full-Width Action Card (Settings & Log Out) -->
+						<div class="action-card">
+							<button type="button" class="action-row" @click="router.push('/tabs/settings')">
+								<div class="action-left">
+									<ion-icon :icon="settingsOutline" class="action-icon" />
+									<span>Settings</span>
+								</div>
+								<ion-icon :icon="chevronForwardOutline" class="chevron" />
+							</button>
+
+							<button type="button" class="action-row action-row--danger" @click="handleLogout">
+								<div class="action-left">
+									<ion-icon :icon="logOutOutline" class="action-icon" />
+									<span>Log Out</span>
+								</div>
+								<ion-icon :icon="chevronForwardOutline" class="chevron" />
+							</button>
 						</div>
 					</div>
-				</div>
-
-				<!-- Main Content Body -->
-				<div class="main-body">
-					<!-- Action rows -->
-					<div class="action-list">
-						<button type="button" class="action-row" @click="router.push('/tabs/settings')">
-							<ion-icon :icon="settingsOutline" class="action-icon" />
-							<span>Settings</span>
-							<ion-icon :icon="chevronForwardOutline" class="chevron" />
-						</button>
-						<button type="button" class="action-row action-row--danger" @click="handleLogout">
-							<ion-icon :icon="logOutOutline" class="action-icon" />
-							<span>Log Out</span>
-							<ion-icon :icon="chevronForwardOutline" class="chevron" />
-						</button>
-					</div>
-				</div>
 				</div>
 			</template>
 
@@ -205,19 +210,6 @@ const NON_CONSUMABLE_TERMS: string[] = [
 ]
 
 const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024
-
-const quickAddSuggestions = [
-	'Peanuts-free',
-	'Milk-free',
-	'Eggs-free',
-	'Wheat-free',
-	'Soy-free',
-	'Fish-free',
-	'Shellfish-free',
-	'TreeNuts-Free',
-	'Sesame-free',
-	'Mustard-free',
-]
 
 const ALLERGEN_TAG_MAP: Record<string, string> = {
 	'Gluten-free': 'Wheat',
@@ -379,17 +371,6 @@ function onAvatarSelected(event: Event) {
 	reader.readAsDataURL(file)
 }
 
-function isNonConsumable(value: string): boolean {
-	const lower = value.toLowerCase()
-	return NON_CONSUMABLE_TERMS.some((term) => lower.includes(term))
-}
-
-function addQuickPreference(suggestion: string) {
-	if (!form.customPreferences.includes(suggestion)) {
-		form.customPreferences.push(suggestion)
-	}
-}
-
 function removeCustomPreference(pref: string) {
 	form.customPreferences = form.customPreferences.filter((p) => p !== pref)
 	prefLimitWarning.value = false
@@ -406,11 +387,6 @@ function toggleWhoAllergen(value: string) {
 		}
 		form.customPreferences.push(value)
 	}
-}
-
-function removeHalalPref() {
-	form.halalPref = false
-	prefLimitWarning.value = false
 }
 
 async function saveProfile() {
@@ -493,9 +469,23 @@ onIonViewWillEnter(() => {
 	text-align: center;
 }
 
+.profile-inner {
+	max-width: 800px;
+	margin: 0 auto;
+	width: 100%;
+	padding: 24px 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
 .header-section {
 	background: #ffffff;
-	padding: 36px 24px 24px;
+	border: 1px solid #e5e7eb;
+	border-radius: 16px;
+	padding: 24px;
+	width: 100%;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .profile-header-top {
@@ -625,32 +615,54 @@ onIonViewWillEnter(() => {
 	font-size: 0.9rem;
 }
 
-.main-body {
-	background-color: #f8fafc;
-	min-height: 100%;
-	flex: 1;
-	padding: 20px 20px 40px;
+.pref-chip--halal {
+	background: #fef3c7;
+	color: #92400e;
 }
 
-.action-list {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
+.main-body {
+	width: 100%;
+}
+
+/* Actions Card Container (Matches 100% width of profile-inner) */
+.action-card {
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
+	border-radius: 16px;
+	overflow: hidden;
+	width: 100%;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .action-row {
 	display: flex;
 	align-items: center;
-	gap: 14px;
-	background: #ffffff;
+	justify-content: space-between;
+	width: 100%;
+	padding: 16px 20px;
+	background: none;
 	border: none;
-	border-radius: 16px;
-	padding: 18px 20px;
+	border-bottom: 1px solid #f3f4f6;
+	cursor: pointer;
+	text-align: left;
 	font-size: 0.95rem;
 	font-weight: 600;
 	color: #0f172a;
-	width: 100%;
-	text-align: left;
+	transition: background-color 0.15s ease;
+}
+
+.action-row:last-child {
+	border-bottom: none;
+}
+
+.action-row:hover {
+	background-color: #f9fafb;
+}
+
+.action-left {
+	display: flex;
+	align-items: center;
+	gap: 12px;
 }
 
 .action-icon {
@@ -667,59 +679,14 @@ onIonViewWillEnter(() => {
 }
 
 .action-row .chevron {
-	margin-left: auto;
 	color: #94a3b8;
 	font-size: 1rem;
 }
 
-.pref-chip--halal {
-	background: #fef3c7;
-	color: #92400e;
-}
-
-/* ---------- Responsive: tablet & desktop (mobile-first, layered on top) ---------- */
-
-/* TABLET (>=768px): center the content in a constrained column so the
-   header and body line up, with a bit more horizontal breathing room. */
+/* Responsive Scaling */
 @media (min-width: 768px) {
 	.profile-inner {
-		max-width: 640px;
-		margin: 0 auto;
-		width: 100%;
-	}
-
-	.header-section {
-		padding-left: 40px;
-		padding-right: 40px;
-		margin-top: 16px;
-		border-radius: 16px;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-	}
-
-	.main-body {
-		padding-left: 40px;
-		padding-right: 40px;
-		border-radius: 20px;
-	}
-}
-
-/* DESKTOP (>=1024px): keep the centered column a touch wider and give the
-   body a soft tinted, non-full-bleed panel so it doesn't span awkwardly. */
-@media (min-width: 1024px) {
-	.profile-inner {
-		max-width: 760px;
-		padding-top: 24px;
-	}
-
-	.main-body {
-		background-color: #f8fafc;
-		min-height: 0;
-		padding: 24px 40px 48px;
-	}
-
-	.action-list {
-		max-width: 560px;
-		margin: 0 auto;
+		padding: 32px 24px;
 	}
 }
 </style>
@@ -889,65 +856,6 @@ ion-modal.custom-edit-modal {
 	margin-bottom: 12px;
 }
 
-.custom-edit-modal .custom-pref-input-row {
-	display: flex;
-	gap: 8px;
-	margin-bottom: 14px;
-}
-
-.custom-edit-modal .pref-text-input {
-	flex: 1;
-}
-
-.custom-edit-modal .pref-text-input:focus {
-	border: 1.5px solid #00b050;
-	outline: none;
-}
-
-.custom-edit-modal .add-btn {
-	background: #a7f3d0;
-	color: #ffffff;
-	border: none;
-	border-radius: 12px;
-	padding: 0 18px;
-	font-weight: 600;
-	font-size: 0.9rem;
-	cursor: not-allowed;
-	transition: background-color 0.2s ease;
-}
-
-.custom-edit-modal .add-btn:not(:disabled) {
-	background: #00b050;
-	cursor: pointer;
-}
-
-.custom-edit-modal .quick-add-label {
-	font-size: 0.8rem;
-	color: #64748b;
-	margin: 8px 0;
-}
-
-.custom-edit-modal .quick-add-chip {
-	border: none;
-	background: #f1f5f9;
-	color: #475569;
-	border-radius: 12px;
-	padding: 6px 12px;
-	font-size: 0.8rem;
-	font-weight: 500;
-	cursor: pointer;
-}
-
-.custom-edit-modal .quick-add-chip:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
-}
-
-.custom-edit-modal .quick-add-chip--active {
-	background: #dcfce7;
-	color: #059669;
-}
-
 .custom-edit-modal .save-changes-btn {
 	width: 100%;
 	height: 48px;
@@ -978,12 +886,6 @@ ion-modal.custom-edit-modal {
 	color: #d97706;
 	font-size: 0.78rem;
 	margin: 4px 0 8px;
-}
-
-.custom-edit-modal .pref-add-error {
-	color: #b91c1c;
-	font-size: 0.78rem;
-	margin: -10px 0 8px;
 }
 
 .custom-edit-modal .halal-toggle-row {
@@ -1029,7 +931,6 @@ ion-modal.custom-edit-modal {
 	cursor: pointer;
 }
 
-/* Standalone, theme-aware checkbox styling */
 .custom-edit-modal .who-allergen-checkbox {
 	appearance: none;
 	-webkit-appearance: none;

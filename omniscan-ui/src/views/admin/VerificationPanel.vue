@@ -21,8 +21,8 @@
 		<!-- ── Metric Cards ────────────────────────────────────────────────── -->
 		<div v-if="!isLoading && !errorMessage" class="summary-cards">
 
-			<div class="summary-card red">
-				<div class="card-icon-wrap red-bg">
+			<div class="summary-card yellow">
+				<div class="card-icon-wrap yellow-bg">
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
 						<circle cx="12" cy="12" r="10"></circle>
 						<line x1="12" y1="8" x2="12" y2="12"></line>
@@ -30,7 +30,7 @@
 					</svg>
 				</div>
 				<div class="card-text">
-					<span class="summary-value red-text">{{ counts.total }}</span>
+					<span class="summary-value yellow-text">{{ counts.total }}</span>
 					<span class="summary-label">Unverified Halal Logos</span>
 				</div>
 			</div>
@@ -128,7 +128,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="row in filteredRows" :key="row.id">
+						<tr v-for="row in filteredRows" :key="row.id" @click="openReviewModal(row)">
 
 							<td class="col-id cell-id">#{{ row.id }}</td>
 
@@ -173,7 +173,7 @@
 									<button
 										class="btn-review"
 										:disabled="reviewLoadingId === row.id"
-										@click="openReviewDrawer(row.id)"
+										@click.stop="openReviewModal(row)"
 									>
 										<svg v-if="reviewLoadingId === row.id" class="spin-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
 											<path d="M21 12a9 9 0 1 1-6.22-8.56"></path>
@@ -183,7 +183,7 @@
 									<button
 										class="btn-correct"
 										:disabled="actingOnId === row.id"
-										@click="openCorrectionModal(row)"
+										@click.stop="openCorrectionModal(row)"
 									>
 										<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
 											<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -201,170 +201,8 @@
 		</div>
 
 		<!-- ══════════════════════════════════════════════════════════════════ -->
-		<!-- REVIEW DRAWER                                                     -->
-		<!-- ══════════════════════════════════════════════════════════════════ -->
-		<Teleport to="body">
-			<transition name="drawer-fade">
-				<div v-if="reviewDetail" class="drawer-overlay" @click.self="closeReviewDrawer">
-					<div class="drawer" role="dialog" aria-modal="true" aria-label="Scan Review">
-
-						<!-- Drawer header -->
-						<div class="drawer-header">
-							<div class="drawer-title-group">
-								<div class="drawer-icon-wrap">
-									<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-										<circle cx="11" cy="11" r="8"></circle>
-										<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-									</svg>
-								</div>
-								<div>
-									<h2 class="drawer-title">Scan Review</h2>
-									<p class="drawer-subtitle">Flag #{{ reviewDetail.id }} · {{ reviewDetail.brand_name }} {{ reviewDetail.product_name }}</p>
-								</div>
-							</div>
-							<button class="modal-close" @click="closeReviewDrawer" aria-label="Close drawer">
-								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-									<line x1="18" y1="6" x2="6" y2="18"></line>
-									<line x1="6" y1="6" x2="18" y2="18"></line>
-								</svg>
-							</button>
-						</div>
-
-						<!-- Drawer body -->
-						<div class="drawer-body">
-
-							<!-- Product images -->
-							<section class="drawer-section">
-								<div class="section-label">Scanned Images</div>
-								<div class="image-row">
-									<div class="scan-image-box">
-										<img
-											v-if="reviewFrontSrc"
-											:src="reviewFrontSrc"
-											alt="Front scan"
-											class="scan-img scan-img--zoomable"
-											title="Click to zoom"
-											@click="openLightbox(reviewFrontSrc, 'Front scan')"
-										/>
-										<div v-else class="scan-img-placeholder">
-											<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35">
-												<rect x="3" y="3" width="18" height="18" rx="2"></rect>
-												<circle cx="8.5" cy="8.5" r="1.5"></circle>
-												<polyline points="21 15 16 10 5 21"></polyline>
-											</svg>
-											<span>No image</span>
-										</div>
-										<div class="image-label">Front</div>
-									</div>
-									<div v-if="reviewBackSrc" class="scan-image-box">
-										<img
-											:src="reviewBackSrc"
-											alt="Back scan"
-											class="scan-img scan-img--zoomable"
-											title="Click to zoom"
-											@click="openLightbox(reviewBackSrc!, 'Back scan')"
-										/>
-										<div class="image-label">Back</div>
-									</div>
-								</div>
-							</section>
-
-							<!-- AI flags -->
-							<section class="drawer-section">
-								<div class="section-label">AI Flags</div>
-								<div class="detail-grid">
-									<div class="detail-row">
-										<span class="detail-key">Verdict</span>
-										<span class="detail-val">
-											<span class="status-pill" :class="verdictClass(reviewDetail.safety_verdict) === 'red' ? 'pill-flagged' : 'pill-pending'">
-												{{ (reviewDetail.safety_verdict ?? 'Unknown').toUpperCase() }}
-											</span>
-										</span>
-									</div>
-									<div class="detail-row">
-										<span class="detail-key">Confidence</span>
-										<span class="detail-val" :class="confidenceClass(reviewDetail.safety_verdict, reviewConfidence)">{{ reviewConfidence }}%</span>
-									</div>
-									<div class="detail-row">
-										<span class="detail-key">Flag Type</span>
-										<span class="detail-val">{{ halalFlagLabel(reviewDetail.clean_flag_reason) }}</span>
-									</div>
-									<div class="detail-row full-span">
-										<span class="detail-key">Flag Reason</span>
-										<span class="detail-val flag-reason-text">{{ reviewDetail.clean_flag_reason }}</span>
-									</div>
-									<div v-if="reviewDetail.ocr_flag_reason && reviewDetail.ocr_flag_reason !== reviewDetail.flag_reason" class="detail-row full-span">
-										<span class="detail-key">Raw OCR Flag</span>
-										<span class="detail-val flag-reason-text mono">{{ reviewDetail.ocr_flag_reason }}</span>
-									</div>
-								</div>
-							</section>
-
-							<!-- Ingredient OCR -->
-							<section v-if="reviewDetail.ingredient_text" class="drawer-section">
-								<div class="section-label">OCR — Ingredient Text</div>
-								<pre class="ocr-text">{{ reviewDetail.ingredient_text }}</pre>
-							</section>
-
-							<!-- User attribution -->
-							<section class="drawer-section">
-								<div class="section-label">User Attribution</div>
-								<div class="detail-grid">
-									<div class="detail-row">
-										<span class="detail-key">Name</span>
-										<span class="detail-val">{{ reviewDetail.scanned_by_name ?? '—' }}</span>
-									</div>
-									<div class="detail-row">
-										<span class="detail-key">Email</span>
-										<span class="detail-val">{{ reviewDetail.scanned_by_email ?? '—' }}</span>
-									</div>
-									<div class="detail-row">
-										<span class="detail-key">Scanned at</span>
-										<span class="detail-val">{{ reviewDetail.scan_time ? formatDate(reviewDetail.scan_time) + ' ' + formatTime(reviewDetail.scan_time) : '—' }}</span>
-									</div>
-								</div>
-							</section>
-
-							<!-- Current status -->
-							<section class="drawer-section">
-								<div class="section-label">Current Status</div>
-								<div class="detail-grid">
-									<div class="detail-row">
-										<span class="detail-key">Status</span>
-										<span class="detail-val">
-											<span class="status-pill" :class="statusClass(reviewDetail.status)">{{ statusLabel(reviewDetail.status) }}</span>
-										</span>
-									</div>
-									<div v-if="reviewDetail.admin_correction" class="detail-row full-span">
-										<span class="detail-key">Admin Note</span>
-										<span class="detail-val">{{ reviewDetail.admin_correction }}</span>
-									</div>
-								</div>
-							</section>
-						</div>
-
-						<!-- Drawer footer -->
-						<div class="drawer-footer">
-							<button class="btn-modal-cancel" @click="closeReviewDrawer">Close</button>
-							<button
-								class="btn-correct"
-								@click="openCorrectionFromDrawer"
-							>
-								<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-									<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-									<polyline points="9 12 11 14 15 10"></polyline>
-								</svg>
-								Open Correction Modal
-							</button>
-						</div>
-
-					</div>
-				</div>
-			</transition>
-		</Teleport>
-
-		<!-- ══════════════════════════════════════════════════════════════════ -->
-		<!-- CORRECTION MODAL                                                  -->
+		<!-- DETAILED REVIEW MODAL                                             -->
+		<!-- (single review surface — drawer retired in Task 6.5)              -->
 		<!-- ══════════════════════════════════════════════════════════════════ -->
 		<Teleport to="body">
 			<div v-if="modalRow" class="modal-overlay" @click.self="closeModal">
@@ -400,6 +238,61 @@
 							</span>
 						</div>
 					</div>
+
+					<!-- Region (a): hi-res zoomable scan images (loaded via reviewDetail) -->
+					<section class="modal-images">
+						<div class="modal-section-label">Scanned Images</div>
+						<div class="image-row">
+							<div class="scan-image-box">
+								<img
+									v-if="reviewFrontSrc"
+									:src="reviewFrontSrc"
+									alt="Front scan"
+									class="scan-img scan-img--zoomable"
+									title="Click to zoom"
+									@click="openLightbox(reviewFrontSrc, 'Front scan')"
+								/>
+								<div v-else class="scan-img-placeholder">
+									<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35">
+										<rect x="3" y="3" width="18" height="18" rx="2"></rect>
+										<circle cx="8.5" cy="8.5" r="1.5"></circle>
+										<polyline points="21 15 16 10 5 21"></polyline>
+									</svg>
+									<span>No image</span>
+								</div>
+								<div class="image-label">Front</div>
+							</div>
+							<div v-if="reviewBackSrc" class="scan-image-box">
+								<img
+									:src="reviewBackSrc"
+									alt="Back scan"
+									class="scan-img scan-img--zoomable"
+									title="Click to zoom"
+									@click="openLightbox(reviewBackSrc!, 'Back scan')"
+								/>
+								<div class="image-label">Back</div>
+							</div>
+						</div>
+					</section>
+
+					<!-- Region (b): fully un-truncated AI detection notes (loaded via reviewDetail) -->
+					<section v-if="reviewDetail" class="modal-notes-section">
+						<div class="modal-section-label">AI Detection Notes</div>
+						<div class="detail-grid" style="padding: 0 24px 8px">
+							<div class="detail-row full-span">
+								<span class="detail-key">Flag Reason</span>
+								<span class="detail-val flag-reason-text">{{ reviewDetail.clean_flag_reason }}</span>
+							</div>
+							<div v-if="reviewDetail.flag_reason && reviewDetail.flag_reason !== reviewDetail.clean_flag_reason" class="detail-row full-span">
+								<span class="detail-key">Full Flag Reason</span>
+								<span class="detail-val flag-reason-text">{{ reviewDetail.flag_reason }}</span>
+							</div>
+							<div v-if="reviewDetail.ocr_flag_reason && reviewDetail.ocr_flag_reason !== reviewDetail.flag_reason" class="detail-row full-span">
+								<span class="detail-key">Raw OCR Flag</span>
+								<span class="detail-val flag-reason-text mono">{{ reviewDetail.ocr_flag_reason }}</span>
+							</div>
+						</div>
+					</section>
 
 					<div class="modal-section-label">Select an authorized certifying body from the Halal logo library:</div>
 
@@ -582,11 +475,12 @@ const errorMessage = ref<string | null>(null)
 const actingOnId   = ref<number | null>(null)
 const halalLogos   = ref<HalalLogoOption[]>([])
 
-// Review drawer
+// Loaded scan detail — powers the unified review modal's image + notes regions
+// (loaded via GET /api/admin/flagged-scans/[id]; see openReviewDrawer).
 const reviewDetail    = ref<ScanDetail | null>(null)
 const reviewLoadingId = ref<number | null>(null)
 
-// Computed confidence for the review drawer (uses the same deterministic pool)
+// Computed confidence for the loaded scan detail (uses the same deterministic pool)
 const reviewConfidence = computed(() =>
 	reviewDetail.value ? deriveConfidence(reviewDetail.value.id) : 0
 )
@@ -759,32 +653,15 @@ function closeReviewDrawer(): void {
 	reviewDetail.value = null
 }
 
-/** Open the correction modal from inside the drawer. */
-function openCorrectionFromDrawer(): void {
-	if (!reviewDetail.value) return
-	// Build a minimal FlaggedScanRow from the drawer detail so the modal works
-	const row: FlaggedScanRow = {
-		id:               reviewDetail.value.id,
-		product_name:     reviewDetail.value.product_name,
-		brand_name:       reviewDetail.value.brand_name,
-		flag_reason:      reviewDetail.value.flag_reason,
-		clean_flag_reason: reviewDetail.value.clean_flag_reason,
-		status:           reviewDetail.value.status,
-		safety_verdict:   reviewDetail.value.safety_verdict,
-		scanned_by:       reviewDetail.value.scanned_by_name ?? reviewDetail.value.scanned_by_email ?? '',
-		admin_correction: reviewDetail.value.admin_correction,
-		created_at:       reviewDetail.value.created_at,
-		halal_flag_type:  'halal',
-		confidence:       deriveConfidence(reviewDetail.value.id),
-		image_base64:      reviewDetail.value.image_base64,
-		image_base64_back: reviewDetail.value.image_base64_back,
-		thumb_src: reviewDetail.value.image_base64
-			? (reviewDetail.value.image_base64.startsWith('data:')
-				? reviewDetail.value.image_base64
-				: `data:image/jpeg;base64,${reviewDetail.value.image_base64}`)
-			: null,
-	}
-	closeReviewDrawer()
+/**
+ * Unified review open path (Task 6.2): load the scan detail (so the modal's
+ * read-only sections — hi-res images, AI notes, attribution — are populated
+ * from GET /api/admin/flagged-scans/[id]) AND open the correction modal for the
+ * same row. Reuses openReviewDrawer's load (reviewDetail + reviewLoadingId) and
+ * openCorrectionModal's state seeding.
+ */
+async function openReviewModal(row: FlaggedScanRow): Promise<void> {
+	await openReviewDrawer(row.id)
 	openCorrectionModal(row)
 }
 
@@ -810,6 +687,8 @@ function closeModal(): void {
 	modalNote.value           = ''
 	modalError.value          = null
 	modalAction.value         = null
+	// Clear the loaded scan detail now that the single review surface is closed.
+	closeReviewDrawer()
 }
 
 /**
@@ -858,6 +737,7 @@ async function submitCorrection(): Promise<void> {
 		modalNote.value           = ''
 		modalError.value          = null
 		modalAction.value         = null
+		reviewDetail.value        = null
 
 		// 3. Background server refresh (non-blocking — UI already updated)
 		fetchFlaggedScans().catch(console.error)
@@ -894,6 +774,7 @@ async function submitDismiss(): Promise<void> {
 		modalNote.value           = ''
 		modalError.value          = null
 		modalAction.value         = null
+		reviewDetail.value        = null
 
 		fetchFlaggedScans().catch(console.error)
 	} catch (err) {
@@ -1047,7 +928,7 @@ tbody tr:last-child td { border-bottom: none; }
 /* ── Confidence ──────────────────────────────────────────────────────────── */
 .col-confidence { font-weight: 600; font-size: 0.84rem; }
 .conf-red    { color: #dc2626; }
-.conf-yellow { color: #d97706; }
+.conf-yellow { color: #ca8a04; }
 .conf-green  { color: #16a34a; }
 
 /* ── Submitted ───────────────────────────────────────────────────────────── */
@@ -1057,7 +938,7 @@ tbody tr:last-child td { border-bottom: none; }
 /* ── Status Pill ─────────────────────────────────────────────────────────── */
 .status-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.74rem; font-weight: 500; white-space: nowrap; }
 .pill-pending   { background: #fef9c3; color: #a16207; }
-.pill-flagged   { background: #fee2e2; color: #b91c1c; }
+.pill-flagged   { background: #fef9c3; color: #a16207; }
 .pill-approved  { background: #dcfce7; color: #15803d; }
 .pill-dismissed { background: #f1f5f9; color: #64748b; }
 
@@ -1089,46 +970,8 @@ tbody tr:last-child td { border-bottom: none; }
 .error-message { padding: 40px; text-align: center; color: #dc2626; font-size: 0.9rem; }
 
 /* ══════════════════════════════════════════════════════════════════════════ */
-/* REVIEW DRAWER                                                             */
+/* SHARED REVIEW SECTIONS (images + detail grid — used by the modal)         */
 /* ══════════════════════════════════════════════════════════════════════════ */
-.drawer-overlay {
-	position: fixed; inset: 0;
-	background: rgba(15, 23, 42, 0.35);
-	z-index: 900;
-	display: flex; justify-content: flex-end;
-}
-.drawer {
-	width: 480px; max-width: 95vw;
-	height: 100%;
-	background: white;
-	display: flex; flex-direction: column;
-	box-shadow: -8px 0 32px rgba(0,0,0,0.12);
-	overflow: hidden;
-}
-
-/* Drawer slide-in transition */
-.drawer-fade-enter-active, .drawer-fade-leave-active { transition: opacity 0.2s ease; }
-.drawer-fade-enter-active .drawer, .drawer-fade-leave-active .drawer { transition: transform 0.22s ease; }
-.drawer-fade-enter-from, .drawer-fade-leave-to { opacity: 0; }
-.drawer-fade-enter-from .drawer, .drawer-fade-leave-to .drawer { transform: translateX(100%); }
-
-.drawer-header {
-	display: flex; align-items: flex-start; justify-content: space-between;
-	padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9; gap: 12px; flex-shrink: 0;
-}
-.drawer-title-group { display: flex; align-items: flex-start; gap: 12px; }
-.drawer-icon-wrap {
-	width: 34px; height: 34px; border-radius: 9px;
-	background: #f1f5f9; color: #475569;
-	display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.drawer-title { font-size: 0.95rem; font-weight: 600; margin: 0 0 2px; color: #1e293b; }
-.drawer-subtitle { font-size: 0.8rem; color: #64748b; margin: 0; }
-
-.drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
-
-.drawer-section {}
-.section-label { font-size: 0.73rem; font-weight: 700; color: #94a3b8; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 10px; }
 
 /* Scan images */
 .image-row { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -1147,25 +990,11 @@ tbody tr:last-child td { border-bottom: none; }
 .detail-row.full-span { flex-direction: column; gap: 4px; }
 .detail-key { font-size: 0.78rem; font-weight: 600; color: #64748b; min-width: 110px; flex-shrink: 0; padding-top: 1px; }
 .detail-val { font-size: 0.84rem; color: #1e293b; }
-.flag-reason-text { line-height: 1.5; color: #475569; }
+.flag-reason-text { line-height: 1.5; color: #475569; white-space: pre-wrap; word-break: break-word; }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; }
 
-/* OCR text block */
-.ocr-text {
-	background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
-	padding: 12px 14px; font-size: 0.78rem; line-height: 1.6;
-	color: #334155; white-space: pre-wrap; word-break: break-word;
-	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-	max-height: 160px; overflow-y: auto; margin: 0;
-}
-
-.drawer-footer {
-	display: flex; align-items: center; justify-content: flex-end;
-	gap: 8px; padding: 16px 24px; border-top: 1px solid #f1f5f9; flex-shrink: 0;
-}
-
 /* ══════════════════════════════════════════════════════════════════════════ */
-/* CORRECTION MODAL                                                          */
+/* DETAILED REVIEW MODAL                                                     */
 /* ══════════════════════════════════════════════════════════════════════════ */
 .modal-overlay {
 	position: fixed; inset: 0;
@@ -1191,6 +1020,7 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-close:hover { color: #334155; background: #f1f5f9; }
 .modal-flag-context { padding: 14px 24px 0; }
 .modal-section-label { padding: 16px 24px 10px; font-size: 0.8rem; font-weight: 600; color: #475569; letter-spacing: 0.03em; }
+.modal-images .image-row { padding: 0 24px; }
 .empty-logos { padding: 16px 24px; color: #94a3b8; font-size: 0.85rem; }
 .logo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; padding: 0 24px 16px; }
 .logo-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 12px 12px; border: 2px solid #e2e8f0; border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }

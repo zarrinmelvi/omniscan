@@ -270,13 +270,21 @@ async function fetchSettings(): Promise<void> {
 	isLoading.value = true
 	errorMessage.value = null
 
+	// Capture the authoritative theme value BEFORE the load. localStorage is the
+	// source of truth for the live theme; a stale/absent backend value must never
+	// downgrade it.
+	const localDarkMode = localStorage.getItem(DARK_MODE_KEY) === 'true'
+
 	try {
 		const data = await apiFetch<typeof form>('/api/admin/settings', {
 			method: 'GET',
 			isAdmin: true,
 		})
 		Object.assign(form, data)
-		// Reconcile the applied theme with the persisted backend value.
+		// localStorage wins over the backend for the live theme: re-affirm the
+		// local value after the merge so an absent/false backend value cannot
+		// strip ion-palette-dark on load.
+		form.darkMode = localDarkMode
 		applyDarkMode(form.darkMode)
 	} catch (err) {
 		// If endpoint is not created yet, fail silently and keep local default state

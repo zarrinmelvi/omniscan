@@ -808,10 +808,10 @@ onIonViewWillEnter(() => {
 	grid-auto-rows: 1fr; /* Equal height cards */
 }
 
-/* Mobile: single column */
+/* Mobile: two columns */
 @media (max-width: 767px) {
 	.card-grid {
-		grid-template-columns: 1fr;
+		grid-template-columns: repeat(2, 1fr);
 		gap: 12px;
 	}
 }
@@ -824,10 +824,10 @@ onIonViewWillEnter(() => {
 	}
 }
 
-/* Desktop: 3 columns */
+/* Desktop: 4 columns */
 @media (min-width: 1024px) {
 	.card-grid {
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(4, 1fr);
 		gap: 20px;
 	}
 }

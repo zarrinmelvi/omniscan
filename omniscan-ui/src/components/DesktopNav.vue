@@ -1,7 +1,6 @@
 <template>
 	<nav class="desktop-nav">
 		<div class="nav-header">
-			<img src="/favicon.png" alt="OmniScan Logo" class="nav-logo" />
 			<h1 class="nav-title">OmniScan</h1>
 		</div>
 		<ul class="nav-menu">
@@ -17,13 +16,20 @@
 
 <script setup lang="ts">
 import { IonIcon } from '@ionic/vue'
-import { homeOutline, cameraOutline, cubeOutline, restaurantOutline } from 'ionicons/icons'
+import {
+	homeOutline,
+	cubeOutline,
+	cloudUploadOutline,
+	restaurantOutline,
+	personOutline,
+} from 'ionicons/icons'
 
 const navItems = [
 	{ path: '/tabs/home', label: 'Home', icon: homeOutline },
-	{ path: '/tabs/scan', label: 'Scan', icon: cameraOutline },
 	{ path: '/tabs/pantry', label: 'Pantry', icon: cubeOutline },
+	{ path: '/tabs/scan', label: 'Upload', icon: cloudUploadOutline },
 	{ path: '/tabs/recipes', label: 'Recipes', icon: restaurantOutline },
+	{ path: '/tabs/profile', label: 'Profile', icon: personOutline },
 ]
 </script>
 
@@ -34,8 +40,8 @@ const navItems = [
 	top: 0;
 	bottom: 0;
 	width: 260px;
-	background: var(--ion-background-color);
-	border-right: 1px solid var(--ion-border-color);
+	background: #ffffff;
+	border-right: 1px solid var(--ion-border-color, #e5e7eb);
 	padding: 24px 0;
 	overflow-y: auto;
 	z-index: 1000;
@@ -43,18 +49,13 @@ const navItems = [
 
 .nav-header {
 	padding: 0 24px 24px;
-	border-bottom: 1px solid var(--ion-border-color);
-}
-
-.nav-logo {
-	width: 48px;
-	height: 48px;
-	margin-bottom: 12px;
+	border-bottom: 1px solid var(--ion-border-color, #e5e7eb);
 }
 
 .nav-title {
 	font-size: 20px;
-	font-weight: 600;
+	font-weight: 700;
+	color: #05c450;
 	margin: 0;
 }
 
@@ -62,30 +63,39 @@ const navItems = [
 	list-style: none;
 	padding: 16px 0;
 	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
 }
 
 .nav-item {
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	padding: 12px 24px;
-	color: var(--ion-text-color);
+	padding: 11px 14px;
+	margin: 0 12px;
+	border-radius: 10px;
+	color: #374151;
 	text-decoration: none;
-	transition: background 0.2s;
+	transition: background 0.2s, color 0.2s;
 	min-height: 44px; /* Touch target size */
 }
 
 .nav-item:hover {
-	background: var(--ion-color-light);
+	background: #f1f5f3;
 }
 
 .nav-item--active {
-	background: var(--ion-color-primary-tint);
-	color: var(--ion-color-primary);
+	background: #e9f9ef;
+	color: #00a651;
 	font-weight: 600;
 }
 
+.nav-item--active ion-icon {
+	color: #05c450;
+}
+
 .nav-item ion-icon {
-	font-size: 24px;
+	font-size: 22px;
 }
 </style>

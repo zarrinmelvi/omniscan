@@ -184,6 +184,11 @@ function onModalClosed(): void {
 
 // Checks if an active process or modal state requires unsaved progress confirmation
 const hasUnsavedScan = computed(() => {
+	// If the item is detected as a non-food product, directly bypass the "Unsaved Item" guard
+	if (analysisResult.value?.isNotProduct) {
+		return false
+	}
+
 	return (
 		isUploading.value ||
 		captureStage.value === 'back' ||
@@ -799,16 +804,18 @@ onBeforeUnmount(() => {
 	background: #f8fafc;
 	border: 1px solid #e2e8f0;
 	border-radius: 16px;
-	padding: 16px 18px;
+	padding: 18px 20px !important;
 	text-align: center;
 	color: #334155;
-	font-size: 0.88rem;
+	font-size: 0.9rem;
+	box-sizing: border-box;
 }
 
 .back-prompt-text {
-	margin: 0;
-	line-height: 1.55;
+	margin: 0 0 12px 0 !important;
+	line-height: 1.6 !important;
 	color: #334155;
+	font-weight: 400;
 }
 
 .back-prompt-text strong {
@@ -818,10 +825,10 @@ onBeforeUnmount(() => {
 
 .skip-btn {
 	--color: #0284c7;
-	margin-top: 10px;
+	margin-top: 8px !important;
 	font-weight: 700;
 	font-size: 0.8rem;
-	letter-spacing: 0.4px;
+	letter-spacing: 0.5px;
 }
 
 .btn-primary {

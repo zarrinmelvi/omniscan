@@ -5,7 +5,6 @@
 		<header class="page-header">
 			<div class="header-left">
 				<div class="header-icon">
-					<!-- Halal crescent-and-star shield icon -->
 					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 						<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
 						<path d="M9.5 9a3.5 3.5 0 1 0 4.47 4.9"></path>
@@ -22,7 +21,6 @@
 		<!-- ── Metric Cards ────────────────────────────────────────────────── -->
 		<div v-if="!isLoading && !errorMessage" class="summary-cards">
 
-			<!-- Unverified Halal Logos -->
 			<div class="summary-card red">
 				<div class="card-icon-wrap red-bg">
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -37,7 +35,6 @@
 				</div>
 			</div>
 
-			<!-- Pending Halal Review -->
 			<div class="summary-card yellow">
 				<div class="card-icon-wrap yellow-bg">
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -51,7 +48,6 @@
 				</div>
 			</div>
 
-			<!-- Logo Corrections -->
 			<div class="summary-card blue">
 				<div class="card-icon-wrap blue-bg">
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -65,7 +61,6 @@
 				</div>
 			</div>
 
-			<!-- Certified / Resolved -->
 			<div class="summary-card green">
 				<div class="card-icon-wrap green-bg">
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -82,8 +77,6 @@
 
 		<!-- ── Table Card ──────────────────────────────────────────────────── -->
 		<div class="panel-card">
-
-			<!-- Controls bar -->
 			<div class="controls-bar">
 				<div class="search-box">
 					<svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -96,23 +89,17 @@
 					<svg class="filter-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 						<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
 					</svg>
-
-					<!-- Halal sub-type filter -->
 					<select v-model="filterHalalType" class="filter-select">
 						<option value="all">All Halal Flags</option>
 						<option value="logo">Unverified Logo</option>
 						<option value="slaughter">Slaughter Cert.</option>
 						<option value="stamp">Compliance Stamp</option>
 					</select>
-
-					<!-- Verdict filter -->
 					<select v-model="filterVerdict" class="filter-select">
 						<option value="all">All Verdicts</option>
 						<option value="red">Red</option>
 						<option value="yellow">Yellow</option>
 					</select>
-
-					<!-- Status filter -->
 					<select v-model="filterStatus" class="filter-select">
 						<option value="all">All Statuses</option>
 						<option value="pending">Pending</option>
@@ -123,14 +110,10 @@
 				</div>
 			</div>
 
-			<!-- States -->
 			<p v-if="isLoading" class="state-message">Loading Halal verification queue…</p>
 			<p v-else-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-			<p v-else-if="filteredRows.length === 0" class="empty-note">
-				No Halal compliance flags match the selected criteria.
-			</p>
+			<p v-else-if="filteredRows.length === 0" class="empty-note">No Halal compliance flags match the selected criteria.</p>
 
-			<!-- Table -->
 			<div v-else class="table-wrap">
 				<table class="scans-table">
 					<thead>
@@ -147,10 +130,8 @@
 					<tbody>
 						<tr v-for="row in filteredRows" :key="row.id">
 
-							<!-- ID -->
 							<td class="col-id cell-id">#{{ row.id }}</td>
 
-							<!-- Product -->
 							<td class="col-product">
 								<div class="product-cell">
 									<div class="product-thumb">
@@ -164,7 +145,6 @@
 								</div>
 							</td>
 
-							<!-- Halal Flag badge -->
 							<td class="col-flag">
 								<div class="flag-capsule" :class="verdictClass(row.safety_verdict)">
 									<span class="flag-dot"></span>
@@ -175,34 +155,31 @@
 								</div>
 							</td>
 
-							<!-- Confidence -->
 							<td class="col-confidence">
-								<span :class="confidenceClass(row.safety_verdict, row.confidence)">
-									{{ row.confidence }}%
-								</span>
+								<span :class="confidenceClass(row.safety_verdict, row.confidence)">{{ row.confidence }}%</span>
 							</td>
 
-							<!-- Submitted -->
 							<td class="col-submitted">
 								<div>{{ formatDate(row.created_at) }}</div>
 								<div class="time-subtext">{{ formatTime(row.created_at) }}</div>
 							</td>
 
-							<!-- Status -->
 							<td class="col-status">
-								<span class="status-pill" :class="statusClass(row.status)">
-									{{ statusLabel(row.status) }}
-								</span>
+								<span class="status-pill" :class="statusClass(row.status)">{{ statusLabel(row.status) }}</span>
 							</td>
 
-							<!-- Actions -->
 							<td class="col-actions">
 								<div class="btn-row">
 									<button
 										class="btn-review"
-										:disabled="actingOnId === row.id"
-										@click="approve(row.id)"
-									>Review</button>
+										:disabled="reviewLoadingId === row.id"
+										@click="openReviewDrawer(row.id)"
+									>
+										<svg v-if="reviewLoadingId === row.id" class="spin-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+											<path d="M21 12a9 9 0 1 1-6.22-8.56"></path>
+										</svg>
+										{{ reviewLoadingId === row.id ? 'Loading…' : 'Review' }}
+									</button>
 									<button
 										class="btn-correct"
 										:disabled="actingOnId === row.id"
@@ -223,12 +200,168 @@
 			</div>
 		</div>
 
-		<!-- ── Correction Modal ────────────────────────────────────────────── -->
+		<!-- ══════════════════════════════════════════════════════════════════ -->
+		<!-- REVIEW DRAWER                                                     -->
+		<!-- ══════════════════════════════════════════════════════════════════ -->
+		<Teleport to="body">
+			<transition name="drawer-fade">
+				<div v-if="reviewDetail" class="drawer-overlay" @click.self="closeReviewDrawer">
+					<div class="drawer" role="dialog" aria-modal="true" aria-label="Scan Review">
+
+						<!-- Drawer header -->
+						<div class="drawer-header">
+							<div class="drawer-title-group">
+								<div class="drawer-icon-wrap">
+									<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+										<circle cx="11" cy="11" r="8"></circle>
+										<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+									</svg>
+								</div>
+								<div>
+									<h2 class="drawer-title">Scan Review</h2>
+									<p class="drawer-subtitle">Flag #{{ reviewDetail.id }} · {{ reviewDetail.brand_name }} {{ reviewDetail.product_name }}</p>
+								</div>
+							</div>
+							<button class="modal-close" @click="closeReviewDrawer" aria-label="Close drawer">
+								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<line x1="18" y1="6" x2="6" y2="18"></line>
+									<line x1="6" y1="6" x2="18" y2="18"></line>
+								</svg>
+							</button>
+						</div>
+
+						<!-- Drawer body -->
+						<div class="drawer-body">
+
+							<!-- Product images -->
+							<section class="drawer-section">
+								<div class="section-label">Scanned Images</div>
+								<div class="image-row">
+									<div class="scan-image-box">
+										<img
+											v-if="reviewDetail.image_url"
+											:src="reviewDetail.image_url"
+											alt="Front scan"
+											class="scan-img"
+										/>
+										<div v-else class="scan-img-placeholder">
+											<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35">
+												<rect x="3" y="3" width="18" height="18" rx="2"></rect>
+												<circle cx="8.5" cy="8.5" r="1.5"></circle>
+												<polyline points="21 15 16 10 5 21"></polyline>
+											</svg>
+											<span>No image</span>
+										</div>
+										<div class="image-label">Front</div>
+									</div>
+									<div v-if="reviewDetail.image_url_back" class="scan-image-box">
+										<img :src="reviewDetail.image_url_back" alt="Back scan" class="scan-img" />
+										<div class="image-label">Back</div>
+									</div>
+								</div>
+							</section>
+
+							<!-- AI flags -->
+							<section class="drawer-section">
+								<div class="section-label">AI Flags</div>
+								<div class="detail-grid">
+									<div class="detail-row">
+										<span class="detail-key">Verdict</span>
+										<span class="detail-val">
+											<span class="status-pill" :class="verdictClass(reviewDetail.safety_verdict) === 'red' ? 'pill-flagged' : 'pill-pending'">
+												{{ (reviewDetail.safety_verdict ?? 'Unknown').toUpperCase() }}
+											</span>
+										</span>
+									</div>
+									<div class="detail-row">
+										<span class="detail-key">Confidence</span>
+										<span class="detail-val" :class="confidenceClass(reviewDetail.safety_verdict, reviewConfidence)">{{ reviewConfidence }}%</span>
+									</div>
+									<div class="detail-row">
+										<span class="detail-key">Flag Type</span>
+										<span class="detail-val">{{ halalFlagLabel(reviewDetail.flag_reason) }}</span>
+									</div>
+									<div class="detail-row full-span">
+										<span class="detail-key">Flag Reason</span>
+										<span class="detail-val flag-reason-text">{{ reviewDetail.flag_reason }}</span>
+									</div>
+									<div v-if="reviewDetail.ocr_flag_reason && reviewDetail.ocr_flag_reason !== reviewDetail.flag_reason" class="detail-row full-span">
+										<span class="detail-key">Raw OCR Flag</span>
+										<span class="detail-val flag-reason-text mono">{{ reviewDetail.ocr_flag_reason }}</span>
+									</div>
+								</div>
+							</section>
+
+							<!-- Ingredient OCR -->
+							<section v-if="reviewDetail.ingredient_text" class="drawer-section">
+								<div class="section-label">OCR — Ingredient Text</div>
+								<pre class="ocr-text">{{ reviewDetail.ingredient_text }}</pre>
+							</section>
+
+							<!-- User attribution -->
+							<section class="drawer-section">
+								<div class="section-label">User Attribution</div>
+								<div class="detail-grid">
+									<div class="detail-row">
+										<span class="detail-key">Name</span>
+										<span class="detail-val">{{ reviewDetail.scanned_by_name ?? '—' }}</span>
+									</div>
+									<div class="detail-row">
+										<span class="detail-key">Email</span>
+										<span class="detail-val">{{ reviewDetail.scanned_by_email ?? '—' }}</span>
+									</div>
+									<div class="detail-row">
+										<span class="detail-key">Scanned at</span>
+										<span class="detail-val">{{ reviewDetail.scan_time ? formatDate(reviewDetail.scan_time) + ' ' + formatTime(reviewDetail.scan_time) : '—' }}</span>
+									</div>
+								</div>
+							</section>
+
+							<!-- Current status -->
+							<section class="drawer-section">
+								<div class="section-label">Current Status</div>
+								<div class="detail-grid">
+									<div class="detail-row">
+										<span class="detail-key">Status</span>
+										<span class="detail-val">
+											<span class="status-pill" :class="statusClass(reviewDetail.status)">{{ statusLabel(reviewDetail.status) }}</span>
+										</span>
+									</div>
+									<div v-if="reviewDetail.admin_correction" class="detail-row full-span">
+										<span class="detail-key">Admin Note</span>
+										<span class="detail-val">{{ reviewDetail.admin_correction }}</span>
+									</div>
+								</div>
+							</section>
+						</div>
+
+						<!-- Drawer footer -->
+						<div class="drawer-footer">
+							<button class="btn-modal-cancel" @click="closeReviewDrawer">Close</button>
+							<button
+								class="btn-correct"
+								@click="openCorrectionFromDrawer"
+							>
+								<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+									<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+									<polyline points="9 12 11 14 15 10"></polyline>
+								</svg>
+								Open Correction Modal
+							</button>
+						</div>
+
+					</div>
+				</div>
+			</transition>
+		</Teleport>
+
+		<!-- ══════════════════════════════════════════════════════════════════ -->
+		<!-- CORRECTION MODAL                                                  -->
+		<!-- ══════════════════════════════════════════════════════════════════ -->
 		<Teleport to="body">
 			<div v-if="modalRow" class="modal-overlay" @click.self="closeModal">
 				<div class="modal" role="dialog" aria-modal="true" :aria-label="`Assign Halal certifying body for ${modalRow.product_name}`">
 
-					<!-- Modal header -->
 					<div class="modal-header">
 						<div class="modal-title-group">
 							<div class="modal-icon-wrap">
@@ -250,9 +383,8 @@
 						</button>
 					</div>
 
-					<!-- Flag context -->
 					<div class="modal-flag-context">
-						<div class="flag-capsule" :class="verdictClass(modalRow.safety_verdict)" style="max-width:100%;">
+						<div class="flag-capsule" :class="verdictClass(modalRow.safety_verdict)" style="max-width:100%">
 							<span class="flag-dot"></span>
 							<span class="flag-text">
 								<strong>{{ halalFlagLabel(modalRow.flag_reason) }}</strong>
@@ -261,7 +393,6 @@
 						</div>
 					</div>
 
-					<!-- Logo library grid -->
 					<div class="modal-section-label">Select an authorized certifying body from the Halal logo library:</div>
 
 					<div v-if="halalLogos.length === 0" class="empty-logos">No Halal logos found in library.</div>
@@ -297,7 +428,6 @@
 						</button>
 					</div>
 
-					<!-- Notes field -->
 					<div class="modal-notes">
 						<label class="notes-label" :for="`modal-notes-${modalRow.id}`">Admin note (optional)</label>
 						<textarea
@@ -309,14 +439,14 @@
 						></textarea>
 					</div>
 
-					<!-- Modal footer -->
+					<!-- Error message inside modal -->
+					<p v-if="modalError" class="modal-error">{{ modalError }}</p>
+
 					<div class="modal-footer">
-						<button class="btn-modal-cancel" @click="closeModal">Cancel</button>
-						<button
-							class="btn-modal-dismiss"
-							:disabled="modalActing"
-							@click="submitDismiss"
-						>Dismiss Flag</button>
+						<button class="btn-modal-cancel" :disabled="modalActing" @click="closeModal">Cancel</button>
+						<button class="btn-modal-dismiss" :disabled="modalActing" @click="submitDismiss">
+							{{ modalActing && modalAction === 'dismiss' ? 'Dismissing…' : 'Dismiss Flag' }}
+						</button>
 						<button
 							class="btn-modal-certify"
 							:disabled="!modalSelectedLogoId || modalActing"
@@ -326,7 +456,7 @@
 								<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
 								<polyline points="9 12 11 14 15 10"></polyline>
 							</svg>
-							{{ modalActing ? 'Saving…' : 'Certify & Resolve' }}
+							{{ modalActing && modalAction === 'certify' ? 'Certifying…' : 'Certify & Resolve' }}
 						</button>
 					</div>
 
@@ -365,6 +495,26 @@ interface FlaggedScansResponse {
 	flagged_scans: FlaggedScanRaw[]
 }
 
+interface ScanDetail {
+	id: number
+	flag_reason: string
+	status: string
+	admin_correction: string | null
+	created_at: string
+	scan_id: number | null
+	image_url: string | null
+	image_url_back: string | null
+	scan_time: string | null
+	ai_confidence_score: number | null
+	safety_verdict: string | null
+	ocr_flag_reason: string | null
+	product_name: string
+	brand_name: string
+	ingredient_text: string | null
+	scanned_by_name: string | null
+	scanned_by_email: string | null
+}
+
 interface HalalLogoOption {
 	id: number
 	certifier: string
@@ -382,24 +532,34 @@ function deriveConfidence(id: number): number {
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
-const rawScans   = ref<FlaggedScanRaw[]>([])
-const isLoading  = ref(true)
+const rawScans     = ref<FlaggedScanRaw[]>([])
+const isLoading    = ref(true)
 const errorMessage = ref<string | null>(null)
-const actingOnId = ref<number | null>(null)
+const actingOnId   = ref<number | null>(null)
+const halalLogos   = ref<HalalLogoOption[]>([])
 
-const halalLogos = ref<HalalLogoOption[]>([])
+// Review drawer
+const reviewDetail    = ref<ScanDetail | null>(null)
+const reviewLoadingId = ref<number | null>(null)
 
-// Modal state
-const modalRow             = ref<FlaggedScanRow | null>(null)
-const modalSelectedLogoId  = ref<number | null>(null)
-const modalNote            = ref('')
-const modalActing          = ref(false)
+// Computed confidence for the review drawer (uses the same deterministic pool)
+const reviewConfidence = computed(() =>
+	reviewDetail.value ? deriveConfidence(reviewDetail.value.id) : 0
+)
+
+// Correction modal
+const modalRow            = ref<FlaggedScanRow | null>(null)
+const modalSelectedLogoId = ref<number | null>(null)
+const modalNote           = ref('')
+const modalActing         = ref(false)
+const modalAction         = ref<'certify' | 'dismiss' | null>(null)
+const modalError          = ref<string | null>(null)
 
 // Filters
-const searchQuery    = ref('')
+const searchQuery     = ref('')
 const filterHalalType = ref('all')
-const filterVerdict  = ref('all')
-const filterStatus   = ref('all')
+const filterVerdict   = ref('all')
+const filterStatus    = ref('all')
 
 // ─── Derived rows ─────────────────────────────────────────────────────────────
 
@@ -427,34 +587,26 @@ const counts = computed(() => {
 
 const filteredRows = computed<FlaggedScanRow[]>(() =>
 	flaggedScans.value.filter((row) => {
-		// Text search
 		const q = searchQuery.value.trim().toLowerCase()
 		if (q) {
 			const name = `${row.brand_name} ${row.product_name}`.toLowerCase()
 			if (!name.includes(q) && !`#${row.id}`.includes(q) && !row.scanned_by.toLowerCase().includes(q)) return false
 		}
-
-		// Halal sub-type filter
 		if (filterHalalType.value !== 'all') {
 			const r = row.flag_reason.toLowerCase()
 			if (filterHalalType.value === 'logo'      && !r.includes('logo'))      return false
 			if (filterHalalType.value === 'slaughter' && !r.includes('slaughter')) return false
 			if (filterHalalType.value === 'stamp'     && !r.includes('stamp') && !r.includes('compliance')) return false
 		}
-
-		// Verdict filter
 		if (filterVerdict.value !== 'all') {
 			if ((row.safety_verdict ?? '').toLowerCase() !== filterVerdict.value) return false
 		}
-
-		// Status filter
 		if (filterStatus.value !== 'all') {
 			const s = row.status.toLowerCase()
-			if (filterStatus.value === 'approved'  && s !== 'approved'  && s !== 'verified') return false
-			if (filterStatus.value === 'dismissed' && s !== 'dismissed' && s !== 'rejected') return false
+			if (filterStatus.value === 'approved'  && s !== 'approved'  && s !== 'verified')  return false
+			if (filterStatus.value === 'dismissed' && s !== 'dismissed' && s !== 'rejected')  return false
 			if (filterStatus.value !== 'approved' && filterStatus.value !== 'dismissed' && s !== filterStatus.value) return false
 		}
-
 		return true
 	})
 )
@@ -487,7 +639,6 @@ function statusLabel(status: string): string {
 	return status.charAt(0).toUpperCase() + status.slice(1)
 }
 
-/** Maps a flag_reason string to a concise human-readable Halal flag type. */
 function halalFlagLabel(flag_reason: string): string {
 	const r = flag_reason.toLowerCase()
 	if (r.includes('slaughter')) return 'Slaughter Cert.'
@@ -506,85 +657,171 @@ function formatTime(iso: string): string {
 	return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 }
 
-// ─── Modal ────────────────────────────────────────────────────────────────────
+// ─── Review Drawer ────────────────────────────────────────────────────────────
 
-function openCorrectionModal(row: FlaggedScanRow): void {
-	modalRow.value = row
-	modalSelectedLogoId.value = null
-	modalNote.value = ''
+async function openReviewDrawer(id: number): Promise<void> {
+	reviewLoadingId.value = id
+	try {
+		const res = await apiFetch<{ success: boolean; detail: ScanDetail }>(
+			`/api/admin/flagged-scans/${id}`,
+			{ method: 'GET', isAdmin: true }
+		)
+		reviewDetail.value = res.detail
+	} catch (err) {
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load scan detail.'
+	} finally {
+		reviewLoadingId.value = null
+	}
 }
 
+function closeReviewDrawer(): void {
+	reviewDetail.value = null
+}
+
+/** Open the correction modal from inside the drawer. */
+function openCorrectionFromDrawer(): void {
+	if (!reviewDetail.value) return
+	// Build a minimal FlaggedScanRow from the drawer detail so the modal works
+	const row: FlaggedScanRow = {
+		id:               reviewDetail.value.id,
+		product_name:     reviewDetail.value.product_name,
+		brand_name:       reviewDetail.value.brand_name,
+		flag_reason:      reviewDetail.value.flag_reason,
+		status:           reviewDetail.value.status,
+		safety_verdict:   reviewDetail.value.safety_verdict,
+		scanned_by:       reviewDetail.value.scanned_by_name ?? reviewDetail.value.scanned_by_email ?? '',
+		admin_correction: reviewDetail.value.admin_correction,
+		created_at:       reviewDetail.value.created_at,
+		halal_flag_type:  'halal',
+		confidence:       deriveConfidence(reviewDetail.value.id),
+		image_url:        reviewDetail.value.image_url,
+	}
+	closeReviewDrawer()
+	openCorrectionModal(row)
+}
+
+// ─── Correction Modal ─────────────────────────────────────────────────────────
+
+function openCorrectionModal(row: FlaggedScanRow): void {
+	modalRow.value            = row
+	modalSelectedLogoId.value = null
+	modalNote.value           = ''
+	modalError.value          = null
+	modalAction.value         = null
+}
+
+/**
+ * Close the modal only when we are NOT mid-request.
+ * Called manually (Cancel / × button). NOT called inside submitCorrection /
+ * submitDismiss — those clear state themselves after the fetch resolves.
+ */
 function closeModal(): void {
 	if (modalActing.value) return
-	modalRow.value = null
+	modalRow.value            = null
 	modalSelectedLogoId.value = null
-	modalNote.value = ''
+	modalNote.value           = ''
+	modalError.value          = null
+	modalAction.value         = null
+}
+
+/**
+ * Apply the local optimistic state update so the table row and counters
+ * update instantly without waiting for a full refetch, then refresh from
+ * the server in the background.
+ */
+function applyLocalStatusUpdate(id: number, newStatus: string, adminCorrection?: string): void {
+	const idx = rawScans.value.findIndex((s) => s.id === id)
+	if (idx !== -1) {
+		rawScans.value[idx] = {
+			...rawScans.value[idx],
+			status: newStatus,
+			admin_correction: adminCorrection ?? rawScans.value[idx].admin_correction,
+		}
+	}
 }
 
 async function submitCorrection(): Promise<void> {
 	if (!modalRow.value || !modalSelectedLogoId.value) return
+
+	const id         = modalRow.value.id
+	const logoId     = modalSelectedLogoId.value
+	const note       = modalNote.value
+
 	modalActing.value = true
+	modalAction.value = 'certify'
+	modalError.value  = null
+
 	try {
-		await apiFetch(`/api/admin/flagged-scans/${modalRow.value.id}/approve`, {
+		await apiFetch(`/api/admin/flagged-scans/${id}/approve`, {
 			method: 'POST',
 			body: {
-				halal_logo_id: modalSelectedLogoId.value,
-				admin_correction: modalNote.value || undefined,
+				halal_logo_id:    logoId,
+				admin_correction: note || undefined,
 			},
 			isAdmin: true,
 		})
-		closeModal()
-		await fetchFlaggedScans()
+
+		// 1. Optimistic update — row badge + counters flip immediately
+		applyLocalStatusUpdate(id, 'approved', note || undefined)
+
+		// 2. Clear modal state — safe now because the request succeeded
+		modalRow.value            = null
+		modalSelectedLogoId.value = null
+		modalNote.value           = ''
+		modalError.value          = null
+		modalAction.value         = null
+
+		// 3. Background server refresh (non-blocking — UI already updated)
+		fetchFlaggedScans().catch(console.error)
 	} catch (err) {
-		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to certify scan.'
+		// Keep modal open, show error inside it
+		modalError.value = err instanceof ApiError ? err.message : 'Failed to certify scan. Please try again.'
 	} finally {
 		modalActing.value = false
+		modalAction.value = null
 	}
 }
 
 async function submitDismiss(): Promise<void> {
 	if (!modalRow.value) return
+
+	const id   = modalRow.value.id
+	const note = modalNote.value
+
 	modalActing.value = true
+	modalAction.value = 'dismiss'
+	modalError.value  = null
+
 	try {
-		await apiFetch(`/api/admin/flagged-scans/${modalRow.value.id}/dismiss`, {
+		await apiFetch(`/api/admin/flagged-scans/${id}/dismiss`, {
 			method: 'POST',
-			body: { admin_correction: modalNote.value || undefined },
+			body: { admin_correction: note || undefined },
 			isAdmin: true,
 		})
-		closeModal()
-		await fetchFlaggedScans()
+
+		applyLocalStatusUpdate(id, 'dismissed', note || undefined)
+
+		modalRow.value            = null
+		modalSelectedLogoId.value = null
+		modalNote.value           = ''
+		modalError.value          = null
+		modalAction.value         = null
+
+		fetchFlaggedScans().catch(console.error)
 	} catch (err) {
-		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to dismiss scan.'
+		modalError.value = err instanceof ApiError ? err.message : 'Failed to dismiss scan. Please try again.'
 	} finally {
 		modalActing.value = false
-	}
-}
-
-// ─── Direct Review (table button — approve with no logo selection) ────────────
-
-async function approve(id: number): Promise<void> {
-	actingOnId.value = id
-	try {
-		await apiFetch(`/api/admin/flagged-scans/${id}/approve`, {
-			method: 'POST',
-			body: {},
-			isAdmin: true,
-		})
-		await fetchFlaggedScans()
-	} catch (err) {
-		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to approve scan.'
-	} finally {
-		actingOnId.value = null
+		modalAction.value = null
 	}
 }
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 
 async function fetchFlaggedScans(): Promise<void> {
-	isLoading.value = true
+	isLoading.value    = true
 	errorMessage.value = null
 	try {
-		// Default to halal-only; admin can filter to 'all' via the controls bar
 		const data = await apiFetch<FlaggedScansResponse>('/api/admin/flagged-scans?type=halal', {
 			method: 'GET',
 			isAdmin: true,
@@ -648,30 +885,23 @@ h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 4px; color: #1e293b; }
 	margin-bottom: 24px;
 }
 .summary-card {
-	background: white;
-	border-radius: 12px;
+	background: white; border-radius: 12px;
 	padding: 16px 20px;
-	display: flex;
-	align-items: center;
-	gap: 14px;
+	display: flex; align-items: center; gap: 14px;
 	border: 1px solid #e2e8f0;
 }
 .summary-card.red    { border-color: #fecaca; background-color: #fef2f2; }
 .summary-card.yellow { border-color: #fef08a; background-color: #fefce8; }
 .summary-card.blue   { border-color: #bfdbfe; background-color: #eff6ff; }
 .summary-card.green  { border-color: #bbf7d0; background-color: #f0fdf4; }
-
 .card-icon-wrap {
-	width: 38px; height: 38px;
-	border-radius: 10px;
-	display: flex; align-items: center; justify-content: center;
-	flex-shrink: 0;
+	width: 38px; height: 38px; border-radius: 10px;
+	display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .red-bg    { background-color: #fee2e2; color: #dc2626; }
 .yellow-bg { background-color: #fef9c3; color: #ca8a04; }
 .blue-bg   { background-color: #dbeafe; color: #2563eb; }
 .green-bg  { background-color: #dcfce7; color: #16a34a; }
-
 .card-text { display: flex; flex-direction: column; gap: 2px; }
 .summary-value { font-size: 1.5rem; font-weight: 700; line-height: 1; }
 .summary-label { font-size: 0.77rem; font-weight: 500; color: #64748b; }
@@ -681,102 +911,44 @@ h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 4px; color: #1e293b; }
 .green-text  { color: #16a34a; }
 
 /* ── Panel Card ──────────────────────────────────────────────────────────── */
-.panel-card {
-	background: white;
-	border: 1px solid #e2e8f0;
-	border-radius: 12px;
-	overflow: hidden;
-}
+.panel-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
 
 /* ── Controls Bar ────────────────────────────────────────────────────────── */
 .controls-bar {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 14px 20px;
-	border-bottom: 1px solid #f1f5f9;
-	gap: 12px;
+	display: flex; justify-content: space-between; align-items: center;
+	padding: 14px 20px; border-bottom: 1px solid #f1f5f9; gap: 12px;
 }
 .search-box {
-	display: flex;
-	align-items: center;
-	background: white;
-	border: 1px solid #cbd5e1;
-	border-radius: 8px;
-	padding: 7px 12px;
-	width: 300px;
-	flex-shrink: 0;
+	display: flex; align-items: center;
+	background: white; border: 1px solid #cbd5e1; border-radius: 8px;
+	padding: 7px 12px; width: 300px; flex-shrink: 0;
 }
 .search-icon { color: #94a3b8; margin-right: 9px; flex-shrink: 0; }
-.search-box input {
-	border: none; outline: none; width: 100%;
-	font-size: 0.84rem; color: #334155; background: transparent;
-}
+.search-box input { border: none; outline: none; width: 100%; font-size: 0.84rem; color: #334155; background: transparent; }
 .filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .filter-icon { color: #94a3b8; margin-right: 2px; flex-shrink: 0; }
-.filter-select {
-	background: white;
-	border: 1px solid #cbd5e1;
-	border-radius: 8px;
-	padding: 7px 12px;
-	font-size: 0.82rem;
-	color: #334155;
-	outline: none;
-	cursor: pointer;
-}
+.filter-select { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 7px 12px; font-size: 0.82rem; color: #334155; outline: none; cursor: pointer; }
 
 /* ── Table ───────────────────────────────────────────────────────────────── */
 .table-wrap { overflow-x: auto; }
 .scans-table { width: 100%; border-collapse: collapse; min-width: 860px; }
-th {
-	text-align: left;
-	padding: 13px 20px;
-	font-size: 0.715rem; font-weight: 700; color: #64748b;
-	background: #f8fafc;
-	border-bottom: 1px solid #e2e8f0;
-	letter-spacing: 0.05em; white-space: nowrap;
-}
-td {
-	padding: 16px 20px;
-	border-bottom: 1px solid #f1f5f9;
-	font-size: 0.84rem;
-	vertical-align: middle;
-}
+th { text-align: left; padding: 13px 20px; font-size: 0.715rem; font-weight: 700; color: #64748b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; letter-spacing: 0.05em; white-space: nowrap; }
+td { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; font-size: 0.84rem; vertical-align: middle; }
 tbody tr:last-child td { border-bottom: none; }
 .cell-id { color: #94a3b8; font-weight: 500; font-size: 0.8rem; }
 
 /* ── Product Cell ────────────────────────────────────────────────────────── */
 .product-cell { display: flex; align-items: center; gap: 12px; }
-.product-thumb {
-	width: 40px; height: 40px;
-	border-radius: 8px;
-	background: #f8fafc;
-	border: 1px solid #e2e8f0;
-	display: flex; align-items: center; justify-content: center;
-	flex-shrink: 0; overflow: hidden;
-}
+.product-thumb { width: 40px; height: 40px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 .thumb-img { width: 100%; height: 100%; object-fit: cover; }
 .thumb-emoji { font-size: 1.1rem; }
 .product-details { display: flex; flex-direction: column; gap: 2px; }
 .product-name { font-weight: 600; color: #1e293b; line-height: 1.25; font-size: 0.85rem; }
 .product-user { font-size: 0.74rem; color: #94a3b8; }
 
-/* ── Halal Flag Badge ────────────────────────────────────────────────────── */
-.flag-capsule {
-	display: inline-flex;
-	align-items: flex-start;
-	padding: 7px 12px;
-	border-radius: 16px;
-	font-size: 0.76rem;
-	line-height: 1.4;
-	max-width: 220px;
-	gap: 8px;
-}
-.flag-dot {
-	width: 4px; height: 13px;
-	border-radius: 2px;
-	flex-shrink: 0; margin-top: 2px;
-}
+/* ── Flag Badge ──────────────────────────────────────────────────────────── */
+.flag-capsule { display: inline-flex; align-items: flex-start; padding: 7px 12px; border-radius: 16px; font-size: 0.76rem; line-height: 1.4; max-width: 220px; gap: 8px; }
+.flag-dot { width: 4px; height: 13px; border-radius: 2px; flex-shrink: 0; margin-top: 2px; }
 .flag-capsule.yellow { background-color: #fef9c3; color: #854d0e; }
 .flag-capsule.yellow .flag-dot { background-color: #ca8a04; }
 .flag-capsule.red    { background-color: #fee2e2; color: #991b1b; }
@@ -795,11 +967,7 @@ tbody tr:last-child td { border-bottom: none; }
 .time-subtext { color: #94a3b8; }
 
 /* ── Status Pill ─────────────────────────────────────────────────────────── */
-.status-pill {
-	display: inline-block; padding: 3px 10px;
-	border-radius: 20px; font-size: 0.74rem;
-	font-weight: 500; white-space: nowrap;
-}
+.status-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.74rem; font-weight: 500; white-space: nowrap; }
 .pill-pending   { background: #fef9c3; color: #a16207; }
 .pill-flagged   { background: #fee2e2; color: #b91c1c; }
 .pill-approved  { background: #dcfce7; color: #15803d; }
@@ -808,189 +976,159 @@ tbody tr:last-child td { border-bottom: none; }
 /* ── Actions ─────────────────────────────────────────────────────────────── */
 .btn-row { display: flex; align-items: center; gap: 6px; }
 .btn-review {
-	background: transparent;
-	border: 1px solid #e2e8f0; color: #475569;
-	font-size: 0.78rem; font-weight: 500;
-	padding: 5px 12px; border-radius: 6px;
-	cursor: pointer; white-space: nowrap;
-	transition: background 0.12s, border-color 0.12s;
+	display: inline-flex; align-items: center; gap: 5px;
+	background: transparent; border: 1px solid #e2e8f0; color: #475569;
+	font-size: 0.78rem; font-weight: 500; padding: 5px 12px; border-radius: 6px;
+	cursor: pointer; white-space: nowrap; transition: background 0.12s, border-color 0.12s;
 }
 .btn-review:hover:not(:disabled) { background: #f8fafc; border-color: #cbd5e1; }
-.btn-review:disabled { opacity: 0.5; cursor: not-allowed; }
-
+.btn-review:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-correct {
 	display: inline-flex; align-items: center; gap: 5px;
-	background: white;
-	border: 1px solid #bbf7d0; color: #16a34a;
-	border-radius: 6px; padding: 5px 12px;
-	font-size: 0.78rem; font-weight: 500;
-	cursor: pointer; white-space: nowrap;
-	transition: background 0.12s;
+	background: white; border: 1px solid #bbf7d0; color: #16a34a;
+	border-radius: 6px; padding: 5px 12px; font-size: 0.78rem; font-weight: 500;
+	cursor: pointer; white-space: nowrap; transition: background 0.12s;
 }
 .btn-correct:hover:not(:disabled) { background: #f0fdf4; }
 .btn-correct:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ── Spin animation for loading state ────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin-icon { animation: spin 0.75s linear infinite; }
+
 /* ── State messages ──────────────────────────────────────────────────────── */
-.state-message, .empty-note {
-	padding: 40px; text-align: center;
-	color: #64748b; font-size: 0.9rem;
-}
+.state-message, .empty-note { padding: 40px; text-align: center; color: #64748b; font-size: 0.9rem; }
 .error-message { padding: 40px; text-align: center; color: #dc2626; font-size: 0.9rem; }
 
-/* ── Modal Overlay ───────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════ */
+/* REVIEW DRAWER                                                             */
+/* ══════════════════════════════════════════════════════════════════════════ */
+.drawer-overlay {
+	position: fixed; inset: 0;
+	background: rgba(15, 23, 42, 0.35);
+	z-index: 900;
+	display: flex; justify-content: flex-end;
+}
+.drawer {
+	width: 480px; max-width: 95vw;
+	height: 100%;
+	background: white;
+	display: flex; flex-direction: column;
+	box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+	overflow: hidden;
+}
+
+/* Drawer slide-in transition */
+.drawer-fade-enter-active, .drawer-fade-leave-active { transition: opacity 0.2s ease; }
+.drawer-fade-enter-active .drawer, .drawer-fade-leave-active .drawer { transition: transform 0.22s ease; }
+.drawer-fade-enter-from, .drawer-fade-leave-to { opacity: 0; }
+.drawer-fade-enter-from .drawer, .drawer-fade-leave-to .drawer { transform: translateX(100%); }
+
+.drawer-header {
+	display: flex; align-items: flex-start; justify-content: space-between;
+	padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9; gap: 12px; flex-shrink: 0;
+}
+.drawer-title-group { display: flex; align-items: flex-start; gap: 12px; }
+.drawer-icon-wrap {
+	width: 34px; height: 34px; border-radius: 9px;
+	background: #f1f5f9; color: #475569;
+	display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.drawer-title { font-size: 0.95rem; font-weight: 600; margin: 0 0 2px; color: #1e293b; }
+.drawer-subtitle { font-size: 0.8rem; color: #64748b; margin: 0; }
+
+.drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+
+.drawer-section {}
+.section-label { font-size: 0.73rem; font-weight: 700; color: #94a3b8; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 10px; }
+
+/* Scan images */
+.image-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.scan-image-box { display: flex; flex-direction: column; gap: 6px; }
+.scan-img { width: 160px; height: 160px; object-fit: contain; border-radius: 10px; border: 1px solid #e2e8f0; background: #f8fafc; }
+.scan-img-placeholder {
+	width: 160px; height: 160px; border-radius: 10px; border: 1px dashed #e2e8f0;
+	background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center;
+	gap: 8px; color: #94a3b8; font-size: 0.78rem;
+}
+.image-label { font-size: 0.75rem; color: #64748b; font-weight: 500; text-align: center; }
+
+/* Detail grid */
+.detail-grid { display: flex; flex-direction: column; gap: 8px; }
+.detail-row { display: flex; align-items: flex-start; gap: 12px; }
+.detail-row.full-span { flex-direction: column; gap: 4px; }
+.detail-key { font-size: 0.78rem; font-weight: 600; color: #64748b; min-width: 110px; flex-shrink: 0; padding-top: 1px; }
+.detail-val { font-size: 0.84rem; color: #1e293b; }
+.flag-reason-text { line-height: 1.5; color: #475569; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; }
+
+/* OCR text block */
+.ocr-text {
+	background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+	padding: 12px 14px; font-size: 0.78rem; line-height: 1.6;
+	color: #334155; white-space: pre-wrap; word-break: break-word;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	max-height: 160px; overflow-y: auto; margin: 0;
+}
+
+.drawer-footer {
+	display: flex; align-items: center; justify-content: flex-end;
+	gap: 8px; padding: 16px 24px; border-top: 1px solid #f1f5f9; flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════ */
+/* CORRECTION MODAL                                                          */
+/* ══════════════════════════════════════════════════════════════════════════ */
 .modal-overlay {
 	position: fixed; inset: 0;
 	background: rgba(15, 23, 42, 0.45);
 	display: flex; align-items: center; justify-content: center;
-	z-index: 1000;
-	padding: 24px;
+	z-index: 1000; padding: 24px;
 }
 .modal {
-	background: white;
-	border-radius: 16px;
+	background: white; border-radius: 16px;
 	box-shadow: 0 20px 60px rgba(0,0,0,0.18);
-	width: 100%; max-width: 620px;
-	max-height: 88vh;
-	overflow-y: auto;
-	display: flex; flex-direction: column;
+	width: 100%; max-width: 620px; max-height: 88vh;
+	overflow-y: auto; display: flex; flex-direction: column;
 }
-
-/* Modal header */
 .modal-header {
-	display: flex; align-items: flex-start;
-	justify-content: space-between;
-	padding: 20px 24px 16px;
-	border-bottom: 1px solid #f1f5f9;
-	gap: 12px;
+	display: flex; align-items: flex-start; justify-content: space-between;
+	padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9; gap: 12px;
 }
 .modal-title-group { display: flex; align-items: flex-start; gap: 12px; }
-.modal-icon-wrap {
-	width: 36px; height: 36px;
-	border-radius: 10px;
-	background: #dcfce7; color: #16a34a;
-	display: flex; align-items: center; justify-content: center;
-	flex-shrink: 0;
-}
+.modal-icon-wrap { width: 36px; height: 36px; border-radius: 10px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .modal-title { font-size: 1rem; font-weight: 600; margin: 0 0 3px; color: #1e293b; }
 .modal-subtitle { font-size: 0.82rem; color: #64748b; margin: 0; }
-.modal-close {
-	background: none; border: none;
-	color: #94a3b8; cursor: pointer; padding: 4px;
-	border-radius: 6px; flex-shrink: 0;
-	transition: color 0.12s, background 0.12s;
-}
+.modal-close { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; border-radius: 6px; flex-shrink: 0; transition: color 0.12s, background 0.12s; }
 .modal-close:hover { color: #334155; background: #f1f5f9; }
-
-/* Flag context inside modal */
 .modal-flag-context { padding: 14px 24px 0; }
-
-/* Section label */
-.modal-section-label {
-	padding: 16px 24px 10px;
-	font-size: 0.8rem; font-weight: 600;
-	color: #475569; letter-spacing: 0.03em;
-}
-
-/* Logo library grid */
+.modal-section-label { padding: 16px 24px 10px; font-size: 0.8rem; font-weight: 600; color: #475569; letter-spacing: 0.03em; }
 .empty-logos { padding: 16px 24px; color: #94a3b8; font-size: 0.85rem; }
-.logo-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-	gap: 10px;
-	padding: 0 24px 16px;
-}
-.logo-card {
-	position: relative;
-	display: flex; flex-direction: column; align-items: center;
-	gap: 8px;
-	padding: 14px 12px 12px;
-	border: 2px solid #e2e8f0;
-	border-radius: 12px;
-	background: white;
-	cursor: pointer;
-	text-align: center;
-	transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-}
+.logo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; padding: 0 24px 16px; }
+.logo-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 12px 12px; border: 2px solid #e2e8f0; border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
 .logo-card:hover { border-color: #86efac; background: #f0fdf4; }
-.logo-card.selected {
-	border-color: #16a34a;
-	background: #f0fdf4;
-	box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
-}
-.logo-card-img {
-	width: 52px; height: 52px;
-	border-radius: 8px;
-	background: #f8fafc;
-	border: 1px solid #e2e8f0;
-	display: flex; align-items: center; justify-content: center;
-	overflow: hidden;
-}
+.logo-card.selected { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12); }
+.logo-card-img { width: 52px; height: 52px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .logo-img { width: 100%; height: 100%; object-fit: contain; }
 .logo-fallback { font-size: 1.6rem; line-height: 1; }
 .logo-card-body { display: flex; flex-direction: column; gap: 2px; width: 100%; }
 .logo-certifier { font-size: 0.82rem; font-weight: 600; color: #1e293b; }
 .logo-full-name { font-size: 0.72rem; color: #64748b; line-height: 1.3; }
-.logo-accredited-badge {
-	display: inline-block;
-	margin-top: 4px;
-	background: #dcfce7; color: #15803d;
-	font-size: 0.68rem; font-weight: 600;
-	padding: 2px 8px; border-radius: 20px;
-}
-.logo-check {
-	position: absolute; top: 8px; right: 8px;
-	width: 22px; height: 22px;
-	border-radius: 50%;
-	background: #16a34a; color: white;
-	display: flex; align-items: center; justify-content: center;
-}
-
-/* Notes */
+.logo-accredited-badge { display: inline-block; margin-top: 4px; background: #dcfce7; color: #15803d; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+.logo-check { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; background: #16a34a; color: white; display: flex; align-items: center; justify-content: center; }
 .modal-notes { padding: 0 24px 16px; }
 .notes-label { display: block; font-size: 0.79rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
-.notes-input {
-	width: 100%; box-sizing: border-box;
-	border: 1px solid #cbd5e1; border-radius: 8px;
-	padding: 8px 12px;
-	font-size: 0.83rem; color: #334155;
-	resize: vertical; outline: none;
-	font-family: inherit;
-	transition: border-color 0.12s;
-}
+.notes-input { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 0.83rem; color: #334155; resize: vertical; outline: none; font-family: inherit; transition: border-color 0.12s; }
 .notes-input:focus { border-color: #16a34a; }
-
-/* Modal footer */
-.modal-footer {
-	display: flex; align-items: center; justify-content: flex-end;
-	gap: 8px;
-	padding: 16px 24px;
-	border-top: 1px solid #f1f5f9;
-}
-.btn-modal-cancel {
-	background: transparent; border: 1px solid #e2e8f0; color: #64748b;
-	padding: 7px 16px; border-radius: 8px;
-	font-size: 0.84rem; cursor: pointer;
-	transition: background 0.12s;
-}
-.btn-modal-cancel:hover { background: #f8fafc; }
-
-.btn-modal-dismiss {
-	background: transparent; border: 1px solid #fecaca; color: #dc2626;
-	padding: 7px 16px; border-radius: 8px;
-	font-size: 0.84rem; cursor: pointer;
-	transition: background 0.12s;
-}
+.modal-error { margin: 0 24px 12px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 0.82rem; }
+.modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 16px 24px; border-top: 1px solid #f1f5f9; }
+.btn-modal-cancel { background: transparent; border: 1px solid #e2e8f0; color: #64748b; padding: 7px 16px; border-radius: 8px; font-size: 0.84rem; cursor: pointer; transition: background 0.12s; }
+.btn-modal-cancel:hover:not(:disabled) { background: #f8fafc; }
+.btn-modal-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-modal-dismiss { background: transparent; border: 1px solid #fecaca; color: #dc2626; padding: 7px 16px; border-radius: 8px; font-size: 0.84rem; cursor: pointer; transition: background 0.12s; }
 .btn-modal-dismiss:hover:not(:disabled) { background: #fef2f2; }
 .btn-modal-dismiss:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.btn-modal-certify {
-	display: inline-flex; align-items: center; gap: 6px;
-	background: #16a34a; color: white;
-	border: none; padding: 7px 18px; border-radius: 8px;
-	font-size: 0.84rem; font-weight: 600;
-	cursor: pointer;
-	transition: background 0.12s;
-}
+.btn-modal-certify { display: inline-flex; align-items: center; gap: 6px; background: #16a34a; color: white; border: none; padding: 7px 18px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: background 0.12s; }
 .btn-modal-certify:hover:not(:disabled) { background: #15803d; }
 .btn-modal-certify:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

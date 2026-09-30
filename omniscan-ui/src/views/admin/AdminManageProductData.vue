@@ -156,8 +156,7 @@
 								<th class="col-id">ID</th>
 								<th>SCIENTIFIC / RAW OCR TERM</th>
 								<th>SIMPLIFIED CONSUMER TERM</th>
-								<th>MAPPED ALLERGEN</th>
-								<th>HALAL STATUS</th>
+								<th>MAPPED ALLERGEN / CATEGORY</th>
 								<th class="col-actions">ACTIONS</th>
 							</tr>
 						</thead>
@@ -171,11 +170,6 @@
 									<span class="simplified-term">{{ displaySimplified(ing.scientific_term, ing.simplified_term) }}</span>
 								</td>
 								<td><span class="allergen-chip">{{ ing.allergen_name }}</span></td>
-								<td>
-									<span class="halal-badge" :class="halalClass(deriveRisk(ing.allergen_name, ing.scientific_term).halal)">
-										{{ deriveRisk(ing.allergen_name, ing.scientific_term).label }}
-									</span>
-								</td>
 								<td class="col-actions">
 									<div class="actions-row">
 										<button class="btn-edit" @click="openEditModal(ing)">
@@ -304,18 +298,6 @@
 									<option v-for="a in allergens" :key="a.id" :value="a.id">{{ a.name }}</option>
 								</select>
 							</label>
-
-							<!-- Auto-derived Halal compliance status -->
-							<div class="field">
-								<span class="field-label">Halal compliance status</span>
-								<div class="risk-panel">
-									<div class="risk-panel-head">
-										<span class="halal-badge" :class="halalClass(mappingRisk.halal)">{{ mappingRisk.label }}</span>
-									</div>
-									<p class="risk-panel-note">{{ mappingRisk.note }}</p>
-								</div>
-								<span class="field-hint">Auto-derived Halal verification status based on the mapped allergen and term.</span>
-							</div>
 						</template>
 
 						<p v-if="modalError" class="modal-error">{{ modalError }}</p>
@@ -443,13 +425,6 @@ const tabSingular = computed(() => {
 	return 'Allergen'
 })
 
-// Live risk preview inside the ingredient mapping modal, based on the currently
-// selected allergen + typed scientific term.
-const mappingRisk = computed<RiskContext>(() => {
-	const allergenName = allergens.value.find((a) => a.id === Number(form.value.allergen_id))?.name ?? ''
-	return deriveRisk(allergenName, String(form.value.scientific_term ?? ''))
-})
-
 // ─── Filtering ──────────────────────────────────────────────────────────────
 const filteredAllergens = computed(() => {
 	const q = searchQuery.value.trim().toLowerCase()
@@ -477,59 +452,12 @@ function formatDate(iso?: string): string {
 	return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-CA')
 }
 
-// The IngredientMapping schema has no compliance column, so the Halal status
-// shown to admins is derived from the mapped allergen + scientific term. Scope
-// is deliberately Halal-only — no general dietary tags (vegan, kosher, celiac,
-// etc.), to keep the Ingredient Mappings view focused on Halal verification.
-type HalalStatus = 'VERIFIED' | 'PENDING' | 'NOT_HALAL'
-
-interface RiskContext {
-	halal: HalalStatus
-	label: string
-	note: string
-}
-
-function deriveRisk(allergenName: string, scientificTerm = ''): RiskContext {
-	const a = (allergenName || '').toLowerCase()
-	const t = (scientificTerm || '').toLowerCase()
-
-	// Pork / lard / bacon → definitively non-permissible.
-	if (a.includes('pork') || t.includes('pork') || t.includes('lard') || t.includes('bacon')) {
-		return { halal: 'NOT_HALAL', label: 'Not Halal', note: 'Pork-derived — non-permissible under Halal.' }
-	}
-	// Alcohol / ethanol carriers.
-	if (t.includes('alcohol') || t.includes('ethanol') || t.includes('wine') || t.includes('rum')) {
-		return { halal: 'NOT_HALAL', label: 'Not Halal', note: 'Contains alcohol — non-permissible under Halal.' }
-	}
-	// Source-dependent additives — need certification to confirm.
-	if (
-		t.includes('gelatin') || t.includes('rennet') || t.includes('glyceride') ||
-		t.includes('carmine') || t.includes('shellac') || t.includes('lard') ||
-		t.includes('e120') || t.includes('e471') || t.includes('e904') || t.includes('lysozyme')
-	) {
-		return { halal: 'PENDING', label: 'Pending Review', note: 'Source-dependent (animal vs plant) — requires certification to confirm Halal status.' }
-	}
-	// Animal-derived allergen families that still require certifier confirmation.
-	if (a.includes('milk') || a.includes('dairy') || a.includes('egg') || a.includes('fish') || a.includes('shellfish')) {
-		return { halal: 'PENDING', label: 'Pending Review', note: 'Animal-derived — Halal status depends on sourcing and processing; certifier confirmation recommended.' }
-	}
-	// Plant-based allergen families are generally Halal-permissible.
-	return { halal: 'VERIFIED', label: 'Halal Verified', note: 'Plant-derived — generally Halal-permissible.' }
-}
-
-function halalClass(status: HalalStatus): string {
-	if (status === 'NOT_HALAL') return 'halal-no'
-	if (status === 'PENDING') return 'halal-doubt'
-	return 'halal-ok'
-}
-
-// Title-case fallback for a simplified term that still equals the raw term.
+// Title-case fallback for a simplified term that still equals the raw term so
+// the Simplified Consumer Term column is never empty or showing a placeholder.
 function displaySimplified(scientificTerm: string, simplifiedTerm: string): string {
 	if (simplifiedTerm && simplifiedTerm.toLowerCase() !== scientificTerm.toLowerCase()) {
 		return simplifiedTerm
 	}
-	// Graceful fallback: title-case the raw term so the column is never empty
-	// or showing a placeholder.
 	return scientificTerm.replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
@@ -749,15 +677,10 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 .allergen-chip { display: inline-block; background: #f0fdf4; color: #15803d; border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 600; }
 .scientific-term { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; color: #0f172a; font-weight: 600; }
 .simplified-term { color: #334155; font-size: 0.86rem; }
-.simplified-missing { color: #94a3b8; font-size: 0.8rem; font-style: italic; }
-.risk-cell { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .halal-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em; }
 .halal-badge.halal-ok { background: #dcfce7; color: #15803d; }
 .halal-badge.halal-no { background: #fee2e2; color: #b91c1c; }
 .halal-badge.halal-doubt { background: #fef3c7; color: #b45309; }
-.risk-panel { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; background: #f8fafc; display: flex; flex-direction: column; gap: 8px; }
-.risk-panel-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.risk-panel-note { margin: 0; font-size: 0.8rem; color: #475569; line-height: 1.45; }
 .source-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
 .source-badge.src-seed { background: #e0f2fe; color: #0284c7; }
 .source-badge.src-custom { background: #f1f5f9; color: #64748b; }

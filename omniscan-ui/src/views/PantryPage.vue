@@ -618,8 +618,30 @@ onIonViewWillEnter(() => {
 	--background: #f1f5f9;
 	--border-radius: 24px;
 	--box-shadow: none;
+	--min-height: 44px;
+	min-height: 44px;
 	padding: 0;
 	width: 100%;
+}
+
+.search-bar :deep(.searchbar-input-container) {
+	min-height: 44px;
+	height: 44px;
+}
+
+.search-bar :deep(.searchbar-input) {
+	padding-left: 40px !important;
+	font-size: 0.9rem;
+	height: 44px;
+	line-height: normal;
+}
+
+.search-bar :deep(.searchbar-search-icon) {
+	left: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 18px;
+	height: 18px;
 }
 
 /* View Toggle Container */
@@ -805,7 +827,7 @@ onIonViewWillEnter(() => {
 .card-grid {
 	display: grid;
 	gap: 12px;
-	grid-auto-rows: 1fr; /* Equal height cards */
+	grid-auto-rows: 1fr;
 }
 
 /* Mobile: two columns */

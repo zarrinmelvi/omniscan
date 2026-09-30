@@ -150,6 +150,25 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
+	// ── Mode restriction ──────────────────────────────────────────────────
+	// VITE_MODE controls which "face" of the app is served.
+	//   ADMIN  → only /admin/* routes are accessible; everything else
+	//            redirects to /admin/login so operators can't accidentally
+	//            land on the client shell.
+	//   CLIENT → /admin/* routes are blocked; redirect to / so that
+	//            end-users are never exposed to the admin portal.
+	// Defaults to CLIENT when the variable is absent (e.g. local dev without
+	// a .env override).
+	const mode = (import.meta.env.VITE_MODE ?? 'CLIENT') as 'ADMIN' | 'CLIENT'
+
+	if (mode === 'ADMIN' && !to.path.startsWith('/admin')) {
+		return next('/admin/login')
+	}
+	if (mode === 'CLIENT' && to.path.startsWith('/admin')) {
+		return next('/')
+	}
+	// ─────────────────────────────────────────────────────────────────────
+
 	if (to.path.startsWith('/tabs')) {
 		const authStore = useAuthStore()
 		if (!authStore.isAuthenticated) {

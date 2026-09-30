@@ -146,7 +146,7 @@
 				<template v-else-if="activeTab === 'ingredients'">
 					<!-- Plain English Breakdown — always visible first -->
 					<div class="info-card">
-						<h3 class="info-card__title">Plain English Breakdown</h3>
+						<h3 class="info-card__title">Simplified Ingredients</h3>
 						<p v-if="!hasSimplifiedIngredients && !item.product.ingredient_text" class="ingredients-text">
 							No ingredient information available for this item.
 						</p>

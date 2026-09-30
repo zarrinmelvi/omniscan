@@ -117,3 +117,8 @@ export type CatalogProductHalalLogo = Prisma.CatalogProductHalalLogoModel
  * 
  */
 export type Admin = Prisma.AdminModel
+/**
+ * Model AppSetting
+ * 
+ */
+export type AppSetting = Prisma.AppSettingModel

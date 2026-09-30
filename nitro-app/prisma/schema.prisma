@@ -392,3 +392,16 @@ model Admin {
 	role String
 	flagged_scan FlaggedScan[] 
 }
+
+// Generic key-value application settings store. Currently holds a single
+// row (key = "admin_config") whose JSON value backs the admin Settings page
+// (general / AI & scanning / notification preferences). Kept generic so other
+// server-side config can reuse it without further migrations.
+model AppSetting {
+	id    Int    @id @default(autoincrement())
+	key   String @unique
+	value Json
+
+	created_at DateTime @default(now())
+	updated_at DateTime @updatedAt
+}

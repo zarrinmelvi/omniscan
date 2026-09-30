@@ -48,7 +48,7 @@
 						expand="block"
 						class="btn-secondary"
 						:disabled="isUploading || isCoolingDown || isResultModalOpen || captureStage === 'back' || isBackCaptured"
-						@click="isPhotoModalOpen = true">
+						@click.prevent.stop="openUploadModal">
 						<ion-icon :icon="cameraOutline" slot="start" />
 						UPLOAD A PHOTO
 					</ion-button>
@@ -131,6 +131,10 @@ const TOKEN_KEY = 'omniscan_token'
 
 const isPhotoModalOpen = ref(false)
 const isRouteAlertOpen = ref(false)
+
+function openUploadModal(): void {
+	isPhotoModalOpen.value = true
+}
 
 function onPhotoUploadCreated(): void {
 	isPhotoModalOpen.value = false
@@ -794,16 +798,30 @@ onBeforeUnmount(() => {
 .back-prompt-card {
 	background: #f8fafc;
 	border: 1px solid #e2e8f0;
-	border-radius: 12px;
-	padding: 12px;
+	border-radius: 16px;
+	padding: 16px 18px;
 	text-align: center;
 	color: #334155;
-	font-size: 0.85rem;
+	font-size: 0.88rem;
+}
+
+.back-prompt-text {
+	margin: 0;
+	line-height: 1.55;
+	color: #334155;
+}
+
+.back-prompt-text strong {
+	color: #0f172a;
+	font-weight: 600;
 }
 
 .skip-btn {
 	--color: #0284c7;
-	margin-top: 4px;
+	margin-top: 10px;
+	font-weight: 700;
+	font-size: 0.8rem;
+	letter-spacing: 0.4px;
 }
 
 .btn-primary {

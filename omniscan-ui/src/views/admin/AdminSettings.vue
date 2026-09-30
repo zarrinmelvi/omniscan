@@ -229,8 +229,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
+
+const DARK_MODE_KEY = 'omniscan_dark_mode'
+
+/** Apply (or remove) the global dark theme class and persist to localStorage. */
+function applyDarkMode(enabled: boolean): void {
+	document.documentElement.classList.toggle('ion-palette-dark', enabled)
+	localStorage.setItem(DARK_MODE_KEY, enabled ? 'true' : 'false')
+}
 
 type TabType = 'general' | 'ai' | 'notifications'
 
@@ -268,6 +276,8 @@ async function fetchSettings(): Promise<void> {
 			isAdmin: true,
 		})
 		Object.assign(form, data)
+		// Reconcile the applied theme with the persisted backend value.
+		applyDarkMode(form.darkMode)
 	} catch (err) {
 		// If endpoint is not created yet, fail silently and keep local default state
 		console.warn('Could not load remote settings, using default state:', err)
@@ -295,7 +305,18 @@ async function handleSave(): Promise<void> {
 	}
 }
 
+// Live-apply the theme the instant the toggle flips, so the change is visible
+// immediately (not only after Save). Persistence to the backend still happens
+// on Save via handleSave; localStorage keeps it across reloads app-wide.
+watch(
+	() => form.darkMode,
+	(enabled) => applyDarkMode(enabled),
+)
+
 onMounted(() => {
+	// Seed the toggle from the already-applied localStorage preference so the
+	// switch reflects reality before the backend settings load.
+	form.darkMode = localStorage.getItem(DARK_MODE_KEY) === 'true'
 	fetchSettings()
 })
 </script>

@@ -953,3 +953,171 @@ html.ion-palette-dark .desktop-nav .nav-item--active {
 html.ion-palette-dark .desktop-nav .nav-item--active ion-icon {
   color: #4ade80 !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/* ADMIN PORTAL DARK MODE                                                 */
+/* The admin views (AdminLayout, Verification Panel, Manage Product Data,  */
+/* Manage User Profiles, System Logs, Settings) use scoped styles with     */
+/* hardcoded light colors. These global overrides recolor them under       */
+/* html.ion-palette-dark without editing each component.                   */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+/* --- Layout shell --- */
+html.ion-palette-dark .admin-layout { background: var(--dm-bg-page); }
+html.ion-palette-dark .sidebar {
+	background: var(--dm-bg-card);
+	border-right-color: var(--dm-border);
+}
+html.ion-palette-dark .brand-name { color: var(--dm-text-primary); }
+html.ion-palette-dark .brand-sub { color: var(--dm-text-secondary); }
+html.ion-palette-dark .nav-item { color: var(--dm-text-secondary); }
+html.ion-palette-dark .nav-item:hover {
+	background: var(--dm-bg-subtle);
+	color: var(--dm-text-primary);
+}
+/* keep the active green pill readable — leave .nav-item.active as-is */
+html.ion-palette-dark .sidebar-footer { border-top-color: var(--dm-border); }
+html.ion-palette-dark .admin-name { color: var(--dm-text-primary); }
+html.ion-palette-dark .admin-main { background: var(--dm-bg-page); }
+html.ion-palette-dark .top-bar {
+	background: var(--dm-bg-card);
+	border-bottom-color: var(--dm-border);
+	color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .breadcrumb { color: var(--dm-text-secondary); }
+html.ion-palette-dark .session-time { color: var(--dm-text-secondary); }
+html.ion-palette-dark .logout-button:hover { background: rgba(220, 38, 38, 0.15); }
+
+/* --- Generic admin page scaffolding (shared class names across views) --- */
+html.ion-palette-dark .manage-product-data,
+html.ion-palette-dark .manage-user-profile,
+html.ion-palette-dark .system-logs,
+html.ion-palette-dark .settings-page,
+html.ion-palette-dark .verification-panel {
+	background-color: var(--dm-bg-page);
+	color: var(--dm-text-primary);
+}
+html.ion-palette-dark .page-header h1,
+html.ion-palette-dark .settings-page h1,
+html.ion-palette-dark .system-logs h1,
+html.ion-palette-dark .page-header .page-title { color: var(--dm-text-primary); }
+html.ion-palette-dark .subtitle { color: var(--dm-text-secondary); }
+
+/* --- Cards / content surfaces --- */
+html.ion-palette-dark .content-card,
+html.ion-palette-dark .settings-card,
+html.ion-palette-dark .lifecycle-card,
+html.ion-palette-dark .chart-card,
+html.ion-palette-dark .log-card,
+html.ion-palette-dark .service-card,
+html.ion-palette-dark .panel-card,
+html.ion-palette-dark .certifier-card,
+html.ion-palette-dark .summary-card {
+	background: var(--dm-bg-card) !important;
+	border-color: var(--dm-border) !important;
+}
+
+/* --- Tables --- */
+html.ion-palette-dark .data-table th,
+html.ion-palette-dark .scans-table th,
+html.ion-palette-dark .log-table th {
+	background: var(--dm-bg-subtle) !important;
+	color: var(--dm-text-secondary) !important;
+	border-bottom-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .data-table td,
+html.ion-palette-dark .scans-table td,
+html.ion-palette-dark .log-table td {
+	border-bottom-color: var(--dm-border) !important;
+	color: var(--dm-text-primary);
+}
+html.ion-palette-dark .cell-allergen,
+html.ion-palette-dark .user-name,
+html.ion-palette-dark .product-name,
+html.ion-palette-dark .certifier-name,
+html.ion-palette-dark .scientific-term { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .cell-aliases,
+html.ion-palette-dark .cell-impact,
+html.ion-palette-dark .cell-updated,
+html.ion-palette-dark .email-cell,
+html.ion-palette-dark .date-cell,
+html.ion-palette-dark .certifier-fullname,
+html.ion-palette-dark .simplified-term { color: var(--dm-text-secondary) !important; }
+
+/* --- Tabs / pill navs --- */
+html.ion-palette-dark .tabs-bar .tab-button,
+html.ion-palette-dark .tab-btn {
+	background: var(--dm-bg-card);
+	border-color: var(--dm-border);
+	color: var(--dm-text-secondary);
+}
+html.ion-palette-dark .tab-btn.active {
+	background: var(--dm-bg-subtle);
+	color: var(--dm-text-primary);
+}
+
+/* --- Settings sidebar tabs + rows --- */
+html.ion-palette-dark .settings-tabs .tab-button { color: var(--dm-text-secondary); }
+html.ion-palette-dark .settings-tabs .tab-button:hover {
+	background: var(--dm-bg-subtle);
+	color: var(--dm-text-primary);
+}
+html.ion-palette-dark .setting-row { border-bottom-color: var(--dm-border); }
+html.ion-palette-dark .setting-title { color: var(--dm-text-primary); }
+html.ion-palette-dark .setting-desc { color: var(--dm-text-secondary); }
+
+/* --- Inputs / selects / search --- */
+html.ion-palette-dark .text-input,
+html.ion-palette-dark .number-input,
+html.ion-palette-dark .filter-select,
+html.ion-palette-dark .field-input,
+html.ion-palette-dark .search-box,
+html.ion-palette-dark .search-box input,
+html.ion-palette-dark .tag-input {
+	background: var(--dm-bg-input) !important;
+	color: var(--dm-text-primary) !important;
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .search-box input::placeholder,
+html.ion-palette-dark .field-input::placeholder,
+html.ion-palette-dark .tag-field::placeholder { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .tag-field { background: transparent !important; color: var(--dm-text-primary) !important; }
+
+/* --- Controls bar / footers / notices --- */
+html.ion-palette-dark .controls-bar,
+html.ion-palette-dark .controls-row { border-bottom-color: var(--dm-border); }
+html.ion-palette-dark .section-title { color: var(--dm-text-secondary); }
+html.ion-palette-dark .card-footer-notice,
+html.ion-palette-dark .table-footer {
+	background: var(--dm-bg-subtle);
+	border-top-color: var(--dm-border);
+	color: var(--dm-text-secondary);
+}
+
+/* --- Modals (Manage Product Data, Verification correction, etc.) --- */
+html.ion-palette-dark .modal {
+	background: var(--dm-bg-card) !important;
+	color: var(--dm-text-primary);
+}
+html.ion-palette-dark .modal-header,
+html.ion-palette-dark .modal-footer { border-color: var(--dm-border) !important; }
+html.ion-palette-dark .modal-title { color: var(--dm-text-primary); }
+html.ion-palette-dark .modal-subtitle,
+html.ion-palette-dark .field-label { color: var(--dm-text-secondary); }
+html.ion-palette-dark .drawer { background: var(--dm-bg-card) !important; }
+html.ion-palette-dark .drawer-header,
+html.ion-palette-dark .drawer-footer { border-color: var(--dm-border) !important; }
+
+/* --- System Logs specifics --- */
+html.ion-palette-dark .stat-card { background: var(--dm-bg-card) !important; }
+html.ion-palette-dark .log-header { background: var(--dm-bg-subtle); border-bottom-color: var(--dm-border); color: var(--dm-text-secondary); }
+html.ion-palette-dark .service-name { color: var(--dm-text-primary); }
+html.ion-palette-dark .grid-line { stroke: var(--dm-border); }
+html.ion-palette-dark .log-table th { position: sticky; }
+
+/* --- Batch action toolbar (Manage User Profiles) --- */
+html.ion-palette-dark .batch-toolbar {
+	background: var(--dm-bg-card);
+	border-color: var(--dm-border);
+	color: var(--dm-text-primary);
+}

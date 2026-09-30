@@ -162,6 +162,19 @@
 				</div>
 			</div>
 
+			<!-- Batch Action Toolbar -->
+			<div v-if="selectedCount > 0" class="batch-toolbar">
+				<div class="batch-info">
+					<span class="batch-count">{{ selectedCount }} selected</span>
+					<button class="batch-clear" type="button" @click="clearSelection">Clear</button>
+				</div>
+				<div class="batch-buttons">
+					<button class="batch-btn notify" type="button" :disabled="batchActing" @click="runBatch('notify')">Send Inactivity Notice</button>
+					<button class="batch-btn archive" type="button" :disabled="batchActing" @click="runBatch('archive')">Archive</button>
+					<button class="batch-btn delete" type="button" :disabled="batchActing" @click="runBatch('delete')">Delete</button>
+				</div>
+			</div>
+
 			<!-- Loading / error / empty states -->
 			<p v-if="isLoading" class="state-message">Loading user accounts…</p>
 			<p v-else-if="errorMessage" class="error-message">{{ errorMessage }}</p>
@@ -171,6 +184,7 @@
 			<table v-else class="data-table">
 				<thead>
 					<tr>
+						<th class="checkbox-col"><input type="checkbox" :checked="allVisibleSelected" :indeterminate.prop="someSelected" @change="toggleSelectAll" aria-label="Select all users" /></th>
 						<th>NAME</th>
 						<th>EMAIL</th>
 						<th>CREATED</th>
@@ -185,6 +199,7 @@
 						:key="user.id"
 						:class="getRowClass(user)"
 					>
+						<td class="checkbox-col"><input type="checkbox" :checked="selectedIds.has(user.id)" @change="toggleRow(user.id)" :aria-label="'Select ' + user.name" /></td>
 						<td>
 							<div class="user-cell">
 								<div class="avatar" :class="user.avatarBg">
@@ -273,6 +288,10 @@ const errorMessage = ref<string | null>(null)
 
 const users = ref<UserProfile[]>([])
 const stats = ref({ total: 0, active: 0, inactive: 0, archived: 0 })
+
+// --- Batch selection state ---
+const selectedIds = ref<Set<number>>(new Set())
+const batchActing = ref(false)
 
 const formattedCurrentDate = computed(() =>
 	new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -367,6 +386,50 @@ const filteredUsers = computed(() => {
 		sortOrder.value === 'Latest' ? b.sortTs - a.sortTs : a.sortTs - b.sortTs
 	)
 })
+
+const selectedCount = computed(() => selectedIds.value.size)
+
+const allVisibleSelected = computed(() => {
+	const visible = filteredUsers.value
+	return visible.length > 0 && visible.every((u) => selectedIds.value.has(u.id))
+})
+
+const someSelected = computed(() => selectedCount.value > 0 && !allVisibleSelected.value)
+
+function toggleRow(id: number): void {
+	const next = new Set(selectedIds.value)
+	if (next.has(id)) next.delete(id)
+	else next.add(id)
+	selectedIds.value = next
+}
+
+function toggleSelectAll(): void {
+	if (allVisibleSelected.value) selectedIds.value = new Set()
+	else selectedIds.value = new Set(filteredUsers.value.map((u) => u.id))
+}
+
+function clearSelection(): void {
+	selectedIds.value = new Set()
+}
+
+async function runBatch(action: 'archive' | 'delete' | 'notify'): Promise<void> {
+	const ids = [...selectedIds.value]
+	if (ids.length === 0) return
+	if (action === 'delete' && !window.confirm(`Permanently delete ${ids.length} user account(s)? This cannot be undone.`)) return
+	if (action === 'archive' && !window.confirm(`Archive ${ids.length} user account(s)?`)) return
+	batchActing.value = true
+	errorMessage.value = null
+	try {
+		await apiFetch('/api/admin/users/batch', { method: 'POST', body: { ids, action }, isAdmin: true })
+		clearSelection()
+		await fetchUsers()
+	} catch (err) {
+		errorMessage.value = err instanceof ApiError ? err.message : 'Batch action failed.'
+		console.error('Batch action failed:', err)
+	} finally {
+		batchActing.value = false
+	}
+}
 
 onMounted(fetchUsers)
 </script>
@@ -813,4 +876,22 @@ tr.row-highlight-red {
 .avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .state-message, .empty-note { padding: 32px; text-align: center; color: #64748b; font-size: 0.9rem; }
 .error-message { padding: 32px; text-align: center; color: #dc2626; font-size: 0.9rem; }
+
+/* Batch selection */
+.checkbox-col { width: 44px; text-align: center; }
+.checkbox-col input { width: 16px; height: 16px; cursor: pointer; accent-color: #16a34a; }
+.batch-toolbar { position: sticky; top: 0; z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 20px; background: #ecfdf5; border-bottom: 1px solid #bbf7d0; }
+.batch-info { display: flex; align-items: center; gap: 12px; }
+.batch-count { font-size: 0.85rem; font-weight: 600; color: #15803d; }
+.batch-clear { background: transparent; border: none; color: #64748b; font-size: 0.82rem; cursor: pointer; text-decoration: underline; padding: 0; }
+.batch-clear:hover { color: #334155; }
+.batch-buttons { display: flex; align-items: center; gap: 8px; }
+.batch-btn { border: 1px solid transparent; border-radius: 8px; padding: 7px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s ease, opacity 0.15s ease; }
+.batch-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.batch-btn.notify { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.batch-btn.notify:hover:not(:disabled) { background: #dbeafe; }
+.batch-btn.archive { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+.batch-btn.archive:hover:not(:disabled) { background: #ffedd5; }
+.batch-btn.delete { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+.batch-btn.delete:hover:not(:disabled) { background: #fee2e2; }
 </style>

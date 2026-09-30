@@ -1,14 +1,11 @@
 <template>
 	<div class="manage-product-data">
-		<!-- Header Section -->
 		<header class="page-header">
 			<h1>Manage Product Data</h1>
-			<p class="subtitle">
-				Update allergen dictionary · Maintain halal logo library · Refine ingredient mappings
-			</p>
+			<p class="subtitle">Allergen dictionary · Halal certifier library · Ingredient mappings — all synced to the OmniScan knowledge base</p>
 		</header>
 
-		<!-- Sub-Navigation Pill Tabs -->
+		<!-- Tabs -->
 		<div class="tabs-bar">
 			<button class="tab-button" :class="{ active: activeTab === 'allergen' }" @click="switchTab('allergen')">
 				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -17,14 +14,12 @@
 				</svg>
 				Allergen Dictionary
 			</button>
-
 			<button class="tab-button" :class="{ active: activeTab === 'halal' }" @click="switchTab('halal')">
 				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
 				</svg>
 				Halal Logo Library
 			</button>
-
 			<button class="tab-button" :class="{ active: activeTab === 'ingredient' }" @click="switchTab('ingredient')">
 				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
@@ -33,7 +28,6 @@
 			</button>
 		</div>
 
-		<!-- Main Card Container -->
 		<div class="content-card">
 			<div class="controls-bar">
 				<span class="section-title">{{ getTabTitle }}</span>
@@ -45,7 +39,7 @@
 						</svg>
 						<input v-model="searchQuery" type="text" placeholder="Search..." />
 					</div>
-					<button class="btn-add" @click="handleAddNew">
+					<button class="btn-add" @click="openCreateModal">
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
 							<line x1="12" y1="5" x2="12" y2="19"></line>
 							<line x1="5" y1="12" x2="19" y2="12"></line>
@@ -55,12 +49,10 @@
 				</div>
 			</div>
 
-			<p v-if="isLoading" class="state-message">Loading data...</p>
+			<p v-if="isLoading" class="state-message">Loading data…</p>
 			<p v-else-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
-			<!-- ══════════════════════════════════════════════════════════ -->
-			<!-- 1. ALLERGEN DICTIONARY (table)                            -->
-			<!-- ══════════════════════════════════════════════════════════ -->
+			<!-- 1. ALLERGEN DICTIONARY -->
 			<template v-else-if="activeTab === 'allergen'">
 				<p v-if="filteredAllergens.length === 0" class="empty-note">No allergen records found.</p>
 				<div v-else class="table-wrap">
@@ -69,37 +61,35 @@
 							<tr>
 								<th class="col-id">ID</th>
 								<th>ALLERGEN</th>
-								<th>COMMON ALIASES</th>
-								<th>SEVERITY</th>
-								<th>DIETARY FLAGS</th>
+								<th>SCIENTIFIC NAME</th>
+								<th>MAPPINGS</th>
+								<th>SOURCE</th>
 								<th>UPDATED</th>
 								<th class="col-actions">ACTIONS</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr v-for="item in filteredAllergens" :key="item.id">
-								<td class="cell-id">{{ item.code }}</td>
-								<td class="cell-allergen">{{ item.allergen }}</td>
-								<td class="cell-aliases">{{ item.common_aliases }}</td>
+								<td class="cell-id">#{{ item.id }}</td>
+								<td class="cell-allergen">{{ item.name }}</td>
+								<td class="cell-aliases">{{ item.scientific_name || '—' }}</td>
+								<td><span class="count-chip">{{ item.mapping_count }}</span></td>
 								<td>
-									<span class="severity-badge" :class="item.severity.toLowerCase()">{{ item.severity }}</span>
+									<span class="source-badge" :class="item.is_predefined ? 'src-seed' : 'src-custom'">
+										{{ item.is_predefined ? 'Predefined' : 'Custom' }}
+									</span>
 								</td>
-								<td>
-									<div class="flags-wrapper">
-										<span v-for="(flag, idx) in item.dietary_flags" :key="idx" class="flag-chip">{{ flag }}</span>
-									</div>
-								</td>
-								<td class="cell-updated">{{ item.updated }}</td>
+								<td class="cell-updated">{{ formatDate(item.updated_at) }}</td>
 								<td class="col-actions">
 									<div class="actions-row">
-										<button class="btn-edit" @click="editItem(item)">
+										<button class="btn-edit" @click="openEditModal(item)">
 											<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 												<path d="M12 20h9"></path>
 												<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
 											</svg>
 											Edit
 										</button>
-										<button class="btn-delete" @click="deleteItem(item.id)" aria-label="Delete">
+										<button class="btn-delete" @click="removeItem(item.id)" aria-label="Delete">
 											<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 												<polyline points="3 6 5 6 21 6"></polyline>
 												<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -113,9 +103,7 @@
 				</div>
 			</template>
 
-			<!-- ══════════════════════════════════════════════════════════ -->
-			<!-- 2. HALAL LOGO LIBRARY (card grid)                         -->
-			<!-- ══════════════════════════════════════════════════════════ -->
+			<!-- 2. HALAL LOGO LIBRARY (card grid) -->
 			<template v-else-if="activeTab === 'halal'">
 				<p v-if="filteredHalalLogos.length === 0" class="empty-note">No certifier records found.</p>
 				<div v-else class="certifier-grid">
@@ -131,36 +119,34 @@
 								/>
 								<span v-else class="certifier-logo-fallback">☪</span>
 							</div>
-							<span class="status-badge" :class="statusClass(logo.status)">{{ logo.status }}</span>
+							<span class="status-badge" :class="logo.is_accredited ? 'status-active' : 'status-review'">
+								{{ logo.is_accredited ? 'Accredited' : 'Recognized' }}
+							</span>
 						</div>
-
 						<div class="certifier-body">
 							<h3 class="certifier-name">{{ logo.certifier }}</h3>
 							<p class="certifier-fullname">{{ logo.full_name }}</p>
-							<div class="certifier-meta">
-								<span class="meta-region">
-									<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-										<circle cx="12" cy="10" r="3"></circle>
-										<path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"></path>
-									</svg>
-									{{ logo.region }}
-								</span>
-								<span class="meta-code">{{ logo.cert_code }}</span>
-							</div>
+							<a v-if="logo.source_url" :href="logo.source_url" target="_blank" rel="noopener" class="certifier-source">
+								<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+									<polyline points="15 3 21 3 21 9"></polyline>
+									<line x1="10" y1="14" x2="21" y2="3"></line>
+								</svg>
+								Official source
+							</a>
 						</div>
-
 						<div class="certifier-actions">
-							<button class="cert-btn cert-btn-edit" @click="editItem(logo)">Edit</button>
-							<button class="cert-btn cert-btn-review" @click="reviewCertifier(logo)">Review</button>
-							<button class="cert-btn cert-btn-renew" @click="renewCertifier(logo)">Renew</button>
+							<button class="cert-btn cert-btn-edit" @click="openEditModal(logo)">Edit</button>
+							<button class="cert-btn cert-btn-review" @click="toggleAccredited(logo)">
+								{{ logo.is_accredited ? 'Unaccredit' : 'Accredit' }}
+							</button>
+							<button class="cert-btn cert-btn-delete" @click="removeItem(logo.id)">Delete</button>
 						</div>
 					</div>
 				</div>
 			</template>
 
-			<!-- ══════════════════════════════════════════════════════════ -->
-			<!-- 3. INGREDIENT MAPPINGS (table)                            -->
-			<!-- ══════════════════════════════════════════════════════════ -->
+			<!-- 3. INGREDIENT MAPPINGS -->
 			<template v-else-if="activeTab === 'ingredient'">
 				<p v-if="filteredIngredients.length === 0" class="empty-note">No ingredient mapping records found.</p>
 				<div v-else class="table-wrap">
@@ -168,46 +154,30 @@
 						<thead>
 							<tr>
 								<th class="col-id">ID</th>
-								<th>INGREDIENT</th>
-								<th>MAPPED CATEGORY</th>
-								<th>DIETARY IMPACT</th>
-								<th>CONFIDENCE</th>
-								<th>HALAL STATUS</th>
+								<th>SCIENTIFIC TERM</th>
+								<th>SIMPLIFIED TERM</th>
+								<th>MAPPED ALLERGEN</th>
+								<th>UPDATED</th>
 								<th class="col-actions">ACTIONS</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr v-for="ing in filteredIngredients" :key="ing.id">
-								<td class="cell-id">{{ ing.code }}</td>
-								<td>
-									<div class="ingredient-name-cell">
-										<span class="cell-allergen">{{ ing.name }}</span>
-										<span v-if="ing.e_number" class="ingredient-enumber">{{ ing.e_number }}</span>
-									</div>
-								</td>
-								<td class="cell-aliases">{{ ing.mapped_category }}</td>
-								<td class="cell-impact">{{ ing.dietary_impact }}</td>
-								<td>
-									<div class="confidence-cell">
-										<div class="confidence-bar">
-											<div class="confidence-fill" :class="confidenceClass(ing.confidence)" :style="{ width: ing.confidence + '%' }"></div>
-										</div>
-										<span class="confidence-pct">{{ ing.confidence }}%</span>
-									</div>
-								</td>
-								<td>
-									<span class="halal-badge" :class="halalClass(ing.halal_status)">{{ ing.halal_status }}</span>
-								</td>
+								<td class="cell-id">#{{ ing.id }}</td>
+								<td class="cell-allergen">{{ ing.scientific_term }}</td>
+								<td class="cell-aliases">{{ ing.simplified_term }}</td>
+								<td><span class="allergen-chip">{{ ing.allergen_name }}</span></td>
+								<td class="cell-updated">{{ formatDate(ing.updated_at) }}</td>
 								<td class="col-actions">
 									<div class="actions-row">
-										<button class="btn-edit" @click="editItem(ing)">
+										<button class="btn-edit" @click="openEditModal(ing)">
 											<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 												<path d="M12 20h9"></path>
 												<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
 											</svg>
 											Edit
 										</button>
-										<button class="btn-delete" @click="deleteItem(ing.id)" aria-label="Delete">
+										<button class="btn-delete" @click="removeItem(ing.id)" aria-label="Delete">
 											<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 												<polyline points="3 6 5 6 21 6"></polyline>
 												<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -222,9 +192,96 @@
 			</template>
 
 			<div class="card-footer-notice">
-				Changes sync to Ollama Pro context on next verification cycle.
+				All changes are persisted to the OmniScan knowledge base and reflected across the Verification Panel and scan pipeline.
 			</div>
 		</div>
+
+		<!-- ══════════════════ CREATE / EDIT MODAL ══════════════════ -->
+		<Teleport to="body">
+			<div v-if="modalOpen" class="modal-overlay" @click.self="closeModal">
+				<div class="modal" role="dialog" aria-modal="true">
+					<div class="modal-header">
+						<h2 class="modal-title">{{ modalMode === 'create' ? 'Add' : 'Edit' }} {{ tabSingular }}</h2>
+						<button class="modal-close" @click="closeModal" aria-label="Close">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<line x1="18" y1="6" x2="6" y2="18"></line>
+								<line x1="6" y1="6" x2="18" y2="18"></line>
+							</svg>
+						</button>
+					</div>
+
+					<div class="modal-body">
+						<!-- Allergen form -->
+						<template v-if="activeTab === 'allergen'">
+							<label class="field">
+								<span class="field-label">Allergen name *</span>
+								<input v-model="form.name" type="text" class="field-input" placeholder="e.g. Gluten" />
+							</label>
+							<label class="field">
+								<span class="field-label">Scientific name</span>
+								<input v-model="form.scientific_name" type="text" class="field-input" placeholder="e.g. Triticum aestivum" />
+							</label>
+							<label class="field-check">
+								<input v-model="form.is_predefined" type="checkbox" />
+								<span>Predefined (core seed allergen)</span>
+							</label>
+						</template>
+
+						<!-- Halal certifier form -->
+						<template v-else-if="activeTab === 'halal'">
+							<label class="field">
+								<span class="field-label">Certifier code *</span>
+								<input v-model="form.certifier" type="text" class="field-input" placeholder="e.g. JAKIM" />
+							</label>
+							<label class="field">
+								<span class="field-label">Full name</span>
+								<input v-model="form.full_name" type="text" class="field-input" placeholder="e.g. Jabatan Kemajuan Islam Malaysia" />
+							</label>
+							<label class="field">
+								<span class="field-label">Logo image path</span>
+								<input v-model="form.image_path" type="text" class="field-input" placeholder="e.g. reference-logos/jakim.svg" />
+							</label>
+							<label class="field">
+								<span class="field-label">Official source URL</span>
+								<input v-model="form.source_url" type="text" class="field-input" placeholder="https://…" />
+							</label>
+							<label class="field-check">
+								<input v-model="form.is_accredited" type="checkbox" />
+								<span>Accredited certifying body</span>
+							</label>
+						</template>
+
+						<!-- Ingredient mapping form -->
+						<template v-else-if="activeTab === 'ingredient'">
+							<label class="field">
+								<span class="field-label">Scientific term *</span>
+								<input v-model="form.scientific_term" type="text" class="field-input" placeholder="e.g. casein" />
+							</label>
+							<label class="field">
+								<span class="field-label">Simplified term</span>
+								<input v-model="form.simplified_term" type="text" class="field-input" placeholder="e.g. milk protein" />
+							</label>
+							<label class="field">
+								<span class="field-label">Mapped allergen *</span>
+								<select v-model.number="form.allergen_id" class="field-input">
+									<option :value="undefined" disabled>Select an allergen…</option>
+									<option v-for="a in allergens" :key="a.id" :value="a.id">{{ a.name }}</option>
+								</select>
+							</label>
+						</template>
+
+						<p v-if="modalError" class="modal-error">{{ modalError }}</p>
+					</div>
+
+					<div class="modal-footer">
+						<button class="btn-modal-cancel" :disabled="saving" @click="closeModal">Cancel</button>
+						<button class="btn-modal-save" :disabled="saving" @click="saveModal">
+							{{ saving ? 'Saving…' : (modalMode === 'create' ? 'Create' : 'Save Changes') }}
+						</button>
+					</div>
+				</div>
+			</div>
+		</Teleport>
 	</div>
 </template>
 
@@ -234,35 +291,32 @@ import { apiFetch, ApiError } from '@/utils/api'
 
 type TabType = 'allergen' | 'halal' | 'ingredient'
 
-interface AllergenItem {
+interface AllergenRow {
 	id: number
-	code: string
-	allergen: string
-	common_aliases: string
-	severity: 'HIGH' | 'MEDIUM' | 'LOW'
-	dietary_flags: string[]
-	updated: string
+	name: string
+	scientific_name: string
+	is_predefined: boolean
+	mapping_count: number
+	updated_at: string
 }
 
-interface CertifierCard {
+interface CertifierRow {
 	id: number
 	certifier: string
 	full_name: string
-	region: string
-	cert_code: string
-	status: 'Active' | 'Under Review' | 'Expired'
+	image_path: string
+	source_url: string
+	is_accredited: boolean
 	logo_src: string | null
 }
 
-interface IngredientMapping {
+interface MappingRow {
 	id: number
-	code: string
-	name: string
-	e_number?: string
-	mapped_category: string
-	dietary_impact: string
-	confidence: number
-	halal_status: 'HALAL' | 'HARAM' | 'SYUBHAH'
+	scientific_term: string
+	simplified_term: string
+	allergen_id: number
+	allergen_name: string
+	updated_at: string
 }
 
 const activeTab = ref<TabType>('allergen')
@@ -270,125 +324,87 @@ const searchQuery = ref('')
 const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 
-// ─── Allergen Dictionary mock data ───────────────────────────────────────────
-const allergens = ref<AllergenItem[]>([
-	{ id: 1, code: 'A001', allergen: 'Gluten', common_aliases: 'Wheat, Barley, Rye, Triticale, Spelt, Malt', severity: 'HIGH', dietary_flags: ['Celiac', 'Gluten-Free'], updated: '2026-04-01' },
-	{ id: 2, code: 'A002', allergen: 'Tree Nuts', common_aliases: 'Almonds, Cashews, Walnuts, Pecans, Pistachios, Hazelnuts', severity: 'HIGH', dietary_flags: ['Nut Allergy', 'Clean Label'], updated: '2026-03-28' },
-	{ id: 3, code: 'A003', allergen: 'Pork Derivatives', common_aliases: 'Gelatin (Pork), Lard, Pepsin, E471 (pork), Bacon Fat', severity: 'HIGH', dietary_flags: ['Halal', 'Kosher'], updated: '2026-03-27' },
-	{ id: 4, code: 'A004', allergen: 'Milk / Dairy', common_aliases: 'Lactose, Whey, Casein, Milk Solids, Butterfat', severity: 'MEDIUM', dietary_flags: ['Vegan', 'Lactose-Free'], updated: '2026-03-25' },
-	{ id: 5, code: 'A005', allergen: 'Soy', common_aliases: 'Soybean, Soy Lecithin, Tofu, Edamame, Soy Protein Isolate', severity: 'MEDIUM', dietary_flags: ['Vegan', 'Clean Label'], updated: '2026-03-22' },
-	{ id: 6, code: 'A006', allergen: 'Shellfish', common_aliases: 'Shrimp, Crab, Lobster, Prawn, Crayfish, Krill', severity: 'HIGH', dietary_flags: ['Halal', 'Kosher'], updated: '2026-03-20' },
-	{ id: 7, code: 'A007', allergen: 'Artificial Sweeteners', common_aliases: 'Aspartame, Sucralose, Saccharin, Acesulfame-K, E951', severity: 'LOW', dietary_flags: ['Clean Label'], updated: '2026-03-18' },
-])
+const allergens = ref<AllergenRow[]>([])
+const halalLogos = ref<CertifierRow[]>([])
+const ingredientMappings = ref<MappingRow[]>([])
 
-// ─── Halal Logo Library mock data (card grid) ────────────────────────────────
-const halalLogos = ref<CertifierCard[]>([
-	{ id: 1, certifier: 'JAKIM',        full_name: 'Jabatan Kemajuan Islam Malaysia',              region: 'Malaysia',      cert_code: 'MS1500:2019',  status: 'Active',       logo_src: '/reference-logos/jakim.svg' },
-	{ id: 2, certifier: 'MUI',          full_name: 'Majelis Ulama Indonesia',                      region: 'Indonesia',     cert_code: 'HAS-23000',    status: 'Active',       logo_src: '/reference-logos/mui.svg' },
-	{ id: 3, certifier: 'ESMA',         full_name: 'Emirates Authority for Standardization',       region: 'UAE',           cert_code: 'UAE.S 2055-1', status: 'Under Review', logo_src: '/reference-logos/esma.svg' },
-	{ id: 4, certifier: 'HMC UK',       full_name: 'Halal Monitoring Committee',                   region: 'United Kingdom', cert_code: 'HMC-2024',    status: 'Active',       logo_src: '/reference-logos/hmc.svg' },
-	{ id: 5, certifier: 'IFANCA USA',   full_name: 'Islamic Food and Nutrition Council of America', region: 'United States', cert_code: 'MACC-2023',   status: 'Active',       logo_src: '/reference-logos/ifanca.svg' },
-	{ id: 6, certifier: 'SANHA',        full_name: 'South African National Halaal Authority',      region: 'South Africa',  cert_code: 'SANHA-1998',   status: 'Expired',      logo_src: '/reference-logos/sanha.svg' },
-	{ id: 7, certifier: 'GreenA',       full_name: 'GreenA Halal Certification',                   region: 'Turkey',        cert_code: 'GIMDES-TR',    status: 'Under Review', logo_src: '/reference-logos/greena.svg' },
-])
+// ─── Modal state ──────────────────────────────────────────────────────────────
+const modalOpen = ref(false)
+const modalMode = ref<'create' | 'edit'>('create')
+const modalError = ref<string | null>(null)
+const saving = ref(false)
+const editingId = ref<number | null>(null)
+const form = ref<Record<string, any>>({})
 
-// ─── Ingredient Mappings mock data ───────────────────────────────────────────
-const ingredientMappings = ref<IngredientMapping[]>([
-	{ id: 1, code: 'IM01', name: 'Gelatin',                          mapped_category: 'Animal-derived gelling agent', dietary_impact: 'Source-dependent — porcine gelatin is non-permissible; bovine requires certification', confidence: 68, halal_status: 'SYUBHAH' },
-	{ id: 2, code: 'IM02', name: 'Carmine',            e_number: 'E120', mapped_category: 'Natural red colourant (insect-derived)', dietary_impact: 'Derived from cochineal insects — not vegan; scholarly dispute on permissibility', confidence: 74, halal_status: 'SYUBHAH' },
-	{ id: 3, code: 'IM03', name: 'Whey Protein',                     mapped_category: 'Dairy protein', dietary_impact: 'Contains milk; rennet source affects permissibility', confidence: 82, halal_status: 'SYUBHAH' },
-	{ id: 4, code: 'IM04', name: 'Lecithin',           e_number: 'E322', mapped_category: 'Emulsifier', dietary_impact: 'Soy or egg-derived lecithin is permissible; verify non-animal source', confidence: 91, halal_status: 'HALAL' },
-	{ id: 5, code: 'IM05', name: 'Natural Flavour',                  mapped_category: 'Flavouring compound', dietary_impact: 'Ambiguous — may contain alcohol carriers or animal extracts', confidence: 59, halal_status: 'SYUBHAH' },
-	{ id: 6, code: 'IM06', name: 'Mono- and Diglycerides', e_number: 'E471', mapped_category: 'Emulsifier (fatty acids)', dietary_impact: 'Fat source may be plant or animal; animal source needs certification', confidence: 63, halal_status: 'SYUBHAH' },
-	{ id: 7, code: 'IM07', name: 'Shellac',            e_number: 'E904', mapped_category: 'Glazing agent (insect resin)', dietary_impact: 'Secreted by lac insects — generally impermissible as a consumable coating', confidence: 71, halal_status: 'HARAM' },
-])
-
-// ─── Tab title ───────────────────────────────────────────────────────────────
 const getTabTitle = computed(() => {
 	if (activeTab.value === 'halal') return 'Maintain halal certifier library'
-	if (activeTab.value === 'ingredient') return 'Refine ingredient mappings'
-	return 'Update allergen entries & severity'
+	if (activeTab.value === 'ingredient') return 'Refine ingredient → allergen mappings'
+	return 'Update allergen dictionary'
 })
 
-// ─── Filtering ────────────────────────────────────────────────────────────────
+const tabSingular = computed(() => {
+	if (activeTab.value === 'halal') return 'Certifier'
+	if (activeTab.value === 'ingredient') return 'Ingredient Mapping'
+	return 'Allergen'
+})
+
+// ─── Filtering ──────────────────────────────────────────────────────────────
 const filteredAllergens = computed(() => {
 	const q = searchQuery.value.trim().toLowerCase()
 	if (!q) return allergens.value
-	return allergens.value.filter(
-		(item) => item.code.toLowerCase().includes(q) || item.allergen.toLowerCase().includes(q) || item.common_aliases.toLowerCase().includes(q)
-	)
+	return allergens.value.filter((a) => a.name.toLowerCase().includes(q) || a.scientific_name.toLowerCase().includes(q))
 })
 
 const filteredHalalLogos = computed(() => {
 	const q = searchQuery.value.trim().toLowerCase()
 	if (!q) return halalLogos.value
-	return halalLogos.value.filter(
-		(item) => item.certifier.toLowerCase().includes(q) || item.full_name.toLowerCase().includes(q) || item.region.toLowerCase().includes(q) || item.cert_code.toLowerCase().includes(q)
-	)
+	return halalLogos.value.filter((c) => c.certifier.toLowerCase().includes(q) || c.full_name.toLowerCase().includes(q))
 })
 
 const filteredIngredients = computed(() => {
 	const q = searchQuery.value.trim().toLowerCase()
 	if (!q) return ingredientMappings.value
 	return ingredientMappings.value.filter(
-		(item) => item.name.toLowerCase().includes(q) || (item.e_number && item.e_number.toLowerCase().includes(q)) || item.mapped_category.toLowerCase().includes(q)
+		(m) => m.scientific_term.toLowerCase().includes(q) || m.simplified_term.toLowerCase().includes(q) || m.allergen_name.toLowerCase().includes(q)
 	)
 })
 
-// ─── Badge class helpers ───────────────────────────────────────────────────────
-function statusClass(status: string): string {
-	if (status === 'Active') return 'status-active'
-	if (status === 'Under Review') return 'status-review'
-	return 'status-expired'
+function formatDate(iso?: string): string {
+	if (!iso) return '—'
+	const d = new Date(iso)
+	return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-CA')
 }
 
-function halalClass(status: string): string {
-	if (status === 'HALAL') return 'halal-ok'
-	if (status === 'HARAM') return 'halal-no'
-	return 'halal-doubt'
+// ─── Fetching ─────────────────────────────────────────────────────────────────
+async function fetchAllergens(): Promise<void> {
+	const data = await apiFetch<AllergenRow[]>('/api/allergen', { isAdmin: true })
+	allergens.value = Array.isArray(data) ? data : []
 }
 
-function confidenceClass(pct: number): string {
-	if (pct >= 80) return 'conf-high'
-	if (pct >= 65) return 'conf-mid'
-	return 'conf-low'
+async function fetchHalalLogos(): Promise<void> {
+	const data = await apiFetch<{ halalLogo: CertifierRow[] }>('/api/halal_logo?take=100&skip=0', { isAdmin: true })
+	halalLogos.value = data.halalLogo ?? []
 }
 
-// ─── API fetch (with graceful fallback to mock data) ─────────────────────────
+async function fetchMappings(): Promise<void> {
+	const data = await apiFetch<{ ingredient_mappings: MappingRow[] }>('/api/ingredient_mapping', { isAdmin: true })
+	ingredientMappings.value = data.ingredient_mappings ?? []
+}
+
 async function fetchTabContent(tab: TabType): Promise<void> {
 	isLoading.value = true
 	errorMessage.value = null
 	try {
-		if (tab === 'halal') {
-			try {
-				const data = await apiFetch<any>('/api/halal_logo?take=100&skip=0', { isAdmin: true })
-				const rawList = Array.isArray(data) ? data : data.halalLogo || data.data || []
-				if (rawList.length) {
-					// Merge server records with the design metadata (region / cert code / status)
-					// keyed by certifier acronym. Falls back to mock cards for anything unmatched.
-					const byCertifier = new Map(halalLogos.value.map((c) => [c.certifier.toUpperCase(), c]))
-					const merged: CertifierCard[] = rawList.map((row: any, idx: number) => {
-						const key = (row.certifier || '').toUpperCase()
-						const template = byCertifier.get(key)
-						return {
-							id: row.id ?? idx + 1,
-							certifier: row.certifier ?? template?.certifier ?? 'Unknown',
-							full_name: row.full_name ?? template?.full_name ?? '',
-							region: template?.region ?? row.region ?? 'N/A',
-							cert_code: template?.cert_code ?? row.cert_code ?? '—',
-							status: template?.status ?? 'Active',
-							logo_src: row.logo_src ?? template?.logo_src ?? null,
-						}
-					})
-					if (merged.length) halalLogos.value = merged
-				}
-			} catch {
-				console.warn('Halal logo route unavailable — using design mock cards.')
-			}
+		if (tab === 'allergen') {
+			await fetchAllergens()
+		} else if (tab === 'halal') {
+			await fetchHalalLogos()
+		} else if (tab === 'ingredient') {
+			// The ingredient form needs the allergen list for its dropdown.
+			await Promise.all([fetchMappings(), allergens.value.length ? Promise.resolve() : fetchAllergens()])
 		}
-		// allergen and ingredient tabs use the rich mock data defined above.
 	} catch (err) {
-		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to fetch database records.'
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to fetch records from the knowledge base.'
 	} finally {
 		isLoading.value = false
 	}
@@ -400,30 +416,97 @@ function switchTab(tab: TabType): void {
 	fetchTabContent(tab)
 }
 
-function handleAddNew(): void {
-	console.log(`Open modal to add new item for ${activeTab.value}`)
-}
-
-function editItem(item: unknown): void {
-	console.log(`Edit item in ${activeTab.value}:`, item)
-}
-
-function reviewCertifier(logo: CertifierCard): void {
-	console.log('Review certifier:', logo.certifier)
-}
-
-function renewCertifier(logo: CertifierCard): void {
-	console.log('Renew certifier:', logo.certifier)
-}
-
-function deleteItem(id: number): void {
-	if (!confirm('Are you sure you want to delete this record?')) return
+// ─── Modal open/close ─────────────────────────────────────────────────────────
+function openCreateModal(): void {
+	modalMode.value = 'create'
+	editingId.value = null
+	modalError.value = null
 	if (activeTab.value === 'allergen') {
-		allergens.value = allergens.value.filter((i) => i.id !== id)
+		form.value = { name: '', scientific_name: '', is_predefined: false }
 	} else if (activeTab.value === 'halal') {
-		halalLogos.value = halalLogos.value.filter((i) => i.id !== id)
-	} else if (activeTab.value === 'ingredient') {
-		ingredientMappings.value = ingredientMappings.value.filter((i) => i.id !== id)
+		form.value = { certifier: '', full_name: '', image_path: '', source_url: '', is_accredited: false }
+	} else {
+		form.value = { scientific_term: '', simplified_term: '', allergen_id: undefined }
+	}
+	modalOpen.value = true
+}
+
+function openEditModal(item: any): void {
+	modalMode.value = 'edit'
+	editingId.value = item.id
+	modalError.value = null
+	if (activeTab.value === 'allergen') {
+		form.value = { name: item.name, scientific_name: item.scientific_name, is_predefined: item.is_predefined }
+	} else if (activeTab.value === 'halal') {
+		form.value = { certifier: item.certifier, full_name: item.full_name, image_path: item.image_path, source_url: item.source_url, is_accredited: item.is_accredited }
+	} else {
+		form.value = { scientific_term: item.scientific_term, simplified_term: item.simplified_term, allergen_id: item.allergen_id }
+	}
+	modalOpen.value = true
+}
+
+function closeModal(): void {
+	if (saving.value) return
+	modalOpen.value = false
+	modalError.value = null
+}
+
+// ─── Save (create or edit) ─────────────────────────────────────────────────────
+async function saveModal(): Promise<void> {
+	saving.value = true
+	modalError.value = null
+	try {
+		const endpointMap: Record<TabType, string> = {
+			allergen: '/api/allergen',
+			halal: '/api/halal_logo',
+			ingredient: '/api/ingredient_mapping',
+		}
+		const endpoint = endpointMap[activeTab.value]
+		const payload: Record<string, any> = { ...form.value }
+		if (modalMode.value === 'edit' && editingId.value != null) payload.id = editingId.value
+
+		await apiFetch(endpoint, {
+			method: modalMode.value === 'create' ? 'POST' : 'PUT',
+			body: payload,
+			isAdmin: true,
+		})
+
+		modalOpen.value = false
+		await fetchTabContent(activeTab.value)
+	} catch (err) {
+		modalError.value = err instanceof ApiError ? err.message : 'Failed to save. Please try again.'
+	} finally {
+		saving.value = false
+	}
+}
+
+// ─── Delete ─────────────────────────────────────────────────────────────────
+async function removeItem(id: number): Promise<void> {
+	if (!confirm('Delete this record from the knowledge base? This cannot be undone.')) return
+	const endpointMap: Record<TabType, string> = {
+		allergen: '/api/allergen',
+		halal: '/api/halal_logo',
+		ingredient: '/api/ingredient_mapping',
+	}
+	try {
+		await apiFetch(`${endpointMap[activeTab.value]}?id=${id}`, { method: 'DELETE', isAdmin: true })
+		await fetchTabContent(activeTab.value)
+	} catch (err) {
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to delete record.'
+	}
+}
+
+// ─── Quick accredited toggle on certifier cards ────────────────────────────────
+async function toggleAccredited(logo: CertifierRow): Promise<void> {
+	try {
+		await apiFetch('/api/halal_logo', {
+			method: 'PUT',
+			body: { id: logo.id, is_accredited: !logo.is_accredited },
+			isAdmin: true,
+		})
+		await fetchHalalLogos()
+	} catch (err) {
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to update certifier.'
 	}
 }
 
@@ -439,25 +522,17 @@ onMounted(() => {
 	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 	color: #334155;
 }
-
 .page-header { margin-bottom: 24px; }
 h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 4px; color: #0f172a; }
 .subtitle { color: #64748b; font-size: 0.88rem; margin: 0; }
 
 .tabs-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-.tab-button {
-	display: inline-flex; align-items: center; gap: 8px;
-	padding: 10px 18px; border-radius: 12px;
-	border: 1px solid #e2e8f0; background: #fff; color: #334155;
-	font-size: 0.88rem; font-weight: 600; cursor: pointer;
-	transition: all 0.15s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-}
+.tab-button { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; color: #334155; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
 .tab-button:hover { background: #f1f5f9; color: #0f172a; }
 .tab-button.active { background: #008744; color: #fff; border-color: #008744; }
 .tab-icon { flex-shrink: 0; }
 
 .content-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow: hidden; }
-
 .controls-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; gap: 12px; flex-wrap: wrap; }
 .section-title { font-size: 0.92rem; color: #64748b; font-weight: 500; }
 .action-controls { display: flex; align-items: center; gap: 12px; }
@@ -467,24 +542,20 @@ h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 4px; color: #0f172a; }
 .btn-add { display: inline-flex; align-items: center; gap: 6px; background: #008744; color: #fff; border: none; border-radius: 10px; padding: 9px 18px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s ease; }
 .btn-add:hover { background: #00753a; }
 
-/* ── Tables ─────────────────────────────────────────────────────────────── */
 .table-wrap { overflow-x: auto; }
-.data-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+.data-table { width: 100%; border-collapse: collapse; min-width: 820px; }
 th { text-align: left; padding: 14px 24px; font-size: 0.73rem; font-weight: 700; color: #64748b; background: #fff; border-bottom: 1px solid #f1f5f9; letter-spacing: 0.05em; white-space: nowrap; }
-td { padding: 18px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; vertical-align: middle; }
+td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; vertical-align: middle; }
 .cell-id { color: #94a3b8; font-weight: 600; font-size: 0.82rem; }
 .cell-allergen { font-weight: 600; color: #0f172a; }
-.cell-aliases { color: #64748b; max-width: 240px; line-height: 1.35; }
-.cell-impact { color: #475569; max-width: 280px; line-height: 1.4; font-size: 0.82rem; }
+.cell-aliases { color: #64748b; max-width: 260px; line-height: 1.35; }
 .cell-updated { color: #94a3b8; font-size: 0.82rem; }
 
-.severity-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.02em; }
-.severity-badge.high { background-color: #ffe4e6; color: #e11d48; }
-.severity-badge.medium { background-color: #fef9c3; color: #ca8a04; }
-.severity-badge.low { background-color: #e0f2fe; color: #0284c7; }
-
-.flags-wrapper { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px; }
-.flag-chip { display: inline-block; background: #f1f5f9; color: #475569; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
+.count-chip { display: inline-block; min-width: 24px; text-align: center; background: #eef2ff; color: #4338ca; border-radius: 20px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; }
+.allergen-chip { display: inline-block; background: #f0fdf4; color: #15803d; border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 600; }
+.source-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+.source-badge.src-seed { background: #e0f2fe; color: #0284c7; }
+.source-badge.src-custom { background: #f1f5f9; color: #64748b; }
 
 .actions-row { display: flex; align-items: center; gap: 8px; }
 .btn-edit { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #e2e8f0; color: #1e293b; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s ease; white-space: nowrap; }
@@ -492,77 +563,54 @@ td { padding: 18px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 .btn-delete { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #fff; border: 1px solid #fecaca; color: #ef4444; border-radius: 50%; cursor: pointer; transition: background-color 0.15s ease; }
 .btn-delete:hover { background: #fef2f2; }
 
-/* ── Ingredient specifics ───────────────────────────────────────────────── */
-.ingredient-name-cell { display: flex; flex-direction: column; gap: 3px; }
-.ingredient-enumber { display: inline-block; width: fit-content; background: #eef2ff; color: #4338ca; border-radius: 5px; padding: 1px 7px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em; }
-
-.confidence-cell { display: flex; align-items: center; gap: 8px; min-width: 120px; }
-.confidence-bar { flex: 1; height: 6px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
-.confidence-fill { height: 100%; border-radius: 4px; }
-.confidence-fill.conf-high { background: #16a34a; }
-.confidence-fill.conf-mid { background: #ca8a04; }
-.confidence-fill.conf-low { background: #dc2626; }
-.confidence-pct { font-size: 0.76rem; font-weight: 600; color: #475569; min-width: 30px; }
-
-.halal-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em; }
-.halal-badge.halal-ok { background: #dcfce7; color: #15803d; }
-.halal-badge.halal-no { background: #fee2e2; color: #b91c1c; }
-.halal-badge.halal-doubt { background: #fef3c7; color: #b45309; }
-
-/* ── Halal Certifier Card Grid ──────────────────────────────────────────── */
-.certifier-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-	gap: 16px;
-	padding: 8px 24px 24px;
-}
-.certifier-card {
-	border: 1px solid #e2e8f0;
-	border-radius: 14px;
-	background: #fff;
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
-	transition: box-shadow 0.15s ease, border-color 0.15s ease;
-}
+/* Certifier grid */
+.certifier-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding: 8px 24px 24px; }
+.certifier-card { border: 1px solid #e2e8f0; border-radius: 14px; background: #fff; display: flex; flex-direction: column; overflow: hidden; transition: box-shadow 0.15s ease, border-color 0.15s ease; }
 .certifier-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); border-color: #cbd5e1; }
-
-.certifier-card-top {
-	display: flex; align-items: flex-start; justify-content: space-between;
-	padding: 16px 16px 0;
-}
-.certifier-logo {
-	width: 56px; height: 56px; border-radius: 12px;
-	background: #f8fafc; border: 1px solid #e2e8f0;
-	display: flex; align-items: center; justify-content: center; overflow: hidden;
-	flex-shrink: 0;
-}
+.certifier-card-top { display: flex; align-items: flex-start; justify-content: space-between; padding: 16px 16px 0; }
+.certifier-logo { width: 56px; height: 56px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
 .certifier-logo-img { width: 100%; height: 100%; object-fit: contain; }
 .certifier-logo-fallback { font-size: 1.8rem; }
-
 .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }
 .status-badge.status-active { background: #dcfce7; color: #15803d; }
 .status-badge.status-review { background: #fef9c3; color: #a16207; }
-.status-badge.status-expired { background: #fee2e2; color: #b91c1c; }
-
 .certifier-body { padding: 14px 16px 8px; flex: 1; }
 .certifier-name { font-size: 1rem; font-weight: 700; margin: 0 0 2px; color: #0f172a; }
-.certifier-fullname { font-size: 0.78rem; color: #64748b; margin: 0 0 12px; line-height: 1.35; }
-.certifier-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.meta-region { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; color: #475569; font-weight: 500; }
-.meta-code { font-size: 0.72rem; font-weight: 700; color: #4338ca; background: #eef2ff; border-radius: 5px; padding: 2px 8px; letter-spacing: 0.02em; }
-
+.certifier-fullname { font-size: 0.78rem; color: #64748b; margin: 0 0 10px; line-height: 1.35; }
+.certifier-source { display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; color: #2563eb; text-decoration: none; font-weight: 500; }
+.certifier-source:hover { text-decoration: underline; }
 .certifier-actions { display: flex; gap: 6px; padding: 12px 16px 16px; border-top: 1px solid #f1f5f9; margin-top: 8px; }
 .cert-btn { flex: 1; border-radius: 8px; padding: 7px 0; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: background 0.12s, border-color 0.12s; }
 .cert-btn-edit { background: #fff; border-color: #e2e8f0; color: #334155; }
 .cert-btn-edit:hover { background: #f8fafc; }
-.cert-btn-review { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
-.cert-btn-review:hover { background: #dbeafe; }
-.cert-btn-renew { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
-.cert-btn-renew:hover { background: #dcfce7; }
+.cert-btn-review { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
+.cert-btn-review:hover { background: #dcfce7; }
+.cert-btn-delete { background: #fff; border-color: #fecaca; color: #dc2626; }
+.cert-btn-delete:hover { background: #fef2f2; }
 
-/* ── Footer / states ────────────────────────────────────────────────────── */
 .card-footer-notice { padding: 16px 24px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 0.82rem; color: #94a3b8; }
 .state-message, .empty-note { padding: 32px; text-align: center; color: #64748b; font-size: 0.9rem; }
 .error-message { padding: 32px; text-align: center; color: #dc2626; font-size: 0.9rem; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
+.modal { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.18); width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; display: flex; flex-direction: column; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9; }
+.modal-title { font-size: 1.05rem; font-weight: 700; margin: 0; color: #0f172a; }
+.modal-close { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; border-radius: 6px; transition: color 0.12s, background 0.12s; }
+.modal-close:hover { color: #334155; background: #f1f5f9; }
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-label { font-size: 0.8rem; font-weight: 600; color: #475569; }
+.field-input { border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 12px; font-size: 0.88rem; color: #1e293b; outline: none; font-family: inherit; transition: border-color 0.12s; background: #fff; }
+.field-input:focus { border-color: #008744; }
+.field-check { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #334155; cursor: pointer; }
+.modal-error { margin: 0; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 0.82rem; }
+.modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 16px 24px; border-top: 1px solid #f1f5f9; }
+.btn-modal-cancel { background: transparent; border: 1px solid #e2e8f0; color: #64748b; padding: 8px 18px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; transition: background 0.12s; }
+.btn-modal-cancel:hover:not(:disabled) { background: #f8fafc; }
+.btn-modal-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-modal-save { background: #008744; color: #fff; border: none; padding: 8px 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.12s; }
+.btn-modal-save:hover:not(:disabled) { background: #00753a; }
+.btn-modal-save:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

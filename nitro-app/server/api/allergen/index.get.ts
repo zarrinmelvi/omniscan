@@ -1,26 +1,31 @@
-import { eventHandler, createError } from 'h3'
+import { defineEventHandler, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 
-// server/api/allergen/index.get.ts
-// Bonus endpoint: ProfilePage.vue needs a full allergen catalog to
-// render as selectable toggles. This wasn't in your original files,
-// so add it alongside index.post.ts / index.put.ts / index.delete.ts under server/api/allergen/.
-export default eventHandler(async () => {
+// Returns the full allergen catalog. Kept unauthenticated because the client
+// ProfilePage also consumes it to render selectable allergen toggles.
+export default defineEventHandler(async () => {
 	try {
 		const allergens = await prisma.allergen.findMany({
-			orderBy: { name: 'asc' },
+			orderBy: { id: 'asc' },
 			select: {
 				id: true,
 				name: true,
 				scientific_name: true,
+				is_predefined: true,
+				updated_at: true,
+				_count: { select: { ingredient_mapping: true } },
 			},
 		})
 
-		return allergens
+		return allergens.map((a) => ({
+			id: a.id,
+			name: a.name,
+			scientific_name: a.scientific_name,
+			is_predefined: a.is_predefined,
+			mapping_count: a._count.ingredient_mapping,
+			updated_at: a.updated_at,
+		}))
 	} catch (error: any) {
-		throw createError({
-			statusCode: 500,
-			statusMessage: error.message || 'An unexpected error occurred while fetching allergens.',
-		})
+		throw createError({ statusCode: 500, statusMessage: error.message || 'Failed to fetch allergens.' })
 	}
 })

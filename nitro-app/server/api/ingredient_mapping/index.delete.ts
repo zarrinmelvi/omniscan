@@ -1,13 +1,23 @@
-import { eventHandler, getQuery, readBody } from 'h3'
+import { defineEventHandler, getQuery, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
+import { requireAdminAuth } from '../../utils/requireAdminAuth'
 
-export default eventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
+	requireAdminAuth(event)
+
 	const query = getQuery(event)
+	const id = Number(query.id)
+	if (!id || Number.isNaN(id)) {
+		throw createError({ statusCode: 400, statusMessage: 'A valid ingredient mapping id is required.' })
+	}
 
-	const user = await prisma.user.delete({
-		where: {
-			id: Number(query.id),
-		},
-	})
-	return user
+	try {
+		await prisma.ingredientMapping.delete({ where: { id } })
+		return { success: true, id }
+	} catch (err: any) {
+		if (err?.code === 'P2025') {
+			throw createError({ statusCode: 404, statusMessage: 'Ingredient mapping not found.' })
+		}
+		throw createError({ statusCode: 400, statusMessage: err?.message || 'Failed to delete ingredient mapping.' })
+	}
 })

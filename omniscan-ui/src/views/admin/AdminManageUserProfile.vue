@@ -155,8 +155,13 @@
 				</select>
 			</div>
 
+			<!-- Loading / error / empty states -->
+			<p v-if="isLoading" class="state-message">Loading user accounts…</p>
+			<p v-else-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+			<p v-else-if="filteredUsers.length === 0" class="empty-note">No user accounts match the current filters.</p>
+
 			<!-- User Accounts Table -->
-			<table class="data-table">
+			<table v-else class="data-table">
 				<thead>
 					<tr>
 						<th>NAME</th>
@@ -175,7 +180,10 @@
 					>
 						<td>
 							<div class="user-cell">
-								<div class="avatar" :class="user.avatarBg">{{ user.initials }}</div>
+								<div class="avatar" :class="user.avatarBg">
+									<img v-if="user.avatarSrc" :src="user.avatarSrc" :alt="user.name" class="avatar-img" />
+									<template v-else>{{ user.initials }}</template>
+								</div>
 								<span class="user-name">{{ user.name }}</span>
 							</div>
 						</td>
@@ -217,13 +225,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { apiFetch, ApiError } from '@/utils/api'
+
+interface ApiUserRow {
+	id: number
+	name: string
+	email: string
+	avatar_base64: string | null
+	created_at: string
+	last_active: string
+	inactive_days: number
+	inactive_for: string | null
+	status: 'Active' | 'Inactive' | 'Archived'
+	deletion_due: boolean
+}
 
 interface UserProfile {
 	id: number
 	name: string
 	initials: string
 	avatarBg: string
+	avatarSrc: string | null
 	email: string
 	created: string
 	lastActive: string
@@ -235,111 +258,79 @@ interface UserProfile {
 
 const searchQuery = ref('')
 const filterStatus = ref('All')
+const isLoading = ref(true)
+const errorMessage = ref<string | null>(null)
 
-// Dynamic real-time date string formatted as "Month Day, Year"
-const formattedCurrentDate = computed(() => {
-	return new Date().toLocaleDateString('en-US', {
-		month: 'long',
-		day: 'numeric',
-		year: 'numeric',
-	})
-})
+const users = ref<UserProfile[]>([])
+const stats = ref({ total: 0, active: 0, inactive: 0, archived: 0 })
 
-const users = ref<UserProfile[]>([
-	{
-		id: 1,
-		name: 'Aisha Musa',
-		initials: 'AM',
-		avatarBg: 'bg-green',
-		email: 'aisha_m@mail.com',
-		created: '2025-08-14',
-		lastActive: '2026-04-22',
-		inactiveFor: '1d',
-		status: 'Active',
-	},
-	{
-		id: 2,
-		name: 'Omar Khalid',
-		initials: 'OK',
-		avatarBg: 'bg-green',
-		email: 'omar.k@inbox.net',
-		created: '2025-09-02',
-		lastActive: '2026-04-20',
-		inactiveFor: '3d',
-		status: 'Active',
-	},
-	{
-		id: 3,
-		name: 'Fatima Hassan',
-		initials: 'FH',
-		avatarBg: 'bg-green',
-		email: 'fatima.h@mail.io',
-		created: '2025-07-20',
-		lastActive: '2026-04-15',
-		inactiveFor: '8d',
-		status: 'Active',
-	},
-	{
-		id: 4,
-		name: 'Layla Ibrahim',
-		initials: 'LI',
-		avatarBg: 'bg-orange',
-		email: 'layla.ib@webmail.com',
-		created: '2025-10-11',
-		lastActive: '2025-10-15',
-		inactiveFor: 'Deletion due · 6mo 10d',
-		inactiveForClass: 'badge-red',
-		status: 'Archived',
-		highlight: 'deletion',
-	},
-	{
-		id: 5,
-		name: 'Zara Noor',
-		initials: 'ZN',
-		avatarBg: 'bg-green',
-		email: 'znoor@quickmail.io',
-		created: '2025-11-30',
-		lastActive: '2026-04-08',
-		inactiveFor: '15d',
-		status: 'Active',
-	},
-	{
-		id: 6,
-		name: 'Kai Johnson',
-		initials: 'KJ',
-		avatarBg: 'bg-orange',
-		email: 'kai.j@mail.net',
-		created: '2025-12-05',
-		lastActive: '2025-10-22',
-		inactiveFor: 'Archived · 6mo 3d',
-		inactiveForClass: 'badge-orange',
-		status: 'Archived',
-		highlight: 'archived',
-	},
-	{
-		id: 7,
-		name: 'Sara Lee',
-		initials: 'SL',
-		avatarBg: 'bg-green',
-		email: 'sara.l@post.com',
-		created: '2026-01-18',
-		lastActive: '2026-03-10',
-		inactiveFor: '1mo 14d',
-		inactiveForClass: 'badge-yellow',
-		status: 'Inactive',
-	},
-	{
-		id: 8,
-		name: 'Ali Rahman',
-		initials: 'AR',
-		avatarBg: 'bg-green',
-		email: 'ali.r@securemail.io',
-		created: '2026-02-07',
-		lastActive: '2026-04-23',
-		inactiveFor: null,
-		status: 'Active',
-	},
-])
+const formattedCurrentDate = computed(() =>
+	new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+)
+
+function initialsOf(name: string): string {
+	const parts = name.trim().split(/\s+/).filter(Boolean)
+	if (parts.length === 0) return '?'
+	if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+	return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+function formatDate(iso: string): string {
+	if (!iso) return '—'
+	const d = new Date(iso)
+	return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-CA')
+}
+
+/** Choose an inactivity-badge colour band from the raw day count. */
+function inactiveForClass(days: number, deletionDue: boolean): string | undefined {
+	if (deletionDue) return 'badge-red'
+	if (days >= 180) return 'badge-orange'
+	if (days >= 30) return 'badge-yellow'
+	return undefined
+}
+
+function mapRow(r: ApiUserRow): UserProfile {
+	let inactiveLabel = r.inactive_for
+	if (r.status === 'Archived') {
+		inactiveLabel = r.deletion_due
+			? `Deletion due · ${r.inactive_for ?? ''}`.trim()
+			: `Archived · ${r.inactive_for ?? ''}`.trim()
+	}
+
+	return {
+		id: r.id,
+		name: r.name,
+		initials: initialsOf(r.name),
+		avatarBg: r.status === 'Archived' ? 'bg-orange' : 'bg-green',
+		avatarSrc: r.avatar_base64
+			? (r.avatar_base64.startsWith('data:') ? r.avatar_base64 : `data:image/jpeg;base64,${r.avatar_base64}`)
+			: null,
+		email: r.email,
+		created: formatDate(r.created_at),
+		lastActive: formatDate(r.last_active),
+		inactiveFor: inactiveLabel,
+		inactiveForClass: inactiveForClass(r.inactive_days, r.deletion_due),
+		status: r.status,
+		highlight: r.deletion_due ? 'deletion' : r.status === 'Archived' ? 'archived' : undefined,
+	}
+}
+
+async function fetchUsers(): Promise<void> {
+	isLoading.value = true
+	errorMessage.value = null
+	try {
+		const data = await apiFetch<{ users: ApiUserRow[]; stats: typeof stats.value }>('/api/admin/users', {
+			isAdmin: true,
+		})
+		users.value = (data.users ?? []).map(mapRow)
+		stats.value = data.stats ?? { total: 0, active: 0, inactive: 0, archived: 0 }
+	} catch (err) {
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load user accounts.'
+		console.error('Failed to fetch users:', err)
+	} finally {
+		isLoading.value = false
+	}
+}
 
 function getRowClass(user: UserProfile) {
 	if (user.highlight === 'deletion') return 'row-highlight-red'
@@ -347,28 +338,20 @@ function getRowClass(user: UserProfile) {
 	return ''
 }
 
-const userStats = computed(() => {
-	const total = users.value.length
-	const active = users.value.filter((u) => u.status === 'Active').length
-	const inactive = users.value.filter((u) => u.status === 'Inactive').length
-	const archived = users.value.filter((u) => u.status === 'Archived').length
-	return { total, active, inactive, archived }
-})
+// Metrics come straight from the backend aggregate so they stay correct even
+// if the table is filtered client-side.
+const userStats = computed(() => stats.value)
 
 const filteredUsers = computed(() => {
 	return users.value.filter((user) => {
 		const query = searchQuery.value.trim().toLowerCase()
-		const matchesQuery =
-			!query ||
-			user.name.toLowerCase().includes(query) ||
-			user.email.toLowerCase().includes(query)
-
-		const matchesStatus =
-			filterStatus.value === 'All' || user.status === filterStatus.value
-
+		const matchesQuery = !query || user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query)
+		const matchesStatus = filterStatus.value === 'All' || user.status === filterStatus.value
 		return matchesQuery && matchesStatus
 	})
 })
+
+onMounted(fetchUsers)
 </script>
 
 <style scoped>
@@ -803,4 +786,8 @@ tr.row-highlight-red {
 	gap: 6px;
 	color: #94a3b8;
 }
+
+.avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.state-message, .empty-note { padding: 32px; text-align: center; color: #64748b; font-size: 0.9rem; }
+.error-message { padding: 32px; text-align: center; color: #dc2626; font-size: 0.9rem; }
 </style>

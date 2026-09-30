@@ -154,20 +154,43 @@
 						<thead>
 							<tr>
 								<th class="col-id">ID</th>
-								<th>SCIENTIFIC TERM</th>
-								<th>SIMPLIFIED TERM</th>
+								<th>SCIENTIFIC / RAW OCR TERM</th>
+								<th>SIMPLIFIED CONSUMER TERM</th>
 								<th>MAPPED ALLERGEN</th>
-								<th>UPDATED</th>
+								<th>DIETARY / HALAL RISK</th>
 								<th class="col-actions">ACTIONS</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr v-for="ing in filteredIngredients" :key="ing.id">
 								<td class="cell-id">#{{ ing.id }}</td>
-								<td class="cell-allergen">{{ ing.scientific_term }}</td>
-								<td class="cell-aliases">{{ ing.simplified_term }}</td>
+								<td>
+									<span class="scientific-term">{{ ing.scientific_term }}</span>
+								</td>
+								<td>
+									<span
+										v-if="ing.simplified_term && ing.simplified_term.toLowerCase() !== ing.scientific_term.toLowerCase()"
+										class="simplified-term"
+									>{{ ing.simplified_term }}</span>
+									<span v-else class="simplified-missing" :title="'No distinct consumer term set — falls back to the raw term'">
+										Not simplified
+									</span>
+								</td>
 								<td><span class="allergen-chip">{{ ing.allergen_name }}</span></td>
-								<td class="cell-updated">{{ formatDate(ing.updated_at) }}</td>
+								<td>
+									<div class="risk-cell">
+										<span class="halal-badge" :class="halalClass(deriveRisk(ing.allergen_name, ing.scientific_term).halal)">
+											{{ deriveRisk(ing.allergen_name, ing.scientific_term).halal }}
+										</span>
+										<div class="risk-flags">
+											<span
+												v-for="(flag, i) in deriveRisk(ing.allergen_name, ing.scientific_term).dietary"
+												:key="i"
+												class="flag-chip"
+											>{{ flag }}</span>
+										</div>
+									</div>
+								</td>
 								<td class="col-actions">
 									<div class="actions-row">
 										<button class="btn-edit" @click="openEditModal(ing)">
@@ -280,20 +303,37 @@
 						<!-- Ingredient mapping form -->
 						<template v-else-if="activeTab === 'ingredient'">
 							<label class="field">
-								<span class="field-label">Scientific term *</span>
-								<input v-model="form.scientific_term" type="text" class="field-input" placeholder="e.g. casein" />
+								<span class="field-label">Scientific / Raw OCR string *</span>
+								<input v-model="form.scientific_term" type="text" class="field-input" placeholder="e.g. sodium caseinate (E469)" />
+								<span class="field-hint">The complex chemical name or raw package string detected by AI/OCR.</span>
 							</label>
 							<label class="field">
-								<span class="field-label">Simplified term</span>
+								<span class="field-label">Simplified consumer term</span>
 								<input v-model="form.simplified_term" type="text" class="field-input" placeholder="e.g. milk protein" />
+								<span class="field-hint">Plain, everyday language shown to users in the client app.</span>
 							</label>
 							<label class="field">
-								<span class="field-label">Mapped allergen *</span>
+								<span class="field-label">Mapped allergen / category *</span>
 								<select v-model.number="form.allergen_id" class="field-input">
 									<option :value="undefined" disabled>Select an allergen…</option>
 									<option v-for="a in allergens" :key="a.id" :value="a.id">{{ a.name }}</option>
 								</select>
 							</label>
+
+							<!-- Auto-derived compliance / Halal risk context -->
+							<div class="field">
+								<span class="field-label">Compliance / Halal risk</span>
+								<div class="risk-panel">
+									<div class="risk-panel-head">
+										<span class="halal-badge" :class="halalClass(mappingRisk.halal)">{{ mappingRisk.halal }}</span>
+										<div class="risk-flags">
+											<span v-for="(flag, i) in mappingRisk.dietary" :key="i" class="flag-chip">{{ flag }}</span>
+										</div>
+									</div>
+									<p class="risk-panel-note">{{ mappingRisk.note }}</p>
+								</div>
+								<span class="field-hint">Auto-derived from the mapped allergen and term. Updates the scan pipeline's risk reasoning.</span>
+							</div>
 						</template>
 
 						<p v-if="modalError" class="modal-error">{{ modalError }}</p>
@@ -421,6 +461,13 @@ const tabSingular = computed(() => {
 	return 'Allergen'
 })
 
+// Live risk preview inside the ingredient mapping modal, based on the currently
+// selected allergen + typed scientific term.
+const mappingRisk = computed<RiskContext>(() => {
+	const allergenName = allergens.value.find((a) => a.id === Number(form.value.allergen_id))?.name ?? ''
+	return deriveRisk(allergenName, String(form.value.scientific_term ?? ''))
+})
+
 // ─── Filtering ──────────────────────────────────────────────────────────────
 const filteredAllergens = computed(() => {
 	const q = searchQuery.value.trim().toLowerCase()
@@ -446,6 +493,59 @@ function formatDate(iso?: string): string {
 	if (!iso) return '—'
 	const d = new Date(iso)
 	return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-CA')
+}
+
+// The IngredientMapping schema has no risk column, so the dietary/Halal risk
+// context shown to admins is derived from the mapped allergen name. This mirrors
+// the same allergen→risk reasoning used elsewhere (Verification Panel).
+interface RiskContext {
+	halal: 'HALAL' | 'HARAM' | 'SYUBHAH'
+	dietary: string[]
+	note: string
+}
+
+function deriveRisk(allergenName: string, scientificTerm = ''): RiskContext {
+	const a = (allergenName || '').toLowerCase()
+	const t = (scientificTerm || '').toLowerCase()
+
+	// Pork / lard / bacon → definitively non-permissible.
+	if (a.includes('pork') || t.includes('pork') || t.includes('lard') || t.includes('bacon')) {
+		return { halal: 'HARAM', dietary: ['Halal', 'Kosher'], note: 'Pork-derived — non-permissible under Halal and Kosher diets.' }
+	}
+	// Alcohol / ethanol carriers.
+	if (t.includes('alcohol') || t.includes('ethanol') || t.includes('wine') || t.includes('rum')) {
+		return { halal: 'HARAM', dietary: ['Halal'], note: 'Contains alcohol — non-permissible under Halal.' }
+	}
+	// Gelatin, rennet, mono/diglycerides, carmine, shellac — source-dependent.
+	if (t.includes('gelatin') || t.includes('rennet') || t.includes('glyceride') || t.includes('carmine') || t.includes('shellac') || t.includes('e120') || t.includes('e471') || t.includes('e904')) {
+		return { halal: 'SYUBHAH', dietary: ['Halal', 'Vegan'], note: 'Source-dependent (animal vs plant) — requires certification to confirm permissibility.' }
+	}
+	// Allergen-family based dietary flags.
+	if (a.includes('milk') || a.includes('dairy')) {
+		return { halal: 'HALAL', dietary: ['Vegan', 'Lactose-Free'], note: 'Dairy-derived — not suitable for vegan or lactose-free diets.' }
+	}
+	if (a.includes('gluten') || a.includes('wheat')) {
+		return { halal: 'HALAL', dietary: ['Celiac', 'Gluten-Free'], note: 'Contains gluten — not suitable for celiac or gluten-free diets.' }
+	}
+	if (a.includes('soy')) {
+		return { halal: 'HALAL', dietary: ['Vegan', 'Clean Label'], note: 'Soy-derived allergen — generally plant-based.' }
+	}
+	if (a.includes('nut') || a.includes('peanut')) {
+		return { halal: 'HALAL', dietary: ['Nut Allergy'], note: 'Nut-derived allergen — anaphylaxis risk for nut-allergic users.' }
+	}
+	if (a.includes('shellfish') || a.includes('fish')) {
+		return { halal: 'HALAL', dietary: ['Halal', 'Kosher'], note: 'Seafood-derived — Kosher-restricted; generally Halal-permissible.' }
+	}
+	if (a.includes('egg')) {
+		return { halal: 'HALAL', dietary: ['Vegan'], note: 'Egg-derived — not suitable for vegan diets.' }
+	}
+	return { halal: 'HALAL', dietary: [], note: 'No specific dietary or Halal restriction derived from this mapping.' }
+}
+
+function halalClass(status: string): string {
+	if (status === 'HARAM') return 'halal-no'
+	if (status === 'SYUBHAH') return 'halal-doubt'
+	return 'halal-ok'
 }
 
 // ─── Fetching ─────────────────────────────────────────────────────────────────
@@ -662,6 +762,19 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 
 .count-chip { display: inline-block; min-width: 24px; text-align: center; background: #eef2ff; color: #4338ca; border-radius: 20px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; }
 .allergen-chip { display: inline-block; background: #f0fdf4; color: #15803d; border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 600; }
+.scientific-term { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; color: #0f172a; font-weight: 600; }
+.simplified-term { color: #334155; font-size: 0.86rem; }
+.simplified-missing { color: #94a3b8; font-size: 0.8rem; font-style: italic; }
+.risk-cell { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.risk-flags { display: flex; flex-wrap: wrap; gap: 4px; }
+.halal-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em; }
+.halal-badge.halal-ok { background: #dcfce7; color: #15803d; }
+.halal-badge.halal-no { background: #fee2e2; color: #b91c1c; }
+.halal-badge.halal-doubt { background: #fef3c7; color: #b45309; }
+.flag-chip { display: inline-block; background: #f1f5f9; color: #475569; border-radius: 6px; padding: 2px 8px; font-size: 0.72rem; font-weight: 500; }
+.risk-panel { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; background: #f8fafc; display: flex; flex-direction: column; gap: 8px; }
+.risk-panel-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.risk-panel-note { margin: 0; font-size: 0.8rem; color: #475569; line-height: 1.45; }
 .source-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
 .source-badge.src-seed { background: #e0f2fe; color: #0284c7; }
 .source-badge.src-custom { background: #f1f5f9; color: #64748b; }

@@ -291,10 +291,13 @@ export default defineEventHandler(async (event) => {
 	}
 
 	if (!extraction.is_food_product) {
+		const statusMessage = hasBackImage
+			? "One or both captures don't look like a valid food or beverage product packaging. Please ensure both photos show edible item packaging."
+			: "This doesn't look like a food or beverage product. OmniScan only tracks food items."
+
 		throw createError({
 			statusCode: 422,
-			statusMessage:
-				"This doesn't look like a food or beverage product. OmniScan only tracks food items.",
+			statusMessage,
 		})
 	}
 

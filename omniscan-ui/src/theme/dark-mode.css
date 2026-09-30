@@ -925,3 +925,31 @@ html.ion-palette-dark .edit-error {
   color: #fca5a5 !important;
   border: 1px solid #b91c1c !important;
 }
+
+/* === Desktop Sidebar Navigation Dark Mode Overrides === */
+html.ion-palette-dark .desktop-nav {
+  background: var(--dm-header-bg) !important;
+  border-right-color: var(--dm-border) !important;
+}
+
+html.ion-palette-dark .desktop-nav .nav-header {
+  border-bottom-color: var(--dm-border) !important;
+}
+
+html.ion-palette-dark .desktop-nav .nav-item {
+  color: var(--dm-text-secondary) !important;
+}
+
+html.ion-palette-dark .desktop-nav .nav-item:hover {
+  background: var(--dm-bg-chip) !important;
+  color: var(--dm-text-primary) !important;
+}
+
+html.ion-palette-dark .desktop-nav .nav-item--active {
+  background: #052e16 !important;
+  color: #4ade80 !important;
+}
+
+html.ion-palette-dark .desktop-nav .nav-item--active ion-icon {
+  color: #4ade80 !important;
+}

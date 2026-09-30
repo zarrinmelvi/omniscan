@@ -40,7 +40,7 @@ const navItems = [
 	top: 0;
 	bottom: 0;
 	width: 260px;
-	background: #ffffff;
+	background: var(--ion-background-color, #ffffff);
 	border-right: 1px solid var(--ion-border-color, #e5e7eb);
 	padding: 24px 0;
 	overflow-y: auto;

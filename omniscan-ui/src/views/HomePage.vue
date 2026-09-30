@@ -725,15 +725,15 @@ onIonViewWillEnter(() => {
 	.stats-row {
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
-		scrollbar-width: none; /* Firefox */
+		scrollbar-width: none;
 	}
 	
 	.stats-row::-webkit-scrollbar {
-		display: none; /* Chrome, Safari */
+		display: none;
 	}
 	
 	.stat-card {
-		flex: 1 0 calc(50% - 6px); /* 2 cards visible at once */
+		flex: 1 0 calc(50% - 6px);
 		min-width: 140px;
 	}
 }
@@ -768,7 +768,7 @@ onIonViewWillEnter(() => {
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 	cursor: pointer;
 	transition: transform 0.2s;
-	min-height: 44px; /* Touch target minimum */
+	min-height: 44px;
 }
 
 .stat-card:hover {
@@ -933,6 +933,7 @@ onIonViewWillEnter(() => {
 .recipe-grid {
 	display: grid;
 	gap: 12px;
+	width: 100%;
 }
 
 /* Mobile: single column with 12px gap */
@@ -968,7 +969,10 @@ onIonViewWillEnter(() => {
 	gap: 12px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 	cursor: pointer;
+	width: 100%;
+	box-sizing: border-box;
 }
+
 .recipe-img-wrap {
 	width: 60px;
 	height: 60px;
@@ -977,11 +981,13 @@ onIonViewWillEnter(() => {
 	flex-shrink: 0;
 	background: #f2f2f7;
 }
+
 .recipe-img {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 }
+
 .recipe-placeholder {
 	width: 100%;
 	height: 100%;
@@ -991,28 +997,37 @@ onIonViewWillEnter(() => {
 	font-size: 1.3rem;
 	color: #8e8e93;
 }
+
 .recipe-info {
 	flex: 1;
-	min-width: 0;
+	min-width: 0; /* Ensures flex container constrains text width */
 }
+
 .recipe-title {
 	font-size: 0.92rem;
 	font-weight: 600;
 	color: #0f172a;
 	margin: 0 0 2px;
-	white-space: nowrap;
+	line-height: 1.25;
+	display: -webkit-box;
+	-webkit-line-clamp: 2; /* Wraps up to 2 lines cleanly */
+	-webkit-box-orient: vertical;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	word-break: break-word;
 }
+
 .recipe-match {
 	font-size: 0.75rem;
 	color: #22c55e;
 	font-weight: 500;
 	margin: 0;
 }
+
 .recipe-arrow {
 	color: #c7c7cc;
 	font-size: 1.1rem;
+	flex-shrink: 0; /* Keeps arrow visible on tight mobile layouts */
 }
 
 .placeholder-card {
@@ -1028,6 +1043,7 @@ onIonViewWillEnter(() => {
 	font-size: 0.85rem;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
+
 .placeholder-icon {
 	font-size: 1.8rem;
 	color: #c7c7cc;
@@ -1038,6 +1054,7 @@ onIonViewWillEnter(() => {
 	flex-direction: column;
 	gap: 10px;
 }
+
 .activity-row {
 	display: flex;
 	align-items: center;
@@ -1047,6 +1064,7 @@ onIonViewWillEnter(() => {
 	padding: 12px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
+
 .activity-icon {
 	width: 36px;
 	height: 36px;
@@ -1057,30 +1075,37 @@ onIonViewWillEnter(() => {
 	font-size: 1.2rem;
 	flex-shrink: 0;
 }
+
 .activity-icon--scanned {
 	background: #eff6ff;
 	color: #2563eb;
 }
+
 .activity-icon--uploaded {
 	background: #f0fdf4;
 	color: #16a34a;
 }
+
 .activity-icon--added {
 	background: #f0fdf4;
 	color: #22c55e;
 }
+
 .activity-icon--consumed {
 	background: #f2f2f7;
 	color: #8e8e93;
 }
+
 .activity-icon--auto_archived {
 	background: #f1f5f9;
 	color: #64748b;
 }
+
 .activity-info {
 	flex: 1;
 	min-width: 0;
 }
+
 .activity-name {
 	font-size: 0.88rem;
 	font-weight: 600;
@@ -1090,6 +1115,7 @@ onIonViewWillEnter(() => {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+
 .activity-meta {
 	font-size: 0.75rem;
 	color: #8e8e93;

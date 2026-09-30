@@ -1,0 +1,7 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <rect width="120" height="120" rx="16" fill="#003087"/>
+  <circle cx="60" cy="48" r="26" fill="none" stroke="#FFD700" stroke-width="3"/>
+  <text x="60" y="53" font-family="Arial,sans-serif" font-size="15" font-weight="900" fill="#FFD700" text-anchor="middle">حلال</text>
+  <text x="60" y="80" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="white" text-anchor="middle">IFANCA</text>
+  <text x="60" y="95" font-family="Arial,sans-serif" font-size="6.5" fill="#AEB8D0" text-anchor="middle">UNITED STATES</text>
+</svg>

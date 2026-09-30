@@ -175,16 +175,17 @@ function onPantryItemAdded(): void {
 }
 
 function onModalClosed(): void {
-	isResultModalOpen.value = false
+	// Clears analysisResult immediately so navigation checks evaluate to false
 	analysisResult.value = null
+	isResultModalOpen.value = false
 	captureStage.value = 'front'
 	frontFile.value = null
 	isBackCaptured.value = false
 }
 
-// Checks if an active process or modal state requires unsaved progress confirmation
+// Checks if an active upload or modal state requires unsaved progress confirmation upon tab route change
 const hasUnsavedScan = computed(() => {
-	// If the item is detected as a non-food product, directly bypass the "Unsaved Item" guard
+	// If it's a non-food product, bypass the unsaved item guard completely
 	if (analysisResult.value?.isNotProduct) {
 		return false
 	}
@@ -192,7 +193,6 @@ const hasUnsavedScan = computed(() => {
 	return (
 		isUploading.value ||
 		captureStage.value === 'back' ||
-		isResultModalOpen.value ||
 		isPhotoModalOpen.value
 	)
 })
@@ -211,7 +211,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 					role: 'cancel',
 					handler: () => {
 						isRouteAlertOpen.value = false
-						next(false) // Stay on the current page
+						next(false) // Stay on current tab
 					},
 				},
 				{

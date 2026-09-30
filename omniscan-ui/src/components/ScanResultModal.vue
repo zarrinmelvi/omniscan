@@ -453,6 +453,12 @@ async function submitAddToPantry() {
 async function handleDismiss() {
 	if (submitting.value) return
 
+	// Bypasses the "Unsaved Item" confirmation popup entirely if it's a non-food item
+	if (props.data?.isNotProduct) {
+		forceDismiss()
+		return
+	}
+
 	if (product.value) {
 		const alert = await alertController.create({
 			header: 'Unsaved Item',

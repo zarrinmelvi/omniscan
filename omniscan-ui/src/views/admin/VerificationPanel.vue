@@ -242,7 +242,9 @@
 											v-if="reviewFrontSrc"
 											:src="reviewFrontSrc"
 											alt="Front scan"
-											class="scan-img"
+											class="scan-img scan-img--zoomable"
+											title="Click to zoom"
+											@click="openLightbox(reviewFrontSrc, 'Front scan')"
 										/>
 										<div v-else class="scan-img-placeholder">
 											<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35">
@@ -255,7 +257,13 @@
 										<div class="image-label">Front</div>
 									</div>
 									<div v-if="reviewBackSrc" class="scan-image-box">
-										<img :src="reviewBackSrc" alt="Back scan" class="scan-img" />
+										<img
+											:src="reviewBackSrc"
+											alt="Back scan"
+											class="scan-img scan-img--zoomable"
+											title="Click to zoom"
+											@click="openLightbox(reviewBackSrc!, 'Back scan')"
+										/>
 										<div class="image-label">Back</div>
 									</div>
 								</div>
@@ -407,8 +415,8 @@
 						>
 							<div class="logo-card-img">
 								<img
-									v-if="logo.image_path"
-									:src="logo.image_path"
+									v-if="logo.logo_src"
+									:src="logo.logo_src"
 									:alt="logo.certifier"
 									class="logo-img"
 									@error="(e) => ((e.target as HTMLImageElement).style.display = 'none')"
@@ -462,6 +470,31 @@
 
 				</div>
 			</div>
+		</Teleport>
+
+		<!-- ══════════════════════════════════════════════════════════════════ -->
+		<!-- IMAGE LIGHTBOX                                                     -->
+		<!-- ══════════════════════════════════════════════════════════════════ -->
+		<Teleport to="body">
+			<transition name="lightbox-fade">
+				<div
+					v-if="lightboxSrc"
+					class="lightbox-overlay"
+					role="dialog"
+					aria-modal="true"
+					:aria-label="lightboxAlt"
+					@click.self="closeLightbox"
+				>
+					<button class="lightbox-close" @click="closeLightbox" aria-label="Close zoom view">
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+							<line x1="18" y1="6" x2="6" y2="18"></line>
+							<line x1="6" y1="6" x2="18" y2="18"></line>
+						</svg>
+					</button>
+					<img :src="lightboxSrc" :alt="lightboxAlt" class="lightbox-img" />
+					<p class="lightbox-caption">{{ lightboxAlt }}</p>
+				</div>
+			</transition>
 		</Teleport>
 
 	</div>
@@ -529,6 +562,8 @@ interface HalalLogoOption {
 	certifier: string
 	full_name: string | null
 	image_path: string | null
+	/** Resolved relative URL for the logo asset, ready for use in <img :src> */
+	logo_src: string | null
 	is_accredited: boolean
 }
 
@@ -575,6 +610,19 @@ const reviewBackSrc = computed<string | null>(() => {
 	}
 	return null
 })
+
+// Lightbox for zoomable scan images
+const lightboxSrc   = ref<string | null>(null)
+const lightboxAlt   = ref<string>('')
+
+function openLightbox(src: string, alt: string): void {
+	lightboxSrc.value = src
+	lightboxAlt.value = alt
+}
+
+function closeLightbox(): void {
+	lightboxSrc.value = null
+}
 
 // Correction modal
 const modalRow            = ref<FlaggedScanRow | null>(null)
@@ -1171,4 +1219,58 @@ tbody tr:last-child td { border-bottom: none; }
 .btn-modal-certify { display: inline-flex; align-items: center; gap: 6px; background: #16a34a; color: white; border: none; padding: 7px 18px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: background 0.12s; }
 .btn-modal-certify:hover:not(:disabled) { background: #15803d; }
 .btn-modal-certify:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Zoomable scan images ─────────────────────────────────────────────── */
+.scan-img--zoomable {
+	cursor: zoom-in;
+	transition: opacity 0.12s, box-shadow 0.12s;
+}
+.scan-img--zoomable:hover {
+	opacity: 0.88;
+	box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.35);
+}
+
+/* ── Lightbox ─────────────────────────────────────────────────────────── */
+.lightbox-overlay {
+	position: fixed; inset: 0;
+	z-index: 2000;
+	background: rgba(5, 10, 20, 0.92);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 48px 24px 32px;
+	gap: 16px;
+}
+.lightbox-img {
+	max-width: min(90vw, 800px);
+	max-height: 78vh;
+	object-fit: contain;
+	border-radius: 12px;
+	box-shadow: 0 8px 48px rgba(0,0,0,0.6);
+	user-select: none;
+}
+.lightbox-caption {
+	color: rgba(255,255,255,0.65);
+	font-size: 0.82rem;
+	margin: 0;
+}
+.lightbox-close {
+	position: fixed;
+	top: 16px; right: 20px;
+	background: rgba(255,255,255,0.1);
+	border: 1px solid rgba(255,255,255,0.2);
+	color: white;
+	border-radius: 50%;
+	width: 40px; height: 40px;
+	display: flex; align-items: center; justify-content: center;
+	cursor: pointer;
+	transition: background 0.12s;
+	z-index: 2001;
+}
+.lightbox-close:hover { background: rgba(255,255,255,0.2); }
+
+/* Lightbox fade transition */
+.lightbox-fade-enter-active, .lightbox-fade-leave-active { transition: opacity 0.18s ease; }
+.lightbox-fade-enter-from, .lightbox-fade-leave-to { opacity: 0; }
 </style>

@@ -38,6 +38,16 @@ ion-alert.custom-make-alert .alert-button-group {
 	padding: 0 !important;
 }
 
+/* Single-button group: center the lone button (e.g. "OK") */
+ion-alert.custom-make-alert .alert-button-group:has(.alert-button:only-child) {
+	grid-template-columns: 1fr !important;
+	justify-items: center !important;
+}
+
+ion-alert.custom-make-alert .alert-button-group .alert-button:only-child {
+	max-width: 200px !important;
+}
+
 /* Base style resetting internal Ionic padding */
 ion-alert.custom-make-alert .alert-button {
 	width: 100% !important;

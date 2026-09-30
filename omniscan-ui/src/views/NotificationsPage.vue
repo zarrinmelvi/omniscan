@@ -25,42 +25,44 @@
 		</ion-header>
 
 		<ion-content class="ion-padding notif-content">
-			<div v-if="isLoading" class="state-block">
-				<ion-spinner name="crescent" />
-			</div>
+			<div class="notif-inner">
+				<div v-if="isLoading" class="state-block">
+					<ion-spinner name="crescent" />
+				</div>
 
-			<div v-else-if="loadError" class="state-block">
-				<ion-icon :icon="alertCircleOutline" size="large" color="danger" />
-				<p>{{ loadError }}</p>
-				<ion-button @click="fetchNotifications">Try again</ion-button>
-			</div>
+				<div v-else-if="loadError" class="state-block">
+					<ion-icon :icon="alertCircleOutline" size="large" color="danger" />
+					<p>{{ loadError }}</p>
+					<ion-button @click="fetchNotifications">Try again</ion-button>
+				</div>
 
-			<div v-else-if="notifications.length === 0" class="empty-state">
-				<ion-icon :icon="notificationsOffOutline" class="empty-icon" />
-				<p>No notifications yet.</p>
-			</div>
+				<div v-else-if="notifications.length === 0" class="empty-state">
+					<ion-icon :icon="notificationsOffOutline" class="empty-icon" />
+					<p>No notifications yet.</p>
+				</div>
 
-			<div v-else class="notif-list">
-				<button
-					v-for="notif in notifications"
-					:key="notif.id"
-					type="button"
-					class="notif-card"
-					:class="{ 'notif-card--unread': !notif.is_read }"
-					@click="handleNotifClick(notif)">
-					<!-- Indicator bar for unread notifications -->
-					<div v-if="!notif.is_read" class="unread-bar" />
+				<div v-else class="notif-list">
+					<button
+						v-for="notif in notifications"
+						:key="notif.id"
+						type="button"
+						class="notif-card"
+						:class="{ 'notif-card--unread': !notif.is_read }"
+						@click="handleNotifClick(notif)">
+						<!-- Indicator bar for unread notifications -->
+						<div v-if="!notif.is_read" class="unread-bar" />
 
-					<div class="notif-icon" :class="`notif-icon--${typeKeyFor(notif.type, notif.message)}`">
-						<ion-icon :icon="iconForType(notif.type, notif.message)" />
-					</div>
-					<div class="notif-body">
-						<p class="notif-title">{{ titleForType(notif.type, notif.message) }}</p>
-						<p class="notif-message">{{ notif.message }}</p>
-						<p class="notif-time">{{ formatRelativeTime(notif.created_at) }}</p>
-					</div>
-					<ion-icon v-if="notif.is_read" :icon="checkmarkOutline" class="read-check" />
-				</button>
+						<div class="notif-icon" :class="`notif-icon--${typeKeyFor(notif.type, notif.message)}`">
+							<ion-icon :icon="iconForType(notif.type, notif.message)" />
+						</div>
+						<div class="notif-body">
+							<p class="notif-title">{{ titleForType(notif.type, notif.message) }}</p>
+							<p class="notif-message">{{ notif.message }}</p>
+							<p class="notif-time">{{ formatRelativeTime(notif.created_at) }}</p>
+						</div>
+						<ion-icon v-if="notif.is_read" :icon="checkmarkOutline" class="read-check" />
+					</button>
+				</div>
 			</div>
 		</ion-content>
 	</ion-page>
@@ -349,5 +351,26 @@ onMounted(fetchNotifications)
 	font-size: 1.1rem;
 	flex-shrink: 0;
 	margin-top: 2px;
+}
+
+/* Mobile-first wrapper: no constraints below 768px (unchanged mobile appearance) */
+.notif-inner {
+	width: 100%;
+}
+
+/* TABLET: center content column, comfortable reading width */
+@media (min-width: 768px) {
+	.notif-inner {
+		max-width: 640px;
+		margin: 0 auto;
+		padding-top: 8px;
+	}
+}
+
+/* DESKTOP: slightly wider centered column */
+@media (min-width: 1024px) {
+	.notif-inner {
+		max-width: 720px;
+	}
 }
 </style>

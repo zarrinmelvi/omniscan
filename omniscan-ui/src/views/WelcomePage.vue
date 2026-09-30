@@ -327,6 +327,78 @@ function agreeAndClose() {
 	text-decoration: underline;
 	cursor: pointer;
 }
+
+/* ============================================================
+   TABLET (>=768px): constrain content, larger headline,
+   more bottom padding. Hero background unchanged.
+   ============================================================ */
+@media (min-width: 768px) {
+	.welcome-body {
+		max-width: 520px;
+		padding: 0 40px calc(56px + env(safe-area-inset-bottom, 0px));
+	}
+
+	.headline {
+		font-size: 2.9rem;
+	}
+
+	.subtext {
+		font-size: 1rem;
+		max-width: 420px;
+		margin-bottom: 32px;
+	}
+
+	.actions {
+		max-width: 460px;
+	}
+}
+
+/* ============================================================
+   DESKTOP (>=1024px): real landing page. Hero fills viewport,
+   copy vertically centered and left-aligned, inline buttons.
+   ============================================================ */
+@media (min-width: 1024px) {
+	.welcome-bg {
+		justify-content: center;
+		align-items: flex-start;
+	}
+
+	.welcome-body {
+		max-width: 560px;
+		text-align: left;
+		padding: 0 64px 0 72px;
+	}
+
+	.headline {
+		font-size: 3.5rem;
+		margin-bottom: 20px;
+	}
+
+	.subtext {
+		font-size: 1.1rem;
+		max-width: 480px;
+		margin-bottom: 36px;
+	}
+
+	.actions {
+		flex-direction: row;
+		flex-wrap: wrap;
+		max-width: 420px;
+		gap: 16px;
+	}
+
+	.get-started-btn,
+	.sign-in-btn {
+		flex: 1 1 0;
+		min-width: 180px;
+	}
+
+	.legal-text {
+		text-align: left;
+		padding: 0;
+		max-width: 420px;
+	}
+}
 </style>
 
 <!-- Global CSS Overrides for Terms & Conditions Modal Popup -->

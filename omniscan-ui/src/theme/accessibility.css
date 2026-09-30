@@ -1,0 +1,376 @@
+/* 
+ * Accessibility Standards
+ * 
+ * This file implements touch target sizing and spacing standards
+ * to ensure all interactive elements meet WCAG accessibility guidelines.
+ * Uses a mobile-first approach with all standards applying across all viewports.
+ * 
+ * Requirements validated: 11.1, 11.2, 11.3, 11.4, 9.3
+ */
+
+/* ============================================================================
+ * TOUCH TARGET SIZING
+ * Minimum 44px × 44px for all interactive elements
+ * ============================================================================ */
+
+/* Base touch target class - minimum 44px × 44px */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================================
+ * TOUCH TARGET SPACING
+ * Minimum 8px spacing between adjacent interactive elements
+ * ============================================================================ */
+
+/* Minimum spacing between adjacent touch targets: 8px */
+.touch-target + .touch-target {
+  margin-left: 8px;
+}
+
+/* ============================================================================
+ * BUTTONS
+ * All buttons meet minimum 44px height
+ * ============================================================================ */
+
+/* Icon buttons: ensure adequate padding to meet minimum dimensions */
+ion-button[size="small"] {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  min-height: 44px;
+}
+
+ion-button {
+  min-height: 44px;
+}
+
+/* ============================================================================
+ * LINKS
+ * Text links with adequate tap area through padding/line-height
+ * ============================================================================ */
+
+/* Text links in paragraphs: adequate tap area through padding/line-height */
+p a {
+  padding: 8px 4px;
+  margin: -8px -4px;
+  display: inline-block;
+  min-height: 44px;
+  line-height: 28px; /* Ensures adequate vertical tap area */
+}
+
+/* Standalone text links: ensure minimum tap area */
+a.touch-link {
+  padding: 12px 8px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ============================================================================
+ * FORM INPUTS
+ * Minimum height 44px with 16px font size to prevent iOS auto-zoom
+ * ============================================================================ */
+
+/* Form inputs: minimum height 44px (mobile-first approach) */
+ion-input,
+ion-textarea,
+ion-select {
+  --min-height: 44px;
+}
+
+/* Standard HTML form inputs */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  min-height: 44px;
+  padding: 12px;
+  font-size: 16px; /* Prevents iOS auto-zoom on focus */
+}
+
+/* Ensure form fields meet minimum height on all viewports */
+@media (min-width: 320px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select,
+  ion-input,
+  ion-textarea,
+  ion-select {
+    min-height: 44px;
+  }
+}
+
+/* Checkbox and radio inputs: ensure adequate click area */
+input[type="checkbox"],
+input[type="radio"] {
+  min-width: 24px;
+  min-height: 24px;
+  cursor: pointer;
+}
+
+/* Label for checkbox/radio: increase tap area */
+input[type="checkbox"] + label,
+input[type="radio"] + label {
+  padding: 10px 8px;
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* Button groups: maintain spacing between buttons */
+.button-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.button-group > * {
+  min-height: 44px;
+}
+
+/* Ensure icon-only buttons meet minimum size */
+button[aria-label]:not([aria-label=""]):empty,
+ion-button[aria-label]:not([aria-label=""]):empty {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px;
+}
+
+/* Tab buttons: ensure minimum touch target */
+ion-tab-button {
+  min-height: 44px;
+}
+
+/* List items that are clickable */
+ion-item {
+  --min-height: 44px;
+}
+
+/* Ensure adequate spacing in item lists */
+ion-item + ion-item {
+  margin-top: 2px;
+}
+
+/* Card actions: ensure buttons meet minimum size */
+.card-actions ion-button,
+.card-actions button {
+  min-height: 44px;
+}
+
+/* Navigation items: ensure adequate touch targets */
+.nav-item {
+  min-height: 44px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+}
+
+/* Floating action buttons */
+.fab,
+ion-fab-button {
+  min-width: 56px;
+  min-height: 56px;
+}
+
+/* Close buttons in modals/dialogs */
+.close-button,
+.dismiss-button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 12px;
+}
+
+/* Ensure chips/tags are tappable when interactive */
+ion-chip[button] {
+  min-height: 32px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+/* Toggle switches: adequate tap area */
+ion-toggle {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+/* Segment buttons */
+ion-segment-button {
+  min-height: 44px;
+}
+
+/* Ensure adequate spacing between form fields */
+.form-field + .form-field {
+  margin-top: 12px;
+}
+
+/* Form field spacing - minimum 12px vertical spacing */
+form > *:not(:last-child) {
+  margin-bottom: 12px;
+}
+
+/* ============================================================================
+ * INTERACTIVE ELEMENTS
+ * Ensure all interactive components meet touch target standards
+ * ============================================================================ */
+
+/* Avatar buttons: ensure minimum size */
+.avatar-button,
+button.avatar-wrap {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 
+ * Keyboard Focus States
+ * 
+ * Implements visible focus indicators for keyboard navigation
+ * while removing them for mouse/touch interactions.
+ * Works correctly in both light and dark modes.
+ * 
+ * Requirements validated: 11.1
+ */
+
+/* Remove default outline for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Visible focus indicator for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Focus states for buttons */
+button:focus-visible,
+ion-button:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}
+
+/* Focus states for links */
+a:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Focus states for form inputs */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+ion-input:focus-visible,
+ion-textarea:focus-visible,
+ion-select:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}
+
+/* Focus states for checkbox and radio */
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}
+
+/* Focus states for Ionic components */
+ion-tab-button:focus-visible,
+ion-segment-button:focus-visible,
+ion-chip:focus-visible,
+ion-toggle:focus-visible,
+ion-item:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}
+
+/* Focus states for card and navigation items */
+.card-button:focus-visible,
+.nav-item:focus-visible,
+.stat-card:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}
+
+/* Focus states for icon buttons */
+.bell-btn:focus-visible,
+.avatar-wrap:focus-visible,
+.close-button:focus-visible,
+.dismiss-button:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}
+
+/* Focus states for FAB buttons */
+ion-fab-button:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 3px;
+}
+
+/* Dark mode adjustments for focus indicators */
+@media (prefers-color-scheme: dark) {
+  :focus-visible,
+  button:focus-visible,
+  ion-button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  ion-input:focus-visible,
+  ion-textarea:focus-visible,
+  ion-select:focus-visible,
+  input[type="checkbox"]:focus-visible,
+  input[type="radio"]:focus-visible,
+  ion-tab-button:focus-visible,
+  ion-segment-button:focus-visible,
+  ion-chip:focus-visible,
+  ion-toggle:focus-visible,
+  ion-item:focus-visible,
+  .card-button:focus-visible,
+  .nav-item:focus-visible,
+  .stat-card:focus-visible,
+  .bell-btn:focus-visible,
+  .avatar-wrap:focus-visible,
+  .close-button:focus-visible,
+  .dismiss-button:focus-visible,
+  ion-fab-button:focus-visible {
+    outline-color: var(--ion-color-primary-tint);
+  }
+}
+
+/* Explicit dark mode support for apps that toggle dark mode via class */
+.ios.ion-palette-dark :focus-visible,
+.md.ion-palette-dark :focus-visible,
+body.dark :focus-visible,
+body.dark button:focus-visible,
+body.dark ion-button:focus-visible,
+body.dark a:focus-visible,
+body.dark input:focus-visible,
+body.dark textarea:focus-visible,
+body.dark select:focus-visible,
+body.dark ion-input:focus-visible,
+body.dark ion-textarea:focus-visible,
+body.dark ion-select:focus-visible,
+body.dark input[type="checkbox"]:focus-visible,
+body.dark input[type="radio"]:focus-visible,
+body.dark ion-tab-button:focus-visible,
+body.dark ion-segment-button:focus-visible,
+body.dark ion-chip:focus-visible,
+body.dark ion-toggle:focus-visible,
+body.dark ion-item:focus-visible,
+body.dark .card-button:focus-visible,
+body.dark .nav-item:focus-visible,
+body.dark .stat-card:focus-visible,
+body.dark .bell-btn:focus-visible,
+body.dark .avatar-wrap:focus-visible,
+body.dark .close-button:focus-visible,
+body.dark .dismiss-button:focus-visible,
+body.dark ion-fab-button:focus-visible {
+  outline-color: var(--ion-color-primary-tint);
+}

@@ -677,8 +677,24 @@ onIonViewWillEnter(() => {
 	gap: 8px;
 	margin-bottom: 12px;
 	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
 	padding-bottom: 2px;
 }
+
+/* Mobile: vertical stack if needed */
+@media (max-width: 480px) {
+	.pill-row {
+		flex-wrap: wrap;
+	}
+}
+
+/* Tablet and desktop: horizontal row without wrapping */
+@media (min-width: 768px) {
+	.pill-row {
+		flex-wrap: nowrap;
+	}
+}
+
 .pill {
 	border: 1px solid #e2e8f0;
 	background: #ffffff;
@@ -788,8 +804,32 @@ onIonViewWillEnter(() => {
 /* Cards Grid */
 .card-grid {
 	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 14px;
+	gap: 12px;
+	grid-auto-rows: 1fr; /* Equal height cards */
+}
+
+/* Mobile: single column */
+@media (max-width: 767px) {
+	.card-grid {
+		grid-template-columns: 1fr;
+		gap: 12px;
+	}
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 768px) and (max-width: 1023px) {
+	.card-grid {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 16px;
+	}
+}
+
+/* Desktop: 3 columns */
+@media (min-width: 1024px) {
+	.card-grid {
+		grid-template-columns: repeat(3, 1fr);
+		gap: 20px;
+	}
 }
 .pantry-card {
 	background: #ffffff;

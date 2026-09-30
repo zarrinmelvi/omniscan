@@ -1,0 +1,210 @@
+/**
+ * Responsive Grid System
+ * 
+ * Provides CSS Grid-based responsive layouts with adaptive column counts
+ * and gap spacing. Combines with Ionic Grid for a hybrid approach.
+ * 
+ * Requirements: 7.2, 7.3, 7.4
+ */
+
+/* ========================================
+ * Base Responsive Grid
+ * ======================================== */
+
+/**
+ * .responsive-grid
+ * 
+ * Core grid class with adaptive column counts:
+ * - Mobile (< 768px): 1 column, 12px gap
+ * - Tablet (768px - 1023px): 2 columns, 16px gap
+ * - Desktop (≥ 1024px): 3 columns, 20px gap
+ */
+.responsive-grid {
+  display: grid;
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+}
+
+/* Mobile: single column (defined in breakpoints.css) */
+:root {
+  --grid-columns: 1;
+  --grid-gap: 12px;
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 768px) {
+  :root {
+    --grid-columns: 2;
+    --grid-gap: 16px;
+  }
+}
+
+/* Desktop: 3 columns */
+@media (min-width: 1024px) {
+  :root {
+    --grid-columns: 3;
+    --grid-gap: 20px;
+  }
+}
+
+/* ========================================
+ * Grid Variants - Auto-Fill and Auto-Fit
+ * ======================================== */
+
+/**
+ * .grid-auto-fill
+ * 
+ * Creates as many columns as will fit using a minimum column width of 280px.
+ * Columns are always created even if empty, maintaining consistent layout.
+ * 
+ * Use when: You want a fixed number of columns to display, even if some are empty.
+ */
+.grid-auto-fill {
+  display: grid;
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/**
+ * .grid-auto-fit
+ * 
+ * Creates columns that expand to fill available space when there are fewer items.
+ * Empty columns collapse, causing remaining items to grow wider.
+ * 
+ * Use when: You want items to expand and fill available space when there are fewer items.
+ */
+.grid-auto-fit {
+  display: grid;
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* ========================================
+ * Grid Equal Height Rows
+ * ======================================== */
+
+/**
+ * .grid-equal-height
+ * 
+ * Maintains consistent card heights within each row using CSS Grid auto-rows.
+ * All items in the same row will have the same height as the tallest item.
+ * 
+ * Use when: Displaying cards or items that should align consistently (e.g., pantry items, recipe cards).
+ */
+.grid-equal-height {
+  display: grid;
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  grid-auto-rows: 1fr;
+}
+
+/* ========================================
+ * Utility Classes - Column Overrides
+ * ======================================== */
+
+/**
+ * Force specific column counts regardless of breakpoint.
+ * Use sparingly for special cases where default responsive behavior doesn't fit.
+ */
+
+/* Single column layout */
+.grid-cols-1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+/* Two column layout */
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Three column layout */
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Four column layout */
+.grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* ========================================
+ * Gap Utilities
+ * ======================================== */
+
+/**
+ * Custom gap spacing overrides for specific layouts.
+ */
+
+.grid-gap-sm {
+  gap: 8px;
+}
+
+.grid-gap-md {
+  gap: 12px;
+}
+
+.grid-gap-lg {
+  gap: 16px;
+}
+
+.grid-gap-xl {
+  gap: 20px;
+}
+
+.grid-gap-2xl {
+  gap: 24px;
+}
+
+/* ========================================
+ * Usage Examples
+ * ======================================== */
+
+/*
+ * Example 1: Basic responsive grid with adaptive columns
+ * 
+ * <div class="responsive-grid">
+ *   <div class="card">Item 1</div>
+ *   <div class="card">Item 2</div>
+ *   <div class="card">Item 3</div>
+ * </div>
+ * 
+ * Result:
+ * - Mobile: 1 column
+ * - Tablet: 2 columns
+ * - Desktop: 3 columns
+ */
+
+/*
+ * Example 2: Auto-fill grid with minimum column width
+ * 
+ * <div class="grid-auto-fill">
+ *   <div class="card">Item 1</div>
+ *   <div class="card">Item 2</div>
+ * </div>
+ * 
+ * Result: As many 280px columns as fit, with empty columns maintained
+ */
+
+/*
+ * Example 3: Equal height cards in grid
+ * 
+ * <div class="grid-equal-height">
+ *   <div class="card">Short content</div>
+ *   <div class="card">Very long content that makes this card tall</div>
+ *   <div class="card">Medium content</div>
+ * </div>
+ * 
+ * Result: All cards in same row match height of tallest card
+ */
+
+/*
+ * Example 4: Combining responsive grid with equal heights
+ * 
+ * <div class="responsive-grid grid-equal-height">
+ *   <div class="card">Item 1</div>
+ *   <div class="card">Item 2</div>
+ *   <div class="card">Item 3</div>
+ * </div>
+ * 
+ * Result: Responsive columns with equal heights in each row
+ */

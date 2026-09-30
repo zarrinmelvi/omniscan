@@ -13,6 +13,7 @@
 			</div>
 
 			<template v-else>
+				<div class="profile-inner">
 				<!-- Top Header Area -->
 				<div class="header-section">
 					<div class="profile-header-top">
@@ -65,6 +66,7 @@
 							<ion-icon :icon="chevronForwardOutline" class="chevron" />
 						</button>
 					</div>
+				</div>
 				</div>
 			</template>
 
@@ -673,6 +675,49 @@ onIonViewWillEnter(() => {
 .pref-chip--halal {
 	background: #fef3c7;
 	color: #92400e;
+}
+
+/* ---------- Responsive: tablet & desktop (mobile-first, layered on top) ---------- */
+
+/* TABLET (>=768px): center the content in a constrained column so the
+   header and body line up, with a bit more horizontal breathing room. */
+@media (min-width: 768px) {
+	.profile-inner {
+		max-width: 640px;
+		margin: 0 auto;
+		width: 100%;
+	}
+
+	.header-section {
+		padding-left: 40px;
+		padding-right: 40px;
+	}
+
+	.main-body {
+		padding-left: 40px;
+		padding-right: 40px;
+		border-radius: 20px;
+	}
+}
+
+/* DESKTOP (>=1024px): keep the centered column a touch wider and give the
+   body a soft tinted, non-full-bleed panel so it doesn't span awkwardly. */
+@media (min-width: 1024px) {
+	.profile-inner {
+		max-width: 760px;
+		padding-top: 24px;
+	}
+
+	.main-body {
+		background-color: transparent;
+		min-height: 0;
+		padding: 24px 40px 48px;
+	}
+
+	.action-list {
+		max-width: 560px;
+		margin: 0 auto;
+	}
 }
 </style>
 

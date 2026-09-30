@@ -1,0 +1,137 @@
+/**
+ * Responsive Typography System
+ * 
+ * Implements a mobile-first typography scale using fluid typography with clamp().
+ * Fluid typography scales smoothly between breakpoints without discrete jumps.
+ * Base font size: clamp(14px, 2.5vw, 16px) - scales between 14px and 16px.
+ * Headings scale appropriately across viewports for improved hierarchy.
+ * 
+ * Requirements validated: 9.4, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6
+ */
+
+:root {
+  /* 
+   * Fluid typography using clamp()
+   * Format: clamp(min, preferred, max)
+   * Scales smoothly between mobile (320px) and desktop (1024px+)
+   */
+  
+  /* Base font size: fluid between 14px and 16px */
+  --font-size-body: clamp(14px, 2.5vw, 16px);
+  
+  /* Heading scale: fluid scaling from mobile to desktop */
+  --font-size-h1: clamp(28px, 5vw, 36px);    /* 28px mobile → 36px desktop */
+  --font-size-h2: clamp(24px, 4.2vw, 30px);  /* 24px mobile → 30px desktop */
+  --font-size-h3: clamp(20px, 3.5vw, 24px);  /* 20px mobile → 24px desktop */
+  --font-size-h4: clamp(18px, 3vw, 20px);    /* 18px mobile → 20px desktop */
+  --font-size-h5: clamp(16px, 2.5vw, 18px);  /* 16px mobile → 18px desktop */
+  --font-size-h6: clamp(14px, 2.2vw, 16px);  /* 14px mobile → 16px desktop */
+  
+  /* Small text sizes */
+  --font-size-small: clamp(13px, 2.2vw, 14px);
+  --font-size-tiny: clamp(12px, 2vw, 12px);
+  
+  /* Line heights for readability */
+  --line-height-tight: 1.2;    /* Headings */
+  --line-height-normal: 1.5;   /* Body text */
+  --line-height-relaxed: 1.6;  /* Long-form content */
+}
+
+/* Apply typography scale to HTML elements */
+
+html {
+  /* Set root font-size to 16px for rem calculations */
+  font-size: 16px;
+}
+
+body {
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-normal);
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  line-height: var(--line-height-tight);
+  font-weight: 700;
+  margin: 0 0 16px 0;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  line-height: var(--line-height-tight);
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+h3 {
+  font-size: var(--font-size-h3);
+  line-height: var(--line-height-tight);
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+h4 {
+  font-size: var(--font-size-h4);
+  line-height: var(--line-height-normal);
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+h5 {
+  font-size: var(--font-size-h5);
+  line-height: var(--line-height-normal);
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+h6 {
+  font-size: var(--font-size-h6);
+  line-height: var(--line-height-normal);
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+p {
+  margin: 0 0 16px 0;
+  line-height: var(--line-height-relaxed);
+}
+
+/* Long-form content: constrain line length for optimal readability */
+.long-form-content {
+  max-width: 75ch; /* ~75 characters per line */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.long-form-content p {
+  line-height: var(--line-height-relaxed);
+}
+
+/* Utility classes for text sizing */
+.text-small {
+  font-size: var(--font-size-small);
+}
+
+.text-tiny {
+  font-size: var(--font-size-tiny);
+}
+
+/* 
+ * Ensure all input fields meet minimum 16px font size to prevent iOS zoom
+ * Requirement 9.4: Minimum font size of 16px for input fields
+ */
+input,
+textarea,
+select,
+ion-input,
+ion-textarea,
+ion-select {
+  font-size: 16px !important;
+}
+
+/* Ensure input elements within Ionic components also maintain minimum size */
+ion-input input,
+ion-textarea textarea,
+ion-select select {
+  font-size: 16px !important;
+}

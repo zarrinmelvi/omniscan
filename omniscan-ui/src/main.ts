@@ -35,6 +35,13 @@ import '@ionic/vue/css/palettes/dark.class.css'
 /* Theme variables */
 import './theme/variables.css'
 import './theme/dark-mode.css'
+import './theme/breakpoints.css'
+import './theme/layout.css'
+import './theme/grid.css'
+import './theme/typography.css'
+import './theme/images.css'
+import './theme/accessibility.css'
+import './theme/forms.css'
 
 const app = createApp(App).use(IonicVue).use(router).use(createPinia())
 

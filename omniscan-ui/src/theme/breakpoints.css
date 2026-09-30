@@ -1,0 +1,128 @@
+/**
+ * Responsive Breakpoint System
+ * 
+ * This file defines the breakpoint values and breakpoint-based spacing scale
+ * for the OmniScan responsive web design system.
+ * 
+ * Breakpoints:
+ * - Mobile: 320px (minimum supported width)
+ * - Tablet: 768px
+ * - Desktop: 1024px
+ * - Wide: 1280px (content width constraint threshold)
+ * 
+ * Usage: Apply these custom properties in media queries following a mobile-first approach.
+ */
+
+:root {
+  /* ========================================
+   * Breakpoint Values
+   * ======================================== */
+  --breakpoint-mobile: 320px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
+  --breakpoint-wide: 1280px;
+  
+  /* ========================================
+   * Breakpoint-Based Spacing Scale
+   * ======================================== */
+  
+  /* Mobile: Base spacing (< 768px) */
+  --spacing-base: 16px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-2xl: 24px;
+  --spacing-3xl: 32px;
+  
+  /* Container padding (mobile) */
+  --container-padding: 16px;
+  --container-max-width: 100%;
+  
+  /* Grid gaps (mobile) */
+  --grid-gap: 12px;
+  --grid-columns: 1;
+}
+
+/* ========================================
+ * Tablet Breakpoint (768px and above)
+ * ======================================== */
+@media (min-width: 768px) {
+  :root {
+    /* Tablet spacing scale */
+    --spacing-base: 20px;
+    --spacing-xl: 24px;
+    --spacing-2xl: 28px;
+    --spacing-3xl: 36px;
+    
+    /* Container padding (tablet) */
+    --container-padding: 20px;
+    
+    /* Grid gaps (tablet) */
+    --grid-gap: 16px;
+    --grid-columns: 2;
+  }
+}
+
+/* ========================================
+ * Desktop Breakpoint (1024px and above)
+ * ======================================== */
+@media (min-width: 1024px) {
+  :root {
+    /* Desktop spacing scale */
+    --spacing-base: 24px;
+    --spacing-xl: 28px;
+    --spacing-2xl: 32px;
+    --spacing-3xl: 40px;
+    
+    /* Container padding (desktop) */
+    --container-padding: 24px;
+    
+    /* Grid gaps (desktop) */
+    --grid-gap: 20px;
+    --grid-columns: 3;
+  }
+}
+
+/* ========================================
+ * Wide Breakpoint (1280px and above)
+ * ======================================== */
+@media (min-width: 1280px) {
+  :root {
+    /* Wide: Apply content width constraint */
+    --container-max-width: 1280px;
+  }
+}
+
+/* ========================================
+ * Media Query Mixins Documentation
+ * ======================================== */
+
+/*
+ * Mobile-First Approach:
+ * 
+ * Base styles (no media query) = Mobile (320px+)
+ * @media (min-width: 768px) = Tablet and above
+ * @media (min-width: 1024px) = Desktop and above
+ * @media (min-width: 1280px) = Wide desktop and above
+ * 
+ * Example usage:
+ * 
+ * .element {
+ *   padding: 16px; // Mobile
+ *   padding: var(--container-padding); // Responsive
+ * }
+ * 
+ * @media (min-width: 768px) {
+ *   .element {
+ *     // Tablet-specific styles
+ *   }
+ * }
+ * 
+ * @media (min-width: 1024px) {
+ *   .element {
+ *     // Desktop-specific styles
+ *   }
+ * }
+ */

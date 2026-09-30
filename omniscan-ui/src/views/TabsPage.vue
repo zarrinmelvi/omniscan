@@ -2,7 +2,8 @@
 	<ion-tabs>
 		<ion-router-outlet></ion-router-outlet>
 
-		<ion-tab-bar slot="bottom" v-show="!hideTabBar">
+		<!-- Bottom tab bar: hidden on desktop (>= 1024px) and on settings/notifications pages -->
+		<ion-tab-bar slot="bottom" v-show="!hideTabBar && !isDesktop">
 			<ion-tab-button tab="home" href="/tabs/home">
 				<ion-icon :icon="homeOutline" />
 				<ion-label>Home</ion-label>
@@ -36,10 +37,12 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { IonTabBar, IonTabButton, IonTabs, IonLabel, IonIcon, IonRouterOutlet } from '@ionic/vue'
 import { homeOutline, fileTrayStackedOutline, cameraOutline, restaurantOutline, personCircleOutline } from 'ionicons/icons'
+import { useBreakpoint } from '@/utils/useBreakpoint'
 
 // Settings and Notifications are routed as children of /tabs/ (sharing this
 // outlet) so back-navigation works reliably, but they're meant to look like
 // full-screen pushed pages, not tabs — so the bar hides on those two routes.
 const route = useRoute()
+const { isDesktop } = useBreakpoint()
 const hideTabBar = computed(() => route.path === '/tabs/settings' || route.path === '/tabs/notifications')
 </script>

@@ -545,7 +545,20 @@ onMounted(() => {
 }
 
 .content-container {
-	padding: 12px 18px 32px;
+	/* Mobile: 12px padding as per task requirements */
+	padding: 12px;
+	padding-bottom: 80px; /* Extra bottom padding to prevent content being hidden behind fixed actions */
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+/* Desktop: centered max-width 600px with 16px padding */
+@media (min-width: 768px) {
+	.content-container {
+		max-width: 600px;
+		padding: 16px;
+		padding-bottom: 32px; /* No fixed bottom buttons on desktop */
+	}
 }
 
 .section-label {
@@ -553,11 +566,24 @@ onMounted(() => {
 	font-size: 0.72rem;
 	color: #8e8e93;
 	letter-spacing: 0.5px;
+	/* Mobile: 12px gap between sections */
 	margin: 12px 0 10px 4px;
 }
 
 .section-label--top {
-	margin-top: 24px;
+	/* Mobile: 12px gap between sections */
+	margin-top: 12px;
+}
+
+/* Desktop: 16px gap between sections */
+@media (min-width: 768px) {
+	.section-label {
+		margin: 16px 0 12px 4px;
+	}
+	
+	.section-label--top {
+		margin-top: 16px;
+	}
 }
 
 .settings-card {
@@ -565,12 +591,30 @@ onMounted(() => {
 	border-radius: 16px;
 	overflow: hidden;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+	/* Single-column layout - all rows stack vertically */
+	display: flex;
+	flex-direction: column;
+	/* Mobile: 12px gap between cards */
+	margin-bottom: 12px;
+}
+
+.settings-card:last-of-type {
+	margin-bottom: 0;
+}
+
+/* Desktop: 16px gap between cards */
+@media (min-width: 768px) {
+	.settings-card {
+		margin-bottom: 16px;
+	}
 }
 
 .settings-row {
 	display: flex;
 	align-items: center;
 	gap: 14px;
+	/* Ensure minimum 44px height for touch targets */
+	min-height: 44px;
 	padding: 14px 16px;
 	border-bottom: 1px solid #f3f4f6;
 	width: 100%;
@@ -592,8 +636,11 @@ onMounted(() => {
 
 /* Icon Badges */
 .icon-wrapper {
-	width: 36px;
-	height: 36px;
+	/* Ensure minimum 44px touch target */
+	min-width: 44px;
+	min-height: 44px;
+	width: 44px;
+	height: 44px;
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
@@ -665,8 +712,16 @@ onMounted(() => {
 }
 
 .version-container {
-	margin-top: 32px;
+	/* Mobile: 12px gap */
+	margin-top: 24px;
 	text-align: center;
+}
+
+/* Desktop: 16px gap */
+@media (min-width: 768px) {
+	.version-container {
+		margin-top: 32px;
+	}
 }
 
 .version-text {

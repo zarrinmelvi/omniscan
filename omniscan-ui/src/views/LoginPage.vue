@@ -1,7 +1,14 @@
 <template>
 	<ion-page>
 		<ion-content class="auth-content">
-			<div class="auth-card">
+			<div class="auth-layout">
+				<aside class="auth-brand-panel">
+					<div class="brand-panel-inner">
+						<span class="brand-panel-name">OmniScan</span>
+						<p class="brand-panel-tagline">Scan with confidence. Live with intention.</p>
+					</div>
+				</aside>
+				<div class="auth-card">
 				<button type="button" class="back-button" @click="$router.push('/')">
 					<ion-icon :icon="chevronBackOutline" />
 				</button>
@@ -54,6 +61,7 @@
 					Don't have an account?
 					<router-link to="/register" class="switch-link">Get Started</router-link>
 				</p>
+				</div>
 			</div>
 		</ion-content>
 	</ion-page>
@@ -93,6 +101,15 @@ async function handleLogin(): Promise<void> {
 <style scoped>
 .auth-content {
 	--background: #ffffff;
+}
+
+/* MOBILE-FIRST (<768px): single centered card, brand panel hidden */
+.auth-layout {
+	width: 100%;
+}
+
+.auth-brand-panel {
+	display: none;
 }
 
 .auth-card {
@@ -161,7 +178,7 @@ async function handleLogin(): Promise<void> {
 	border: 1px solid #e5e7eb;
 	border-radius: 12px;
 	padding: 0 14px;
-	font-size: 0.9rem;
+	font-size: 16px; /* keep >=16px to avoid iOS zoom on focus */
 	color: #111827;
 	outline: none;
 	background: #ffffff;
@@ -295,5 +312,83 @@ async function handleLogin(): Promise<void> {
 	padding: 8px 12px;
 	margin-bottom: 16px;
 	font-size: 0.85rem;
+}
+
+/* TABLET (>=768px): roomier vertically centered card */
+@media (min-width: 768px) {
+	.auth-layout {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 100%;
+	}
+
+	.auth-card {
+		max-width: 460px;
+		width: 100%;
+		padding: 48px 40px 56px;
+	}
+}
+
+/* DESKTOP (>=1024px): two-panel split layout */
+@media (min-width: 1024px) {
+	.auth-layout {
+		display: grid;
+		grid-template-columns: 45% 55%;
+		min-height: 100%;
+		align-items: stretch;
+	}
+
+	.auth-brand-panel {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 64px;
+		background: linear-gradient(135deg, #05c450 0%, #04863a 100%);
+		color: #ffffff;
+	}
+
+	.brand-panel-inner {
+		max-width: 360px;
+	}
+
+	.brand-panel-name {
+		display: block;
+		font-size: 2.5rem;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		margin-bottom: 16px;
+	}
+
+	.brand-panel-tagline {
+		font-size: 1.15rem;
+		line-height: 1.5;
+		font-weight: 500;
+		margin: 0;
+		opacity: 0.95;
+	}
+
+	.auth-card {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		max-width: none;
+		width: 100%;
+		margin: 0;
+		padding: 48px 64px;
+	}
+
+	/* Constrain the actual form column width and center it in the right panel */
+	.auth-card > * {
+		width: 100%;
+		max-width: 400px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	/* The brand panel replaces the need for the mobile back button */
+	.auth-card .back-button {
+		display: none;
+	}
 }
 </style>

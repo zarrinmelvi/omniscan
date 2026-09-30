@@ -1,0 +1,53 @@
+/* 
+ * Responsive Image Utilities
+ * Provides base image styles, object-fit utilities, and aspect ratio classes
+ * Mobile-first approach with images scaling proportionally
+ * Validates requirements: 13.1, 13.2, 13.3, 8.5
+ */
+
+/* Default responsive image behavior */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Fluid image class for proportional scaling */
+.fluid-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Object-fit utilities */
+
+/* Grid images: cover for consistent dimensions */
+.image-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Detail view images: contain to show full image */
+.image-contain {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Aspect ratio utility classes */
+.aspect-16-9 {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-4-3 {
+  aspect-ratio: 4 / 3;
+}
+
+.aspect-3-2 {
+  aspect-ratio: 3 / 2;
+}
+
+.aspect-1-1 {
+  aspect-ratio: 1 / 1;
+}

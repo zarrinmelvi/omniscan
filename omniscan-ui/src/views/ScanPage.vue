@@ -717,10 +717,30 @@ onBeforeUnmount(() => {
 .page-container {
 	display: flex;
 	flex-direction: column;
+	min-height: 100%;
 	padding: 16px 20px;
 	box-sizing: border-box;
-	max-width: 480px;
-	margin: 0 auto;
+}
+
+/* Mobile: no max-width constraint */
+@media (max-width: 767px) {
+	.page-container {
+		padding: 16px;
+	}
+}
+
+/* Tablet and Desktop: center and constrain camera */
+@media (min-width: 768px) {
+	.page-container {
+		padding: 20px;
+		align-items: center;
+	}
+}
+
+@media (min-width: 1024px) {
+	.page-container {
+		padding: 24px;
+	}
 }
 
 .hidden-input {
@@ -732,6 +752,14 @@ onBeforeUnmount(() => {
 	margin-top: 8px;
 	margin-bottom: 24px;
 	background: transparent;
+	width: 100%;
+}
+
+/* Tablet and Desktop: constrain header width */
+@media (min-width: 768px) {
+	.header-section {
+		max-width: 640px;
+	}
 }
 
 .page-title {
@@ -756,6 +784,13 @@ onBeforeUnmount(() => {
 	width: 100%;
 }
 
+/* Tablet and Desktop: constrain controls width */
+@media (min-width: 768px) {
+	.controls-section {
+		max-width: 640px;
+	}
+}
+
 .back-prompt-card {
 	background: #f8fafc;
 	border: 1px solid #e2e8f0;
@@ -777,6 +812,7 @@ onBeforeUnmount(() => {
 	--color: #ffffff;
 	--border-radius: 9999px;
 	font-weight: 700;
+	min-height: 48px;
 	height: 48px;
 	margin: 0;
 }
@@ -792,6 +828,7 @@ onBeforeUnmount(() => {
 	font-weight: 700;
 	font-size: 0.85rem;
 	letter-spacing: 0.5px;
+	min-height: 48px;
 	height: 48px;
 	margin: 0;
 }
@@ -813,6 +850,22 @@ onBeforeUnmount(() => {
 	object-fit: cover;
 	display: block;
 	transition: filter 0.3s ease;
+	aspect-ratio: 4/3;
+}
+
+/* Mobile: 100% width */
+@media (max-width: 767px) {
+	.viewfinder-video {
+		max-width: 100%;
+	}
+}
+
+/* Tablet and Desktop: constrain to 640px and center */
+@media (min-width: 768px) {
+	.viewfinder-video {
+		max-width: 640px;
+		margin: 0 auto;
+	}
 }
 
 .viewfinder-video--blurred {
@@ -935,6 +988,7 @@ onBeforeUnmount(() => {
 	transform: translateX(-50%);
 	width: 72px;
 	height: 72px;
+	min-height: 48px;
 	border-radius: 50%;
 	background: transparent;
 	border: 4px solid #ffffff;
@@ -946,6 +1000,22 @@ onBeforeUnmount(() => {
 		transform 0.1s ease,
 		border-color 0.1s ease;
 	cursor: pointer;
+}
+
+/* Mobile: fixed position in bottom 20% of viewport */
+@media (max-width: 767px) {
+	.capture-btn {
+		position: fixed;
+		bottom: 20vh;
+	}
+}
+
+/* Desktop: sticky position */
+@media (min-width: 768px) {
+	.capture-btn {
+		position: sticky;
+		bottom: calc(10% + env(safe-area-inset-bottom, 0px));
+	}
 }
 
 .capture-btn:active {

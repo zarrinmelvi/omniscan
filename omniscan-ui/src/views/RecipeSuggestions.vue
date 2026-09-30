@@ -3,23 +3,25 @@
 		<ion-content class="recipe-content">
 			<!-- Header Block -->
 			<div class="header-container">
-				<h1 class="page-title">Recipes</h1>
-				<p class="page-subtitle">Based on your pantry items</p>
+				<div class="header-inner">
+					<h1 class="page-title">Recipes</h1>
+					<p class="page-subtitle">Based on your pantry items</p>
 
-				<!-- Custom Segment Tabs -->
-				<div class="tab-chips-container">
-					<button type="button" class="tab-chip" :class="{ 'tab-chip--active-all': activeTab === 'all' }" @click="setTab('all')">
-						All Recipes
-					</button>
-					<button type="button" class="tab-chip" :class="{ 'tab-chip--active-liked': activeTab === 'liked' }" @click="setTab('liked')">
-						<ion-icon :icon="activeTab === 'liked' ? heart : heartOutline" class="chip-icon" />
-						Liked
-					</button>
-					<button type="button" class="tab-chip" :class="{ 'tab-chip--active-made': activeTab === 'made' }" @click="setTab('made')">
-						<ion-icon :icon="archiveOutline" class="chip-icon" />
-						Made
-						<span v-if="madeCount > 0" class="tab-badge">{{ madeCount }}</span>
-					</button>
+					<!-- Custom Segment Tabs -->
+					<div class="tab-chips-container">
+						<button type="button" class="tab-chip" :class="{ 'tab-chip--active-all': activeTab === 'all' }" @click="setTab('all')">
+							All Recipes
+						</button>
+						<button type="button" class="tab-chip" :class="{ 'tab-chip--active-liked': activeTab === 'liked' }" @click="setTab('liked')">
+							<ion-icon :icon="activeTab === 'liked' ? heart : heartOutline" class="chip-icon" />
+							Liked
+						</button>
+						<button type="button" class="tab-chip" :class="{ 'tab-chip--active-made': activeTab === 'made' }" @click="setTab('made')">
+							<ion-icon :icon="archiveOutline" class="chip-icon" />
+							Made
+							<span v-if="madeCount > 0" class="tab-badge">{{ madeCount }}</span>
+						</button>
+					</div>
 				</div>
 			</div>
 
@@ -663,5 +665,63 @@ onMounted(() => {
 
 .mt-4 {
 	margin-top: 16px;
+}
+
+/* Header inner wrapper — full-width band on mobile, centered content on larger screens */
+.header-inner {
+	width: 100%;
+}
+
+/* ---------- TABLET (768–1023px) ---------- */
+@media (min-width: 768px) {
+	.header-inner {
+		max-width: 900px;
+		margin: 0 auto;
+	}
+
+	.cards-list {
+		max-width: 900px;
+		margin: 0 auto;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		grid-auto-rows: 1fr;
+		gap: 16px;
+	}
+
+	.recipe-card {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}
+
+	.card-body {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+	}
+
+	.empty-state,
+	.loading-container {
+		max-width: 900px;
+		margin: 0 auto;
+	}
+}
+
+/* ---------- DESKTOP (>=1024px) ---------- */
+@media (min-width: 1024px) {
+	.header-inner {
+		max-width: 1100px;
+	}
+
+	.cards-list {
+		max-width: 1100px;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 20px;
+	}
+
+	.empty-state,
+	.loading-container {
+		max-width: 1100px;
+	}
 }
 </style>

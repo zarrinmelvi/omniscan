@@ -1,0 +1,703 @@
+/**
+ * Responsive Form System
+ * 
+ * This file implements the responsive form layout system for OmniScan.
+ * It provides form grouping, responsive field layouts, validation states,
+ * and proper touch-friendly form controls.
+ * 
+ * Mobile-first approach with breakpoints at 768px (tablet) and 1024px (desktop).
+ * 
+ * Requirements validated: 9.1, 9.2, 9.3, 9.4
+ */
+
+/* ============================================================================
+ * FORM GROUPS
+ * Vertical spacing between form sections
+ * ============================================================================ */
+
+/**
+ * .form-group - Container for related form fields with responsive vertical spacing
+ * 
+ * Spacing:
+ * - Mobile (< 768px): 12px bottom margin
+ * - Tablet (768px - 1024px): 16px bottom margin
+ * - Desktop (>= 1024px): 20px bottom margin
+ */
+.form-group {
+  margin-bottom: 12px;
+}
+
+@media (min-width: 768px) {
+  .form-group {
+    margin-bottom: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .form-group {
+    margin-bottom: 20px;
+  }
+}
+
+/* ============================================================================
+ * FORM ROWS
+ * Responsive grid layouts for horizontal field arrangements
+ * ============================================================================ */
+
+/**
+ * .form-row - Base container for horizontal field layouts
+ * 
+ * Mobile: Single column layout (default)
+ * Tablet/Desktop: Multi-column layouts when using modifier classes
+ */
+.form-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr; /* Mobile: single column */
+}
+
+/**
+ * .form-row--two-col - Two-column layout for tablet and desktop
+ * 
+ * Use for related field pairs like:
+ * - First name / Last name
+ * - Start date / End date
+ * - City / State
+ */
+@media (min-width: 768px) {
+  .form-row--two-col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/**
+ * .form-row--three-col - Three-column layout for tablet and desktop
+ * 
+ * Use for related field triplets like:
+ * - City / State / Zip code
+ * - Day / Month / Year
+ */
+@media (min-width: 768px) {
+  .form-row--three-col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ============================================================================
+ * FORM FIELDS
+ * Individual field containers with label positioning
+ * ============================================================================ */
+
+/**
+ * .form-field - Base field container with vertical stacking (mobile-first)
+ * 
+ * Default layout: Label stacked above input
+ * Gap: 8px between label and input
+ */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/**
+ * .form-field--inline - Horizontal label/input layout for tablet and desktop
+ * 
+ * Use for checkboxes, radios, toggles, and compact forms
+ * Label has minimum width of 150px for alignment
+ */
+@media (min-width: 768px) {
+  .form-field--inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .form-field--inline label {
+    min-width: 150px;
+    flex-shrink: 0;
+  }
+}
+
+/**
+ * Vertical spacing between consecutive form fields
+ * Minimum 12px spacing for touch accessibility
+ */
+.form-field + .form-field {
+  margin-top: 12px;
+}
+
+/* ============================================================================
+ * FORM LABELS
+ * Consistent label styling and focus management
+ * ============================================================================ */
+
+.form-field label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ion-color-step-600, #666666);
+  line-height: 1.4;
+}
+
+/* Required field indicator */
+.form-field label.required::after {
+  content: " *";
+  color: var(--ion-color-danger, #eb445a);
+}
+
+/* Dark mode label colors */
+@media (prefers-color-scheme: dark) {
+  .form-field label {
+    color: var(--ion-color-step-400, #999999);
+  }
+}
+
+.ios.ion-palette-dark .form-field label,
+.md.ion-palette-dark .form-field label,
+body.dark .form-field label {
+  color: var(--ion-color-step-400, #999999);
+}
+
+/* ============================================================================
+ * INPUT FIELDS
+ * Touch-friendly input sizing and styling
+ * ============================================================================ */
+
+/**
+ * All input fields meet minimum requirements:
+ * - Minimum height: 44px (touch-friendly)
+ * - Font size: 16px (prevents iOS auto-zoom)
+ * - Proper padding for readability
+ */
+.form-field input:not([type="checkbox"]):not([type="radio"]),
+.form-field textarea,
+.form-field select {
+  min-height: 44px;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid var(--ion-color-step-300, #cccccc);
+  border-radius: 8px;
+  background-color: var(--ion-color-step-50, #ffffff);
+  color: var(--ion-text-color, #000000);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Textarea specific sizing */
+.form-field textarea {
+  min-height: 88px; /* Approximately 3 lines */
+  resize: vertical;
+}
+
+/* Focus state */
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: var(--ion-color-primary, #3880ff);
+  box-shadow: 0 0 0 3px var(--ion-color-primary-tint, rgba(56, 128, 255, 0.1));
+}
+
+/* Disabled state */
+.form-field input:disabled,
+.form-field textarea:disabled,
+.form-field select:disabled {
+  background-color: var(--ion-color-step-100, #f0f0f0);
+  color: var(--ion-color-step-500, #808080);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Dark mode input styling */
+@media (prefers-color-scheme: dark) {
+  .form-field input:not([type="checkbox"]):not([type="radio"]),
+  .form-field textarea,
+  .form-field select {
+    border-color: var(--ion-color-step-700, #4a4a4a);
+    background-color: var(--ion-color-step-100, #1a1a1a);
+    color: var(--ion-text-color, #ffffff);
+  }
+  
+  .form-field input:disabled,
+  .form-field textarea:disabled,
+  .form-field select:disabled {
+    background-color: var(--ion-color-step-200, #2a2a2a);
+    color: var(--ion-color-step-600, #666666);
+  }
+}
+
+.ios.ion-palette-dark .form-field input:not([type="checkbox"]):not([type="radio"]),
+.md.ion-palette-dark .form-field input:not([type="checkbox"]):not([type="radio"]),
+body.dark .form-field input:not([type="checkbox"]):not([type="radio"]),
+.ios.ion-palette-dark .form-field textarea,
+.md.ion-palette-dark .form-field textarea,
+body.dark .form-field textarea,
+.ios.ion-palette-dark .form-field select,
+.md.ion-palette-dark .form-field select,
+body.dark .form-field select {
+  border-color: var(--ion-color-step-700, #4a4a4a);
+  background-color: var(--ion-color-step-100, #1a1a1a);
+  color: var(--ion-text-color, #ffffff);
+}
+
+.ios.ion-palette-dark .form-field input:disabled,
+.md.ion-palette-dark .form-field input:disabled,
+body.dark .form-field input:disabled,
+.ios.ion-palette-dark .form-field textarea:disabled,
+.md.ion-palette-dark .form-field textarea:disabled,
+body.dark .form-field textarea:disabled,
+.ios.ion-palette-dark .form-field select:disabled,
+.md.ion-palette-dark .form-field select:disabled,
+body.dark .form-field select:disabled {
+  background-color: var(--ion-color-step-200, #2a2a2a);
+  color: var(--ion-color-step-600, #666666);
+}
+
+/* ============================================================================
+ * VALIDATION STATES
+ * Error, success, and warning styling for form fields
+ * ============================================================================ */
+
+/**
+ * Error state - Applied via .form-field--error class
+ */
+.form-field--error input,
+.form-field--error textarea,
+.form-field--error select {
+  border-color: var(--ion-color-danger, #eb445a);
+}
+
+.form-field--error input:focus,
+.form-field--error textarea:focus,
+.form-field--error select:focus {
+  border-color: var(--ion-color-danger, #eb445a);
+  box-shadow: 0 0 0 3px var(--ion-color-danger-tint, rgba(235, 68, 90, 0.1));
+}
+
+/**
+ * Success state - Applied via .form-field--success class
+ */
+.form-field--success input,
+.form-field--success textarea,
+.form-field--success select {
+  border-color: var(--ion-color-success, #2dd36f);
+}
+
+.form-field--success input:focus,
+.form-field--success textarea:focus,
+.form-field--success select:focus {
+  border-color: var(--ion-color-success, #2dd36f);
+  box-shadow: 0 0 0 3px var(--ion-color-success-tint, rgba(45, 211, 111, 0.1));
+}
+
+/**
+ * Warning state - Applied via .form-field--warning class
+ */
+.form-field--warning input,
+.form-field--warning textarea,
+.form-field--warning select {
+  border-color: var(--ion-color-warning, #ffc409);
+}
+
+.form-field--warning input:focus,
+.form-field--warning textarea:focus,
+.form-field--warning select:focus {
+  border-color: var(--ion-color-warning, #ffc409);
+  box-shadow: 0 0 0 3px var(--ion-color-warning-tint, rgba(255, 196, 9, 0.1));
+}
+
+/* ============================================================================
+ * HELP TEXT & VALIDATION MESSAGES
+ * Supporting text for form fields
+ * ============================================================================ */
+
+/**
+ * .form-help-text - General help text below input
+ */
+.form-help-text {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ion-color-step-600, #666666);
+  margin-top: 4px;
+}
+
+/**
+ * .form-error-text - Error message text
+ */
+.form-error-text {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ion-color-danger, #eb445a);
+  margin-top: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.form-error-text::before {
+  content: "⚠";
+  flex-shrink: 0;
+}
+
+/**
+ * .form-success-text - Success message text
+ */
+.form-success-text {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ion-color-success, #2dd36f);
+  margin-top: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.form-success-text::before {
+  content: "✓";
+  flex-shrink: 0;
+}
+
+/**
+ * .form-warning-text - Warning message text
+ */
+.form-warning-text {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ion-color-warning, #ffc409);
+  margin-top: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.form-warning-text::before {
+  content: "⚠";
+  flex-shrink: 0;
+}
+
+/* Dark mode help text colors */
+@media (prefers-color-scheme: dark) {
+  .form-help-text {
+    color: var(--ion-color-step-400, #999999);
+  }
+}
+
+.ios.ion-palette-dark .form-help-text,
+.md.ion-palette-dark .form-help-text,
+body.dark .form-help-text {
+  color: var(--ion-color-step-400, #999999);
+}
+
+/* ============================================================================
+ * CHECKBOX & RADIO INPUTS
+ * Touch-friendly checkbox and radio styling
+ * ============================================================================ */
+
+/**
+ * Checkbox and radio wrapper for proper spacing and alignment
+ */
+.form-field--checkbox,
+.form-field--radio {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.form-field--checkbox input[type="checkbox"],
+.form-field--radio input[type="radio"] {
+  min-width: 24px;
+  min-height: 24px;
+  margin-top: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.form-field--checkbox label,
+.form-field--radio label {
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 0;
+}
+
+/* Checkbox group and radio group containers */
+.checkbox-group,
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ============================================================================
+ * SELECT DROPDOWNS
+ * Enhanced select styling
+ * ============================================================================ */
+
+.form-field select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* Dark mode select arrow */
+@media (prefers-color-scheme: dark) {
+  .form-field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  }
+}
+
+.ios.ion-palette-dark .form-field select,
+.md.ion-palette-dark .form-field select,
+body.dark .form-field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+}
+
+/* ============================================================================
+ * FORM BUTTONS
+ * Action buttons in forms
+ * ============================================================================ */
+
+/**
+ * .form-actions - Container for form submit/cancel buttons
+ */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+/* Mobile: Stack buttons vertically */
+.form-actions--stack {
+  flex-direction: column;
+}
+
+.form-actions--stack > * {
+  width: 100%;
+}
+
+/* Tablet/Desktop: Horizontal button layout */
+@media (min-width: 768px) {
+  .form-actions--stack {
+    flex-direction: row;
+  }
+  
+  .form-actions--stack > * {
+    width: auto;
+    flex: 0 1 auto;
+  }
+}
+
+/* Right-aligned form actions */
+.form-actions--end {
+  justify-content: flex-end;
+}
+
+/* Centered form actions */
+.form-actions--center {
+  justify-content: center;
+}
+
+/* Space-between form actions */
+.form-actions--between {
+  justify-content: space-between;
+}
+
+/* ============================================================================
+ * IONIC FORM COMPONENTS
+ * Ensure Ionic form components work with the form system
+ * ============================================================================ */
+
+/**
+ * Ionic input, textarea, and select components
+ */
+.form-field ion-input,
+.form-field ion-textarea,
+.form-field ion-select {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --min-height: 44px;
+  --border-radius: 8px;
+  --border-width: 1px;
+  --border-color: var(--ion-color-step-300, #cccccc);
+  --background: var(--ion-color-step-50, #ffffff);
+  font-size: 16px;
+}
+
+.form-field ion-textarea {
+  --min-height: 88px;
+}
+
+/* Focus state for Ionic components */
+.form-field ion-input.ion-focused,
+.form-field ion-textarea.ion-focused,
+.form-field ion-select.ion-focused {
+  --border-color: var(--ion-color-primary, #3880ff);
+  --box-shadow: 0 0 0 3px var(--ion-color-primary-tint, rgba(56, 128, 255, 0.1));
+}
+
+/* Validation states for Ionic components */
+.form-field--error ion-input,
+.form-field--error ion-textarea,
+.form-field--error ion-select {
+  --border-color: var(--ion-color-danger, #eb445a);
+}
+
+.form-field--success ion-input,
+.form-field--success ion-textarea,
+.form-field--success ion-select {
+  --border-color: var(--ion-color-success, #2dd36f);
+}
+
+.form-field--warning ion-input,
+.form-field--warning ion-textarea,
+.form-field--warning ion-select {
+  --border-color: var(--ion-color-warning, #ffc409);
+}
+
+/* Dark mode for Ionic components */
+@media (prefers-color-scheme: dark) {
+  .form-field ion-input,
+  .form-field ion-textarea,
+  .form-field ion-select {
+    --border-color: var(--ion-color-step-700, #4a4a4a);
+    --background: var(--ion-color-step-100, #1a1a1a);
+  }
+}
+
+.ios.ion-palette-dark .form-field ion-input,
+.md.ion-palette-dark .form-field ion-input,
+body.dark .form-field ion-input,
+.ios.ion-palette-dark .form-field ion-textarea,
+.md.ion-palette-dark .form-field ion-textarea,
+body.dark .form-field ion-textarea,
+.ios.ion-palette-dark .form-field ion-select,
+.md.ion-palette-dark .form-field ion-select,
+body.dark .form-field ion-select {
+  --border-color: var(--ion-color-step-700, #4a4a4a);
+  --background: var(--ion-color-step-100, #1a1a1a);
+}
+
+/* ============================================================================
+ * RESPONSIVE ADJUSTMENTS
+ * Fine-tuning for different viewport sizes
+ * ============================================================================ */
+
+/* Tablet: Slightly larger gap in form rows */
+@media (min-width: 768px) {
+  .form-row {
+    gap: 20px;
+  }
+}
+
+/* Desktop: Maximum gap in form rows */
+@media (min-width: 1024px) {
+  .form-row {
+    gap: 24px;
+  }
+}
+
+/* ============================================================================
+ * UTILITY CLASSES
+ * Additional helper classes for form layouts
+ * ============================================================================ */
+
+/**
+ * .form-section-title - Section heading within forms
+ */
+.form-section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ion-text-color, #000000);
+  margin: 24px 0 12px 0;
+}
+
+.form-section-title:first-child {
+  margin-top: 0;
+}
+
+/* Dark mode section titles */
+@media (prefers-color-scheme: dark) {
+  .form-section-title {
+    color: var(--ion-text-color, #ffffff);
+  }
+}
+
+.ios.ion-palette-dark .form-section-title,
+.md.ion-palette-dark .form-section-title,
+body.dark .form-section-title {
+  color: var(--ion-text-color, #ffffff);
+}
+
+/**
+ * .form-divider - Visual separator between form sections
+ */
+.form-divider {
+  height: 1px;
+  background-color: var(--ion-color-step-200, #e0e0e0);
+  margin: 20px 0;
+  border: none;
+}
+
+@media (min-width: 768px) {
+  .form-divider {
+    margin: 24px 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .form-divider {
+    margin: 28px 0;
+  }
+}
+
+/* Dark mode form divider */
+@media (prefers-color-scheme: dark) {
+  .form-divider {
+    background-color: var(--ion-color-step-800, #2a2a2a);
+  }
+}
+
+.ios.ion-palette-dark .form-divider,
+.md.ion-palette-dark .form-divider,
+body.dark .form-divider {
+  background-color: var(--ion-color-step-800, #2a2a2a);
+}
+
+/**
+ * .form-read-only - Read-only field display
+ */
+.form-field--read-only input,
+.form-field--read-only textarea,
+.form-field--read-only select {
+  background-color: var(--ion-color-step-50, #fafafa);
+  border-color: var(--ion-color-step-200, #e0e0e0);
+  cursor: default;
+}
+
+@media (prefers-color-scheme: dark) {
+  .form-field--read-only input,
+  .form-field--read-only textarea,
+  .form-field--read-only select {
+    background-color: var(--ion-color-step-150, #202020);
+    border-color: var(--ion-color-step-700, #4a4a4a);
+  }
+}
+
+.ios.ion-palette-dark .form-field--read-only input,
+.md.ion-palette-dark .form-field--read-only input,
+body.dark .form-field--read-only input,
+.ios.ion-palette-dark .form-field--read-only textarea,
+.md.ion-palette-dark .form-field--read-only textarea,
+body.dark .form-field--read-only textarea,
+.ios.ion-palette-dark .form-field--read-only select,
+.md.ion-palette-dark .form-field--read-only select,
+body.dark .form-field--read-only select {
+  background-color: var(--ion-color-step-150, #202020);
+  border-color: var(--ion-color-step-700, #4a4a4a);
+}

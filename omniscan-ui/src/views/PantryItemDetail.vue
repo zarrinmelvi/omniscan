@@ -992,3 +992,18 @@ onIonViewWillEnter(fetchItem)
   font-size: 0.85rem;
 }
 </style>
+
+<style scoped>
+/* Responsive enhancement for tablet/desktop (>=768px).
+   Mobile (<768px) styles above remain unchanged. */
+@media (min-width: 768px) {
+	.detail-wrap {
+		max-width: 560px;
+		padding-top: 20px;
+	}
+
+	.hero-image-container {
+		height: 260px;
+	}
+}
+</style>

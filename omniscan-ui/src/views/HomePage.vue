@@ -102,7 +102,7 @@
 					<p>Personalized recipe recommendations are coming soon.</p>
 				</div>
 
-				<div v-else class="recommended-list">
+				<div v-else class="recipe-grid">
 					<div v-for="recipe in recommendedRecipes" :key="recipe.id" class="recipe-card" @click="openRecipeDetail(recipe)">
 						<div class="recipe-img-wrap">
 							<img v-if="recipe.image_url" :src="recipe.image_url" :alt="recipe.name" class="recipe-img" />
@@ -719,17 +719,60 @@ onIonViewWillEnter(() => {
 	gap: 12px;
 	margin-bottom: 24px;
 }
+
+/* Mobile: Single row with horizontal scroll (1x4 layout) */
+@media (max-width: 767px) {
+	.stats-row {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none; /* Firefox */
+	}
+	
+	.stats-row::-webkit-scrollbar {
+		display: none; /* Chrome, Safari */
+	}
+	
+	.stat-card {
+		flex: 1 0 calc(50% - 6px); /* 2 cards visible at once */
+		min-width: 140px;
+	}
+}
+
+/* Tablet: 2 columns grid */
+@media (min-width: 768px) and (max-width: 1023px) {
+	.stats-row {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 16px;
+	}
+}
+
+/* Desktop: 4 columns grid */
+@media (min-width: 1024px) {
+	.stats-row {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 20px;
+	}
+}
+
 .stat-card {
-	flex: 1;
 	background: #ffffff;
 	border: none;
-	border-radius: 16px;
-	padding: 14px 16px;
+	border-radius: 12px;
+	padding: 16px;
 	text-align: left;
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+	cursor: pointer;
+	transition: transform 0.2s;
+	min-height: 44px; /* Touch target minimum */
+}
+
+.stat-card:hover {
+	transform: translateY(-2px);
 }
 .stat-label {
 	font-size: 0.75rem;
@@ -887,11 +930,35 @@ onIonViewWillEnter(() => {
 	text-overflow: ellipsis;
 }
 
-.recommended-list {
-	display: flex;
-	flex-direction: column;
+.recipe-grid {
+	display: grid;
 	gap: 12px;
 }
+
+/* Mobile: single column with 12px gap */
+@media (max-width: 767px) {
+	.recipe-grid {
+		grid-template-columns: 1fr;
+		gap: 12px;
+	}
+}
+
+/* Tablet: 2 columns with 16px gap */
+@media (min-width: 768px) and (max-width: 1023px) {
+	.recipe-grid {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 16px;
+	}
+}
+
+/* Desktop: 3 columns with 20px gap */
+@media (min-width: 1024px) {
+	.recipe-grid {
+		grid-template-columns: repeat(3, 1fr);
+		gap: 20px;
+	}
+}
+
 .recipe-card {
 	background: #ffffff;
 	border-radius: 18px;

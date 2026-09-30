@@ -16,12 +16,12 @@ export default defineNitroConfig({
 	},
 	routeRules: {
 		'/api/**': {
+			// CORS headers are handled dynamically by server/middleware/cors.ts
+			// so the correct origin is reflected for each caller (client portal,
+			// admin portal, or local dev).  Do NOT add a static
+			// access-control-allow-origin header here — a static value would
+			// override the middleware for any origin not matching it.
 			cors: true,
-			headers: {
-				'access-control-allow-origin': process.env.CORS_ORIGIN || 'https://omniscan-ui-eight.vercel.app',
-				'access-control-allow-methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-				'access-control-allow-headers': 'Content-Type,Authorization',
-			},
 		},
 	},
 })

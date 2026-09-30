@@ -13,13 +13,31 @@ function classifyFlag(flag_reason: string): 'halal' | 'allergen' | 'other' {
 	return 'other'
 }
 
+/**
+ * Strip the allergen fragment from a pipe-separated flag_reason so that
+ * Halal-panel rows only show Halal-related copy.
+ * e.g. "Red safety verdict: contains milk | Halal logo detected on packaging but not matched to a known certifier."
+ *   → "Halal logo detected on packaging but not matched to a known certifier."
+ */
+function extractHalalReason(flag_reason: string): string {
+	// Split on " | " and keep only the segments that are halal-related
+	const parts = flag_reason.split(' | ')
+	const halalParts = parts.filter((p) => {
+		const lower = p.toLowerCase()
+		return HALAL_KEYWORDS.some((k) => lower.includes(k))
+	})
+	// Fall back to the full string if no halal-specific segment found (shouldn't
+	// happen since we only include halal-classified rows, but safe to guard)
+	return halalParts.length > 0 ? halalParts.join(' | ') : flag_reason
+}
+
 export default defineEventHandler(async (event) => {
 	requireAdminAuth(event)
 
 	const query = getQuery(event)
 	const statusFilter = typeof query.status === 'string' ? query.status : undefined
 	// type=halal | allergen | other | all  (default: 'halal')
-	const typeFilter   = typeof query.type   === 'string' ? query.type   : 'halal'
+	const typeFilter = typeof query.type === 'string' ? query.type : 'halal'
 
 	try {
 		const flaggedScans = await prisma.flaggedScan.findMany({
@@ -35,7 +53,18 @@ export default defineEventHandler(async (event) => {
 					select: {
 						id: true,
 						safety_verdict: true,
-						product: { select: { id: true, product_name: true, brand_name: true } },
+						// image_url is a relative filesystem path (uploads/<filename>) that
+						// Nitro does not serve publicly.  We use the product's stored
+						// image_base64 instead so the browser can display a data: URI.
+						product: {
+							select: {
+								id: true,
+								product_name: true,
+								brand_name: true,
+								image_base64: true,
+								image_base64_back: true,
+							},
+						},
 						user: { select: { id: true, name: true, email: true } },
 					},
 				},
@@ -45,14 +74,20 @@ export default defineEventHandler(async (event) => {
 		const mapped = flaggedScans.map((f) => ({
 			id: f.id,
 			flag_reason: f.flag_reason,
+			// clean_flag_reason strips allergen fragments from mixed flags so
+			// the Halal panel only shows Halal-related badge text
+			clean_flag_reason: extractHalalReason(f.flag_reason),
 			status: f.status,
 			admin_correction: f.admin_correction,
 			created_at: f.created_at,
 			product_name: f.scan?.product?.product_name ?? 'Unknown product',
-			brand_name:   f.scan?.product?.brand_name   ?? '',
+			brand_name: f.scan?.product?.brand_name ?? '',
 			safety_verdict: f.scan?.safety_verdict ?? null,
 			scanned_by: f.scan?.user?.name ?? f.scan?.user?.email ?? 'Unknown user',
 			halal_flag_type: classifyFlag(f.flag_reason),
+			// Base64 strings for the product thumbnail — null when not yet captured
+			image_base64:      f.scan?.product?.image_base64      ?? null,
+			image_base64_back: f.scan?.product?.image_base64_back ?? null,
 		}))
 
 		// Apply type filter after mapping (client can pass type=all to skip)

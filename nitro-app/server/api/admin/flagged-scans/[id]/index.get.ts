@@ -2,6 +2,17 @@ import { defineEventHandler, createError, getRouterParam } from 'h3'
 import { prisma } from '../../../../lib/prisma'
 import { requireAdminAuth } from '../../../../utils/requireAdminAuth'
 
+const HALAL_KEYWORDS = ['halal', 'slaughter', 'certification', 'certif', 'stamp', 'logo', 'compliance']
+
+function extractHalalReason(flag_reason: string): string {
+	const parts = flag_reason.split(' | ')
+	const halalParts = parts.filter((p) => {
+		const lower = p.toLowerCase()
+		return HALAL_KEYWORDS.some((k) => lower.includes(k))
+	})
+	return halalParts.length > 0 ? halalParts.join(' | ') : flag_reason
+}
+
 export default defineEventHandler(async (event) => {
 	requireAdminAuth(event)
 
@@ -24,6 +35,8 @@ export default defineEventHandler(async (event) => {
 				scan: {
 					select: {
 						id: true,
+						// image_url is a server-side filesystem path that is not publicly
+						// served by Nitro on Vercel.  Prefer product.image_base64 for display.
 						image_url: true,
 						image_url_back: true,
 						scan_time: true,
@@ -36,6 +49,8 @@ export default defineEventHandler(async (event) => {
 								product_name: true,
 								brand_name: true,
 								ingredient_text: true,
+								image_base64: true,
+								image_base64_back: true,
 							},
 						},
 						user: {
@@ -59,10 +74,16 @@ export default defineEventHandler(async (event) => {
 			detail: {
 				id: f.id,
 				flag_reason: f.flag_reason,
+				clean_flag_reason: extractHalalReason(f.flag_reason),
 				status: f.status,
 				admin_correction: f.admin_correction,
 				created_at: f.created_at,
 				scan_id: f.scan?.id ?? null,
+				// Use product image_base64 as the primary display image source.
+				// image_url / image_url_back are kept for reference (server-side paths)
+				// but are not displayable directly in the browser from Vercel.
+				image_base64:      f.scan?.product?.image_base64      ?? null,
+				image_base64_back: f.scan?.product?.image_base64_back ?? null,
 				image_url: f.scan?.image_url ?? null,
 				image_url_back: f.scan?.image_url_back ?? null,
 				scan_time: f.scan?.scan_time ?? null,

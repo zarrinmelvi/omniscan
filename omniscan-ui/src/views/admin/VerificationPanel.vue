@@ -135,7 +135,7 @@
 							<td class="col-product">
 								<div class="product-cell">
 									<div class="product-thumb">
-										<img v-if="row.image_url" :src="row.image_url" :alt="row.product_name" class="thumb-img" />
+										<img v-if="row.thumb_src" :src="row.thumb_src" :alt="row.product_name" class="thumb-img" />
 										<span v-else class="thumb-emoji">📦</span>
 									</div>
 									<div class="product-details">
@@ -149,8 +149,8 @@
 								<div class="flag-capsule" :class="verdictClass(row.safety_verdict)">
 									<span class="flag-dot"></span>
 									<span class="flag-text">
-										<strong>{{ halalFlagLabel(row.flag_reason) }}</strong>
-										<span class="flag-sub">{{ row.flag_reason }}</span>
+										<strong>{{ halalFlagLabel(row.clean_flag_reason) }}</strong>
+										<span class="flag-sub">{{ row.clean_flag_reason }}</span>
 									</span>
 								</div>
 							</td>
@@ -239,8 +239,8 @@
 								<div class="image-row">
 									<div class="scan-image-box">
 										<img
-											v-if="reviewDetail.image_url"
-											:src="reviewDetail.image_url"
+											v-if="reviewFrontSrc"
+											:src="reviewFrontSrc"
 											alt="Front scan"
 											class="scan-img"
 										/>
@@ -254,8 +254,8 @@
 										</div>
 										<div class="image-label">Front</div>
 									</div>
-									<div v-if="reviewDetail.image_url_back" class="scan-image-box">
-										<img :src="reviewDetail.image_url_back" alt="Back scan" class="scan-img" />
+									<div v-if="reviewBackSrc" class="scan-image-box">
+										<img :src="reviewBackSrc" alt="Back scan" class="scan-img" />
 										<div class="image-label">Back</div>
 									</div>
 								</div>
@@ -279,11 +279,11 @@
 									</div>
 									<div class="detail-row">
 										<span class="detail-key">Flag Type</span>
-										<span class="detail-val">{{ halalFlagLabel(reviewDetail.flag_reason) }}</span>
+										<span class="detail-val">{{ halalFlagLabel(reviewDetail.clean_flag_reason) }}</span>
 									</div>
 									<div class="detail-row full-span">
 										<span class="detail-key">Flag Reason</span>
-										<span class="detail-val flag-reason-text">{{ reviewDetail.flag_reason }}</span>
+										<span class="detail-val flag-reason-text">{{ reviewDetail.clean_flag_reason }}</span>
 									</div>
 									<div v-if="reviewDetail.ocr_flag_reason && reviewDetail.ocr_flag_reason !== reviewDetail.flag_reason" class="detail-row full-span">
 										<span class="detail-key">Raw OCR Flag</span>
@@ -387,8 +387,8 @@
 						<div class="flag-capsule" :class="verdictClass(modalRow.safety_verdict)" style="max-width:100%">
 							<span class="flag-dot"></span>
 							<span class="flag-text">
-								<strong>{{ halalFlagLabel(modalRow.flag_reason) }}</strong>
-								<span class="flag-sub">{{ modalRow.flag_reason }}</span>
+								<strong>{{ halalFlagLabel(modalRow.clean_flag_reason) }}</strong>
+								<span class="flag-sub">{{ modalRow.clean_flag_reason }}</span>
 							</span>
 						</div>
 					</div>
@@ -478,17 +478,23 @@ interface FlaggedScanRaw {
 	product_name: string
 	brand_name: string
 	flag_reason: string
+	/** flag_reason with allergen fragments stripped — Halal text only */
+	clean_flag_reason: string
 	status: string
 	safety_verdict: string | null
 	scanned_by: string
 	admin_correction: string | null
 	created_at: string
 	halal_flag_type: 'halal' | 'allergen' | 'other'
+	/** base64 image string from the scanned product (may be null) */
+	image_base64: string | null
+	image_base64_back: string | null
 }
 
 interface FlaggedScanRow extends FlaggedScanRaw {
 	confidence: number
-	image_url: string | null
+	/** Computed data: URI for the product thumbnail, or null */
+	thumb_src: string | null
 }
 
 interface FlaggedScansResponse {
@@ -498,10 +504,13 @@ interface FlaggedScansResponse {
 interface ScanDetail {
 	id: number
 	flag_reason: string
+	clean_flag_reason: string
 	status: string
 	admin_correction: string | null
 	created_at: string
 	scan_id: number | null
+	image_base64: string | null
+	image_base64_back: string | null
 	image_url: string | null
 	image_url_back: string | null
 	scan_time: string | null
@@ -547,6 +556,26 @@ const reviewConfidence = computed(() =>
 	reviewDetail.value ? deriveConfidence(reviewDetail.value.id) : 0
 )
 
+// data: URI for the front scan image in the Review drawer
+const reviewFrontSrc = computed<string | null>(() => {
+	const d = reviewDetail.value
+	if (!d) return null
+	if (d.image_base64) {
+		return d.image_base64.startsWith('data:') ? d.image_base64 : `data:image/jpeg;base64,${d.image_base64}`
+	}
+	return null
+})
+
+// data: URI for the back scan image in the Review drawer
+const reviewBackSrc = computed<string | null>(() => {
+	const d = reviewDetail.value
+	if (!d) return null
+	if (d.image_base64_back) {
+		return d.image_base64_back.startsWith('data:') ? d.image_base64_back : `data:image/jpeg;base64,${d.image_base64_back}`
+	}
+	return null
+})
+
 // Correction modal
 const modalRow            = ref<FlaggedScanRow | null>(null)
 const modalSelectedLogoId = ref<number | null>(null)
@@ -567,7 +596,11 @@ const flaggedScans = computed<FlaggedScanRow[]>(() =>
 	rawScans.value.map((s) => ({
 		...s,
 		confidence: deriveConfidence(s.id),
-		image_url: null,
+		// Build a data URI from the stored base64 string so <img :src="..."> works
+		// directly without a separate HTTP request to a file server.
+		thumb_src: s.image_base64
+			? (s.image_base64.startsWith('data:') ? s.image_base64 : `data:image/jpeg;base64,${s.image_base64}`)
+			: null,
 	}))
 )
 
@@ -687,6 +720,7 @@ function openCorrectionFromDrawer(): void {
 		product_name:     reviewDetail.value.product_name,
 		brand_name:       reviewDetail.value.brand_name,
 		flag_reason:      reviewDetail.value.flag_reason,
+		clean_flag_reason: reviewDetail.value.clean_flag_reason,
 		status:           reviewDetail.value.status,
 		safety_verdict:   reviewDetail.value.safety_verdict,
 		scanned_by:       reviewDetail.value.scanned_by_name ?? reviewDetail.value.scanned_by_email ?? '',
@@ -694,7 +728,13 @@ function openCorrectionFromDrawer(): void {
 		created_at:       reviewDetail.value.created_at,
 		halal_flag_type:  'halal',
 		confidence:       deriveConfidence(reviewDetail.value.id),
-		image_url:        reviewDetail.value.image_url,
+		image_base64:      reviewDetail.value.image_base64,
+		image_base64_back: reviewDetail.value.image_base64_back,
+		thumb_src: reviewDetail.value.image_base64
+			? (reviewDetail.value.image_base64.startsWith('data:')
+				? reviewDetail.value.image_base64
+				: `data:image/jpeg;base64,${reviewDetail.value.image_base64}`)
+			: null,
 	}
 	closeReviewDrawer()
 	openCorrectionModal(row)

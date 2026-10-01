@@ -1480,3 +1480,35 @@ html.ion-palette-dark .verdict-legend strong {
 html.ion-palette-dark .legend-divider {
 	color: var(--dm-border) !important;
 }
+
+/* == Manage Product Data — Ingredient Mappings tab dark mode == */
+html.ion-palette-dark .ingredient-filter-bar {
+	border-bottom-color: var(--dm-border) !important;
+	background: var(--dm-bg-card);
+}
+html.ion-palette-dark .filter-label {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .ingredient-filter-select {
+	background: var(--dm-bg-input) !important;
+	color: var(--dm-text-primary) !important;
+	border-color: var(--dm-border) !important;
+	color-scheme: dark;
+}
+html.ion-palette-dark .ingredient-count-label {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .allergen-group-header {
+	background: var(--dm-bg-subtle) !important;
+	border-top-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .group-count {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .ingredient-group-table th {
+	background: var(--dm-bg-subtle) !important;
+}
+html.ion-palette-dark .tab-count-badge {
+	background: rgba(255, 255, 255, 0.15) !important;
+	color: var(--dm-text-primary) !important;
+}

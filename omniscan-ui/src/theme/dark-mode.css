@@ -1464,3 +1464,19 @@ html.ion-palette-dark .flag-product-name {
 html.ion-palette-dark .flag-reason-cell {
 	color: var(--dm-text-secondary);
 }
+
+/* == Verification Panel — verdict legend dark mode == */
+html.ion-palette-dark .verdict-legend {
+	background: var(--dm-bg-subtle) !important;
+	border-bottom-color: var(--dm-border) !important;
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .legend-label {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .verdict-legend strong {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .legend-divider {
+	color: var(--dm-border) !important;
+}

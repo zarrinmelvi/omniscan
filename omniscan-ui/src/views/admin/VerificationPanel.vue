@@ -108,7 +108,21 @@
 				</div>
 			</div>
 
-			<p v-if="isLoading" class="state-message">Loading Halal verification queue…</p>
+			<!-- Verdict colour legend -->
+		<div class="verdict-legend">
+			<span class="legend-label">Halal Flag colour:</span>
+			<span class="legend-item">
+				<span class="legend-dot legend-dot--yellow"></span>
+				<span><strong>Yellow</strong> — Unverified Halal logo only</span>
+			</span>
+			<span class="legend-divider">·</span>
+			<span class="legend-item">
+				<span class="legend-dot legend-dot--red"></span>
+				<span><strong>Red</strong> — Unverified logo + ingredient safety concern</span>
+			</span>
+		</div>
+
+		<p v-if="isLoading" class="state-message">Loading Halal verification queue…</p>
 			<p v-else-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 			<p v-else-if="filteredRows.length === 0" class="empty-note">No Halal compliance flags match the selected criteria.</p>
 
@@ -955,6 +969,39 @@ tbody tr { cursor: pointer; }
 /* ── Spin animation for loading state ────────────────────────────────────── */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin-icon { animation: spin 0.75s linear infinite; }
+
+/* ── Verdict legend ──────────────────────────────────────────────────────── */
+.verdict-legend {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 20px;
+	background: #f8fafc;
+	border-bottom: 1px solid #f1f5f9;
+	font-size: 0.78rem;
+	color: #64748b;
+	flex-wrap: wrap;
+}
+.legend-label {
+	font-weight: 600;
+	color: #475569;
+}
+.legend-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+.legend-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 2px;
+	flex-shrink: 0;
+}
+.legend-dot--yellow { background-color: #ca8a04; }
+.legend-dot--red    { background-color: #dc2626; }
+.legend-divider {
+	color: #cbd5e1;
+}
 
 /* ── State messages ──────────────────────────────────────────────────────── */
 .state-message, .empty-note { padding: 40px; text-align: center; color: #64748b; font-size: 0.9rem; }

@@ -42,7 +42,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="scan in recentFlags" :key="scan.id">
+						<tr v-for="scan in recentFlags" :key="scan.id" class="clickable-row" @click="goToVerification">
 							<td class="product-name">{{ scan.brand_name ? `${scan.brand_name} ` : '' }}{{ scan.product_name }}</td>
 							<td class="verdict-cell">{{ scan.safety_verdict || 'Red' }}</td>
 							<td>
@@ -58,6 +58,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { apiFetch, ApiError } from '@/utils/api'
 
 interface DashboardStats {
@@ -78,6 +79,12 @@ const stats = ref<DashboardStats | null>(null)
 const recentFlags = ref<FlaggedScanRow[]>([])
 const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
+
+const router = useRouter()
+
+function goToVerification(): void {
+	router.push('/admin/verification')
+}
 
 async function loadDashboard(): Promise<void> {
 	isLoading.value = true
@@ -242,6 +249,14 @@ td {
 	border-bottom: 1px solid #f3f4f6;
 	font-size: 0.9rem;
 	vertical-align: middle;
+}
+
+.clickable-row {
+	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+.clickable-row:hover {
+	background-color: #f9fafb;
 }
 
 .product-name {

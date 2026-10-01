@@ -99,15 +99,18 @@
 					<div v-if="activeTab === 'ai'" class="settings-group">
 						<div class="setting-row">
 							<div class="setting-info">
-								<label for="aiModel" class="setting-title">AI Model</label>
+								<label for="aiModel" class="setting-title">
+								AI Model <span class="field-locked-badge">system default</span>
+							</label>
 								<p class="setting-desc">Language model for ingredient analysis</p>
 							</div>
 							<div class="setting-control">
 								<input 
 									id="aiModel" 
-									v-model="form.aiModel" 
+									:value="form.aiModel" 
 									type="text" 
-									class="text-input" 
+									class="text-input readonly-field"
+									readonly
 								/>
 							</div>
 						</div>
@@ -576,5 +579,23 @@ input:checked + .slider:before {
 
 .error-message {
 	color: #dc2626;
+}
+
+.readonly-field {
+	opacity: 0.65;
+	cursor: not-allowed;
+	background: #f8fafc;
+}
+
+.field-locked-badge {
+	display: inline-block;
+	margin-left: 8px;
+	padding: 2px 8px;
+	background: #f1f5f9;
+	color: #64748b;
+	border-radius: 4px;
+	font-size: 0.75rem;
+	font-weight: 500;
+	vertical-align: middle;
 }
 </style>

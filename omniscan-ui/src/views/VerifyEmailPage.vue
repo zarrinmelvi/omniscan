@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<ion-page>
 		<ion-content class="auth-content" :scroll-y="true">
 			<div class="auth-layout">
@@ -14,7 +14,7 @@
 						<div class="state-icon-wrapper">
 							<ion-spinner name="crescent" class="verify-spinner" />
 						</div>
-						<h1 class="auth-title">Verifying your email…</h1>
+						<h1 class="auth-title">Verifying your emailâ€¦</h1>
 						<p class="auth-subtitle">Please wait a moment.</p>
 					</template>
 
@@ -27,9 +27,9 @@
 						<h1 class="auth-title">Email Verified!</h1>
 						<p class="auth-subtitle">
 							Your account is now active. Setting up your profile
-							<span v-if="redirectCountdown > 0"> in {{ redirectCountdown }}s</span>…
+							<span v-if="redirectCountdown > 0"> in {{ redirectCountdown }}s</span>â€¦
 						</p>
-						<ion-button expand="block" class="submit-button" @click="() => { window.location.href = '/register?step=2' }">
+						<ion-button expand="block" class="submit-button" @click="goToSetup">
 							Continue to Setup
 						</ion-button>
 					</template>
@@ -227,6 +227,10 @@ async function handleResend() {
 	} finally {
 		isResending.value = false
 	}
+}
+
+function goToSetup() {
+	window.location.href = '/register?step=2'
 }
 
 onMounted(() => {
@@ -486,4 +490,6 @@ onUnmounted(() => {
 	}
 }
 </style>
+
+
 

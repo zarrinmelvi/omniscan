@@ -119,9 +119,7 @@
 								/>
 								<span v-else class="certifier-logo-fallback">☪</span>
 							</div>
-							<span class="status-badge" :class="logo.is_accredited ? 'status-active' : 'status-review'">
-								{{ logo.is_accredited ? 'Accredited' : 'Recognized' }}
-							</span>
+							<span class="status-badge status-active">Active</span>
 						</div>
 						<div class="certifier-body">
 							<h3 class="certifier-name">{{ logo.certifier }}</h3>
@@ -137,9 +135,6 @@
 						</div>
 						<div class="certifier-actions">
 							<button class="cert-btn cert-btn-edit" @click="openEditModal(logo)">Edit</button>
-							<button class="cert-btn cert-btn-review" @click="toggleAccredited(logo)">
-								{{ logo.is_accredited ? 'Unaccredit' : 'Accredit' }}
-							</button>
 							<button class="cert-btn cert-btn-delete" @click="removeItem(logo.id)">Delete</button>
 						</div>
 					</div>
@@ -272,10 +267,6 @@
 							<label class="field">
 								<span class="field-label">Official source URL</span>
 								<input v-model="form.source_url" type="text" class="field-input" placeholder="https://…" />
-							</label>
-							<label class="field-check">
-								<input v-model="form.is_accredited" type="checkbox" />
-								<span>Accredited certifying body</span>
 							</label>
 						</template>
 
@@ -615,20 +606,6 @@ async function removeItem(id: number): Promise<void> {
 		await fetchTabContent(activeTab.value)
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to delete record.'
-	}
-}
-
-// ─── Quick accredited toggle on certifier cards ────────────────────────────────
-async function toggleAccredited(logo: CertifierRow): Promise<void> {
-	try {
-		await apiFetch('/api/halal_logo', {
-			method: 'PUT',
-			body: { id: logo.id, is_accredited: !logo.is_accredited },
-			isAdmin: true,
-		})
-		await fetchHalalLogos()
-	} catch (err) {
-		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to update certifier.'
 	}
 }
 

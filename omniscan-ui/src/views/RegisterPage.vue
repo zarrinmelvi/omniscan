@@ -459,7 +459,6 @@ async function completeSetup(): Promise<void> {
 				custom_preferences: customPrefTags,
 			},
 		})
-		await authStore.checkAuth()
 		window.location.href = '/tabs/home'
 	} catch (err) {
 		prefsError.value = err instanceof ApiError ? err.message : 'Failed to save your preferences.'
@@ -468,9 +467,7 @@ async function completeSetup(): Promise<void> {
 	}
 }
 
-async function skipForNow(): Promise<void> {
-	if (isSavingPrefs.value) return
-	await authStore.checkAuth()
+function skipForNow(): void {
 	window.location.href = '/tabs/home'
 }
 onMounted(async () => {

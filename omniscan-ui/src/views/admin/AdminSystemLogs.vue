@@ -328,7 +328,7 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .tabs-bar { display: flex; gap: 8px; margin-bottom: 24px; }
 .tab-btn { padding: 8px 18px; border-radius: 8px; border: none; background: transparent; color: #64748b; font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: all 0.15s ease; }
 .tab-btn:hover { color: #0f172a; }
-.tab-btn.active { background: #ffffff; color: #0f172a; font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
+.tab-btn.active { background: #008744; color: #ffffff; font-weight: 600; border-color: #008744; }
 
 .error-message { padding: 14px 18px; margin-bottom: 20px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 0.85rem; }
 

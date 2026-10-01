@@ -65,21 +65,6 @@
 					<div v-if="activeTab === 'general'" class="settings-group">
 						<div class="setting-row">
 							<div class="setting-info">
-								<label for="portalName" class="setting-title">Portal Name</label>
-								<p class="setting-desc">Displayed in the browser tab and header</p>
-							</div>
-							<div class="setting-control">
-								<input 
-									id="portalName" 
-									v-model="form.portalName" 
-									type="text" 
-									class="text-input" 
-								/>
-							</div>
-						</div>
-
-						<div class="setting-row">
-							<div class="setting-info">
 								<label class="setting-title">Dark Mode</label>
 								<p class="setting-desc">Switch the admin portal to a dark colour scheme</p>
 							</div>
@@ -99,15 +84,19 @@
 					<div v-if="activeTab === 'ai'" class="settings-group">
 						<div class="setting-row">
 							<div class="setting-info">
-								<label for="aiModel" class="setting-title">AI Model</label>
+								<label for="aiModel" class="setting-title">
+								AI Model <span class="field-locked-badge">system default</span>
+							</label>
 								<p class="setting-desc">Language model for ingredient analysis</p>
 							</div>
 							<div class="setting-control">
 								<input 
 									id="aiModel" 
-									v-model="form.aiModel" 
+									:value="form.aiModel" 
 									type="text" 
-									class="text-input" 
+									class="text-input readonly-field"
+									readonly
+									disabled
 								/>
 							</div>
 						</div>
@@ -214,17 +203,6 @@
 			</div>
 		</div>
 
-		<!-- Bottom Save Action Button -->
-		<div class="actions-footer">
-			<button class="save-button" :disabled="isSaving" @click="handleSave">
-				<svg class="save-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-					<polyline points="17 21 17 13 7 13 7 21"></polyline>
-					<polyline points="7 3 7 8 15 8"></polyline>
-				</svg>
-				<span>{{ isSaving ? 'Saving...' : 'Save Changes' }}</span>
-			</button>
-		</div>
 	</div>
 </template>
 
@@ -270,13 +248,21 @@ async function fetchSettings(): Promise<void> {
 	isLoading.value = true
 	errorMessage.value = null
 
+	// Capture the authoritative theme value BEFORE the load. localStorage is the
+	// source of truth for the live theme; a stale/absent backend value must never
+	// downgrade it.
+	const localDarkMode = localStorage.getItem(DARK_MODE_KEY) === 'true'
+
 	try {
 		const data = await apiFetch<typeof form>('/api/admin/settings', {
 			method: 'GET',
 			isAdmin: true,
 		})
 		Object.assign(form, data)
-		// Reconcile the applied theme with the persisted backend value.
+		// localStorage wins over the backend for the live theme: re-affirm the
+		// local value after the merge so an absent/false backend value cannot
+		// strip ion-palette-dark on load.
+		form.darkMode = localDarkMode
 		applyDarkMode(form.darkMode)
 	} catch (err) {
 		// If endpoint is not created yet, fail silently and keep local default state
@@ -568,5 +554,23 @@ input:checked + .slider:before {
 
 .error-message {
 	color: #dc2626;
+}
+
+.readonly-field {
+	opacity: 0.65;
+	cursor: not-allowed;
+	background: #f8fafc;
+}
+
+.field-locked-badge {
+	display: inline-block;
+	margin-left: 8px;
+	padding: 2px 8px;
+	background: #f1f5f9;
+	color: #64748b;
+	border-radius: 4px;
+	font-size: 0.75rem;
+	font-weight: 500;
+	vertical-align: middle;
 }
 </style>

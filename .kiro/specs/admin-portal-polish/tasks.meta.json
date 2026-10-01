@@ -1,0 +1,383 @@
+{
+  "pbtResults": {
+    "1. Write bug condition exploration test — Dark Mode revert": {
+      "status": "passed",
+      "failingExample": "Bug CONFIRMED. Preconditions: localStorage[omniscan_dark_mode] === 'true' and document.documentElement has 'ion-palette-dark'. Counterexample (backend darkMode === false):\n\n  Backend GET /api/admin/settings → { darkMode: false }  (any other fields)\n  → Object.assign(form, data) sets form.darkMode = false\n  → applyDarkMode(false) removes 'ion-palette-dark' from document.documentElement\n  → AssertionError: expected false to be true (ion-palette-dark stripped → theme reverts to light)\n\nFailing across all 5 \"darkMode FALSE\" payload variants: {}, {portalName}, {aiModel,reviewConfidenceThreshold}, {autoFlagThreshold,enableVisionScan}, {emailOnNewFlag,dailySummaryReport,autoReviewLowRisk}.\n\nNote: the 5 \"darkMode ABSENT\" variants currently PASS because Object.assign with no darkMode key leaves the seeded true value intact — the explicit backend `false` (and any future stale sync) is what triggers the revert. Result: 5 failed | 5 passed of 10. This is the expected exploration outcome — the failing cases prove the Object.assign + applyDarkMode(form.darkMode) path reverts the applied theme. No fix applied (per bugfix workflow).",
+      "lastRunTimestamp": 1790793978210
+    },
+    "3.2 Verify bug condition exploration test now passes": {
+      "status": "passed",
+      "lastRunTimestamp": 1790794368269
+    }
+  },
+  "executionHistory": {
+    "1. Write bug condition exploration test — Dark Mode revert": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793817671
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793831389
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794020869
+      }
+    ],
+    "2. Write preservation property tests — Non-buggy theme and panel behavior (BEFORE implementing fix)": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793817868
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794025921
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794214309
+      }
+    ],
+    "3.1 Implement the localStorage-authoritative reconciliation in `fetchSettings()`": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793818017
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794220655
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794290513
+      }
+    ],
+    "3.2 Verify bug condition exploration test now passes": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793818110
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794298198
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794393134
+      }
+    ],
+    "3.3 Verify preservation tests still pass": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793818202
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794397452
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794461667
+      }
+    ],
+    "3.4 Type-check gate for Area 1": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793818300
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794466753
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794585372
+      }
+    ],
+    "4.1 Remove Archive and Delete batch buttons and simplify `runBatch`": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793818392
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794598989
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794686798
+      }
+    ],
+    "4.2 Verify Property 5 — batch toolbar exposes only Send Inactivity Notice": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793818514
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794691661
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794758702
+      }
+    ],
+    "4.3 Type-check gate for Area 4": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793818752
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794763514
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794903147
+      }
+    ],
+    "5.1 Recolor the \"Unverified Halal Logos\" total card and align semantic tokens": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793818897
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794909839
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795046885
+      }
+    ],
+    "5.2 Verify Property 3 — consistent colors across card, badge, and filter": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793819018
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795053859
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795259452
+      }
+    ],
+    "5.3 Type-check gate for Area 2": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793819145
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795266429
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795404548
+      }
+    ],
+    "6.1 Single open path from [Review] button and flagged row": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793819269
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795412189
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795532162
+      }
+    ],
+    "6.2 Region (a) — hi-res zoomable images": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793819391
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795541629
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795733433
+      }
+    ],
+    "6.3 Region (b) — fully un-truncated AI notes": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793819510
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795765752
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795898664
+      }
+    ],
+    "6.4 Region (c) — certifying-body selector + actions": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793819639
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795905846
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795991362
+      }
+    ],
+    "6.5 Retire the redundant standalone Review drawer": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793819771
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795996175
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790796258215
+      }
+    ],
+    "6.6 Verify Property 4 — single surface, un-truncated notes": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793819908
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790796267215
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790796371577
+      }
+    ],
+    "6.7 Type-check gate for Area 3": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793820035
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790796376849
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790796562808
+      }
+    ],
+    "7. Checkpoint — Final verification": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790793820148
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790796568082
+      },
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790797200181
+      }
+    ],
+    "3. Area 1 — Fix Dark Mode revert in `AdminSettings.vue`": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794585517
+      }
+    ],
+    "4. Area 4 — Streamline batch actions in `AdminManageUserProfile.vue`": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790794903274
+      }
+    ],
+    "5. Area 2 — Harmonize Verification Panel colors in `VerificationPanel.vue`": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790795404824
+      }
+    ],
+    "6. Area 3 — Consolidate the Detailed Review Modal in `VerificationPanel.vue`": [
+      {
+        "executionId": "30abec28-d3ed-4972-be5f-7f8fab2ccc89",
+        "chatSessionId": "sess_db7c95d7-c5ad-4632-86f7-31bd03a4ab07",
+        "timestamp": 1790796562927
+      }
+    ]
+  }
+}

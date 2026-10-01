@@ -1,0 +1,415 @@
+{
+  "pbtResults": {
+    "1. Write bug condition exploration test for AI Model field mutability (Item 4)": {
+      "status": "passed",
+      "failingExample": "All 3 test cases failed as expected (confirming the bug):\n- Input \"gpt-4\"        → form.aiModel changed to \"gpt-4\";        input.readOnly === false  (expected: \"Ollama Pro\", true)\n- Input \"custom-model\" → form.aiModel changed to \"custom-model\"; input.readOnly === false  (expected: \"Ollama Pro\", true)\n- Input \"\"             → form.aiModel changed to \"\";              input.readOnly === false  (expected: \"Ollama Pro\", true)\n\nRoot cause confirmed: v-model=\"form.aiModel\" writes every input event back into form.aiModel; no readonly attribute present.",
+      "lastRunTimestamp": 1790862063197
+    },
+    "3.4 Verify bug condition exploration test (Property 1) now passes": {
+      "status": "passed",
+      "lastRunTimestamp": 1790863607732
+    },
+    "3.5 Verify preservation tests still pass": {
+      "status": "passed",
+      "lastRunTimestamp": 1790863612197
+    },
+    "4. Write bug condition exploration test for active tab accent color (Item 1)": {
+      "status": "passed",
+      "failingExample": "Counterexample confirmed on unfixed AdminSystemLogs.vue:\n.tab-btn.active { background: #ffffff; color: #0f172a; font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }\n→ \"background: #ffffff\" found instead of \"background: #008744\".\nTest: \"scoped CSS .tab-btn.active rule has background #008744 (fails on unfixed code)\" FAILED as expected.\nStructural click tests (5) PASSED — .active class mechanics work correctly.\nFull result: 1 failed | 5 passed (6 total)",
+      "lastRunTimestamp": 1790864714336
+    },
+    "5. Write preservation property tests for tab states in AdminSystemLogs (BEFORE implementing fix)": {
+      "status": "passed",
+      "lastRunTimestamp": 1790864718473
+    },
+    "7. Write bug condition exploration tests for dark-mode CSS gaps (Items 2 & 3)": {
+      "status": "passed",
+      "failingExample": "13 tests FAILED as expected on unfixed code, confirming all bug conditions:\\n\\nItem 2a: \\\"html.ion-palette-dark .dashboard\\\" absent → dashboard background stays #fafafa in dark mode\\nItem 2b: \\\"html.ion-palette-dark .dashboard .stat-card\\\" absent → stat cards retain #f2fbf5/#fffaf0/#f0f7ff tint in dark mode\\nItem 2c: \\\"html.ion-palette-dark .stat-label\\\" absent → stat labels keep color #4b5563 on dark surface\\nItem 2d: \\\"html.ion-palette-dark .chart-header h2\\\" absent → chart heading color stays #1e293b (near-black on dark surface)\\nItem 2e: \\\"html.ion-palette-dark .alert-box\\\" absent → alert box retains background-color #fffbeb (pale yellow) in dark mode\\nItem 3a: .tab-btn.active rule body = \\\"background: var(--dm-bg-subtle); color: var(--dm-text-primary)\\\" — no #008744 → grey pill, not green\\nItem 3b: \\\"html.ion-palette-dark .tabs-bar .tab-button.active\\\" entirely absent → no dark override for .tab-button active state",
+      "lastRunTimestamp": 1790866327389
+    },
+    "8. Write preservation property tests for existing dark-mode rules (BEFORE implementing fix)": {
+      "status": "passed",
+      "lastRunTimestamp": 1790866332026
+    }
+  },
+  "executionHistory": {
+    "1. Write bug condition exploration test for AI Model field mutability (Item 4)": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861566169
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861578006
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790862121627
+      }
+    ],
+    "2. Write preservation property tests for AdminSettings.vue other fields (BEFORE implementing fix)": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861566297
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861578515
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790862122346
+      }
+    ],
+    "3.1 Update template — replace `v-model` with `:value` + `readonly` attribute": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861566429
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790862128886
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790863462158
+      }
+    ],
+    "3.2 Update label — add \"system default\" badge next to \"AI Model\" label": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861566524
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790862129476
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790863462449
+      }
+    ],
+    "3.3 Add scoped CSS — `.readonly-field` and `.field-locked-badge` styles": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861566630
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790862130124
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790863463062
+      }
+    ],
+    "3.4 Verify bug condition exploration test (Property 1) now passes": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861566765
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790863467565
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790863646573
+      }
+    ],
+    "3.5 Verify preservation tests still pass": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861566850
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790863468114
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790863647047
+      }
+    ],
+    "4. Write bug condition exploration test for active tab accent color (Item 1)": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861566936
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790863652674
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790864766807
+      }
+    ],
+    "5. Write preservation property tests for tab states in AdminSystemLogs (BEFORE implementing fix)": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861567066
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790863653597
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790864767292
+      }
+    ],
+    "6.1 Replace the `.tab-btn.active` scoped CSS rule": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861567155
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790864771633
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790865266442
+      }
+    ],
+    "6.2 Verify bug condition exploration test (Property 1) now passes": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861567238
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790865272198
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790865699691
+      }
+    ],
+    "6.3 Verify preservation tests still pass": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861567331
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790865271932
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790865700149
+      }
+    ],
+    "7. Write bug condition exploration tests for dark-mode CSS gaps (Items 2 & 3)": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861567428
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790865705994
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866363673
+      }
+    ],
+    "8. Write preservation property tests for existing dark-mode rules (BEFORE implementing fix)": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861567528
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790865705571
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866363179
+      }
+    ],
+    "9.1 Append AdminDashboard dark-mode overrides (Item 2)": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861567648
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866673256
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866841514
+      }
+    ],
+    "9.2 Append AdminSystemLogs additional dark-mode overrides (Item 2)": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861567728
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866673857
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866842004
+      }
+    ],
+    "9.3 Fix existing `.tab-btn.active` dark-mode override and add missing `.tabs-bar .tab-button.active` rule (Item 3)": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861567810
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866674779
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866842567
+      }
+    ],
+    "9.4 Append readonly-field dark-mode overrides for Item 4": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861567900
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866675303
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866843160
+      }
+    ],
+    "9.5 Verify bug condition exploration tests (Property 1) now pass": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861567971
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866850205
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866881893
+      }
+    ],
+    "9.6 Verify preservation tests still pass": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861568059
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866849892
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866882389
+      }
+    ],
+    "10. Checkpoint — Ensure all tests pass": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790861568156
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866888908
+      },
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790868053417
+      }
+    ],
+    "3. Fix Item 4 — Make AI Model field read-only in `AdminSettings.vue`": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790863647093
+      }
+    ],
+    "6. Fix Item 1 — Correct `.tab-btn.active` accent color in `AdminSystemLogs.vue`": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790865700208
+      }
+    ],
+    "9. Fix Items 2 & 3 — Append dark-mode overrides to `omniscan-ui/src/theme/dark-mode.css`": [
+      {
+        "executionId": "900b073e-60ff-4270-8d3a-4d1e9d0f7555",
+        "chatSessionId": "sess_0d113dc5-277f-47ff-837d-ec1895ce05e9",
+        "timestamp": 1790866882447
+      }
+    ]
+  }
+}

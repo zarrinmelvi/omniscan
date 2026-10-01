@@ -170,8 +170,6 @@
 				</div>
 				<div class="batch-buttons">
 					<button class="batch-btn notify" type="button" :disabled="batchActing" @click="runBatch('notify')">Send Inactivity Notice</button>
-					<button class="batch-btn archive" type="button" :disabled="batchActing" @click="runBatch('archive')">Archive</button>
-					<button class="batch-btn delete" type="button" :disabled="batchActing" @click="runBatch('delete')">Delete</button>
 				</div>
 			</div>
 
@@ -412,11 +410,9 @@ function clearSelection(): void {
 	selectedIds.value = new Set()
 }
 
-async function runBatch(action: 'archive' | 'delete' | 'notify'): Promise<void> {
+async function runBatch(action: 'notify'): Promise<void> {
 	const ids = [...selectedIds.value]
 	if (ids.length === 0) return
-	if (action === 'delete' && !window.confirm(`Permanently delete ${ids.length} user account(s)? This cannot be undone.`)) return
-	if (action === 'archive' && !window.confirm(`Archive ${ids.length} user account(s)?`)) return
 	batchActing.value = true
 	errorMessage.value = null
 	try {
@@ -890,8 +886,4 @@ tr.row-highlight-red {
 .batch-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .batch-btn.notify { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
 .batch-btn.notify:hover:not(:disabled) { background: #dbeafe; }
-.batch-btn.archive { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
-.batch-btn.archive:hover:not(:disabled) { background: #ffedd5; }
-.batch-btn.delete { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
-.batch-btn.delete:hover:not(:disabled) { background: #fee2e2; }
 </style>

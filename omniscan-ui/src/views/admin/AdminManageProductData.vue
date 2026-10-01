@@ -25,6 +25,7 @@
 					<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
 				</svg>
 				Ingredient Mappings
+				<span v-if="ingredientMappings.length > 0" class="tab-count-badge">{{ ingredientMappings.length }}</span>
 			</button>
 		</div>
 
@@ -143,48 +144,68 @@
 
 			<!-- 3. INGREDIENT MAPPINGS -->
 			<template v-else-if="activeTab === 'ingredient'">
-				<p v-if="filteredIngredients.length === 0" class="empty-note">No ingredient mapping records found.</p>
+				<!-- Allergen filter + count bar -->
+				<div class="ingredient-filter-bar">
+					<div class="ingredient-filter-left">
+						<label class="filter-label">Filter by allergen:</label>
+						<select v-model="ingredientAllergenFilter" class="ingredient-filter-select">
+							<option value="all">All Allergens</option>
+							<option v-for="a in allergens" :key="a.id" :value="a.name">{{ a.name }}</option>
+						</select>
+					</div>
+					<span class="ingredient-count-label">
+						Showing {{ filteredIngredients.length }} of {{ ingredientMappings.length }} mappings
+						<span v-if="ingredientAllergenFilter !== 'all'"> — {{ ingredientAllergenFilter }}</span>
+					</span>
+				</div>
+
+				<p v-if="groupedIngredients.length === 0" class="empty-note">No ingredient mapping records found.</p>
 				<div v-else class="table-wrap">
-					<table class="data-table">
-						<thead>
-							<tr>
-								<th class="col-id">ID</th>
-								<th>SCIENTIFIC / RAW OCR TERM</th>
-								<th>SIMPLIFIED CONSUMER TERM</th>
-								<th>MAPPED ALLERGEN / CATEGORY</th>
-								<th class="col-actions">ACTIONS</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr v-for="ing in filteredIngredients" :key="ing.id">
-								<td class="cell-id">#{{ ing.id }}</td>
-								<td>
-									<span class="scientific-term">{{ ing.scientific_term }}</span>
-								</td>
-								<td>
-									<span class="simplified-term">{{ displaySimplified(ing.scientific_term, ing.simplified_term) }}</span>
-								</td>
-								<td><span class="allergen-chip">{{ ing.allergen_name }}</span></td>
-								<td class="col-actions">
-									<div class="actions-row">
-										<button class="btn-edit" @click="openEditModal(ing)">
-											<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-												<path d="M12 20h9"></path>
-												<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-											</svg>
-											Edit
-										</button>
-										<button class="btn-delete" @click="removeItem(ing.id)" aria-label="Delete">
-											<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-												<polyline points="3 6 5 6 21 6"></polyline>
-												<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-											</svg>
-										</button>
-									</div>
-								</td>
-							</tr>
-						</tbody>
-					</table>
+					<template v-for="group in groupedIngredients" :key="group.allergen">
+						<!-- Group header row -->
+						<div class="allergen-group-header">
+							<span class="allergen-chip">{{ group.allergen }}</span>
+							<span class="group-count">{{ group.items.length }} mapping{{ group.items.length !== 1 ? 's' : '' }}</span>
+						</div>
+						<table class="data-table ingredient-group-table">
+							<thead>
+								<tr>
+									<th class="col-id">ID</th>
+									<th>RAW OCR TERM</th>
+									<th>SIMPLIFIED CONSUMER TERM</th>
+									<th class="col-actions">ACTIONS</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="ing in group.items" :key="ing.id">
+									<td class="cell-id">#{{ ing.id }}</td>
+									<td>
+										<span class="scientific-term">{{ ing.scientific_term }}</span>
+									</td>
+									<td>
+										<span class="simplified-term">{{ displaySimplified(ing.scientific_term, ing.simplified_term) }}</span>
+									</td>
+									<td class="col-actions">
+										<div class="actions-row">
+											<button class="btn-edit" @click="openEditModal(ing)">
+												<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+													<path d="M12 20h9"></path>
+													<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+												</svg>
+												Edit
+											</button>
+											<button class="btn-delete" @click="removeItem(ing.id)" aria-label="Delete">
+												<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+													<polyline points="3 6 5 6 21 6"></polyline>
+													<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+												</svg>
+											</button>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</template>
 				</div>
 			</template>
 
@@ -350,6 +371,7 @@ interface MappingRow {
 
 const activeTab = ref<TabType>('allergen')
 const searchQuery = ref('')
+const ingredientAllergenFilter = ref('all')
 const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 
@@ -431,10 +453,26 @@ const filteredHalalLogos = computed(() => {
 
 const filteredIngredients = computed(() => {
 	const q = searchQuery.value.trim().toLowerCase()
-	if (!q) return ingredientMappings.value
-	return ingredientMappings.value.filter(
-		(m) => m.scientific_term.toLowerCase().includes(q) || m.simplified_term.toLowerCase().includes(q) || m.allergen_name.toLowerCase().includes(q)
-	)
+	return ingredientMappings.value.filter((m) => {
+		if (ingredientAllergenFilter.value !== 'all' && m.allergen_name !== ingredientAllergenFilter.value) return false
+		if (q) {
+			return m.scientific_term.toLowerCase().includes(q) ||
+				m.simplified_term.toLowerCase().includes(q) ||
+				m.allergen_name.toLowerCase().includes(q)
+		}
+		return true
+	})
+})
+
+const groupedIngredients = computed(() => {
+	const groups: Record<string, typeof filteredIngredients.value> = {}
+	for (const ing of filteredIngredients.value) {
+		if (!groups[ing.allergen_name]) groups[ing.allergen_name] = []
+		groups[ing.allergen_name].push(ing)
+	}
+	return Object.entries(groups)
+		.sort(([a], [b]) => a.localeCompare(b))
+		.map(([allergen, items]) => ({ allergen, items }))
 })
 
 function formatDate(iso?: string): string {
@@ -490,6 +528,7 @@ async function fetchTabContent(tab: TabType): Promise<void> {
 function switchTab(tab: TabType): void {
 	activeTab.value = tab
 	searchQuery.value = ''
+	ingredientAllergenFilter.value = 'all'
 	fetchTabContent(tab)
 }
 
@@ -692,6 +731,86 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 .cert-btn-review:hover { background: #dcfce7; }
 .cert-btn-delete { background: #fff; border-color: #fecaca; color: #dc2626; }
 .cert-btn-delete:hover { background: #fef2f2; }
+
+/* Tab count badge */
+.tab-count-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 20px;
+	height: 18px;
+	padding: 0 6px;
+	background: rgba(255,255,255,0.25);
+	border-radius: 10px;
+	font-size: 0.68rem;
+	font-weight: 700;
+	margin-left: 4px;
+}
+.tab-button.active .tab-count-badge {
+	background: rgba(255,255,255,0.3);
+	color: #ffffff;
+}
+
+/* Ingredient Mappings filter bar */
+.ingredient-filter-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 24px;
+	border-bottom: 1px solid #f1f5f9;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.ingredient-filter-left {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.filter-label {
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: #475569;
+	white-space: nowrap;
+}
+.ingredient-filter-select {
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 6px 12px;
+	font-size: 0.82rem;
+	color: #334155;
+	outline: none;
+	cursor: pointer;
+}
+.ingredient-count-label {
+	font-size: 0.78rem;
+	color: #94a3b8;
+	white-space: nowrap;
+}
+
+/* Allergen group header */
+.allergen-group-header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 24px 6px;
+	background: #f8fafc;
+	border-top: 1px solid #f1f5f9;
+}
+.allergen-group-header:first-child {
+	border-top: none;
+}
+.group-count {
+	font-size: 0.74rem;
+	color: #94a3b8;
+	font-weight: 500;
+}
+.ingredient-group-table {
+	margin-bottom: 0;
+}
+.ingredient-group-table th {
+	background: #f8fafc;
+}
 
 .card-footer-notice { padding: 16px 24px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 0.82rem; color: #94a3b8; }
 .state-message, .empty-note { padding: 32px; text-align: center; color: #64748b; font-size: 0.9rem; }

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
 	<ion-page>
 		<ion-content class="auth-content" :scroll-y="true">
 			<div class="auth-layout">
@@ -120,7 +120,7 @@
 							class="pref-card"
 							:class="{ 'pref-card--selected': halalSelected }"
 							@click="toggleHalal()">
-							<span class="pref-emoji">🕌</span>
+							<span class="pref-emoji">??</span>
 							<span class="pref-label">Halal</span>
 						</button>
 
@@ -191,21 +191,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, closeOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError } from '@/utils/api'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const PREF_MAX = 5
 
-const step = ref<1 | 2>(1)
+const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)
 
-// Step 1 — account creation
+// Step 1 � account creation
 const name = ref('')
 const email = ref('')
 const password = ref('')
@@ -247,7 +248,7 @@ const KNOWN_TLDS =
 	'sa|ae|eg|il|ar|cl|pe|ve'
 const EMAIL_RE = new RegExp(`^[^\\s@]+@[^\\s@]+(\\.[^\\s@]+)*\\.(${KNOWN_TLDS})$`, 'i')
 
-// Step 2 — dietary preferences
+// Step 2 � dietary preferences
 interface Allergen {
 	id: number
 	name: string
@@ -266,18 +267,18 @@ const prefLimitWarning = ref(false)
 const prefTotal = computed(() => selectedAllergenIds.value.length + (halalSelected.value ? 1 : 0))
 
 const ALLERGEN_EMOJI: Record<string, string> = {
-	milk: '🥛',
-	eggs: '🥚',
-	fish: '🐟',
-	shellfish: '🦐',
-	'tree nuts': '🌰',
-	peanuts: '🥜',
-	wheat: '🌾',
-	soy: '🫘',
+	milk: '??',
+	eggs: '??',
+	fish: '??',
+	shellfish: '??',
+	'tree nuts': '??',
+	peanuts: '??',
+	wheat: '??',
+	soy: '??',
 }
 
 function emojiForAllergen(name: string): string {
-	return ALLERGEN_EMOJI[name.toLowerCase()] ?? '🍽️'
+	return ALLERGEN_EMOJI[name.toLowerCase()] ?? '???'
 }
 
 function formatAllergenName(name: string): string {
@@ -362,7 +363,7 @@ async function acceptTerms(): Promise<void> {
 	try {
 		const response = await authStore.register(name.value.trim(), email.value, password.value)
 
-		// Backend now requires email verification before login — redirect to check-email page
+		// Backend now requires email verification before login � redirect to check-email page
 		if (response.requiresVerification) {
 			router.push({ path: '/check-email', query: { email: email.value } })
 			return
@@ -463,6 +464,11 @@ async function skipForNow(): Promise<void> {
 	await authStore.checkAuth()
 	window.location.href = '/tabs/home'
 }
+onMounted(() => {
+if (step.value === 2) {
+fetchAllergenCatalog()
+}
+})
 </script>
 
 <style scoped>
@@ -968,3 +974,4 @@ async function skipForNow(): Promise<void> {
 	}
 }
 </style>
+

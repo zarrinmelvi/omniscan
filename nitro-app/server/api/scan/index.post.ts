@@ -8,6 +8,7 @@ import { matchCatalogProduct, CATALOG_PRODUCT_SELECT } from '../../lib/catalog-m
 import { determineDisallowedCatalogIngredients } from '../../lib/alternative-reasoning'
 import { findAlternativeProducts } from '../../lib/alternative-matching'
 import { normalizeToDateStringOrNull } from '../../lib/date-parse'
+import { getAdminSettings } from '../../lib/admin-settings'
 
 type SafetyVerdict = 'Red' | 'Yellow' | 'Green'
 
@@ -308,7 +309,7 @@ export default defineEventHandler(async (event) => {
 		})
 	}
 
-	const [userWithAllergens, halalLogos, catalogProducts] = await Promise.all([
+	const [userWithAllergens, halalLogos, catalogProducts, adminSettings] = await Promise.all([
 		prisma.user.findUnique({
 			where: { id: authUser.id },
 			select: {
@@ -330,6 +331,7 @@ export default defineEventHandler(async (event) => {
 			where: { is_verified: true },
 			select: CATALOG_PRODUCT_SELECT,
 		}),
+		getAdminSettings(),
 	])
 
 	const catalogMatch = matchCatalogProduct({ brand: extraction.brand, product_name: extraction.product_name }, catalogProducts)
@@ -402,8 +404,21 @@ export default defineEventHandler(async (event) => {
 				image_url: `uploads/${imageField.filename}`,
 				image_url_back: hasBackImage ? `uploads/${imageBackField!.filename}` : undefined,
 				scan_time: new Date(),
-				ai_confidence_score:
-					matchedUserAllergens.length > 0 ? Math.min(...matchedUserAllergens.map((a) => a.confidence)) : mockTextField?.data ? 0.75 : 0.9,
+				ai_confidence_score: (() => {
+					if (matchedUserAllergens.length > 0) {
+						return Math.min(...matchedUserAllergens.map((a) => a.confidence))
+					}
+					// Use a heuristic score based on extraction quality when no allergens matched:
+					// - Full extraction (name + brand + ingredients) → 0.90
+					// - Partial extraction → 0.75
+					// - Mock/test data → 0.75
+					if (mockTextField?.data) return 0.75
+					const hasFullExtraction =
+						extraction.product_name.trim() &&
+						extraction.brand.trim() &&
+						extraction.ingredients_text.trim()
+					return hasFullExtraction ? 0.9 : 0.75
+				})(),
 				safety_verdict: verdict,
 				flag_reason: reasons.join(', '),
 				user_id: authUser.id,
@@ -439,12 +454,27 @@ export default defineEventHandler(async (event) => {
 		}
 
 		const halalUnverified = extraction.halal_logo_detected && matchedHalalLogos.length === 0
-		const shouldAutoFlag = verdict === 'Red' || halalUnverified
+
+		// Convert stored 0.0-1.0 score to 0-100 percentage for threshold comparison
+		const confidencePct = Math.round(Number(scan.ai_confidence_score) * 100)
+		const reviewThreshold = adminSettings.reviewConfidenceThreshold  // e.g. 75
+		const autoFlagThresholdPct = adminSettings.autoFlagThreshold     // e.g. 90
+
+		// Flag conditions:
+		// 1. Red verdict (allergen match or safety issue)
+		// 2. Unverified Halal logo
+		// 3. Confidence below the review threshold (uncertain scan needs human review)
+		// 4. Confidence above the auto-flag threshold (high-priority flag)
+		const belowReviewThreshold = confidencePct < reviewThreshold
+		const aboveAutoFlagThreshold = confidencePct >= autoFlagThresholdPct
+		const shouldAutoFlag = verdict === 'Red' || halalUnverified || belowReviewThreshold || aboveAutoFlagThreshold
 
 		if (shouldAutoFlag) {
 			const flagReasonParts: string[] = []
 			if (verdict === 'Red') flagReasonParts.push(`Red safety verdict: ${reasons.join(', ')}`)
 			if (halalUnverified) flagReasonParts.push('Halal logo detected on packaging but not matched to a known certifier.')
+			if (belowReviewThreshold && verdict !== 'Red') flagReasonParts.push(`Low confidence scan (${confidencePct}%) — below review threshold of ${reviewThreshold}%.`)
+			if (aboveAutoFlagThreshold && verdict !== 'Red') flagReasonParts.push(`High confidence flag (${confidencePct}%) — auto-flagged above threshold of ${autoFlagThresholdPct}%.`)
 
 			await prisma.flaggedScan
 				.create({

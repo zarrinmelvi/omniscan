@@ -49,4 +49,29 @@ export default () => [
 		scientific_name: 'Sinapis alba',
 		is_predefined: false,
 	},
+	{
+		name: 'Crustaceans',
+		scientific_name: 'Crustacea',
+		is_predefined: false,
+	},
+	{
+		name: 'Celery',
+		scientific_name: 'Apium graveolens',
+		is_predefined: false,
+	},
+	{
+		name: 'Sulphur Dioxide / Sulphites',
+		scientific_name: 'Sulphur dioxide (SO₂)',
+		is_predefined: false,
+	},
+	{
+		name: 'Lupin',
+		scientific_name: 'Lupinus',
+		is_predefined: false,
+	},
+	{
+		name: 'Molluscs',
+		scientific_name: 'Mollusca',
+		is_predefined: false,
+	},
 ]

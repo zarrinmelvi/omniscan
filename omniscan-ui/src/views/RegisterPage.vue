@@ -120,7 +120,7 @@
 							class="pref-card"
 							:class="{ 'pref-card--selected': halalSelected }"
 							@click="toggleHalal()">
-							<span class="pref-emoji">??</span>
+							<span class="pref-emoji">🕌</span>
 							<span class="pref-label">Halal</span>
 						</button>
 
@@ -267,14 +267,14 @@ const prefLimitWarning = ref(false)
 const prefTotal = computed(() => selectedAllergenIds.value.length + (halalSelected.value ? 1 : 0))
 
 const ALLERGEN_EMOJI: Record<string, string> = {
-	milk: '??',
-	eggs: '??',
-	fish: '??',
-	shellfish: '??',
-	'tree nuts': '??',
-	peanuts: '??',
-	wheat: '??',
-	soy: '??',
+	milk: '🥛',
+	eggs: '🥚',
+	fish: '🐟',
+	shellfish: '🦐',
+	'tree nuts': '🌰',
+	peanuts: '🥜',
+	wheat: '🌾',
+	soy: '🫘',
 }
 
 function emojiForAllergen(name: string): string {

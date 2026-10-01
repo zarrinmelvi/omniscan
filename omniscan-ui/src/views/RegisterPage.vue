@@ -379,11 +379,14 @@ async function acceptTerms(): Promise<void> {
 		fetchAllergenCatalog()
 	} catch (err) {
 		if (err instanceof ApiError) {
-			if (err.status === 409 || err.message.toLowerCase().includes('email')) {
-				fieldErrors.email = true
-				errorMessage.value = 'This email address already exists.'
+			if (err.status === 429) {
+				// Unverified account exists — cooldown active, redirect to check-email
+				router.push({ path: '/check-email', query: { email: email.value } })
 			} else {
 				errorMessage.value = err.message
+				if (err.message.toLowerCase().includes('email')) {
+					fieldErrors.email = true
+				}
 			}
 		} else {
 			errorMessage.value = 'Registration failed. Please try again.'

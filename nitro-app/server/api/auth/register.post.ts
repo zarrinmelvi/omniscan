@@ -26,10 +26,57 @@ export default defineEventHandler(async (event) => {
 	}
 
 	try {
-		const existingUser = await prisma.user.findUnique({ where: { email } })
+		const existingUser = await prisma.user.findUnique({
+			where: { email },
+			select: { id: true, name: true, email_verified: true, last_verification_sent_at: true },
+		})
 
 		if (existingUser) {
-			throw createError({ statusCode: 400, statusMessage: 'Email already exists.' })
+			// If the account exists but is unverified, resend the verification email
+			// instead of blocking — the user may not have received the first one.
+			if (!existingUser.email_verified) {
+				// Enforce 60-second cooldown on resend
+				if (existingUser.last_verification_sent_at) {
+					const secondsElapsed = (Date.now() - existingUser.last_verification_sent_at.getTime()) / 1000
+					if (secondsElapsed < 60) {
+						const remaining = Math.ceil(60 - secondsElapsed)
+						throw createError({
+							statusCode: 429,
+							statusMessage: `A verification email was already sent. Please wait ${remaining} second${remaining === 1 ? '' : 's'} before trying again.`,
+						})
+					}
+				}
+
+				// Generate a fresh token and resend
+				const token = generateVerificationToken()
+				const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
+				await prisma.user.update({
+					where: { email },
+					data: {
+						verification_token: token,
+						verification_token_expires_at: tokenExpiry,
+						last_verification_sent_at: new Date(),
+					},
+				})
+
+				const emailResult = await sendVerificationEmail(email, existingUser.name, token)
+				if (!emailResult.success) {
+					throw createError({
+						statusCode: 500,
+						statusMessage: "We couldn't send a verification email to that address. Please use a valid email and try again.",
+					})
+				}
+
+				return {
+					message: 'A new verification email has been sent. Please check your inbox.',
+					requiresVerification: true,
+					email,
+				}
+			}
+
+			// Account exists and is verified — reject normally
+			throw createError({ statusCode: 400, statusMessage: 'An account with this email already exists. Please sign in.' })
 		}
 
 		// Generate verification token and expiry before creating the user.

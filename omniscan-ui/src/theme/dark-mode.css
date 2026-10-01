@@ -411,7 +411,7 @@ html.ion-palette-dark .tab-row {
   border-bottom-color: var(--dm-border);
 }
 html.ion-palette-dark .tab-btn {
-  color: var(--dm-text-secondary);
+  color: var(--dm-text-primary);
 }
 html.ion-palette-dark .tab-btn--active {
   color: #4ade80;
@@ -1049,7 +1049,7 @@ html.ion-palette-dark .tabs-bar .tab-button,
 html.ion-palette-dark .tab-btn {
 	background: var(--dm-bg-card);
 	border-color: var(--dm-border);
-	color: var(--dm-text-secondary);
+	color: var(--dm-text-primary);
 }
 html.ion-palette-dark .tab-btn.active {
 	background: var(--dm-bg-subtle);
@@ -1057,7 +1057,11 @@ html.ion-palette-dark .tab-btn.active {
 }
 
 /* --- Settings sidebar tabs + rows --- */
-html.ion-palette-dark .settings-tabs .tab-button { color: var(--dm-text-secondary); }
+html.ion-palette-dark .settings-tabs .tab-button {
+	color: var(--dm-text-primary);
+	background: var(--dm-bg-card);
+	border-color: var(--dm-border);
+}
 html.ion-palette-dark .settings-tabs .tab-button:hover {
 	background: var(--dm-bg-subtle);
 	color: var(--dm-text-primary);
@@ -1247,6 +1251,7 @@ html.ion-palette-dark .dashboard th {
 }
 html.ion-palette-dark .dashboard td {
 	border-bottom-color: var(--dm-border) !important;
+	color: var(--dm-text-primary);
 }
 
 html.ion-palette-dark .status-badge.pending {

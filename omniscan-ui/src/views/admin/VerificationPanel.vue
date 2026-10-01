@@ -89,11 +89,9 @@
 					<svg class="filter-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 						<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
 					</svg>
-					<select v-model="filterHalalType" class="filter-select">
-						<option value="all">All Halal Flags</option>
-						<option value="logo">Unverified Logo</option>
-						<option value="slaughter">Slaughter Cert.</option>
-						<option value="stamp">Compliance Stamp</option>
+					<select v-model="sortOrder" class="filter-select">
+						<option value="latest">Latest</option>
+						<option value="oldest">Oldest</option>
 					</select>
 					<select v-model="filterVerdict" class="filter-select">
 						<option value="all">All Verdicts</option>
@@ -527,10 +525,10 @@ const modalAction         = ref<'certify' | 'dismiss' | null>(null)
 const modalError          = ref<string | null>(null)
 
 // Filters
-const searchQuery     = ref('')
-const filterHalalType = ref('all')
-const filterVerdict   = ref('all')
-const filterStatus    = ref('all')
+const searchQuery   = ref('')
+const sortOrder     = ref<'latest' | 'oldest'>('latest')
+const filterVerdict = ref('all')
+const filterStatus  = ref('all')
 
 // ─── Derived rows ─────────────────────────────────────────────────────────────
 
@@ -560,18 +558,12 @@ const counts = computed(() => {
 
 // ─── Filtered rows ────────────────────────────────────────────────────────────
 
-const filteredRows = computed<FlaggedScanRow[]>(() =>
-	flaggedScans.value.filter((row) => {
+const filteredRows = computed<FlaggedScanRow[]>(() => {
+	const filtered = flaggedScans.value.filter((row) => {
 		const q = searchQuery.value.trim().toLowerCase()
 		if (q) {
 			const name = `${row.brand_name} ${row.product_name}`.toLowerCase()
 			if (!name.includes(q) && !`#${row.id}`.includes(q) && !row.scanned_by.toLowerCase().includes(q)) return false
-		}
-		if (filterHalalType.value !== 'all') {
-			const r = row.flag_reason.toLowerCase()
-			if (filterHalalType.value === 'logo'      && !r.includes('logo'))      return false
-			if (filterHalalType.value === 'slaughter' && !r.includes('slaughter')) return false
-			if (filterHalalType.value === 'stamp'     && !r.includes('stamp') && !r.includes('compliance')) return false
 		}
 		if (filterVerdict.value !== 'all') {
 			if ((row.safety_verdict ?? '').toLowerCase() !== filterVerdict.value) return false
@@ -584,7 +576,13 @@ const filteredRows = computed<FlaggedScanRow[]>(() =>
 		}
 		return true
 	})
-)
+
+	return [...filtered].sort((a, b) => {
+		const ta = new Date(a.created_at).getTime()
+		const tb = new Date(b.created_at).getTime()
+		return sortOrder.value === 'latest' ? tb - ta : ta - tb
+	})
+})
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

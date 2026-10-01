@@ -136,6 +136,8 @@ async function handleLogin(): Promise<void> {
 .header-section {
 	text-align: center;
 	margin-bottom: 24px;
+	width: 100%;
+	max-width: 420px;
 }
 
 .brand-icon {
@@ -156,6 +158,7 @@ h1 {
 	font-weight: 400;
 	margin: 0 0 6px;
 	color: #4b5563;
+	word-break: break-word;
 }
 
 h1 strong {

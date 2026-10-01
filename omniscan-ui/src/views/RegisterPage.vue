@@ -1,4 +1,4 @@
-﻿<template>
+<template>
 	<ion-page>
 		<ion-content class="auth-content" :scroll-y="true">
 			<div class="auth-layout">
@@ -471,6 +471,8 @@ async function completeSetup(): Promise<void> {
 }
 
 function skipForNow(): void {
+	prefsError.value = ''
+	setupError.value = ''
 	window.location.href = '/tabs/home'
 }
 onMounted(async () => {

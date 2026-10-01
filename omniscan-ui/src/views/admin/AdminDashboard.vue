@@ -97,7 +97,7 @@ async function loadDashboard(): Promise<void> {
 		])
 		stats.value = statsData.stats
 		recentFlags.value = flagsData.flagged_scans
-				.filter((s) => s.product_name || s.brand_name)
+				.filter((s) => (s.product_name ?? '').trim() || (s.brand_name ?? '').trim())
 				.slice(0, 5)
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load dashboard.'
@@ -258,7 +258,11 @@ td {
 	transition: background-color 0.12s ease;
 }
 .clickable-row:hover {
-	background-color: #f9fafb;
+	background-color: #f1f5f9;
+}
+
+:global(html.ion-palette-dark) .clickable-row:hover {
+	background-color: #334155;
 }
 
 .product-name {

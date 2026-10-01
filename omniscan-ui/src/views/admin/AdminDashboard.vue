@@ -96,7 +96,9 @@ async function loadDashboard(): Promise<void> {
 			apiFetch<{ flagged_scans: FlaggedScanRow[] }>('/api/admin/flagged-scans?status=pending', { isAdmin: true }),
 		])
 		stats.value = statsData.stats
-		recentFlags.value = flagsData.flagged_scans.slice(0, 5)
+		recentFlags.value = flagsData.flagged_scans
+				.filter((s) => s.product_name || s.brand_name)
+				.slice(0, 5)
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load dashboard.'
 		console.error('Failed to load dashboard:', err)

@@ -169,19 +169,9 @@
 							<td class="col-actions">
 								<div class="btn-row">
 									<button
-										class="btn-review"
-										:disabled="reviewLoadingId === row.id"
-										@click.stop="openReviewModal(row)"
-									>
-										<svg v-if="reviewLoadingId === row.id" class="spin-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-											<path d="M21 12a9 9 0 1 1-6.22-8.56"></path>
-										</svg>
-										{{ reviewLoadingId === row.id ? 'Loading…' : 'Review' }}
-									</button>
-									<button
 										class="btn-correct"
 										:disabled="actingOnId === row.id"
-										@click.stop="openCorrectionModal(row)"
+										@click.stop="openReviewModal(row)"
 									>
 										<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
 											<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>

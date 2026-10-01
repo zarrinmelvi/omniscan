@@ -108,8 +108,6 @@
 				</div>
 			</div>
 
-			</div>
-
 			<!-- Verdict colour legend -->
 			<div class="verdict-legend">
 				<span class="legend-label">Halal Flag colour:</span>

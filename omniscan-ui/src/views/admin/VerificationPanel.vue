@@ -108,21 +108,23 @@
 				</div>
 			</div>
 
-			<!-- Verdict colour legend -->
-		<div class="verdict-legend">
-			<span class="legend-label">Halal Flag colour:</span>
-			<span class="legend-item">
-				<span class="legend-dot legend-dot--yellow"></span>
-				<span><strong>Yellow</strong> — Unverified Halal logo only</span>
-			</span>
-			<span class="legend-divider">·</span>
-			<span class="legend-item">
-				<span class="legend-dot legend-dot--red"></span>
-				<span><strong>Red</strong> — Unverified logo + ingredient safety concern</span>
-			</span>
-		</div>
+			</div>
 
-		<p v-if="isLoading" class="state-message">Loading Halal verification queue…</p>
+			<!-- Verdict colour legend -->
+			<div class="verdict-legend">
+				<span class="legend-label">Halal Flag colour:</span>
+				<span class="legend-item">
+					<span class="legend-dot legend-dot--yellow"></span>
+					<span><strong>Yellow</strong> — Unverified Halal logo only</span>
+				</span>
+				<span class="legend-divider">·</span>
+				<span class="legend-item">
+					<span class="legend-dot legend-dot--red"></span>
+					<span><strong>Red</strong> — Unverified logo + ingredient safety concern</span>
+				</span>
+			</div>
+
+			<p v-if="isLoading" class="state-message">Loading Halal verification queue…</p>
 			<p v-else-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 			<p v-else-if="filteredRows.length === 0" class="empty-note">No Halal compliance flags match the selected criteria.</p>
 

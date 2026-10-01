@@ -1298,3 +1298,142 @@ html.ion-palette-dark .field-locked-badge {
 	background: var(--dm-bg-subtle);
 	color: var(--dm-text-secondary);
 }
+
+/* ── Dark mode bug fixes (manual pass) ──────────────────────────────────── */
+
+/* == System Logs — inactive tab button readability == */
+/* Add a subtle border so inactive tabs are visible against the dark page bg */
+html.ion-palette-dark .tabs-bar .tab-btn {
+	border: 1px solid var(--dm-border) !important;
+}
+
+/* == Manage User Profiles — checkbox white-box fix == */
+html.ion-palette-dark .data-table input[type="checkbox"],
+html.ion-palette-dark .batch-toolbar input[type="checkbox"] {
+	accent-color: #008744;
+	background-color: var(--dm-bg-input);
+	border-color: var(--dm-border);
+	color-scheme: dark;
+}
+
+/* == Manage Product Data modal — checkbox + field-check label == */
+html.ion-palette-dark .modal input[type="checkbox"] {
+	accent-color: #008744;
+	color-scheme: dark;
+}
+html.ion-palette-dark .field-check {
+	color: var(--dm-text-primary);
+}
+html.ion-palette-dark .field-check span {
+	color: var(--dm-text-primary);
+}
+
+/* == Verification Panel — btn-review visibility == */
+html.ion-palette-dark .btn-review {
+	background: var(--dm-bg-subtle) !important;
+	border-color: var(--dm-border) !important;
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .btn-review:hover:not(:disabled) {
+	background: var(--dm-bg-chip) !important;
+}
+
+/* == Verification Panel correction modal — logo cards & inner text == */
+html.ion-palette-dark .logo-card {
+	background: var(--dm-bg-subtle) !important;
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .logo-card:hover {
+	background: var(--dm-bg-chip) !important;
+	border-color: #008744 !important;
+}
+html.ion-palette-dark .logo-card.selected {
+	background: rgba(0, 135, 68, 0.15) !important;
+	border-color: #008744 !important;
+}
+html.ion-palette-dark .logo-card-img {
+	background: var(--dm-bg-card) !important;
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .logo-certifier {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .logo-full-name {
+	color: var(--dm-text-secondary) !important;
+}
+
+/* == Verification Panel modal — section labels, detail keys, notes == */
+html.ion-palette-dark .modal-section-label {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .detail-key {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .detail-val,
+html.ion-palette-dark .flag-reason-text {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .notes-input {
+	background: var(--dm-bg-input) !important;
+	color: var(--dm-text-primary) !important;
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .notes-input::placeholder {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .notes-label {
+	color: var(--dm-text-secondary) !important;
+}
+
+/* == Verification Panel modal — scan image placeholder bg == */
+html.ion-palette-dark .scan-img {
+	background: var(--dm-bg-subtle) !important;
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .scan-img-placeholder {
+	background: var(--dm-bg-subtle) !important;
+	border-color: var(--dm-border) !important;
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .image-label {
+	color: var(--dm-text-secondary) !important;
+}
+
+/* == Verification Panel modal — modal-subtitle + modal-close == */
+html.ion-palette-dark .modal-subtitle {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .modal-close {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .modal-close:hover {
+	background: var(--dm-bg-chip) !important;
+	color: var(--dm-text-primary) !important;
+}
+
+/* == Manage Product Data — tag chips in allergen modal == */
+html.ion-palette-dark .tag-chip {
+	background: var(--dm-bg-chip) !important;
+	color: var(--dm-text-primary) !important;
+}
+
+/* == Manage User Profiles — filter select dark bg == */
+html.ion-palette-dark .filter-select {
+	background: var(--dm-bg-input) !important;
+	color: var(--dm-text-primary) !important;
+	border-color: var(--dm-border) !important;
+	color-scheme: dark;
+}
+
+/* == Manage User Profiles — search box input == */
+html.ion-palette-dark .search-box {
+	background: var(--dm-bg-input) !important;
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .search-box input {
+	background: transparent !important;
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .search-box input::placeholder {
+	color: var(--dm-text-secondary) !important;
+}

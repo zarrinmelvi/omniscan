@@ -1,4 +1,4 @@
-﻿<template>
+<template>
 	<ion-page>
 		<ion-content class="auth-content" :scroll-y="true">
 			<div class="auth-layout">
@@ -100,9 +100,9 @@
 
 				<!-- STEP 2: Dietary Preferences -->
 				<template v-else>
-					<span class="brand-label">Almost There!</span>
+				<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! 🎉' : 'Almost There!' }}</span>
 					<h1 class="auth-title">Dietary Preferences</h1>
-					<p class="auth-subtitle">Select your dietary preferences so we can help you make better choices</p>
+				<p class="auth-subtitle">{{ route.query.step === '2' ? 'Your account is active. Now personalise your experience:' : 'Select your dietary preferences so we can help you make better choices' }}</p>
 
 					<div v-if="isLoadingAllergens" class="state-block">
 						<ion-spinner name="crescent" />
@@ -140,7 +140,9 @@
 
 					<div v-if="prefsError" class="form-error">{{ prefsError }}</div>
 
-					<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs" @click="completeSetup">
+				<div v-if="setupError" class="form-error">{{ setupError }}</div>
+
+				<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs" @click="completeSetup">
 						{{ isSavingPrefs ? 'Saving...' : 'Complete Setup' }}
 					</ion-button>
 
@@ -191,19 +193,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, closeOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError } from '@/utils/api'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const PREF_MAX = 5
 
-const step = ref<1 | 2>(1)
+const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)
 
 // Step 1 — account creation
 const name = ref('')
@@ -261,6 +264,7 @@ const isLoadingAllergens = ref(false)
 const allergensLoadError = ref('')
 const isSavingPrefs = ref(false)
 const prefsError = ref('')
+const setupError = ref('')
 const prefLimitWarning = ref(false)
 
 const prefTotal = computed(() => selectedAllergenIds.value.length + (halalSelected.value ? 1 : 0))
@@ -360,18 +364,29 @@ async function acceptTerms(): Promise<void> {
 	isTermsOpen.value = false
 	isSubmitting.value = true
 	try {
-		await authStore.register(name.value.trim(), email.value, password.value)
+		const response = await authStore.register(name.value.trim(), email.value, password.value)
+
+		// Backend now requires email verification before login — redirect to check-email page
+		if (response.requiresVerification) {
+			router.push({ path: '/check-email', query: { email: email.value } })
+			return
+		}
+
+		// Fallback for grandfathered or already-verified accounts (should not happen on new registrations)
 		await authStore.login(email.value, password.value)
 		await showToast('Account created successfully!', 'success')
 		step.value = 2
 		fetchAllergenCatalog()
 	} catch (err) {
 		if (err instanceof ApiError) {
-			if (err.status === 409 || err.message.toLowerCase().includes('email')) {
-				fieldErrors.email = true
-				errorMessage.value = 'This email address already exists.'
+			if (err.status === 429) {
+				// Unverified account exists — cooldown active, redirect to check-email
+				router.push({ path: '/check-email', query: { email: email.value } })
 			} else {
 				errorMessage.value = err.message
+				if (err.message.toLowerCase().includes('email')) {
+					fieldErrors.email = true
+				}
 			}
 		} else {
 			errorMessage.value = 'Registration failed. Please try again.'
@@ -427,6 +442,12 @@ async function completeSetup(): Promise<void> {
 
 	isSavingPrefs.value = true
 	prefsError.value = ''
+	setupError.value = ''
+	if (prefTotal.value === 0) {
+		setupError.value = 'Please select at least one dietary preference before completing setup.'
+		isSavingPrefs.value = false
+		return
+	}
 
 	const customPrefTags = allergenCatalog.value
 		.filter((a) => selectedAllergenIds.value.includes(a.id))
@@ -441,7 +462,6 @@ async function completeSetup(): Promise<void> {
 				custom_preferences: customPrefTags,
 			},
 		})
-		await authStore.checkAuth()
 		window.location.href = '/tabs/home'
 	} catch (err) {
 		prefsError.value = err instanceof ApiError ? err.message : 'Failed to save your preferences.'
@@ -450,11 +470,20 @@ async function completeSetup(): Promise<void> {
 	}
 }
 
-async function skipForNow(): Promise<void> {
-	if (isSavingPrefs.value) return
-	await authStore.checkAuth()
+function skipForNow(): void {
+	prefsError.value = ''
+	setupError.value = ''
 	window.location.href = '/tabs/home'
 }
+onMounted(async () => {
+	if (step.value === 2) {
+		// Restore JWT from localStorage into the auth store before making any API calls.
+		// This is needed when arriving from the email verification flow, where VerifyEmailPage
+		// stores the token directly in localStorage but the Pinia store hasn't loaded it yet.
+		await authStore.checkAuth()
+		fetchAllergenCatalog()
+	}
+})
 </script>
 
 <style scoped>
@@ -960,3 +989,5 @@ async function skipForNow(): Promise<void> {
 	}
 }
 </style>
+
+

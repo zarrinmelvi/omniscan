@@ -17,7 +17,26 @@
 				<h1 class="auth-title">Welcome Back</h1>
 				<p class="auth-subtitle">Sign in to continue managing your pantry</p>
 
-				<div v-if="errorMessage" class="form-error">{{ errorMessage }}</div>
+				<div v-if="errorMessage" class="form-error">
+					{{ errorMessage }}
+					<!-- Resend button shown only when login blocked due to unverified email -->
+					<div v-if="requiresVerification" class="resend-row">
+						<ion-button
+							size="small"
+							fill="outline"
+							class="resend-inline-button"
+							:disabled="isResending || cooldown > 0"
+							@click="handleResend">
+							<ion-spinner v-if="isResending" name="crescent" class="btn-spinner" />
+							<span v-else-if="cooldown > 0">Resend in {{ cooldown }}s</span>
+							<span v-else>Resend verification email</span>
+						</ion-button>
+					</div>
+				</div>
+
+				<div v-if="resendSuccess" class="form-success">
+					Verification email sent! Check your inbox.
+				</div>
 
 				<form @submit.prevent="handleLogin">
 					<div class="form-group">
@@ -68,11 +87,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { IonPage, IonContent, IonButton, IonIcon } from '@ionic/vue'
+import { ref, onUnmounted } from 'vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
-import { ApiError } from '@/utils/api'
+import { apiFetch, ApiError } from '@/utils/api'
 
 const authStore = useAuthStore()
 
@@ -82,20 +101,76 @@ const rememberMe = ref(false)
 const showPassword = ref(false)
 const isSubmitting = ref(false)
 const errorMessage = ref<string | null>(null)
+const requiresVerification = ref(false)
+const isResending = ref(false)
+const resendSuccess = ref(false)
+const cooldown = ref(0)
+
+let cooldownTimer: ReturnType<typeof setInterval> | null = null
+
+function startCooldown(seconds = 60) {
+	cooldown.value = seconds
+	cooldownTimer = setInterval(() => {
+		cooldown.value--
+		if (cooldown.value <= 0) {
+			clearInterval(cooldownTimer!)
+			cooldownTimer = null
+		}
+	}, 1000)
+}
+
+async function handleResend() {
+	if (!email.value || isResending.value || cooldown.value > 0) return
+
+	isResending.value = true
+	resendSuccess.value = false
+
+	try {
+		await apiFetch('/api/auth/resend-verification', {
+			method: 'POST',
+			body: { email: email.value },
+			skipAuth: true,
+		})
+		resendSuccess.value = true
+		errorMessage.value = null
+		requiresVerification.value = false
+		startCooldown(60)
+	} catch (err) {
+		if (err instanceof ApiError && err.status === 429) {
+			const match = err.message.match(/(\d+) second/)
+			const remaining = match ? parseInt(match[1]) : 60
+			startCooldown(remaining)
+		}
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to resend. Please try again.'
+	} finally {
+		isResending.value = false
+	}
+}
 
 async function handleLogin(): Promise<void> {
 	errorMessage.value = null
+	requiresVerification.value = false
+	resendSuccess.value = false
 	isSubmitting.value = true
 
 	try {
 		await authStore.login(email.value, password.value)
 		window.location.href = '/tabs/home'
 	} catch (err) {
-		errorMessage.value = err instanceof ApiError ? err.message : 'Login failed. Please try again.'
+		if (err instanceof ApiError && err.status === 403) {
+			requiresVerification.value = true
+			errorMessage.value = 'Your email is not verified yet. Check your inbox or request a new link.'
+		} else {
+			errorMessage.value = err instanceof ApiError ? err.message : 'Login failed. Please try again.'
+		}
 	} finally {
 		isSubmitting.value = false
 	}
 }
+
+onUnmounted(() => {
+	if (cooldownTimer) clearInterval(cooldownTimer)
+})
 </script>
 
 <style scoped>
@@ -308,6 +383,36 @@ async function handleLogin(): Promise<void> {
 .form-error {
 	background: #fee2e2;
 	color: #b91c1c;
+	border-radius: 8px;
+	padding: 8px 12px;
+	margin-bottom: 16px;
+	font-size: 0.85rem;
+}
+
+.resend-row {
+	margin-top: 10px;
+}
+
+.resend-inline-button {
+	--border-radius: 9999px;
+	--border-color: #b91c1c;
+	--color: #b91c1c;
+	--color-disabled: #9ca3af;
+	font-weight: 600;
+	font-size: 0.8rem;
+	text-transform: none;
+	height: 34px;
+}
+
+.btn-spinner {
+	width: 16px;
+	height: 16px;
+}
+
+.form-success {
+	background: #f0fdf4;
+	color: #15803d;
+	border: 1px solid #bbf7d0;
 	border-radius: 8px;
 	padding: 8px 12px;
 	margin-bottom: 16px;

@@ -21,6 +21,16 @@ const routes: Array<RouteRecordRaw> = [
 		component: () => import('../views/RegisterPage.vue'),
 	},
 	{
+		path: '/check-email',
+		name: 'check-email',
+		component: () => import('../views/CheckEmailPage.vue'),
+	},
+	{
+		path: '/verify/:token',
+		name: 'verify-email',
+		component: () => import('../views/VerifyEmailPage.vue'),
+	},
+	{
 		// Deliberately top-level, not nested under /tabs/ — the admin portal
 		// is a separate login/session entirely (its own token, its own
 		// store), not part of the mobile tab-bar shell.

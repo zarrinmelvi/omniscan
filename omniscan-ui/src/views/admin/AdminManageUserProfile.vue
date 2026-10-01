@@ -8,67 +8,71 @@
 			</p>
 		</header>
 
-		<!-- Account Lifecycle Policy Card -->
+		<!-- Account Lifecycle Policy (collapsible) -->
 		<div class="lifecycle-card">
-			<div class="policy-header">
+			<button class="policy-toggle" @click="policyExpanded = !policyExpanded" type="button">
 				<svg class="info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<circle cx="12" cy="12" r="10"></circle>
 					<line x1="12" y1="16" x2="12" y2="12"></line>
 					<line x1="12" y1="8" x2="12.01" y2="8"></line>
 				</svg>
 				<span>ACCOUNT LIFECYCLE POLICY</span>
-			</div>
+				<svg class="chevron-icon" :class="{ 'chevron-open': policyExpanded }" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<polyline points="6 9 12 15 18 9"></polyline>
+				</svg>
+			</button>
 
-			<div class="policy-body">
-				<div class="policy-column">
-					<div class="policy-icon-wrapper orange-bg">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M21 8 12 3 3 8v8l9 5 9-5V8z"></path>
-							<path d="M3 8l9 5 9-5"></path>
-							<path d="M12 13v8"></path>
-						</svg>
+			<div v-if="policyExpanded" class="policy-content">
+				<div class="policy-body">
+					<div class="policy-column">
+						<div class="policy-icon-wrapper orange-bg">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<path d="M21 8 12 3 3 8v8l9 5 9-5V8z"></path>
+								<path d="M3 8l9 5 9-5"></path>
+								<path d="M12 13v8"></path>
+							</svg>
+						</div>
+						<div class="policy-text">
+							<div class="policy-title">6 Months Inactive &rarr; Archived</div>
+							<p class="policy-desc">
+								Accounts with no activity for <span class="highlight-orange">6 months (180 days)</span> are automatically moved to <span class="highlight-orange">Archive</span>. The user is notified by email and has 1 week to log back in before permanent deletion.
+							</p>
+						</div>
 					</div>
-					<div class="policy-text">
-						<div class="policy-title">6 Months Inactive &rarr; Archived</div>
-						<p class="policy-desc">
-							Accounts with no activity for <span class="highlight-orange">6 months (180 days)</span> are automatically moved to <span class="highlight-orange">Archive</span>. The user is notified by email and has 1 week to log back in before permanent deletion.
-						</p>
+
+					<div class="policy-divider"></div>
+
+					<div class="policy-column">
+						<div class="policy-icon-wrapper red-bg">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<polyline points="3 6 5 6 21 6"></polyline>
+								<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+							</svg>
+						</div>
+						<div class="policy-text">
+							<div class="policy-title">+1 Week After Archive &rarr; Deleted</div>
+							<p class="policy-desc">
+								If no login occurs within <span class="highlight-red">7 days of archiving</span>, the account is permanently <span class="highlight-red">deleted</span>. All personal data is anonymised in compliance with PDPA / GDPR.
+							</p>
+						</div>
 					</div>
 				</div>
 
-				<div class="policy-divider"></div>
-
-				<div class="policy-column">
-					<div class="policy-icon-wrapper red-bg">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<polyline points="3 6 5 6 21 6"></polyline>
-							<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-						</svg>
+				<div class="lifecycle-timeline">
+					<div class="timeline-step">
+						<span class="timeline-dot green-dot"></span>
+						<span class="timeline-text green-text">Active</span>
 					</div>
-					<div class="policy-text">
-						<div class="policy-title">+1 Week After Archive &rarr; Deleted</div>
-						<p class="policy-desc">
-							If no login occurs within <span class="highlight-red">7 days of archiving</span>, the account is permanently <span class="highlight-red">deleted</span>. All personal data is anonymised in compliance with PDPA / GDPR.
-						</p>
+					<div class="timeline-bar"></div>
+					<div class="timeline-step">
+						<span class="timeline-dot orange-dot"></span>
+						<span class="timeline-text orange-text">6 months &rarr; Archive</span>
 					</div>
-				</div>
-			</div>
-
-			<!-- Lifecycle Visual Timeline -->
-			<div class="lifecycle-timeline">
-				<div class="timeline-step">
-					<span class="timeline-dot green-dot"></span>
-					<span class="timeline-text green-text">Active</span>
-				</div>
-				<div class="timeline-bar"></div>
-				<div class="timeline-step">
-					<span class="timeline-dot orange-dot"></span>
-					<span class="timeline-text orange-text">6 months &rarr; Archive</span>
-				</div>
-				<div class="timeline-bar red-gradient"></div>
-				<div class="timeline-step">
-					<span class="timeline-dot red-dot"></span>
-					<span class="timeline-text red-text">+1 week &rarr; Deleted</span>
+					<div class="timeline-bar red-gradient"></div>
+					<div class="timeline-step">
+						<span class="timeline-dot red-dot"></span>
+						<span class="timeline-text red-text">+1 week &rarr; Deleted</span>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -148,6 +152,7 @@
 				</div>
 
 				<div class="controls-right">
+					<span class="user-count-label">{{ filteredUsers.length }} of {{ users.length }} users</span>
 					<select v-model="filterStatus" class="filter-select">
 						<option value="All">All Statuses</option>
 						<option value="Active">Active</option>
@@ -159,6 +164,14 @@
 						<option value="Latest">Latest</option>
 						<option value="Oldest">Oldest</option>
 					</select>
+
+					<button class="refresh-btn" @click="fetchUsers" title="Refresh" type="button">
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<polyline points="23 4 23 10 17 10"></polyline>
+							<polyline points="1 20 1 14 7 14"></polyline>
+							<path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+						</svg>
+					</button>
 				</div>
 			</div>
 
@@ -185,6 +198,7 @@
 						<th class="checkbox-col"><input type="checkbox" :checked="allVisibleSelected" :indeterminate.prop="someSelected" @change="toggleSelectAll" aria-label="Select all users" /></th>
 						<th>NAME</th>
 						<th>EMAIL</th>
+						<th>SCANS</th>
 						<th>CREATED</th>
 						<th>LAST ACTIVE</th>
 						<th>INACTIVE FOR</th>
@@ -208,6 +222,7 @@
 							</div>
 						</td>
 						<td class="email-cell">{{ user.email }}</td>
+						<td class="scan-count-cell">{{ user.scan_count ?? '—' }}</td>
 						<td class="date-cell">{{ user.created }}</td>
 						<td class="date-cell">{{ user.lastActive }}</td>
 						<td>
@@ -217,9 +232,18 @@
 							<span v-else class="text-muted">Today</span>
 						</td>
 						<td>
-							<span class="status-badge" :class="user.status.toLowerCase()">
-								{{ user.status }}
-							</span>
+							<div class="row-actions">
+								<span class="status-badge" :class="user.status.toLowerCase()">
+									{{ user.status }}
+								</span>
+								<a :href="`/admin/usersprofile/${user.id}`" class="view-profile-btn" title="View profile" @click.prevent="viewProfile(user.id)">
+									<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+										<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+										<circle cx="12" cy="12" r="3"></circle>
+									</svg>
+									View
+								</a>
+							</div>
 						</td>
 					</tr>
 				</tbody>
@@ -259,6 +283,7 @@ interface ApiUserRow {
 	inactive_for: string | null
 	status: 'Active' | 'Inactive' | 'Archived'
 	deletion_due: boolean
+	scan_count: number
 }
 
 interface UserProfile {
@@ -276,11 +301,13 @@ interface UserProfile {
 	inactiveForClass?: string
 	status: 'Active' | 'Inactive' | 'Archived'
 	highlight?: 'archived' | 'deletion'
+	scan_count: number
 }
 
 const searchQuery = ref('')
 const filterStatus = ref('All')
 const sortOrder = ref<'Latest' | 'Oldest'>('Latest')
+const policyExpanded = ref(false)
 const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
 
@@ -340,6 +367,7 @@ function mapRow(r: ApiUserRow): UserProfile {
 		inactiveForClass: inactiveForClass(r.inactive_days, r.deletion_due),
 		status: r.status,
 		highlight: r.deletion_due ? 'deletion' : r.status === 'Archived' ? 'archived' : undefined,
+		scan_count: r.scan_count ?? 0,
 	}
 }
 
@@ -425,6 +453,13 @@ async function runBatch(action: 'notify'): Promise<void> {
 	} finally {
 		batchActing.value = false
 	}
+}
+
+function viewProfile(userId: number): void {
+	// Opens the user's scan history in the verification panel filtered by user
+	// For now navigate to the verification panel — deep-link to user TBD
+	console.log('View profile for user:', userId)
+	// TODO: implement user profile detail page/modal
 }
 
 onMounted(fetchUsers)
@@ -868,6 +903,86 @@ tr.row-highlight-red {
 	gap: 6px;
 	color: #94a3b8;
 }
+
+/* Lifecycle policy toggle */
+.policy-toggle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+	font-size: 0.72rem;
+	font-weight: 700;
+	color: #64748b;
+	letter-spacing: 0.06em;
+	text-align: left;
+}
+.policy-toggle:hover { color: #334155; }
+.chevron-icon {
+	margin-left: auto;
+	transition: transform 0.2s ease;
+	color: #94a3b8;
+}
+.chevron-open { transform: rotate(180deg); }
+.policy-content { margin-top: 18px; }
+
+/* Controls bar user count */
+.user-count-label {
+	font-size: 0.8rem;
+	color: #94a3b8;
+	white-space: nowrap;
+}
+
+/* Refresh button */
+.refresh-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	color: #64748b;
+	cursor: pointer;
+	transition: background 0.12s, color 0.12s;
+	flex-shrink: 0;
+}
+.refresh-btn:hover { background: #f1f5f9; color: #334155; }
+
+/* Scan count cell */
+.scan-count-cell {
+	color: #334155;
+	font-weight: 600;
+	font-size: 0.88rem;
+	text-align: center;
+}
+
+/* Row actions (status + view) */
+.row-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.view-profile-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 0.75rem;
+	font-weight: 500;
+	color: #475569;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	padding: 3px 8px;
+	text-decoration: none;
+	transition: background 0.12s, color 0.12s;
+	white-space: nowrap;
+}
+.view-profile-btn:hover { background: #f1f5f9; color: #0f172a; }
 
 .avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .state-message, .empty-note { padding: 32px; text-align: center; color: #64748b; font-size: 0.9rem; }

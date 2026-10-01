@@ -114,6 +114,10 @@ export const UserScalarFieldEnum = {
   last_active: 'last_active',
   status: 'status',
   avatar_base64: 'avatar_base64',
+  email_verified: 'email_verified',
+  verification_token: 'verification_token',
+  verification_token_expires_at: 'verification_token_expires_at',
+  last_verification_sent_at: 'last_verification_sent_at',
   created_at: 'created_at',
   updated_at: 'updated_at',
   deleted_at: 'deleted_at'

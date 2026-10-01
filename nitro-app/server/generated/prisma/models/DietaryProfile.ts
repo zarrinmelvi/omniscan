@@ -456,10 +456,6 @@ export type DietaryProfileCreatecustom_preferencesInput = {
   set: string[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type DietaryProfileUpdatecustom_preferencesInput = {
   set?: string[]
   push?: string | string[]

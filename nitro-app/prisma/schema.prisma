@@ -39,6 +39,12 @@ model User {
   status String
   avatar_base64 String? 
 
+  // Email verification fields
+  email_verified                Boolean   @default(false)
+  verification_token            String?   @unique
+  verification_token_expires_at DateTime?
+  last_verification_sent_at     DateTime?
+
   notifications Notification[]
   dietary_prof DietaryProfile[]
   allergens Allergen[] @relation("user_allergens")

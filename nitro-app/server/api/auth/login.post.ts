@@ -28,7 +28,16 @@ export default defineEventHandler(async (event) => {
 	}
 
 	try {
-		const user = await prisma.user.findUnique({ where: { email } })
+		const user = await prisma.user.findUnique({
+			where: { email },
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				password: true,
+				email_verified: true,
+			},
+		})
 
 		if (!user) {
 			throw createError({ statusCode: 401, statusMessage: 'Invalid email or password.' })
@@ -38,6 +47,15 @@ export default defineEventHandler(async (event) => {
 
 		if (!isPasswordValid) {
 			throw createError({ statusCode: 401, statusMessage: 'Invalid email or password.' })
+		}
+
+		// Block login until email is verified (REQ-002)
+		if (!user.email_verified) {
+			throw createError({
+				statusCode: 403,
+				statusMessage: 'Please verify your email address before logging in. Check your inbox or request a new verification link.',
+				data: { requiresVerification: true, email: user.email },
+			})
 		}
 
 		const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {

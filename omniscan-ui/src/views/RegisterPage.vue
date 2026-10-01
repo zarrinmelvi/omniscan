@@ -360,7 +360,15 @@ async function acceptTerms(): Promise<void> {
 	isTermsOpen.value = false
 	isSubmitting.value = true
 	try {
-		await authStore.register(name.value.trim(), email.value, password.value)
+		const response = await authStore.register(name.value.trim(), email.value, password.value)
+
+		// Backend now requires email verification before login — redirect to check-email page
+		if (response.requiresVerification) {
+			router.push({ path: '/check-email', query: { email: email.value } })
+			return
+		}
+
+		// Fallback for grandfathered or already-verified accounts (should not happen on new registrations)
 		await authStore.login(email.value, password.value)
 		await showToast('Account created successfully!', 'success')
 		step.value = 2

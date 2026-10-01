@@ -2,7 +2,7 @@ import router from '@/router'
 
 const TOKEN_KEY = 'omniscan_token'
 const ADMIN_TOKEN_KEY = 'omniscan_admin_token'
-const AUTH_EXEMPT_ENDPOINTS = ['/api/auth/login', '/api/auth/register', '/api/admin/login']
+const AUTH_EXEMPT_ENDPOINTS = ['/api/auth/login', '/api/auth/register', '/api/auth/resend-verification', '/api/admin/login']
 
 // In local dev, this is left empty and Vite's dev-server proxy (vite.config.ts)
 // forwards relative '/api/**' calls to http://localhost:3000 — nothing to

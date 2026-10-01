@@ -16,7 +16,8 @@ interface LoginResponse {
 }
 
 interface RegisterResponse {
-	user: AuthUser
+	requiresVerification: boolean
+	email: string
 	message: string
 }
 

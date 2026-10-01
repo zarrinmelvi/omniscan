@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import bcrypt from 'bcrypt'
 import { prisma } from '../../lib/prisma'
+import { generateVerificationToken, sendVerificationEmail } from '../../utils/email'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const SALT_ROUNDS = 10
@@ -31,9 +32,24 @@ export default defineEventHandler(async (event) => {
 			throw createError({ statusCode: 400, statusMessage: 'Email already exists.' })
 		}
 
+		// Generate verification token and expiry before creating the user.
+		// If the email send fails we abort — no account is created (REQ-008).
+		const token = generateVerificationToken()
+		const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+
+		const emailResult = await sendVerificationEmail(email, name.trim(), token)
+
+		if (!emailResult.success) {
+			console.error('Registration aborted — verification email failed:', emailResult.error)
+			throw createError({
+				statusCode: 500,
+				statusMessage: 'Could not send verification email. Please try again later.',
+			})
+		}
+
 		const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS)
 
-		const newUser = await prisma.$transaction(async (tx) => {
+		await prisma.$transaction(async (tx) => {
 			const user = await tx.user.create({
 				data: {
 					name: name.trim(),
@@ -41,8 +57,11 @@ export default defineEventHandler(async (event) => {
 					password: hashedPassword,
 					status: 'ACTIVE',
 					last_active: new Date(),
+					email_verified: false,
+					verification_token: token,
+					verification_token_expires_at: tokenExpiry,
+					last_verification_sent_at: new Date(),
 				},
-				select: { id: true, name: true, email: true },
 			})
 
 			await tx.dietaryProfile.create({
@@ -51,13 +70,12 @@ export default defineEventHandler(async (event) => {
 					halal_pref: false,
 				},
 			})
-
-			return user
 		})
 
 		return {
-			user: newUser,
-			message: 'Registration successful',
+			message: 'Registration successful. Please check your email to verify your account.',
+			requiresVerification: true,
+			email,
 		}
 	} catch (err: any) {
 		if (err?.statusCode) throw err

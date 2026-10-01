@@ -149,12 +149,13 @@
 				<select v-model="flagAuditFilter" class="flag-filter-select">
 					<option value="all">All Types</option>
 					<option value="allergen">Allergen</option>
-					<option value="other">Other</option>
+					<option value="other">Confidence Flag</option>
 				</select>
 				<select v-model="flagAuditStatus" class="flag-filter-select">
 					<option value="all">All Statuses</option>
 					<option value="pending">Pending</option>
-					<option value="approved">Resolved</option>
+					<option value="flagged">Flagged</option>
+					<option value="approved">Certified / Resolved</option>
 					<option value="dismissed">Dismissed</option>
 				</select>
 			</div>
@@ -181,7 +182,7 @@
 							<td class="flag-reason-cell">{{ row.flag_reason }}</td>
 							<td>
 								<span class="flag-type-chip" :class="'ftype-' + row.halal_flag_type">
-									{{ row.halal_flag_type === 'allergen' ? 'Allergen' : 'Other' }}
+									{{ row.halal_flag_type === 'allergen' ? 'Allergen' : 'Confidence' }}
 								</span>
 							</td>
 							<td>
@@ -278,7 +279,12 @@ const flagAuditStatus = ref('all')
 const filteredFlagAuditRows = computed(() => {
 	return flagAuditRows.value.filter((r) => {
 		if (flagAuditFilter.value !== 'all' && r.halal_flag_type !== flagAuditFilter.value) return false
-		if (flagAuditStatus.value !== 'all' && r.status !== flagAuditStatus.value) return false
+		if (flagAuditStatus.value !== 'all') {
+			const s = r.status.toLowerCase()
+			if (flagAuditStatus.value === 'approved' && s !== 'approved' && s !== 'verified') return false
+			if (flagAuditStatus.value === 'dismissed' && s !== 'dismissed' && s !== 'rejected') return false
+			if (flagAuditStatus.value !== 'approved' && flagAuditStatus.value !== 'dismissed' && s !== flagAuditStatus.value) return false
+		}
 		return true
 	})
 })
@@ -560,7 +566,7 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 	font-weight: 700;
 }
 .ftype-allergen { background: #fee2e2; color: #b91c1c; }
-.ftype-other    { background: #f1f5f9; color: #475569; }
+.ftype-other    { background: #eff6ff; color: #2563eb; }
 
 .flag-status-chip {
 	display: inline-block;

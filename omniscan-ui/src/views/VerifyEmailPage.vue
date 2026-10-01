@@ -26,11 +26,11 @@
 						<span class="brand-label">OmniScan</span>
 						<h1 class="auth-title">Email Verified!</h1>
 						<p class="auth-subtitle">
-							Your account is now active. Redirecting you to login
+							Your account is now active. Setting up your profile
 							<span v-if="redirectCountdown > 0"> in {{ redirectCountdown }}s</span>…
 						</p>
-						<ion-button expand="block" class="submit-button" router-link="/login">
-							Continue to Login
+						<ion-button expand="block" class="submit-button" @click="() => { window.location.href = '/register?step=2' }">
+							Continue to Setup
 						</ion-button>
 					</template>
 
@@ -124,6 +124,8 @@ import {
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
+const TOKEN_KEY = 'omniscan_token'
+
 type VerifyState = 'loading' | 'success' | 'already-verified' | 'expired' | 'error'
 
 const route = useRoute()
@@ -146,7 +148,7 @@ function startRedirect() {
 		redirectCountdown.value--
 		if (redirectCountdown.value <= 0) {
 			clearInterval(redirectTimer!)
-			router.push('/login')
+			window.location.href = '/register?step=2'
 		}
 	}, 1000)
 }
@@ -172,10 +174,14 @@ async function verifyToken() {
 	}
 
 	try {
-		await apiFetch(`/api/auth/verify/${token}`, {
+		const result = await apiFetch<{ token: string | null; user: { id: number; name: string; email: string } }>(`/api/auth/verify/${token}`, {
 			method: 'GET',
 			skipAuth: true,
 		})
+		// Auto-login: store JWT so user lands on dietary prefs already authenticated
+		if (result.token) {
+			localStorage.setItem(TOKEN_KEY, result.token)
+		}
 		state.value = 'success'
 		startRedirect()
 	} catch (err) {
@@ -480,3 +486,4 @@ onUnmounted(() => {
 	}
 }
 </style>
+

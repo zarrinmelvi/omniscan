@@ -65,21 +65,6 @@
 					<div v-if="activeTab === 'general'" class="settings-group">
 						<div class="setting-row">
 							<div class="setting-info">
-								<label for="portalName" class="setting-title">Portal Name</label>
-								<p class="setting-desc">Displayed in the browser tab and header</p>
-							</div>
-							<div class="setting-control">
-								<input 
-									id="portalName" 
-									v-model="form.portalName" 
-									type="text" 
-									class="text-input" 
-								/>
-							</div>
-						</div>
-
-						<div class="setting-row">
-							<div class="setting-info">
 								<label class="setting-title">Dark Mode</label>
 								<p class="setting-desc">Switch the admin portal to a dark colour scheme</p>
 							</div>
@@ -111,6 +96,7 @@
 									type="text" 
 									class="text-input readonly-field"
 									readonly
+									disabled
 								/>
 							</div>
 						</div>
@@ -217,17 +203,6 @@
 			</div>
 		</div>
 
-		<!-- Bottom Save Action Button -->
-		<div class="actions-footer">
-			<button class="save-button" :disabled="isSaving" @click="handleSave">
-				<svg class="save-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-					<polyline points="17 21 17 13 7 13 7 21"></polyline>
-					<polyline points="7 3 7 8 15 8"></polyline>
-				</svg>
-				<span>{{ isSaving ? 'Saving...' : 'Save Changes' }}</span>
-			</button>
-		</div>
 	</div>
 </template>
 

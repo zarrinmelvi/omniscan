@@ -151,13 +151,6 @@
 					<option value="allergen">Allergen</option>
 					<option value="other">Confidence Flag</option>
 				</select>
-				<select v-model="flagAuditStatus" class="flag-filter-select">
-					<option value="all">All Statuses</option>
-					<option value="pending">Pending</option>
-					<option value="flagged">Flagged</option>
-					<option value="approved">Certified / Resolved</option>
-					<option value="dismissed">Dismissed</option>
-				</select>
 			</div>
 			<div class="log-scroll">
 				<table class="log-table flag-audit-table">
@@ -186,9 +179,7 @@
 								</span>
 							</td>
 							<td>
-								<span class="flag-status-chip" :class="'fstatus-' + row.status">
-									{{ row.status.charAt(0).toUpperCase() + row.status.slice(1) }}
-								</span>
+								<span class="flag-status-chip fstatus-recorded">Recorded</span>
 							</td>
 							<td class="mono muted">{{ formatFlagDate(row.created_at) }}</td>
 						</tr>
@@ -274,17 +265,10 @@ const errorMessage = ref<string | null>(null)
 
 const flagAuditRows = ref<FlagAuditRow[]>([])
 const flagAuditFilter = ref<'all' | 'allergen' | 'other'>('all')
-const flagAuditStatus = ref('all')
 
 const filteredFlagAuditRows = computed(() => {
 	return flagAuditRows.value.filter((r) => {
 		if (flagAuditFilter.value !== 'all' && r.halal_flag_type !== flagAuditFilter.value) return false
-		if (flagAuditStatus.value !== 'all') {
-			const s = r.status.toLowerCase()
-			if (flagAuditStatus.value === 'approved' && s !== 'approved' && s !== 'verified') return false
-			if (flagAuditStatus.value === 'dismissed' && s !== 'dismissed' && s !== 'rejected') return false
-			if (flagAuditStatus.value !== 'approved' && flagAuditStatus.value !== 'dismissed' && s !== flagAuditStatus.value) return false
-		}
 		return true
 	})
 })
@@ -575,8 +559,5 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 	font-size: 0.72rem;
 	font-weight: 600;
 }
-.fstatus-pending   { background: #fef3c7; color: #92400e; }
-.fstatus-flagged   { background: #fef3c7; color: #92400e; }
-.fstatus-approved  { background: #dcfce7; color: #15803d; }
-.fstatus-dismissed { background: #f1f5f9; color: #64748b; }
+.fstatus-recorded  { background: #f1f5f9; color: #475569; }
 </style>

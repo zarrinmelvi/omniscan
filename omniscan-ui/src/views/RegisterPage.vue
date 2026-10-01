@@ -140,7 +140,9 @@
 
 					<div v-if="prefsError" class="form-error">{{ prefsError }}</div>
 
-					<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs" @click="completeSetup">
+				<div v-if="setupError" class="form-error">{{ setupError }}</div>
+
+				<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs" @click="completeSetup">
 						{{ isSavingPrefs ? 'Saving...' : 'Complete Setup' }}
 					</ion-button>
 
@@ -262,6 +264,7 @@ const isLoadingAllergens = ref(false)
 const allergensLoadError = ref('')
 const isSavingPrefs = ref(false)
 const prefsError = ref('')
+const setupError = ref('')
 const prefLimitWarning = ref(false)
 
 const prefTotal = computed(() => selectedAllergenIds.value.length + (halalSelected.value ? 1 : 0))
@@ -278,7 +281,7 @@ const ALLERGEN_EMOJI: Record<string, string> = {
 }
 
 function emojiForAllergen(name: string): string {
-	return ALLERGEN_EMOJI[name.toLowerCase()] ?? '???'
+	return ALLERGEN_EMOJI[name.toLowerCase()] ?? '🍽️'
 }
 
 function formatAllergenName(name: string): string {
@@ -436,6 +439,12 @@ async function completeSetup(): Promise<void> {
 
 	isSavingPrefs.value = true
 	prefsError.value = ''
+	setupError.value = ''
+	if (prefTotal.value === 0) {
+		setupError.value = 'Please select at least one dietary preference before completing setup.'
+		isSavingPrefs.value = false
+		return
+	}
 
 	const customPrefTags = allergenCatalog.value
 		.filter((a) => selectedAllergenIds.value.includes(a.id))
@@ -464,10 +473,14 @@ async function skipForNow(): Promise<void> {
 	await authStore.checkAuth()
 	window.location.href = '/tabs/home'
 }
-onMounted(() => {
-if (step.value === 2) {
-fetchAllergenCatalog()
-}
+onMounted(async () => {
+	if (step.value === 2) {
+		// Restore JWT from localStorage into the auth store before making any API calls.
+		// This is needed when arriving from the email verification flow, where VerifyEmailPage
+		// stores the token directly in localStorage but the Pinia store hasn't loaded it yet.
+		await authStore.checkAuth()
+		fetchAllergenCatalog()
+	}
 })
 </script>
 

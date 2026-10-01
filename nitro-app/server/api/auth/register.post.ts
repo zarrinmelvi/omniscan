@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
 			console.error('Registration aborted — verification email failed:', emailResult.error)
 			throw createError({
 				statusCode: 500,
-				statusMessage: 'Could not send verification email. Please try again later.',
+				statusMessage: "We couldn't send a verification email to that address. Please use a valid email and try again.",
 			})
 		}
 

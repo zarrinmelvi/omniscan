@@ -1442,3 +1442,8 @@ html.ion-palette-dark .search-box input {
 html.ion-palette-dark .search-box input::placeholder {
 	color: var(--dm-text-secondary) !important;
 }
+
+/* == Dashboard — clickable row hover in dark mode == */
+html.ion-palette-dark .clickable-row:hover {
+	background-color: #334155 !important;
+}

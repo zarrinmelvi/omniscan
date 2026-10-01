@@ -261,9 +261,6 @@ td {
 	background-color: #f1f5f9;
 }
 
-:global(html.ion-palette-dark) .clickable-row:hover {
-	background-color: #334155;
-}
 
 .product-name {
 	color: #111827;

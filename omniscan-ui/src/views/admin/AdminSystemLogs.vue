@@ -140,6 +140,65 @@
 			</div>
 		</div>
 
+		<!-- FLAG AUDIT TAB -->
+		<div v-if="activeTab === 'flag-audit'" class="log-card">
+			<div class="log-header">
+				Non-Halal Flagged Scans — Allergen &amp; Safety Flags ({{ flagAuditRows.length }})
+			</div>
+			<div class="flag-audit-controls">
+				<select v-model="flagAuditFilter" class="flag-filter-select">
+					<option value="all">All Types</option>
+					<option value="allergen">Allergen</option>
+					<option value="other">Other</option>
+				</select>
+				<select v-model="flagAuditStatus" class="flag-filter-select">
+					<option value="all">All Statuses</option>
+					<option value="pending">Pending</option>
+					<option value="approved">Resolved</option>
+					<option value="dismissed">Dismissed</option>
+				</select>
+			</div>
+			<div class="log-scroll">
+				<table class="log-table flag-audit-table">
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>PRODUCT</th>
+							<th>SCANNED BY</th>
+							<th>FLAG REASON</th>
+							<th>TYPE</th>
+							<th>STATUS</th>
+							<th>DATE</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="row in filteredFlagAuditRows" :key="row.id">
+							<td class="mono muted">#{{ row.id }}</td>
+							<td>
+								<div class="flag-product-name">{{ row.brand_name ? row.brand_name + ' ' : '' }}{{ row.product_name }}</div>
+							</td>
+							<td class="muted">{{ row.scanned_by }}</td>
+							<td class="flag-reason-cell">{{ row.flag_reason }}</td>
+							<td>
+								<span class="flag-type-chip" :class="'ftype-' + row.halal_flag_type">
+									{{ row.halal_flag_type === 'allergen' ? 'Allergen' : 'Other' }}
+								</span>
+							</td>
+							<td>
+								<span class="flag-status-chip" :class="'fstatus-' + row.status">
+									{{ row.status.charAt(0).toUpperCase() + row.status.slice(1) }}
+								</span>
+							</td>
+							<td class="mono muted">{{ formatFlagDate(row.created_at) }}</td>
+						</tr>
+						<tr v-if="filteredFlagAuditRows.length === 0">
+							<td colspan="7" class="empty-row">No flag records match the current filters.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+
 		<!-- Service health cards (always visible) -->
 		<div class="services-grid">
 			<div v-for="svc in services" :key="svc.name" class="service-card">
@@ -189,16 +248,40 @@ interface SystemLogsResponse {
 	raw_logs: LogRow[]
 }
 
+interface FlagAuditRow {
+	id: number
+	product_name: string
+	brand_name: string
+	scanned_by: string
+	flag_reason: string
+	halal_flag_type: 'allergen' | 'other'
+	status: string
+	created_at: string
+}
+
 const activeTab = ref('overview')
 const tabs = [
 	{ id: 'overview', label: 'Overview' },
 	{ id: 'api-latency', label: 'API Latency' },
 	{ id: 'prisma-queries', label: 'Prisma Queries' },
 	{ id: 'raw-logs', label: 'Raw Logs' },
+	{ id: 'flag-audit', label: 'Flag Audit' },
 ]
 
 const data = ref<SystemLogsResponse | null>(null)
 const errorMessage = ref<string | null>(null)
+
+const flagAuditRows = ref<FlagAuditRow[]>([])
+const flagAuditFilter = ref<'all' | 'allergen' | 'other'>('all')
+const flagAuditStatus = ref('all')
+
+const filteredFlagAuditRows = computed(() => {
+	return flagAuditRows.value.filter((r) => {
+		if (flagAuditFilter.value !== 'all' && r.halal_flag_type !== flagAuditFilter.value) return false
+		if (flagAuditStatus.value !== 'all' && r.status !== flagAuditStatus.value) return false
+		return true
+	})
+})
 
 const overview = computed<Overview>(() => data.value?.overview ?? { avg_latency: 0, peak_latency: 0, p95_latency: 0, total_requests: 0, db_status: '—' })
 const services = computed<ServiceHealth[]>(() => data.value?.services ?? [])
@@ -286,6 +369,35 @@ const currentTimeUtc = computed(() => {
 // --- Polling ---
 let poller: ReturnType<typeof setInterval> | null = null
 
+function formatFlagDate(iso: string): string {
+	if (!iso) return '—'
+	const d = new Date(iso)
+	return d.toLocaleDateString('en-CA') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+}
+
+async function fetchFlagAudit(): Promise<void> {
+	try {
+		const res = await apiFetch<{ success: boolean; flagged_scans: any[] }>(
+			'/api/admin/flagged-scans?type=all',
+			{ isAdmin: true }
+		)
+		flagAuditRows.value = (res.flagged_scans ?? [])
+			.filter((s) => s.halal_flag_type !== 'halal')
+			.map((s) => ({
+				id: s.id,
+				product_name: s.product_name ?? 'Unknown product',
+				brand_name: s.brand_name ?? '',
+				scanned_by: s.scanned_by ?? '—',
+				flag_reason: s.flag_reason ?? '—',
+				halal_flag_type: s.halal_flag_type === 'allergen' ? 'allergen' : 'other',
+				status: s.status ?? 'pending',
+				created_at: s.created_at ?? '',
+			}))
+	} catch (err) {
+		console.error('Failed to load flag audit:', err)
+	}
+}
+
 async function fetchLogs(): Promise<void> {
 	try {
 		data.value = await apiFetch<SystemLogsResponse>('/api/admin/system-logs', { isAdmin: true })
@@ -297,6 +409,7 @@ async function fetchLogs(): Promise<void> {
 
 onMounted(() => {
 	fetchLogs()
+	fetchFlagAudit()
 	clock = setInterval(() => (now.value = new Date()), 1000)
 	poller = setInterval(fetchLogs, 5000) // refresh telemetry every 5s
 })
@@ -406,4 +519,58 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .service-uptime { display: flex; flex-direction: column; align-items: flex-end; }
 .uptime-val { font-size: 0.9rem; font-weight: 600; color: #334155; }
 .uptime-label { font-size: 0.75rem; color: #94a3b8; }
+
+/* Flag Audit Tab */
+.flag-audit-controls {
+	display: flex;
+	gap: 10px;
+	padding: 12px 20px;
+	border-bottom: 1px solid #f1f5f9;
+}
+.flag-filter-select {
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 6px 12px;
+	font-size: 0.82rem;
+	color: #334155;
+	outline: none;
+	cursor: pointer;
+}
+.flag-audit-table {
+	min-width: 900px;
+}
+.flag-product-name {
+	font-weight: 500;
+	color: #1e293b;
+	font-size: 0.83rem;
+}
+.flag-reason-cell {
+	max-width: 280px;
+	font-size: 0.78rem;
+	color: #475569;
+	line-height: 1.4;
+	word-break: break-word;
+}
+.flag-type-chip {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 5px;
+	font-size: 0.72rem;
+	font-weight: 700;
+}
+.ftype-allergen { background: #fee2e2; color: #b91c1c; }
+.ftype-other    { background: #f1f5f9; color: #475569; }
+
+.flag-status-chip {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 5px;
+	font-size: 0.72rem;
+	font-weight: 600;
+}
+.fstatus-pending   { background: #fef3c7; color: #92400e; }
+.fstatus-flagged   { background: #fef3c7; color: #92400e; }
+.fstatus-approved  { background: #dcfce7; color: #15803d; }
+.fstatus-dismissed { background: #f1f5f9; color: #64748b; }
 </style>

@@ -1447,3 +1447,20 @@ html.ion-palette-dark .search-box input::placeholder {
 html.ion-palette-dark .clickable-row:hover {
 	background-color: #334155 !important;
 }
+
+/* == System Logs — Flag Audit tab == */
+html.ion-palette-dark .flag-audit-controls {
+	border-bottom-color: var(--dm-border);
+}
+html.ion-palette-dark .flag-filter-select {
+	background: var(--dm-bg-input) !important;
+	color: var(--dm-text-primary) !important;
+	border-color: var(--dm-border) !important;
+	color-scheme: dark;
+}
+html.ion-palette-dark .flag-product-name {
+	color: var(--dm-text-primary);
+}
+html.ion-palette-dark .flag-reason-cell {
+	color: var(--dm-text-secondary);
+}

@@ -53,6 +53,7 @@ export default defineEventHandler(async (event) => {
 					select: {
 						id: true,
 						safety_verdict: true,
+						ai_confidence_score: true,
 						// image_url is a relative filesystem path (uploads/<filename>) that
 						// Nitro does not serve publicly.  We use the product's stored
 						// image_base64 instead so the browser can display a data: URI.
@@ -83,6 +84,15 @@ export default defineEventHandler(async (event) => {
 			product_name: f.scan?.product?.product_name ?? 'Unknown product',
 			brand_name: f.scan?.product?.brand_name ?? '',
 			safety_verdict: f.scan?.safety_verdict ?? null,
+			// Convert Prisma Decimal to a 0-100 integer percentage.
+			// The DB stores values as 0.0–1.0 (e.g. 0.75 → 75%) or already as
+			// whole numbers (e.g. 75); handle both cases.
+			ai_confidence_score: f.scan?.ai_confidence_score != null
+				? (() => {
+					const raw = Number(f.scan!.ai_confidence_score)
+					return Math.round(raw <= 1 ? raw * 100 : raw)
+				})()
+				: null,
 			scanned_by: f.scan?.user?.name ?? f.scan?.user?.email ?? 'Unknown user',
 			halal_flag_type: classifyFlag(f.flag_reason),
 			// Base64 strings for the product thumbnail — null when not yet captured

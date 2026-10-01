@@ -396,6 +396,8 @@ interface FlaggedScanRaw {
 	clean_flag_reason: string
 	status: string
 	safety_verdict: string | null
+	/** Real AI confidence score (0-100) from the DB, null if not available */
+	ai_confidence_score: number | null
 	scanned_by: string
 	admin_correction: string | null
 	created_at: string
@@ -525,7 +527,7 @@ const filterStatus  = ref('all')
 const flaggedScans = computed<FlaggedScanRow[]>(() =>
 	rawScans.value.map((s) => ({
 		...s,
-		confidence: deriveConfidence(s.id),
+		confidence: s.ai_confidence_score ?? deriveConfidence(s.id),
 		// Build a data URI from the stored base64 string so <img :src="..."> works
 		// directly without a separate HTTP request to a file server.
 		thumb_src: s.image_base64

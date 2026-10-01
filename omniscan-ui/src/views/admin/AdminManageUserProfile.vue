@@ -265,6 +265,54 @@
 				</div>
 			</div>
 		</div>
+		<!-- User Scan History Modal -->
+		<Teleport to="body">
+			<div v-if="scanModalUser" class="scan-modal-overlay" @click.self="closeScanModal">
+				<div class="scan-modal" role="dialog" aria-modal="true">
+					<div class="scan-modal-header">
+						<div class="scan-modal-title-group">
+							<div class="scan-modal-avatar" :class="scanModalUser.avatarBg">
+								<img v-if="scanModalUser.avatarSrc" :src="scanModalUser.avatarSrc" :alt="scanModalUser.name" class="avatar-img" />
+								<template v-else>{{ scanModalUser.initials }}</template>
+							</div>
+							<div>
+								<h2 class="scan-modal-title">{{ scanModalUser.name }}</h2>
+								<p class="scan-modal-subtitle">{{ scanModalUser.email }} · {{ scanModalUser.scan_count }} total scan{{ scanModalUser.scan_count !== 1 ? 's' : '' }}</p>
+							</div>
+						</div>
+						<button class="scan-modal-close" @click="closeScanModal" aria-label="Close">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<line x1="18" y1="6" x2="6" y2="18"></line>
+								<line x1="6" y1="6" x2="18" y2="18"></line>
+							</svg>
+						</button>
+					</div>
+
+					<div class="scan-modal-body">
+						<p v-if="scanModalLoading" class="scan-modal-state">Loading scan history…</p>
+						<p v-else-if="scanModalError" class="scan-modal-error">{{ scanModalError }}</p>
+						<p v-else-if="scanModalScans.length === 0" class="scan-modal-state">This user has no scans yet.</p>
+						<div v-else class="scan-list">
+							<div v-for="scan in scanModalScans" :key="scan.id" class="scan-row">
+								<div class="scan-thumb">
+									<img v-if="scan.image_base64" :src="scan.image_base64" :alt="scan.product_name" class="scan-thumb-img" />
+									<span v-else class="scan-thumb-fallback">📦</span>
+								</div>
+								<div class="scan-info">
+									<span class="scan-product">{{ scan.brand_name ? scan.brand_name + ' ' : '' }}{{ scan.product_name }}</span>
+									<span class="scan-date">{{ formatScanDate(scan.scan_time) }}</span>
+								</div>
+								<div class="scan-meta">
+									<span class="scan-confidence" v-if="scan.ai_confidence_score != null">{{ scan.ai_confidence_score }}%</span>
+									<span class="scan-verdict" :class="'verdict-' + scan.safety_verdict.toLowerCase()">{{ scan.safety_verdict }}</span>
+									<span v-if="scan.flagged" class="scan-flagged-badge">Flagged</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</Teleport>
 	</div>
 </template>
 
@@ -308,6 +356,25 @@ const searchQuery = ref('')
 const filterStatus = ref('All')
 const sortOrder = ref<'Latest' | 'Oldest'>('Latest')
 const policyExpanded = ref(false)
+
+// Scan history modal
+interface ScanHistoryRow {
+	id: number
+	scan_time: string
+	safety_verdict: string
+	flag_reason: string
+	ai_confidence_score: number | null
+	product_name: string
+	brand_name: string
+	image_base64: string | null
+	flagged: boolean
+	flag_status: string | null
+}
+
+const scanModalUser = ref<UserProfile | null>(null)
+const scanModalScans = ref<ScanHistoryRow[]>([])
+const scanModalLoading = ref(false)
+const scanModalError = ref<string | null>(null)
 const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
 
@@ -455,11 +522,38 @@ async function runBatch(action: 'notify'): Promise<void> {
 	}
 }
 
-function viewProfile(userId: number): void {
-	// Opens the user's scan history in the verification panel filtered by user
-	// For now navigate to the verification panel — deep-link to user TBD
-	console.log('View profile for user:', userId)
-	// TODO: implement user profile detail page/modal
+function formatScanDate(iso: string): string {
+	if (!iso) return '—'
+	const d = new Date(iso)
+	return d.toLocaleDateString('en-CA') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+}
+
+async function viewProfile(userId: number): Promise<void> {
+	const user = users.value.find((u) => u.id === userId)
+	if (!user) return
+
+	scanModalUser.value = user
+	scanModalScans.value = []
+	scanModalLoading.value = true
+	scanModalError.value = null
+
+	try {
+		const res = await apiFetch<{ success: boolean; scans: ScanHistoryRow[] }>(
+			`/api/admin/users/${userId}/scans`,
+			{ isAdmin: true }
+		)
+		scanModalScans.value = res.scans ?? []
+	} catch (err) {
+		scanModalError.value = err instanceof ApiError ? err.message : 'Failed to load scan history.'
+	} finally {
+		scanModalLoading.value = false
+	}
+}
+
+function closeScanModal(): void {
+	scanModalUser.value = null
+	scanModalScans.value = []
+	scanModalError.value = null
 }
 
 onMounted(fetchUsers)
@@ -984,6 +1078,96 @@ tr.row-highlight-red {
 }
 .view-profile-btn:hover { background: #f1f5f9; color: #0f172a; }
 
+/* Scan History Modal */
+.scan-modal-overlay {
+	position: fixed; inset: 0;
+	background: rgba(15, 23, 42, 0.5);
+	display: flex; align-items: center; justify-content: center;
+	z-index: 1000; padding: 24px;
+}
+.scan-modal {
+	background: #ffffff;
+	border-radius: 16px;
+	box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+	width: 100%; max-width: 600px; max-height: 85vh;
+	display: flex; flex-direction: column;
+	overflow: hidden;
+}
+.scan-modal-header {
+	display: flex; align-items: center; justify-content: space-between;
+	padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9; gap: 12px;
+}
+.scan-modal-title-group {
+	display: flex; align-items: center; gap: 14px;
+}
+.scan-modal-avatar {
+	width: 40px; height: 40px; border-radius: 50%;
+	display: flex; align-items: center; justify-content: center;
+	font-size: 0.85rem; font-weight: 600; flex-shrink: 0;
+}
+.scan-modal-title {
+	font-size: 1rem; font-weight: 600; margin: 0 0 2px; color: #0f172a;
+}
+.scan-modal-subtitle {
+	font-size: 0.78rem; color: #64748b; margin: 0;
+}
+.scan-modal-close {
+	background: none; border: none; color: #94a3b8;
+	cursor: pointer; padding: 4px; border-radius: 6px;
+	transition: color 0.12s, background 0.12s; flex-shrink: 0;
+}
+.scan-modal-close:hover { color: #334155; background: #f1f5f9; }
+.scan-modal-body {
+	overflow-y: auto; flex: 1; padding: 8px 0;
+}
+.scan-modal-state {
+	padding: 40px; text-align: center; color: #64748b; font-size: 0.9rem;
+}
+.scan-modal-error {
+	padding: 20px 24px; color: #dc2626; font-size: 0.85rem;
+}
+.scan-list { display: flex; flex-direction: column; }
+.scan-row {
+	display: flex; align-items: center; gap: 14px;
+	padding: 12px 24px; border-bottom: 1px solid #f8fafc;
+	transition: background 0.1s;
+}
+.scan-row:hover { background: #f8fafc; }
+.scan-row:last-child { border-bottom: none; }
+.scan-thumb {
+	width: 44px; height: 44px; border-radius: 8px;
+	background: #f8fafc; border: 1px solid #e2e8f0;
+	display: flex; align-items: center; justify-content: center;
+	overflow: hidden; flex-shrink: 0;
+}
+.scan-thumb-img { width: 100%; height: 100%; object-fit: cover; }
+.scan-thumb-fallback { font-size: 1.2rem; }
+.scan-info {
+	flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;
+}
+.scan-product {
+	font-size: 0.85rem; font-weight: 500; color: #1e293b;
+	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.scan-date { font-size: 0.74rem; color: #94a3b8; }
+.scan-meta {
+	display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+.scan-confidence {
+	font-size: 0.75rem; font-weight: 600; color: #475569;
+}
+.scan-verdict {
+	display: inline-block; padding: 2px 8px; border-radius: 5px;
+	font-size: 0.72rem; font-weight: 700;
+}
+.verdict-green  { background: #dcfce7; color: #15803d; }
+.verdict-yellow { background: #fef9c3; color: #a16207; }
+.verdict-red    { background: #fee2e2; color: #b91c1c; }
+.scan-flagged-badge {
+	display: inline-block; padding: 2px 7px; border-radius: 5px;
+	font-size: 0.68rem; font-weight: 700;
+	background: #fef3c7; color: #92400e;
+}
 .avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .state-message, .empty-note { padding: 32px; text-align: center; color: #64748b; font-size: 0.9rem; }
 .error-message { padding: 32px; text-align: center; color: #dc2626; font-size: 0.9rem; }

@@ -1,4 +1,4 @@
-<template>
+ï»¿<template>
 	<ion-page>
 		<ion-content class="auth-content" :scroll-y="true">
 			<div class="auth-layout">
@@ -100,9 +100,9 @@
 
 				<!-- STEP 2: Dietary Preferences -->
 				<template v-else>
-					<span class="brand-label">Almost There!</span>
+				<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! ðŸŽ‰' : 'Almost There!' }}</span>
 					<h1 class="auth-title">Dietary Preferences</h1>
-					<p class="auth-subtitle">Select your dietary preferences so we can help you make better choices</p>
+				<p class="auth-subtitle">{{ route.query.step === '2' ? 'Your account is active. Now personalise your experience:' : 'Select your dietary preferences so we can help you make better choices' }}</p>
 
 					<div v-if="isLoadingAllergens" class="state-block">
 						<ion-spinner name="crescent" />
@@ -206,7 +206,7 @@ const PREF_MAX = 5
 
 const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)
 
-// Step 1 — account creation
+// Step 1 â€” account creation
 const name = ref('')
 const email = ref('')
 const password = ref('')
@@ -248,7 +248,7 @@ const KNOWN_TLDS =
 	'sa|ae|eg|il|ar|cl|pe|ve'
 const EMAIL_RE = new RegExp(`^[^\\s@]+@[^\\s@]+(\\.[^\\s@]+)*\\.(${KNOWN_TLDS})$`, 'i')
 
-// Step 2 — dietary preferences
+// Step 2 â€” dietary preferences
 interface Allergen {
 	id: number
 	name: string
@@ -363,7 +363,7 @@ async function acceptTerms(): Promise<void> {
 	try {
 		const response = await authStore.register(name.value.trim(), email.value, password.value)
 
-		// Backend now requires email verification before login — redirect to check-email page
+		// Backend now requires email verification before login â€” redirect to check-email page
 		if (response.requiresVerification) {
 			router.push({ path: '/check-email', query: { email: email.value } })
 			return
@@ -974,4 +974,5 @@ fetchAllergenCatalog()
 	}
 }
 </style>
+
 

@@ -60,6 +60,7 @@ export default defineEventHandler(async (event) => {
 				last_active: true,
 				created_at: true,
 				avatar_base64: true,
+				_count: { select: { scan: true } },
 			},
 		})
 
@@ -80,6 +81,7 @@ export default defineEventHandler(async (event) => {
 				inactive_for: formatInactiveFor(inactiveDays),
 				status,
 				deletion_due: deletionDue,
+				scan_count: u._count.scan,
 			}
 		})
 

@@ -5,6 +5,15 @@ import { prisma } from '../../lib/prisma'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-default-jwt-secret'
 
+function validatePasswordStrength(password: string): boolean {
+	const minLength = password.length >= 8
+	const hasUpper = /[A-Z]/.test(password)
+	const hasLower = /[a-z]/.test(password)
+	const hasNumber = /[0-9]/.test(password)
+	const hasSpecial = /[^A-Za-z0-9]/.test(password)
+	return minLength && hasUpper && hasLower && hasNumber && hasSpecial
+}
+
 export default eventHandler(async (event) => {
 	const body = await readBody(event)
 	const token = typeof body.token === 'string' ? body.token : ''
@@ -14,8 +23,11 @@ export default eventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Token and new password are required.' })
 	}
 
-	if (newPassword.length < 8) {
-		throw createError({ statusCode: 400, statusMessage: 'Password must be at least 8 characters long.' })
+	if (!validatePasswordStrength(newPassword)) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: 'Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters.',
+		})
 	}
 
 	let payload: any

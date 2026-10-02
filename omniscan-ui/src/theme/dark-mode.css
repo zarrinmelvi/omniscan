@@ -1427,3 +1427,25 @@ html.ion-palette-dark .tab-count-badge {
 	background: rgba(255, 255, 255, 0.15) !important;
 	color: var(--dm-text-primary) !important;
 }
+
+/* == Admin Sidebar — nav item dark mode (AdminLayout.vue uses .sidebar not .desktop-nav) == */
+html.ion-palette-dark .sidebar .nav-item {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .sidebar .nav-item .nav-icon {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .sidebar .nav-item:hover:not(.active) {
+	background: var(--dm-bg-chip) !important;
+	color: #4ade80 !important;
+}
+html.ion-palette-dark .sidebar .nav-item:hover:not(.active) .nav-icon {
+	color: #4ade80 !important;
+}
+html.ion-palette-dark .sidebar .nav-item.active {
+	background: #008744 !important;
+	color: #ffffff !important;
+}
+html.ion-palette-dark .sidebar .nav-item.active .nav-icon {
+	color: #ffffff !important;
+}

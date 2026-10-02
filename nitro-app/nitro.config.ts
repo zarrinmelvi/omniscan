@@ -12,7 +12,7 @@ export default defineNitroConfig({
 		tasks: true,
 	},
 	scheduledTasks: {
-		'0 8 * * *': ['notifications:check-expiring'],
+		'0 8 * * *': ['notifications:check-expiring', 'notifications:daily-summary'],
 	},
 	routeRules: {
 		'/api/**': {

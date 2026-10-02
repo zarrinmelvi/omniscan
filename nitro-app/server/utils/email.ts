@@ -454,3 +454,151 @@ function buildSystemErrorEmailHtml(details: { context: string; message: string }
 </body>
 </html>`
 }
+
+/**
+ * Send the admin a daily summary of newly flagged scans. Gated by the
+ * `dailySummaryReport` admin setting — if the toggle is off, nothing is sent.
+ * Defensive: never throws, always returns an EmailResult.
+ */
+export async function sendDailySummaryNotification(details: {
+	periodLabel: string
+	totalFlags: number
+	byStatus: { pending: number; approved: number; dismissed: number; other: number }
+	topFlags: { productName: string; flagReason: string; verdict: string | null }[]
+}): Promise<EmailResult> {
+	try {
+		const settings = await getAdminSettings()
+		if (!settings.dailySummaryReport) {
+			return { success: false, error: 'disabled' }
+		}
+
+		const recipient = await resolveAdminRecipient()
+		if (!recipient) {
+			console.warn('[email] Daily-summary notification skipped — no admin email configured.')
+			return { success: false, error: 'no admin email' }
+		}
+
+		const { error } = await resend.emails.send({
+			from: EMAIL_FROM,
+			to: recipient.email,
+			subject: `📊 Daily summary: ${details.totalFlags} new flag(s) — ${details.periodLabel}`,
+			html: buildDailySummaryEmailHtml(details),
+		})
+
+		if (error) {
+			console.error('[email] Resend API error (daily summary):', error)
+			return { success: false, error: error.message }
+		}
+
+		console.log(`[email] Daily-summary notification sent to ${recipient.email}`)
+		return { success: true }
+	} catch (err: any) {
+		console.error('[email] Failed to send daily-summary notification:', err)
+		return { success: false, error: err?.message ?? 'Unknown error' }
+	}
+}
+
+function buildDailySummaryEmailHtml(details: {
+	periodLabel: string
+	totalFlags: number
+	byStatus: { pending: number; approved: number; dismissed: number; other: number }
+	topFlags: { productName: string; flagReason: string; verdict: string | null }[]
+}): string {
+	const topFlagsRows =
+		details.topFlags.length > 0
+			? details.topFlags
+					.map(
+						(f) => `
+                <tr>
+                  <td style="padding:12px 0;border-bottom:1px solid #f0f0f0;">
+                    <p style="margin:0 0 4px;font-size:15px;font-weight:bold;color:#333333;">
+                      ${f.productName}${f.verdict ? ` <span style="font-size:12px;font-weight:normal;color:#777777;">(${f.verdict})</span>` : ''}
+                    </p>
+                    <p style="margin:0;font-size:14px;color:#666666;line-height:1.5;">${f.flagReason}</p>
+                  </td>
+                </tr>`
+					)
+					.join('')
+			: `
+                <tr>
+                  <td style="padding:12px 0;">
+                    <p style="margin:0;font-size:14px;color:#999999;">No new flags in this period. 🎉</p>
+                  </td>
+                </tr>`
+
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily summary: ${details.periodLabel}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+               style="background:#ffffff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:32px 40px;border-bottom:3px solid #1E88E5;text-align:center;">
+              <h1 style="margin:0;font-size:24px;color:#333333;">📊 Daily Summary Report</h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px;">
+              <p style="margin:0 0 8px;font-size:14px;color:#777777;">Period</p>
+              <p style="margin:0 0 20px;font-size:15px;color:#555555;">${details.periodLabel}</p>
+
+              <p style="margin:0 0 8px;font-size:14px;color:#777777;">New flags</p>
+              <p style="margin:0 0 24px;font-size:28px;font-weight:bold;color:#1E88E5;">${details.totalFlags}</p>
+
+              <p style="margin:0 0 8px;font-size:14px;color:#777777;">Status breakdown</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+                <tr>
+                  <td style="padding:8px 0;font-size:14px;color:#555555;">Pending</td>
+                  <td style="padding:8px 0;font-size:14px;font-weight:bold;color:#333333;text-align:right;">${details.byStatus.pending}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;font-size:14px;color:#555555;">Approved</td>
+                  <td style="padding:8px 0;font-size:14px;font-weight:bold;color:#333333;text-align:right;">${details.byStatus.approved}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;font-size:14px;color:#555555;">Dismissed</td>
+                  <td style="padding:8px 0;font-size:14px;font-weight:bold;color:#333333;text-align:right;">${details.byStatus.dismissed}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;font-size:14px;color:#555555;">Other</td>
+                  <td style="padding:8px 0;font-size:14px;font-weight:bold;color:#333333;text-align:right;">${details.byStatus.other}</td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 8px;font-size:14px;color:#777777;">Recent flags</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${topFlagsRows}
+              </table>
+
+              <p style="margin:24px 0 0;padding-top:24px;border-top:1px solid #eeeeee;font-size:13px;color:#999999;line-height:1.6;">
+                You are receiving this because "Daily Summary Report" is enabled in Admin Settings.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 40px;background-color:#f8f8f8;border-top:1px solid #eeeeee;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#aaaaaa;">
+                &copy; ${new Date().getFullYear()} OmniScan. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}

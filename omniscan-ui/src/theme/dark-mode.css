@@ -1610,3 +1610,19 @@ html.ion-palette-dark .health-icon.health-ok { background: #052e16 !important; c
 html.ion-palette-dark .health-icon.health-warn { background: #431407 !important; color: #fbbf24 !important; }
 html.ion-palette-dark .health-icon.health-bad { background: #450a0a !important; color: #f87171 !important; }
 html.ion-palette-dark .health-icon.health-neutral { background: var(--dm-bg-chip) !important; color: var(--dm-text-secondary) !important; }
+
+/* == Admin sidebar email + Settings notifications banner — dark mode == */
+html.ion-palette-dark .admin-email {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .notify-target {
+	background: #052e16 !important;
+	border-color: #15803d !important;
+	color: #86efac !important;
+}
+html.ion-palette-dark .notify-target svg {
+	color: #4ade80 !important;
+}
+html.ion-palette-dark .notify-target strong {
+	color: #bbf7d0 !important;
+}

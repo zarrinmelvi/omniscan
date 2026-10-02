@@ -26,8 +26,57 @@
 
 		<p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
-		<!-- OVERVIEW + API LATENCY TAB: chart -->
-		<div v-if="activeTab === 'overview' || activeTab === 'api-latency'" class="chart-card">
+		<!-- OVERVIEW TAB: System Health Summary -->
+		<div v-if="activeTab === 'overview'" class="health-summary">
+			<!-- API Latency status -->
+			<div class="health-card">
+				<div class="health-card-head">
+					<div class="health-icon" :class="latencyHealth.class">
+						<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+					</div>
+					<span class="health-title">API Latency</span>
+				</div>
+				<div class="health-status" :class="latencyHealth.class">{{ latencyHealth.label }}</div>
+				<div class="health-metrics">
+					<div class="health-metric"><span class="hm-value">{{ overview.avg_latency }}ms</span><span class="hm-label">avg</span></div>
+					<div class="health-metric"><span class="hm-value">{{ overview.p95_latency }}ms</span><span class="hm-label">p95</span></div>
+					<div class="health-metric"><span class="hm-value">{{ overview.peak_latency }}ms</span><span class="hm-label">peak</span></div>
+				</div>
+				<div class="health-foot">Target: &lt;{{ latencyTarget }}ms · {{ overview.total_requests.toLocaleString() }} total requests</div>
+			</div>
+
+			<!-- Database connection status -->
+			<div class="health-card">
+				<div class="health-card-head">
+					<div class="health-icon" :class="dbHealth.class">
+						<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+					</div>
+					<span class="health-title">Database</span>
+				</div>
+				<div class="health-status" :class="dbHealth.class">{{ overview.db_status }}</div>
+				<div class="health-foot">Neon PostgreSQL · Prisma ORM connection</div>
+			</div>
+
+			<!-- Recent alerts / warnings -->
+			<div class="health-card">
+				<div class="health-card-head">
+					<div class="health-icon" :class="alerts.length ? 'health-warn' : 'health-ok'">
+						<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+					</div>
+					<span class="health-title">System Alerts</span>
+				</div>
+				<div v-if="alerts.length === 0" class="health-status health-ok">All Clear</div>
+				<ul v-else class="health-alert-list">
+					<li v-for="(a, i) in alerts" :key="i" class="health-alert-item">
+						<span class="alert-dot" :class="a.level"></span>{{ a.message }}
+					</li>
+				</ul>
+				<div class="health-foot">{{ alerts.length }} active {{ alerts.length === 1 ? 'alert' : 'alerts' }}</div>
+			</div>
+		</div>
+
+		<!-- API LATENCY TAB: chart -->
+		<div v-if="activeTab === 'api-latency'" class="chart-card">
 			<div class="chart-header">
 				<h2>API Latency (ms)</h2>
 				<span class="chart-subtitle">Live · Target: &lt;{{ latencyTarget }}ms · p95: {{ overview.p95_latency }}ms</span>
@@ -217,6 +266,41 @@ const latencySeries = computed<SeriesPoint[]>(() => data.value?.latency_series ?
 const latencyTarget = computed(() => data.value?.latency_target_ms ?? 300)
 const peakAlert = computed(() => overview.value.peak_latency > latencyTarget.value)
 
+// --- Overview health summary ---
+const latencyHealth = computed<{ label: string; class: string }>(() => {
+	const avg = overview.value.avg_latency
+	const target = latencyTarget.value
+	if (avg === 0 && overview.value.total_requests === 0) return { label: 'No Data', class: 'health-neutral' }
+	if (avg >= target) return { label: 'Degraded', class: 'health-bad' }
+	if (avg >= target * 0.66) return { label: 'Elevated', class: 'health-warn' }
+	return { label: 'Healthy', class: 'health-ok' }
+})
+
+const dbHealth = computed<{ class: string }>(() => {
+	const s = overview.value.db_status
+	if (s === 'NOMINAL') return { class: 'health-ok' }
+	if (s === 'SLOW') return { class: 'health-warn' }
+	if (s === 'DOWN') return { class: 'health-bad' }
+	return { class: 'health-neutral' }
+})
+
+const alerts = computed<{ level: 'warn' | 'error'; message: string }[]>(() => {
+	const out: { level: 'warn' | 'error'; message: string }[] = []
+	if (peakAlert.value) {
+		out.push({ level: 'warn', message: `Peak latency ${overview.value.peak_latency}ms exceeded the ${latencyTarget.value}ms target.` })
+	}
+	if (overview.value.db_status === 'SLOW') {
+		out.push({ level: 'warn', message: 'Database responding slower than normal.' })
+	}
+	if (overview.value.db_status === 'DOWN') {
+		out.push({ level: 'error', message: 'Database connection is down.' })
+	}
+	if (errorMessage.value) {
+		out.push({ level: 'error', message: errorMessage.value })
+	}
+	return out
+})
+
 const dbStatusClass = computed(() => {
 	const s = overview.value.db_status
 	if (s === 'NOMINAL') return 'green-text'
@@ -356,8 +440,8 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
 .tabs-bar { display: flex; gap: 8px; margin-bottom: 24px; }
-.tab-btn { padding: 8px 18px; border-radius: 8px; border: none; background: transparent; color: #64748b; font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: all 0.15s ease; }
-.tab-btn:hover { color: #0f172a; }
+.tab-btn { padding: 8px 18px; border-radius: 8px; border: 1px solid #e2e8f0; background: #ffffff; color: #334155; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease; }
+.tab-btn:hover:not(.active) { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
 .tab-btn.active { background: #008744; color: #ffffff; font-weight: 600; border-color: #008744; }
 
 .error-message { padding: 14px 18px; margin-bottom: 20px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 0.85rem; }
@@ -451,4 +535,105 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 	font-weight: 600;
 }
 .fstatus-recorded  { background: #f1f5f9; color: #475569; }
+
+/* Overview — System Health Summary */
+.health-summary {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 16px;
+	margin-bottom: 24px;
+}
+.health-card {
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+.health-card-head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.health-icon {
+	width: 36px;
+	height: 36px;
+	border-radius: 9px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+.health-title {
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: #1e293b;
+}
+.health-status {
+	font-size: 1.35rem;
+	font-weight: 700;
+	line-height: 1.1;
+}
+.health-ok { background: #dcfce7; color: #16a34a; }
+.health-warn { background: #fef9c3; color: #a16207; }
+.health-bad { background: #fee2e2; color: #dc2626; }
+.health-neutral { background: #f1f5f9; color: #64748b; }
+/* status text uses only the color, not the chip background */
+.health-status.health-ok { background: transparent; color: #16a34a; }
+.health-status.health-warn { background: transparent; color: #a16207; }
+.health-status.health-bad { background: transparent; color: #dc2626; }
+.health-status.health-neutral { background: transparent; color: #64748b; }
+.health-metrics {
+	display: flex;
+	gap: 18px;
+}
+.health-metric {
+	display: flex;
+	flex-direction: column;
+}
+.hm-value {
+	font-size: 1rem;
+	font-weight: 700;
+	color: #0f172a;
+	line-height: 1.1;
+}
+.hm-label {
+	font-size: 0.7rem;
+	color: #94a3b8;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+.health-foot {
+	font-size: 0.74rem;
+	color: #94a3b8;
+	margin-top: auto;
+}
+.health-alert-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.health-alert-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	font-size: 0.82rem;
+	color: #475569;
+	line-height: 1.4;
+}
+.alert-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-top: 6px;
+	flex-shrink: 0;
+}
+.alert-dot.warn { background: #d97706; }
+.alert-dot.error { background: #dc2626; }
 </style>

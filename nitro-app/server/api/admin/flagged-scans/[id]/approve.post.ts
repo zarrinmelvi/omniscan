@@ -25,9 +25,23 @@ export default defineEventHandler(async (event) => {
 		}
 
 		if (body?.halal_logo_id && flaggedScan.scan?.product_id) {
+			const productId = flaggedScan.scan.product_id
+			const halalLogoId = body.halal_logo_id
+
+			// Keep the legacy scalar FK for backward compatibility…
 			await prisma.product.update({
-				where: { id: flaggedScan.scan.product_id },
-				data: { halal_logo_id: body.halal_logo_id },
+				where: { id: productId },
+				data: { halal_logo_id: halalLogoId },
+			})
+
+			// …and record it in the ProductHalalLogo join table, which is the
+			// source of truth the user-facing pantry/scan views read certifier
+			// names from. Upsert on the @@unique([product_id, halal_logo_id]);
+			// clear any soft-delete so a re-approval re-activates the link.
+			await prisma.productHalalLogo.upsert({
+				where: { product_id_halal_logo_id: { product_id: productId, halal_logo_id: halalLogoId } },
+				update: { deleted_at: null },
+				create: { product_id: productId, halal_logo_id: halalLogoId },
 			})
 		}
 

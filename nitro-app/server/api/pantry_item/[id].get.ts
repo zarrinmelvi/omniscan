@@ -84,10 +84,24 @@ export default defineEventHandler(async (event) => {
 		const matchedUserAllergens = mergeMatchedAllergens(stringMatches, semanticMatches)
 
 		const halalLinks = await prisma.productHalalLogo.findMany({
-			where: { product_id: item.product.id },
+			where: { product_id: item.product.id, deleted_at: null },
 			select: { halal_logo: { select: { certifier: true } } },
 		})
-		const halal_certifiers = halalLinks.map((l) => l.halal_logo.certifier)
+		let halal_certifiers = halalLinks.map((l) => l.halal_logo.certifier)
+
+		// Fallback: older corrections (and the admin approve flow) set the legacy
+		// scalar Product.halal_logo_id without a join-table row. If the join table
+		// yielded nothing but the scalar FK is set, resolve the certifier from it
+		// so the user still sees which body certified the product.
+		if (halal_certifiers.length === 0 && item.product.halal_logo_id) {
+			const legacyLogo = await prisma.halalLogo.findUnique({
+				where: { id: item.product.halal_logo_id },
+				select: { certifier: true },
+			})
+			if (legacyLogo?.certifier) {
+				halal_certifiers = [legacyLogo.certifier]
+			}
+		}
 
 		const userWithProfile = await prisma.user.findUnique({
 			where: { id: authUser.id },

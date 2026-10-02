@@ -83,11 +83,8 @@
 		</aside>
 
 		<!-- Logout confirmation -->
-		<ConfirmDeleteModal
+		<ConfirmLogoutModal
 			:open="showLogoutConfirm"
-			title="Sign out?"
-			message="You'll be returned to the login page. Any unsaved changes will be lost."
-			confirm-label="Sign Out"
 			@cancel="cancelLogout"
 			@confirm="confirmLogout"
 		/>
@@ -114,7 +111,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
-import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal.vue'
+import ConfirmLogoutModal from '@/components/admin/ConfirmLogoutModal.vue'
 
 const adminAuthStore = useAdminAuthStore()
 const router = useRouter()

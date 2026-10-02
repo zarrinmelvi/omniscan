@@ -2,6 +2,7 @@ import { defineEventHandler, getQuery, createError } from 'h3'
 import { requireAuth } from '../../utils/requireAuth'
 import { OLLAMA_ENDPOINT, GENERATION_MODEL } from '../../lib/ollama-models'
 import { stripCodeFences } from '../../lib/ai-json'
+import { webSearchAlternatives } from '../../lib/web-search-fallback'
 
 export default defineEventHandler(async (event) => {
 	requireAuth(event)
@@ -10,6 +11,7 @@ export default defineEventHandler(async (event) => {
 	const product_name = String(query.product_name ?? '').trim()
 	const brand_name = String(query.brand_name ?? '').trim()
 	const user_allergens = String(query.user_allergens ?? '').trim()
+	const halal_pref = String(query.halal_pref ?? '').trim() === 'true'
 
 	if (!product_name) {
 		throw createError({ statusCode: 400, statusMessage: 'product_name is required.' })
@@ -40,13 +42,13 @@ export default defineEventHandler(async (event) => {
 		})
 
 		const raw = response?.message?.content
-		if (!raw) return { suggestions: [] }
+		if (!raw) return { suggestions: [], source: 'ai', web_alternatives: [], sources: [] }
 
 		let parsed: unknown
 		try {
 			parsed = JSON.parse(stripCodeFences(raw))
 		} catch {
-			return { suggestions: [] }
+			return { suggestions: [], source: 'ai', web_alternatives: [], sources: [] }
 		}
 
 		const arr = Array.isArray(parsed) ? parsed : []
@@ -59,7 +61,25 @@ export default defineEventHandler(async (event) => {
 			}))
 			.filter((s) => s.product_name.trim())
 
-		return { suggestions }
+		if (suggestions.length > 0) {
+			return { suggestions, source: 'ai', web_alternatives: [], sources: [] }
+		}
+
+		// Local/model scope miss — fall back to a live web search and return
+		// strictly-formatted structured alternatives.
+		const { alternatives, sources } = await webSearchAlternatives({
+			productName: product_name,
+			brandName: brand_name,
+			userAllergens: allergenList,
+			halalPref: halal_pref,
+		})
+
+		return {
+			suggestions,
+			source: alternatives.length > 0 ? 'web' : 'ai',
+			web_alternatives: alternatives,
+			sources,
+		}
 	} catch (err: any) {
 		if (err?.statusCode) throw err
 		throw createError({ statusCode: 502, statusMessage: 'Could not reach AI service for alternatives.' })

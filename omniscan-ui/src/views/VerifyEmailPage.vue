@@ -114,7 +114,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import {
 	checkmarkCircleOutline,
@@ -129,7 +129,6 @@ const TOKEN_KEY = 'omniscan_token'
 type VerifyState = 'loading' | 'success' | 'already-verified' | 'expired' | 'error'
 
 const route = useRoute()
-const router = useRouter()
 
 const state = ref<VerifyState>('loading')
 const errorMessage = ref('')
@@ -148,7 +147,7 @@ function startRedirect() {
 		redirectCountdown.value--
 		if (redirectCountdown.value <= 0) {
 			clearInterval(redirectTimer!)
-			window.location.href = '/register?step=2'
+			goToSetup()
 		}
 	}, 1000)
 }
@@ -174,14 +173,15 @@ async function verifyToken() {
 	}
 
 	try {
-		const result = await apiFetch<{ token: string | null; user: { id: number; name: string; email: string } }>(`/api/auth/verify/${token}`, {
+		const result = await apiFetch<{ success: boolean; token: string; user: { id: number; name: string; email: string } }>(`/api/auth/verify/${token}`, {
 			method: 'GET',
 			skipAuth: true,
 		})
-		// Auto-login: store JWT so user lands on dietary prefs already authenticated
+
 		if (result.token) {
 			localStorage.setItem(TOKEN_KEY, result.token)
 		}
+
 		state.value = 'success'
 		startRedirect()
 	} catch (err) {
@@ -490,6 +490,3 @@ onUnmounted(() => {
 	}
 }
 </style>
-
-
-

@@ -9,145 +9,145 @@
 					</div>
 				</aside>
 				<div class="auth-card">
-				<!-- Back button shown ONLY on Step 1 -->
-				<button v-if="step === 1" class="back-button" @click="handleBack">
-					<ion-icon :icon="chevronBackOutline" />
-				</button>
+					<!-- Back button shown ONLY on Step 1 -->
+					<button v-if="step === 1" class="back-button" @click="handleBack">
+						<ion-icon :icon="chevronBackOutline" />
+					</button>
 
-				<div class="progress-bar">
-					<div class="progress-segment" :class="{ 'progress-segment--filled': step >= 1 }"></div>
-					<div class="progress-segment" :class="{ 'progress-segment--filled': step >= 2 }"></div>
-				</div>
-				<p v-if="step === 1" class="step-label">Step 1 of 2</p>
-				<p v-else class="step-label step-label--accent">Step 2 of 2</p>
+					<div class="progress-bar">
+						<div class="progress-segment" :class="{ 'progress-segment--filled': step >= 1 }"></div>
+						<div class="progress-segment" :class="{ 'progress-segment--filled': step >= 2 }"></div>
+					</div>
+					<p v-if="step === 1" class="step-label">Step 1 of 2</p>
+					<p v-else class="step-label step-label--accent">Step 2 of 2</p>
 
-				<!-- STEP 1: Create Account -->
-				<template v-if="step === 1">
-					<span class="brand-label">OmniScan</span>
-					<h1 class="auth-title">Create Account</h1>
-					<p class="auth-subtitle">Let's get started with your smart pantry</p>
+					<!-- STEP 1: Create Account -->
+					<template v-if="step === 1">
+						<span class="brand-label">OmniScan</span>
+						<h1 class="auth-title">Create Account</h1>
+						<p class="auth-subtitle">Let's get started with your smart pantry</p>
 
-					<div v-if="errorMessage" class="form-error">{{ errorMessage }}</div>
+						<div v-if="errorMessage" class="form-error">{{ errorMessage }}</div>
 
-					<form @submit.prevent="handleRegister">
-						<div class="form-group">
-							<label class="input-label">Full Name</label>
-							<div class="custom-input-wrapper">
-								<input
-									v-model="name"
-									type="text"
-									placeholder="Enter your name"
-									class="custom-input"
-									:class="{ 'input-error': fieldErrors.name }"
-									@input="clearFieldError('name')" />
+						<form @submit.prevent="handleRegister">
+							<div class="form-group">
+								<label class="input-label">Full Name</label>
+								<div class="custom-input-wrapper">
+									<input
+										v-model="name"
+										type="text"
+										placeholder="Enter your name"
+										class="custom-input"
+										:class="{ 'input-error': fieldErrors.name }"
+										@input="clearFieldError('name')" />
+								</div>
 							</div>
+
+							<div class="form-group">
+								<label class="input-label">Email Address</label>
+								<div class="custom-input-wrapper">
+									<input
+										v-model="email"
+										type="text"
+										placeholder="your@email.com"
+										class="custom-input"
+										:class="{ 'input-error': fieldErrors.email }"
+										@input="clearFieldError('email')" />
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="input-label">Password</label>
+								<div class="custom-input-wrapper">
+									<input
+										v-model="password"
+										:type="showPassword ? 'text' : 'password'"
+										placeholder="Create a password"
+										class="custom-input"
+										:class="{ 'input-error': fieldErrors.password }"
+										@input="clearFieldError('password')" />
+									<ion-icon
+										:icon="showPassword ? eyeOffOutline : eyeOutline"
+										class="password-toggle"
+										@click="showPassword = !showPassword" />
+								</div>
+								<p class="hint-text">Min. 8 chars, 1 uppercase, 1 number, 1 special character</p>
+							</div>
+
+							<div class="form-group">
+								<label class="input-label">Confirm Password</label>
+								<div class="custom-input-wrapper">
+									<input
+										v-model="confirmPassword"
+										:type="showPassword ? 'text' : 'password'"
+										placeholder="Re-enter your password"
+										class="custom-input"
+										:class="{ 'input-error': fieldErrors.confirmPassword }"
+										@input="clearFieldError('confirmPassword')" />
+								</div>
+							</div>
+
+							<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
+								{{ isSubmitting ? 'Creating account...' : 'Continue' }}
+							</ion-button>
+						</form>
+
+						<p class="switch-auth">
+							Already have an account?
+							<router-link to="/login" class="switch-link">Sign In</router-link>
+						</p>
+					</template>
+
+					<!-- STEP 2: Dietary Preferences -->
+					<template v-else>
+						<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! 🎉' : 'Almost There!' }}</span>
+						<h1 class="auth-title">Allergens / Allergy List</h1>
+						<p class="auth-subtitle">{{ route.query.step === '2' ? 'Your account is active. Now personalise your experience:' : 'Select your allergens / allergy list so we can help you make better choices' }}</p>
+
+						<div v-if="isLoadingAllergens" class="state-block">
+							<ion-spinner name="crescent" />
 						</div>
 
-						<div class="form-group">
-							<label class="input-label">Email Address</label>
-							<div class="custom-input-wrapper">
-								<input
-									v-model="email"
-									type="text"
-									placeholder="your@email.com"
-									class="custom-input"
-									:class="{ 'input-error': fieldErrors.email }"
-									@input="clearFieldError('email')" />
-							</div>
+						<div v-else-if="allergensLoadError" class="inline-error">
+							<ion-icon :icon="alertCircleOutline" color="danger" />
+							<span>{{ allergensLoadError }}</span>
+							<ion-button size="small" fill="clear" @click="fetchAllergenCatalog">Retry</ion-button>
 						</div>
 
-						<div class="form-group">
-							<label class="input-label">Password</label>
-							<div class="custom-input-wrapper">
-								<input
-									v-model="password"
-									:type="showPassword ? 'text' : 'password'"
-									placeholder="Create a password"
-									class="custom-input"
-									:class="{ 'input-error': fieldErrors.password }"
-									@input="clearFieldError('password')" />
-								<ion-icon
-									:icon="showPassword ? eyeOffOutline : eyeOutline"
-									class="password-toggle"
-									@click="showPassword = !showPassword" />
-							</div>
-							<p class="hint-text">Min. 8 chars, 1 uppercase, 1 number, 1 special character</p>
+						<div v-else class="pref-grid">
+							<button
+								type="button"
+								class="pref-card"
+								:class="{ 'pref-card--selected': halalSelected }"
+								@click="toggleHalal()">
+								<span class="pref-emoji">🕌</span>
+								<span class="pref-label">Halal</span>
+							</button>
+
+							<button
+								v-for="allergen in allergenCatalog"
+								:key="allergen.id"
+								type="button"
+								class="pref-card"
+								:class="{ 'pref-card--selected': selectedAllergenIds.includes(allergen.id) }"
+								@click="toggleAllergen(allergen.id)">
+								<span class="pref-emoji">{{ emojiForAllergen(allergen.name) }}</span>
+								<span class="pref-label">{{ formatAllergenName(allergen.name) }}</span>
+							</button>
 						</div>
 
-						<div class="form-group">
-							<label class="input-label">Confirm Password</label>
-							<div class="custom-input-wrapper">
-								<input
-									v-model="confirmPassword"
-									:type="showPassword ? 'text' : 'password'"
-									placeholder="Re-enter your password"
-									class="custom-input"
-									:class="{ 'input-error': fieldErrors.confirmPassword }"
-									@input="clearFieldError('confirmPassword')" />
-							</div>
-						</div>
+						<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 allergens / allergies.</p>
 
-						<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
-							{{ isSubmitting ? 'Creating account...' : 'Continue' }}
+						<div v-if="prefsError" class="form-error">{{ prefsError }}</div>
+
+						<div v-if="setupError" class="form-error">{{ setupError }}</div>
+
+						<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs" @click="completeSetup">
+							{{ isSavingPrefs ? 'Saving...' : 'Complete Setup' }}
 						</ion-button>
-					</form>
 
-					<p class="switch-auth">
-						Already have an account?
-						<router-link to="/login" class="switch-link">Sign In</router-link>
-					</p>
-				</template>
-
-				<!-- STEP 2: Dietary Preferences -->
-				<template v-else>
-				<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! 🎉' : 'Almost There!' }}</span>
-					<h1 class="auth-title">Allergens / Allergy List</h1>
-				<p class="auth-subtitle">{{ route.query.step === '2' ? 'Your account is active. Now personalise your experience:' : 'Select your allergens / allergy list so we can help you make better choices' }}</p>
-
-					<div v-if="isLoadingAllergens" class="state-block">
-						<ion-spinner name="crescent" />
-					</div>
-
-					<div v-else-if="allergensLoadError" class="inline-error">
-						<ion-icon :icon="alertCircleOutline" color="danger" />
-						<span>{{ allergensLoadError }}</span>
-						<ion-button size="small" fill="clear" @click="fetchAllergenCatalog">Retry</ion-button>
-					</div>
-
-					<div v-else class="pref-grid">
-						<button
-							type="button"
-							class="pref-card"
-							:class="{ 'pref-card--selected': halalSelected }"
-							@click="toggleHalal()">
-							<span class="pref-emoji">🕌</span>
-							<span class="pref-label">Halal</span>
-						</button>
-
-						<button
-							v-for="allergen in allergenCatalog"
-							:key="allergen.id"
-							type="button"
-							class="pref-card"
-							:class="{ 'pref-card--selected': selectedAllergenIds.includes(allergen.id) }"
-							@click="toggleAllergen(allergen.id)">
-							<span class="pref-emoji">{{ emojiForAllergen(allergen.name) }}</span>
-							<span class="pref-label">{{ formatAllergenName(allergen.name) }}</span>
-						</button>
-					</div>
-
-					<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 allergens / allergies.</p>
-
-					<div v-if="prefsError" class="form-error">{{ prefsError }}</div>
-
-				<div v-if="setupError" class="form-error">{{ setupError }}</div>
-
-				<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs" @click="completeSetup">
-						{{ isSavingPrefs ? 'Saving...' : 'Complete Setup' }}
-					</ion-button>
-
-					<button type="button" class="skip-link" :disabled="isSavingPrefs" @click="skipForNow">Skip for now</button>
-				</template>
+						<button type="button" class="skip-link" :disabled="isSavingPrefs" @click="skipForNow">Skip for now</button>
+					</template>
 				</div>
 			</div>
 		</ion-content>
@@ -203,102 +203,57 @@
 
 					<h4>4. Food Scanning and AI Analysis</h4>
 					<p>OmniScan may analyze uploaded or scanned food product images using OCR, computer vision, artificial intelligence, and reference databases.</p>
-					<p>The results provided by OmniScan may include:</p>
-					<ul>
-						<li>Ingredient information;</li>
-						<li>Simplified ingredient explanations;</li>
-						<li>Potential allergen warnings;</li>
-						<li>Halal-related information;</li>
-						<li>Dietary suitability indicators;</li>
-						<li>Safety alerts; and</li>
-						<li>Alternative product recommendations.</li>
-					</ul>
-					<p>The color-coded results may be presented as:</p>
-					<ul>
-						<li><strong>Green</strong> – Safe</li>
-						<li><strong>Yellow</strong> – Caution</li>
-						<li><strong>Red</strong> – Unsafe/Unsuitable</li>
-					</ul>
-					<p>These results are intended only as informational and decision-support guidance.</p>
 
 					<h4>5. Food Safety Disclaimer</h4>
 					<p>OmniScan does not guarantee that a food product is completely safe, allergen-free, Halal-certified, or suitable for a particular individual.</p>
-					<p>Users must always verify the original product packaging, ingredient list, allergen statements, certification information, expiration or best-before dates, and other relevant product information before purchasing or consuming a food product.</p>
-					<p>OmniScan should not be used as the sole basis for making decisions involving food allergies, severe dietary restrictions, medical conditions, or religious dietary requirements.</p>
-					<p>If you have a serious food allergy or other health-related dietary concern, consult an appropriate qualified healthcare or dietary professional.</p>
 
 					<h4>6. Limitations of Detection</h4>
 					<p>OmniScan's detection and analysis capabilities are subject to the information available to the System.</p>
-					<p>The System may not detect:</p>
-					<ul>
-						<li>Rare or newly identified allergens;</li>
-						<li>Allergens not included in its reference database;</li>
-						<li>All international Halal certifications;</li>
-						<li>Newly released products not yet included in the product database;</li>
-						<li>Products with unclear, damaged, missing, or unreadable labels;</li>
-						<li>Products with unclear or absent Halal logos; or</li>
-						<li>Ingredients whose composition cannot be reliably determined from the available information.</li>
-					</ul>
-					<p>The accuracy of scanning may also be affected by image quality, packaging design, text readability, lighting, print resolution, and completeness of the product label.</p>
 
 					<h4>7. Halal Verification</h4>
 					<p>OmniScan may identify selected Halal certification logos and analyze ingredient information related to Halal compliance.</p>
-					<p>However, OmniScan does not represent itself as an official Halal certification authority.</p>
-					<p>The absence of a recognized Halal logo or an "unverified" result does not necessarily mean that a product is non-Halal, while the detection of a logo does not independently guarantee the current validity of a certification.</p>
-					<p>Users should verify certification information through the appropriate recognized Halal certification authority when necessary.</p>
 
 					<h4>8. Pantry Management and Expiration Dates</h4>
 					<p>OmniScan provides a digital pantry feature that allows users to store information about food products and monitor expiration or best-before dates.</p>
-					<p>Users are responsible for accurately entering product information, expiration dates, best-before dates, product quantities, portion sizes, and other required pantry information.</p>
-					<p>OmniScan provides reminders based on the information entered into the System. The Application does not guarantee that expiration dates are automatically or accurately identified from every product. Users are responsible for checking the actual date printed on the product packaging.</p>
-					<p>Users should also update their pantry inventory when products are consumed, removed, discarded, or otherwise no longer available.</p>
 
 					<h4>9. Recipe Recommendations</h4>
 					<p>OmniScan may generate recipe suggestions based on available pantry ingredients and the user's dietary profile.</p>
-					<p>Recipe recommendations may include suggested ingredients, quantities, portions, and preparation suggestions. AI-generated recipes are provided for informational and convenience purposes only.</p>
-					<p>Users are responsible for verifying ingredient suitability, allergen information, Halal compliance, food freshness, proper food handling, cooking requirements, and appropriate ingredient quantities.</p>
-					<p>Users should not rely solely on an AI-generated recipe to determine whether a meal is safe or suitable for them.</p>
 
 					<h4>10. User-Uploaded Images and Information</h4>
 					<p>Users may upload photographs of food products and related information for analysis.</p>
-					<p>Users agree to upload only images and information that they have the right to submit and that are relevant to the intended use of OmniScan. Users should avoid uploading unnecessary personal, confidential, or sensitive information.</p>
-					<p>OmniScan may process uploaded images and information to provide the System's scanning, analysis, and recommendation features.</p>
 
 					<h4>11. Notifications and Reminders</h4>
 					<p>OmniScan may send notifications regarding food items approaching their expiration dates, dietary warnings, recipe suggestions, account inactivity, and other system-related activities.</p>
-					<p>Notifications are provided as reminders and may not always be received, displayed, or delivered on time due to device settings, connectivity issues, system interruptions, or other technical circumstances.</p>
 
 					<h4>12. Account Inactivity and Deletion</h4>
-					<p>OmniScan may monitor account activity for system administration purposes.</p>
 					<p>An account that remains inactive for six (6) months may receive an email notification informing the user that the account is scheduled for deletion.</p>
-					<p>If the account remains inactive for one (1) additional week after the notification, the account may be permanently deleted in accordance with the System's account-management procedures.</p>
 
 					<h4>13. Acceptable Use</h4>
-					<p>Users agree not to use OmniScan for unlawful purposes, attempt unauthorized access, disrupt System operations, upload malicious files, or misuse features. Violation of these Terms may result in suspension or termination of access.</p>
+					<p>Users agree not to use OmniScan for unlawful purposes, attempt unauthorized access, disrupt System operations, upload malicious files, or misuse features.</p>
 
 					<h4>14. System Availability</h4>
-					<p>The developers aim to maintain OmniScan's availability; however, continuous or uninterrupted access is not guaranteed due to updates, server issues, or technical circumstances beyond control.</p>
+					<p>The developers aim to maintain OmniScan's availability; however, continuous or uninterrupted access is not guaranteed.</p>
 
 					<h4>15. Accuracy of Information</h4>
-					<p>While reasonable efforts are made, OmniScan does not guarantee that all information, analyses, classifications, recommendations, or alerts will always be complete, accurate, or current. Product packaging and formulations change over time.</p>
+					<p>While reasonable efforts are made, OmniScan does not guarantee that all information, analyses, classifications, recommendations, or alerts will always be complete, accurate, or current.</p>
 
 					<h4>16. Intellectual Property</h4>
-					<p>The OmniScan name, system design, user interface, software components, documentation, logos, and original materials belong to their respective owners. Unauthorized copying or reproduction is prohibited.</p>
+					<p>The OmniScan name, system design, user interface, software components, documentation, logos, and original materials belong to their respective owners.</p>
 
 					<h4>17. Third-Party Services and Data Sources</h4>
-					<p>OmniScan may rely on third-party technologies, services, or databases. Their availability and accuracy are outside the direct control of the development team.</p>
+					<p>OmniScan may rely on third-party technologies, services, or databases.</p>
 
 					<h4>18. Limitation of Liability</h4>
-					<p>To the extent permitted by law, the OmniScan development team shall not be responsible for losses, damages, injuries, dietary reactions, or food-related incidents resulting from reliance solely on outputs provided by the Application.</p>
+					<p>To the extent permitted by law, the OmniScan development team shall not be responsible for losses, damages, injuries, dietary reactions, or food-related incidents.</p>
 
 					<h4>19. User Responsibility</h4>
 					<p>By using OmniScan, users acknowledge that they remain responsible for their own food purchasing, preparation, storage, consumption, and dietary decisions.</p>
 
 					<h4>20. Privacy and Personal Information</h4>
-					<p>OmniScan may collect information necessary to provide its features. Personal information is collected, stored, and processed in accordance with applicable data protection requirements.</p>
+					<p>Personal information is collected, stored, and processed in accordance with applicable data protection requirements.</p>
 
 					<h4>21. Changes to These Terms</h4>
-					<p>The development team may update or modify these Terms when necessary. Continued use of OmniScan after updated Terms become effective constitutes acknowledgment of the revised Terms.</p>
+					<p>The development team may update or modify these Terms when necessary.</p>
 
 					<h4>22. Termination of Access</h4>
 					<p>Access may be suspended or terminated if a user violates these Terms or engages in harmful activity.</p>
@@ -332,10 +287,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, toastController } from '@ionic/vue'
-import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, closeOutline } from 'ionicons/icons'
+import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError } from '@/utils/api'
 
@@ -346,6 +301,17 @@ const authStore = useAuthStore()
 const PREF_MAX = 5
 
 const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)
+
+watch(
+	() => route.query.step,
+	async (newStep) => {
+		if (newStep === '2') {
+			step.value = 2
+			await authStore.checkAuth()
+			fetchAllergenCatalog()
+		}
+	}
+)
 
 // Step 1 — account creation
 const name = ref('')
@@ -505,13 +471,11 @@ async function acceptTerms(): Promise<void> {
 	try {
 		const response = await authStore.register(name.value.trim(), email.value, password.value)
 
-		// Backend now requires email verification before login — redirect to check-email page
 		if (response.requiresVerification) {
 			router.push({ path: '/check-email', query: { email: email.value } })
 			return
 		}
 
-		// Fallback for grandfathered or already-verified accounts (should not happen on new registrations)
 		await authStore.login(email.value, password.value)
 		await showToast('Account created successfully!', 'success')
 		step.value = 2
@@ -519,7 +483,6 @@ async function acceptTerms(): Promise<void> {
 	} catch (err) {
 		if (err instanceof ApiError) {
 			if (err.status === 429) {
-				// Unverified account exists — cooldown active, redirect to check-email
 				router.push({ path: '/check-email', query: { email: email.value } })
 			} else {
 				errorMessage.value = err.message
@@ -582,8 +545,9 @@ async function completeSetup(): Promise<void> {
 	isSavingPrefs.value = true
 	prefsError.value = ''
 	setupError.value = ''
+
 	if (prefTotal.value === 0) {
-		setupError.value = 'Please select at least one allergen / allergy before completing setup.'
+		setupError.value = 'Please select at least one allergen / allergy before completing setup or click "Skip for now".'
 		isSavingPrefs.value = false
 		return
 	}
@@ -614,11 +578,9 @@ function skipForNow(): void {
 	setupError.value = ''
 	window.location.href = '/tabs/home'
 }
+
 onMounted(async () => {
 	if (step.value === 2) {
-		// Restore JWT from localStorage into the auth store before making any API calls.
-		// This is needed when arriving from the email verification flow, where VerifyEmailPage
-		// stores the token directly in localStorage but the Pinia store hasn't loaded it yet.
 		await authStore.checkAuth()
 		fetchAllergenCatalog()
 	}
@@ -743,7 +705,7 @@ onMounted(async () => {
 	border: 1px solid #e5e7eb;
 	border-radius: 12px;
 	padding: 0 14px;
-	font-size: 16px; /* keep >=16px to avoid iOS zoom on focus */
+	font-size: 16px;
 	color: #111827;
 	outline: none;
 	background: #ffffff;
@@ -805,20 +767,6 @@ onMounted(async () => {
 	font-weight: 600;
 	text-decoration: none;
 	margin-left: 2px;
-}
-
-.legal-text {
-	color: #6b7280;
-	font-size: 0.72rem;
-	line-height: 1.4;
-	text-align: center;
-	margin-top: 32px;
-}
-
-.legal-text a {
-	color: #05c450;
-	font-weight: 600;
-	text-decoration: none;
 }
 
 .form-error {
@@ -901,55 +849,6 @@ onMounted(async () => {
 	margin: -12px 0 12px;
 }
 
-.terms-row {
-	margin-top: 20px;
-	margin-bottom: 4px;
-}
-
-.terms-label {
-	display: flex;
-	align-items: flex-start;
-	gap: 10px;
-	font-size: 0.85rem;
-	color: var(--ion-text-color, #374151);
-	cursor: pointer;
-	line-height: 1.4;
-}
-
-.terms-label--error .terms-checkbox {
-	outline: 2px solid #ef4444;
-	outline-offset: 1px;
-}
-
-.terms-checkbox {
-	width: 18px;
-	height: 18px;
-	border-radius: 4px;
-	border: 1px solid var(--ion-color-medium, #9ca3af);
-	accent-color: #05c450;
-	cursor: default;
-	pointer-events: none;
-	flex-shrink: 0;
-	margin-top: 1px;
-}
-
-.terms-link {
-	background: none;
-	border: none;
-	padding: 0;
-	color: #05c450;
-	font-weight: 600;
-	font-size: inherit;
-	cursor: pointer;
-	text-decoration: underline;
-}
-
-.terms-error-msg {
-	color: #ef4444;
-	font-size: 0.78rem;
-	margin: 6px 0 0 28px;
-}
-
 .terms-sheet-modal {
 	--height: 85%;
 	--border-radius: 20px 20px 0 0;
@@ -974,12 +873,6 @@ onMounted(async () => {
 	margin: 0;
 }
 
-.terms-modal-close-btn {
-	--color: var(--ion-color-medium, #6b7280);
-	--padding-start: 0;
-	--padding-end: 0;
-}
-
 .terms-modal-content {
 	--background: var(--ion-background-color, #ffffff);
 }
@@ -995,7 +888,6 @@ onMounted(async () => {
 	font-weight: 500;
 }
 
-.terms-modal-body h3,
 .terms-modal-body h4 {
 	font-size: 0.88rem;
 	font-weight: 700;
@@ -1020,17 +912,6 @@ onMounted(async () => {
 	line-height: 1.4;
 	color: #334155;
 	margin-bottom: 4px;
-}
-
-.terms-accept-btn {
-	--background: #05c450;
-	--background-activated: #04ab45;
-	--border-radius: 9999px;
-	--color: #ffffff;
-	font-weight: 600;
-	height: 48px;
-	text-transform: none;
-	margin-top: 32px;
 }
 
 .terms-action-row {
@@ -1059,7 +940,7 @@ onMounted(async () => {
 	text-transform: none;
 }
 
-/* TABLET (>=768px): roomier vertically centered card */
+/* TABLET (>=768px) */
 @media (min-width: 768px) {
 	.auth-layout {
 		display: flex;
@@ -1075,7 +956,7 @@ onMounted(async () => {
 	}
 }
 
-/* DESKTOP (>=1024px): two-panel split layout */
+/* DESKTOP (>=1024px) */
 @media (min-width: 1024px) {
 	.auth-layout {
 		display: grid;
@@ -1123,7 +1004,6 @@ onMounted(async () => {
 		padding: 48px 64px;
 	}
 
-	/* Constrain the actual form column width and center it in the right panel */
 	.auth-card > * {
 		width: 100%;
 		max-width: 440px;
@@ -1131,16 +1011,12 @@ onMounted(async () => {
 		margin-right: auto;
 	}
 
-	/* The brand panel replaces the need for the mobile back button */
 	.auth-card .back-button {
 		display: none;
 	}
 
-	/* Extra room on desktop: pref grid becomes 3 columns */
 	.pref-grid {
 		grid-template-columns: repeat(3, 1fr);
 	}
 }
 </style>
-
-

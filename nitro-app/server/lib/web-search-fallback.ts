@@ -35,13 +35,17 @@ export async function ollamaWebSearch(query: string, maxResults = 5): Promise<We
 	if (!trimmed) return []
 
 	try {
+		console.log(`[web-search] POST ${WEB_SEARCH_ENDPOINT} query="${trimmed}"`)
 		const res = await $fetch<{ results?: unknown }>(WEB_SEARCH_ENDPOINT, {
 			method: 'POST',
 			headers: { Authorization: `Bearer ${process.env.OLLAMA_API_KEY}` },
 			body: { query: trimmed, max_results: Math.min(Math.max(maxResults, 1), 10) },
 		})
-		if (!res || !Array.isArray(res.results)) return []
-		return res.results
+		if (!res || !Array.isArray(res.results)) {
+			console.warn('[web-search] Response had no results array:', JSON.stringify(res)?.slice(0, 300))
+			return []
+		}
+		const mapped = res.results
 			.filter((r): r is Record<string, unknown> => !!r && typeof r === 'object')
 			.map((r) => ({
 				title: typeof r.title === 'string' ? r.title : '',
@@ -49,8 +53,12 @@ export async function ollamaWebSearch(query: string, maxResults = 5): Promise<We
 				content: typeof r.content === 'string' ? r.content : '',
 			}))
 			.filter((r) => r.content.trim() || r.title.trim())
-	} catch (err) {
-		console.error('[web-search] Ollama web_search call failed:', err)
+		console.log(`[web-search] Got ${mapped.length} usable result(s).`)
+		return mapped
+	} catch (err: any) {
+		const status = err?.status ?? err?.statusCode ?? err?.response?.status
+		const detail = err?.data ?? err?.response?._data ?? err?.message
+		console.error(`[web-search] Ollama web_search call failed (status=${status ?? 'unknown'}):`, detail)
 		return []
 	}
 }
@@ -90,16 +98,16 @@ export async function webSearchAlternatives(params: {
 	brandName?: string
 	userAllergens?: string
 	halalPref?: boolean
-}): Promise<{ alternatives: StructuredAlternative[]; sources: { title: string; url: string }[] }> {
+}): Promise<{ alternatives: StructuredAlternative[]; sources: { title: string; url: string }[]; debug?: string }> {
 	const { productName, brandName = '', userAllergens = 'none', halalPref = false } = params
 	const name = productName.trim()
-	if (!name) return { alternatives: [], sources: [] }
+	if (!name) return { alternatives: [], sources: [], debug: 'no-product-name' }
 
 	// 1. Retrieve web context.
 	const halalClause = halalPref ? ' halal certified' : ''
 	const searchQuery = `${name} ${brandName}${halalClause} alternatives similar products ingredients allergen`.trim()
 	const results = await ollamaWebSearch(searchQuery, 5)
-	if (results.length === 0) return { alternatives: [], sources: [] }
+	if (results.length === 0) return { alternatives: [], sources: [], debug: 'web-search-returned-no-results' }
 
 	// 2. Normalize retrieved snippets into the strict schema via the generation model.
 	const context = results
@@ -139,13 +147,13 @@ export async function webSearchAlternatives(params: {
 		})
 
 		const rawContent = response?.message?.content
-		if (!rawContent) return { alternatives: [], sources: [] }
+		if (!rawContent) return { alternatives: [], sources: [], debug: 'model-returned-no-content' }
 
 		let parsed: unknown
 		try {
 			parsed = JSON.parse(stripCodeFences(rawContent))
 		} catch {
-			return { alternatives: [], sources: [] }
+			return { alternatives: [], sources: [], debug: 'model-output-unparseable' }
 		}
 
 		const list = (parsed && typeof parsed === 'object' && Array.isArray((parsed as Record<string, unknown>).alternatives))
@@ -159,9 +167,10 @@ export async function webSearchAlternatives(params: {
 
 		const sources = results.map((r) => ({ title: r.title, url: r.url })).filter((s) => s.url)
 
-		return { alternatives, sources }
+		console.log(`[web-search] Normalized ${alternatives.length} structured alternative(s) from ${results.length} web result(s).`)
+		return { alternatives, sources, debug: `ok-${alternatives.length}-alternatives` }
 	} catch (err) {
 		console.error('[web-search] Alternative normalization call failed:', err)
-		return { alternatives: [], sources: [] }
+		return { alternatives: [], sources: [], debug: 'normalization-call-failed' }
 	}
 }

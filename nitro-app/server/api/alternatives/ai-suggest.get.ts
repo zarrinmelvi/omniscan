@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
 	const brand_name = String(query.brand_name ?? '').trim()
 	const user_allergens = String(query.user_allergens ?? '').trim()
 	const halal_pref = String(query.halal_pref ?? '').trim() === 'true'
+	const debugMode = String(query.debug ?? '').trim() === '1'
 
 	if (!product_name) {
 		throw createError({ statusCode: 400, statusMessage: 'product_name is required.' })
@@ -70,23 +71,27 @@ export default defineEventHandler(async (event) => {
 	}
 
 	if (suggestions.length > 0) {
+		console.log(`[ai-suggest] Returning ${suggestions.length} primary AI suggestion(s).`)
 		return { suggestions, source: 'ai', web_alternatives: [], sources: [] }
 	}
 
 	// Local/model scope miss (or primary call failed) — fall back to a live web
 	// search and return strictly-formatted structured alternatives. webSearchAlternatives
 	// is itself fully defensive and never throws.
-	const { alternatives, sources } = await webSearchAlternatives({
+	console.log('[ai-suggest] No primary AI suggestions — invoking web-search fallback.')
+	const { alternatives, sources, debug } = await webSearchAlternatives({
 		productName: product_name,
 		brandName: brand_name,
 		userAllergens: allergenList,
 		halalPref: halal_pref,
 	})
+	console.log(`[ai-suggest] Web fallback result: ${alternatives.length} alternative(s) (debug=${debug ?? 'none'}).`)
 
 	return {
 		suggestions,
 		source: alternatives.length > 0 ? 'web' : 'ai',
 		web_alternatives: alternatives,
 		sources,
+		...(debugMode ? { debug } : {}),
 	}
 })

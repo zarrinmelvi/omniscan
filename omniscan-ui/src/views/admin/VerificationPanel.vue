@@ -340,7 +340,7 @@
 							<div class="logo-card-body">
 								<span class="logo-certifier">{{ logo.certifier }}</span>
 								<span v-if="logo.full_name" class="logo-full-name">{{ logo.full_name }}</span>
-								<span v-if="logo.is_accredited" class="logo-accredited-badge">Accredited</span>
+								<span class="logo-accredited-badge">Active</span>
 							</div>
 							<div v-if="modalSelectedLogoId === logo.id" class="logo-check">
 								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">

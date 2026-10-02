@@ -60,6 +60,10 @@ export const useAdminAuthStore = defineStore('adminAuth', {
 			this.token = null
 			localStorage.removeItem(ADMIN_TOKEN_KEY)
 			localStorage.removeItem(ADMIN_KEY)
+			// Strip dark mode class immediately so the login page doesn't
+			// inherit it and cause a dark→light flash on logout.
+			document.documentElement.classList.remove('ion-palette-dark')
+			localStorage.removeItem('omniscan_dark_mode')
 		},
 
 		// Synchronous, unlike the user store's checkAuth() — restores from

@@ -345,6 +345,15 @@ async function showToast(message: string, color: 'success' | 'danger' | 'warning
 	await toast.present()
 }
 
+// Allowed Domain Validation
+const ALLOWED_DOMAINS = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com']
+
+function isAllowedEmailDomain(emailStr: string): boolean {
+	if (!emailStr || !emailStr.includes('@')) return false
+	const domain = emailStr.split('@').pop()?.toLowerCase()
+	return domain ? ALLOWED_DOMAINS.includes(domain) : false
+}
+
 // Strict email validation
 const KNOWN_TLDS =
 	'com|org|net|edu|gov|mil|int|info|biz|name|pro|' +
@@ -435,9 +444,9 @@ async function handleRegister(): Promise<void> {
 		return
 	}
 
-	if (!EMAIL_RE.test(email.value)) {
+	if (!EMAIL_RE.test(email.value) || !isAllowedEmailDomain(email.value)) {
 		fieldErrors.email = true
-		errorMessage.value = 'Please enter a valid email address (e.g. user@example.com).'
+		errorMessage.value = 'Only @gmail.com, @outlook.com, @hotmail.com, and @yahoo.com emails are accepted.'
 		return
 	}
 

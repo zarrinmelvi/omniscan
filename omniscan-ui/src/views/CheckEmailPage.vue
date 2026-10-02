@@ -131,6 +131,14 @@ let cooldownTimer: ReturnType<typeof setInterval> | null = null
 let pollTimer: ReturnType<typeof setInterval> | null = null
 let redirectTimer: ReturnType<typeof setInterval> | null = null
 
+const ALLOWED_DOMAINS = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com']
+
+function isAllowedEmailDomain(emailStr: string): boolean {
+	if (!emailStr || !emailStr.includes('@')) return false
+	const domain = emailStr.split('@').pop()?.toLowerCase()
+	return domain ? ALLOWED_DOMAINS.includes(domain) : false
+}
+
 function startCooldown(seconds = 60) {
 	cooldown.value = seconds
 	cooldownTimer = setInterval(() => {
@@ -184,6 +192,11 @@ async function checkVerificationStatus() {
 
 async function handleResend() {
 	if (!email.value || isResending.value || cooldown.value > 0) return
+
+	if (!isAllowedEmailDomain(email.value)) {
+		errorMessage.value = 'Only @gmail.com, @outlook.com, @hotmail.com, and @yahoo.com emails are accepted.'
+		return
+	}
 
 	isResending.value = true
 	successMessage.value = ''

@@ -74,28 +74,39 @@ const navItems = [
 	gap: 12px;
 	padding: 11px 14px;
 	margin: 0 12px;
-	border-radius: 10px;
+	border-radius: 12px;
 	color: #374151;
 	text-decoration: none;
 	transition: background 0.2s, color 0.2s;
-	min-height: 44px; /* Touch target size */
-}
-
-.nav-item:hover {
-	background: #f1f5f3;
-}
-
-.nav-item--active {
-	background: #05c450;
-	color: #ffffff;
-	font-weight: 600;
-}
-
-.nav-item--active ion-icon {
-	color: #ffffff;
+	min-height: 44px;
 }
 
 .nav-item ion-icon {
 	font-size: 22px;
+	color: #374151;
+}
+
+/* Inactive nav item hover state (Light Mode) */
+.nav-item:hover:not(.nav-item--active) {
+	background: #f0fdf4;
+	color: #15803d;
+}
+
+.nav-item:hover:not(.nav-item--active) ion-icon {
+	color: #15803d;
+}
+
+/* Active nav item state (Light Mode) - locked solid green */
+.nav-item--active,
+.nav-item--active:hover {
+	background: #00b050 !important;
+	color: #ffffff !important;
+	font-weight: 700 !important;
+	cursor: default;
+}
+
+.nav-item--active ion-icon,
+.nav-item--active:hover ion-icon {
+	color: #ffffff !important;
 }
 </style>

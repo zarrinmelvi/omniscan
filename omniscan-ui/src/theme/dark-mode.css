@@ -274,18 +274,8 @@ html.ion-palette-dark .custom-edit-modal .avatar-initial--large {
   background: var(--dm-bg-subtle);
   color: var(--dm-text-secondary);
 }
-html.ion-palette-dark .custom-edit-modal .quick-add-label {
-  color: var(--dm-text-secondary);
-}
-html.ion-palette-dark .custom-edit-modal .quick-add-chip {
-  background: var(--dm-bg-chip);
-  color: var(--dm-text-primary);
-}
 html.ion-palette-dark .custom-edit-modal .pref-limit-warning {
   color: #fbbf24;
-}
-html.ion-palette-dark .custom-edit-modal .pref-add-error {
-  color: #f87171;
 }
 
 /* === Dietary preference chips and grid cards === */
@@ -546,7 +536,6 @@ html.ion-palette-dark .upload-title {
 }
 html.ion-palette-dark .upload-subtitle,
 html.ion-palette-dark .change-photo-link,
-html.ion-palette-dark .uploaded-label,
 html.ion-palette-dark .uploaded-label {
   color: var(--dm-text-secondary);
 }
@@ -626,10 +615,6 @@ html.ion-palette-dark .empty-subtext {
 html.ion-palette-dark .light-gray-icon {
   color: var(--dm-text-secondary);
 }
-html.ion-palette-dark .tab-badge {
-  background: var(--dm-bg-chip);
-  color: var(--dm-text-primary);
-}
 
 /* === Profile page main-body white background === */
 html.ion-palette-dark .main-body {
@@ -656,10 +641,6 @@ html.ion-palette-dark .archived-subhead {
 html.ion-palette-dark .auto-delete-info {
   color: #fbbf24;
 }
-html.ion-palette-dark .archived-card {
-  background: var(--dm-bg-card);
-  border-color: var(--dm-border);
-}
 
 /* === Notifications Page Overrides === */
 html.ion-palette-dark .notif-content {
@@ -671,10 +652,6 @@ html.ion-palette-dark .notif-card {
   border-color: var(--dm-border) !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
 }
-html.ion-palette-dark .notif-title {
-  color: var(--dm-text-primary) !important;
-}
-html.ion-palette-dark .notif-message,
 html.ion-palette-dark .notif-time {
   color: var(--dm-text-secondary) !important;
 }
@@ -697,9 +674,6 @@ html.ion-palette-dark .mark-read-btn {
 }
 html.ion-palette-dark .mark-read-btn--active {
   --color: #05c450;
-}
-html.ion-palette-dark .notif-title {
-  color: var(--dm-text-primary);
 }
 
 /* === Settings row rows and version text === */
@@ -794,11 +768,11 @@ html.ion-palette-dark .heart-overlay-btn .heart-icon--liked {
 /* ── HomePage ──────────────────────────────────────────────────────────────── */
 html.ion-palette-dark .stat-value { color: var(--dm-text-primary, #f1f5f9) !important; }
 
-/* ── Active toggle button text contrast (Bug 2) ───────────────────────────── */
+/* ── Active toggle button text contrast ───────────────────────────── */
 html.ion-palette-dark .toggle-btn--active { color: #ffffff !important; }
 html.ion-palette-dark .toggle-btn--archived-active { color: #ffffff !important; }
 
-/* ── Notification header title visibility (Bug 3) ─────────────────────────── */
+/* ── Notification header title visibility ─────────────────────────── */
 html.ion-palette-dark .notif-header-title { color: var(--dm-text-primary) !important; }
 
 /* === Recipes scroll area and card list dark background === */
@@ -940,26 +914,36 @@ html.ion-palette-dark .desktop-nav .nav-item {
   color: var(--dm-text-secondary) !important;
 }
 
-html.ion-palette-dark .desktop-nav .nav-item:hover {
+html.ion-palette-dark .desktop-nav .nav-item ion-icon {
+  color: var(--dm-text-secondary) !important;
+}
+
+/* Inactive nav item hover state in dark mode */
+html.ion-palette-dark .desktop-nav .nav-item:hover:not(.nav-item--active) {
   background: var(--dm-bg-chip) !important;
-  color: var(--dm-text-primary) !important;
-}
-
-html.ion-palette-dark .desktop-nav .nav-item--active {
-  background: #052e16 !important;
   color: #4ade80 !important;
 }
 
-html.ion-palette-dark .desktop-nav .nav-item--active ion-icon {
+html.ion-palette-dark .desktop-nav .nav-item:hover:not(.nav-item--active) ion-icon {
   color: #4ade80 !important;
+}
+
+/* Active nav item state in dark mode - locked solid green */
+html.ion-palette-dark .desktop-nav .nav-item--active,
+html.ion-palette-dark .desktop-nav .nav-item--active:hover {
+  background: #00b050 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  cursor: default !important;
+}
+
+html.ion-palette-dark .desktop-nav .nav-item--active ion-icon,
+html.ion-palette-dark .desktop-nav .nav-item--active:hover ion-icon {
+  color: #ffffff !important;
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
 /* ADMIN PORTAL DARK MODE                                                 */
-/* The admin views (AdminLayout, Verification Panel, Manage Product Data,  */
-/* Manage User Profiles, System Logs, Settings) use scoped styles with     */
-/* hardcoded light colors. These global overrides recolor them under       */
-/* html.ion-palette-dark without editing each component.                   */
 /* ══════════════════════════════════════════════════════════════════════ */
 
 /* --- Layout shell --- */
@@ -970,12 +954,6 @@ html.ion-palette-dark .sidebar {
 }
 html.ion-palette-dark .brand-name { color: var(--dm-text-primary); }
 html.ion-palette-dark .brand-sub { color: var(--dm-text-secondary); }
-html.ion-palette-dark .nav-item { color: var(--dm-text-secondary); }
-html.ion-palette-dark .nav-item:hover {
-	background: var(--dm-bg-subtle);
-	color: var(--dm-text-primary);
-}
-/* keep the active green pill readable — leave .nav-item.active as-is */
 html.ion-palette-dark .sidebar-footer { border-top-color: var(--dm-border); }
 html.ion-palette-dark .admin-name { color: var(--dm-text-primary); }
 html.ion-palette-dark .admin-main { background: var(--dm-bg-page); }
@@ -988,7 +966,7 @@ html.ion-palette-dark .breadcrumb { color: var(--dm-text-secondary); }
 html.ion-palette-dark .session-time { color: var(--dm-text-secondary); }
 html.ion-palette-dark .logout-button:hover { background: rgba(220, 38, 38, 0.15); }
 
-/* --- Generic admin page scaffolding (shared class names across views) --- */
+/* --- Generic admin page scaffolding --- */
 html.ion-palette-dark .manage-product-data,
 html.ion-palette-dark .manage-user-profile,
 html.ion-palette-dark .system-logs,
@@ -1051,10 +1029,6 @@ html.ion-palette-dark .tab-btn {
 	border-color: var(--dm-border);
 	color: var(--dm-text-primary);
 }
-html.ion-palette-dark .tab-btn.active {
-	background: var(--dm-bg-subtle);
-	color: var(--dm-text-primary);
-}
 
 /* --- Settings sidebar tabs + rows --- */
 html.ion-palette-dark .settings-tabs .tab-button {
@@ -1098,7 +1072,7 @@ html.ion-palette-dark .table-footer {
 	color: var(--dm-text-secondary);
 }
 
-/* --- Modals (Manage Product Data, Verification correction, etc.) --- */
+/* --- Modals --- */
 html.ion-palette-dark .modal {
 	background: var(--dm-bg-card) !important;
 	color: var(--dm-text-primary);
@@ -1119,105 +1093,14 @@ html.ion-palette-dark .service-name { color: var(--dm-text-primary); }
 html.ion-palette-dark .grid-line { stroke: var(--dm-border); }
 html.ion-palette-dark .log-table th { position: sticky; }
 
-/* --- Batch action toolbar (Manage User Profiles) --- */
+/* --- Batch action toolbar --- */
 html.ion-palette-dark .batch-toolbar {
 	background: var(--dm-bg-card);
 	border-color: var(--dm-border);
 	color: var(--dm-text-primary);
 }
-/* ── AdminPortalUIFixes: admin-portal-ui-fixes spec ─────────────────────── */
-/* Appended by admin-portal-ui-fixes spec tasks 9.1-9.4                     */
 
-/* --- AdminDashboard dark-mode overrides (Item 2) --- */
-html.ion-palette-dark .dashboard {
-	background-color: var(--dm-bg-page);
-	color: var(--dm-text-primary);
-}
-html.ion-palette-dark .dashboard h1 { color: var(--dm-text-primary); }
-html.ion-palette-dark .dashboard h2 { color: var(--dm-text-primary); }
-
-html.ion-palette-dark .dashboard .stat-card {
-	background: var(--dm-bg-card) !important;
-	border-color: var(--dm-border) !important;
-}
-html.ion-palette-dark .dashboard .green-card { background-color: rgba(0, 135, 68, 0.1) !important; }
-html.ion-palette-dark .dashboard .orange-card { background-color: rgba(234, 88, 12, 0.1) !important; }
-html.ion-palette-dark .dashboard .blue-card { background-color: rgba(37, 99, 235, 0.1) !important; }
-
-html.ion-palette-dark .stat-label { color: var(--dm-text-secondary) !important; }
-html.ion-palette-dark .stat-value { color: var(--dm-text-primary); }
-html.ion-palette-dark .stat-footer-text { color: var(--dm-text-secondary); }
-
-html.ion-palette-dark .recent-section {
-	background: var(--dm-bg-card) !important;
-	border-color: var(--dm-border) !important;
-}
-html.ion-palette-dark .recent-header h2 { color: var(--dm-text-primary); }
-html.ion-palette-dark .view-all-link { color: #4ade80; }
-
-html.ion-palette-dark .dashboard th {
-	color: var(--dm-text-secondary) !important;
-	border-bottom-color: var(--dm-border) !important;
-	background: var(--dm-bg-subtle) !important;
-}
-html.ion-palette-dark .dashboard td {
-	border-bottom-color: var(--dm-border) !important;
-}
-
-html.ion-palette-dark .status-badge.pending {
-	background-color: rgba(251, 191, 36, 0.15);
-	color: #fbbf24;
-}
-html.ion-palette-dark .status-badge.approved {
-	background-color: rgba(16, 185, 129, 0.15);
-	color: #4ade80;
-}
-html.ion-palette-dark .status-badge.dismissed {
-	background-color: var(--dm-bg-subtle);
-	color: var(--dm-text-secondary);
-}
-
-html.ion-palette-dark .dashboard .empty-note { color: var(--dm-text-secondary); }
-html.ion-palette-dark .dashboard .error { color: #f87171; }
-
-/* --- AdminSystemLogs additional dark-mode overrides (Item 2) --- */
-html.ion-palette-dark .chart-header h2 { color: var(--dm-text-primary); }
-html.ion-palette-dark .chart-subtitle { color: var(--dm-text-secondary); }
-html.ion-palette-dark .time-labels { color: var(--dm-text-secondary); }
-html.ion-palette-dark .alert-box {
-	background-color: rgba(234, 179, 8, 0.1);
-	border-color: rgba(234, 179, 8, 0.3);
-	color: #fbbf24;
-}
-html.ion-palette-dark .uptime-val { color: var(--dm-text-primary); }
-
-/* --- Active tab — green accent in dark mode (Items 2 & 3) --- */
-/* Override existing .tab-btn.active (was: --dm-bg-subtle / muted grey) */
-html.ion-palette-dark .tab-btn.active {
-	background: #008744 !important;
-	color: #ffffff !important;
-	border-color: #008744 !important;
-}
-/* Add missing .tabs-bar .tab-button.active dark-mode rule */
-html.ion-palette-dark .tabs-bar .tab-button.active {
-	background: #008744;
-	color: #ffffff;
-	border-color: #008744;
-}
-
-/* --- Readonly-field dark-mode overrides (Item 4) --- */
-html.ion-palette-dark .readonly-field {
-	background: var(--dm-bg-subtle) !important;
-}
-html.ion-palette-dark .field-locked-badge {
-	background: var(--dm-bg-subtle);
-	color: var(--dm-text-secondary);
-}
-
-/* ── AdminPortalUIFixes: admin-portal-ui-fixes spec ─────────────────────── */
-/* Appended by admin-portal-ui-fixes spec tasks 9.1-9.4                     */
-
-/* --- AdminDashboard dark-mode overrides (Item 2) --- */
+/* --- AdminDashboard dark-mode overrides --- */
 html.ion-palette-dark .dashboard {
 	background-color: var(--dm-bg-page);
 	color: var(--dm-text-primary);
@@ -1270,7 +1153,7 @@ html.ion-palette-dark .status-badge.dismissed {
 html.ion-palette-dark .dashboard .empty-note { color: var(--dm-text-secondary); }
 html.ion-palette-dark .dashboard .error { color: #f87171; }
 
-/* --- AdminSystemLogs additional dark-mode overrides (Item 2) --- */
+/* --- AdminSystemLogs additional dark-mode overrides --- */
 html.ion-palette-dark .chart-header h2 { color: var(--dm-text-primary); }
 html.ion-palette-dark .chart-subtitle { color: var(--dm-text-secondary); }
 html.ion-palette-dark .time-labels { color: var(--dm-text-secondary); }
@@ -1281,21 +1164,19 @@ html.ion-palette-dark .alert-box {
 }
 html.ion-palette-dark .uptime-val { color: var(--dm-text-primary); }
 
-/* --- Active tab — green accent in dark mode (Items 2 & 3) --- */
-/* Override existing .tab-btn.active (was: --dm-bg-subtle / muted grey) */
+/* --- Active tab — green accent in dark mode --- */
 html.ion-palette-dark .tab-btn.active {
 	background: #008744 !important;
 	color: #ffffff !important;
 	border-color: #008744 !important;
 }
-/* Add missing .tabs-bar .tab-button.active dark-mode rule */
 html.ion-palette-dark .tabs-bar .tab-button.active {
 	background: #008744;
 	color: #ffffff;
 	border-color: #008744;
 }
 
-/* --- Readonly-field dark-mode overrides (Item 4) --- */
+/* --- Readonly-field dark-mode overrides --- */
 html.ion-palette-dark .readonly-field {
 	background: var(--dm-bg-subtle) !important;
 }
@@ -1303,11 +1184,8 @@ html.ion-palette-dark .field-locked-badge {
 	background: var(--dm-bg-subtle);
 	color: var(--dm-text-secondary);
 }
-
-/* ── Dark mode bug fixes (manual pass) ──────────────────────────────────── */
 
 /* == System Logs — inactive tab button readability == */
-/* Add a subtle border so inactive tabs are visible against the dark page bg */
 html.ion-palette-dark .tabs-bar .tab-btn {
 	border: 1px solid var(--dm-border) !important;
 }

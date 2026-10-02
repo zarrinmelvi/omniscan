@@ -83,19 +83,23 @@
 				@didDismiss="showSuccessToast = false" />
 
 			<!-- Floating Edit Profile Modal -->
-			<ion-modal :is-open="isEditModalOpen" class="custom-edit-modal" @didDismiss="closeEditModal">
+			<ion-modal
+				:is-open="isEditModalOpen"
+				:backdrop-dismiss="false"
+				class="custom-edit-modal"
+				@didDismiss="handleModalDismiss">
 				<div class="modal-card">
-					<!-- Modal Header — sticky, never scrolls -->
+					<!-- Modal Header -->
 					<div class="modal-header-sticky">
 						<div class="modal-header">
 							<h2 class="modal-title">Edit Profile</h2>
-							<button type="button" class="modal-close-btn" @click="closeEditModal">
+							<button type="button" class="modal-close-btn" @click="attemptCloseModal">
 								<ion-icon :icon="closeOutline" />
 							</button>
 						</div>
 					</div>
 
-					<!-- Scrollable body -->
+					<!-- Scrollable Body -->
 					<div class="modal-scroll-body">
 						<div v-if="saveError" class="form-error">{{ saveError }}</div>
 
@@ -103,12 +107,22 @@
 						<div class="avatar-edit-wrap">
 							<img v-if="form.avatarBase64" :src="form.avatarBase64" alt="Profile photo" class="avatar-image-large" />
 							<span v-else class="avatar-initial avatar-initial--large">{{ form.name.charAt(0) || '?' }}</span>
-							<button type="button" class="avatar-upload-btn" @click="avatarInputRef?.click()">
+
+							<!-- Red Remove Photo Icon -->
+							<button
+								v-if="form.avatarBase64"
+								type="button"
+								class="avatar-remove-btn"
+								aria-label="Remove photo"
+								@click="form.avatarBase64 = null">
+								<ion-icon :icon="closeOutline" />
+							</button>
+
+							<!-- Green Camera Upload Icon -->
+							<button type="button" class="avatar-upload-btn" aria-label="Upload photo" @click="avatarInputRef?.click()">
 								<ion-icon :icon="cameraOutline" />
 							</button>
-.\omniscan-ui\<button v-if="form.avatarBase64" type="button" class="avatar-remove-btn" @click="form.avatarBase64 = null" aria-label="Remove photo">
-<ion-icon :icon="closeOutline" />
-</button>
+
 							<input ref="avatarInputRef" type="file" accept="image/*" class="hidden-input" @change="onAvatarSelected" />
 						</div>
 						<p v-if="avatarError" class="form-error">{{ avatarError }}</p>
@@ -125,19 +139,12 @@
 						</div>
 
 						<!-- Dietary Preferences Edit -->
-						<label class="input-label">Allergens / Allergy List</label>
 						<div class="halal-toggle-row">
 							<div class="halal-toggle-label-block">
 								<span class="halal-toggle-label">Halal</span>
 								<span class="halal-toggle-sublabel">Religious dietary requirement</span>
 							</div>
 							<IonToggle v-model="form.halalPref" />
-						</div>
-						<div class="chip-row chip-row--editable">
-							<span v-for="pref in form.customPreferences" :key="pref" class="pref-chip">
-								{{ pref }}
-								<ion-icon :icon="closeOutline" class="chip-remove" @click="removeCustomPreference(pref)" />
-							</span>
 						</div>
 
 						<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 allergens / allergies.</p>
@@ -200,16 +207,6 @@ const WHO_ALLERGENS = [
 	{ label: 'Sulphur Dioxide / Sulphites', value: 'Sulphites-free' },
 	{ label: 'Lupin', value: 'Lupin-free' },
 	{ label: 'Molluscs', value: 'Molluscs-free' },
-]
-
-const NON_CONSUMABLE_TERMS: string[] = [
-	'shampoo', 'lotion', 'soap', 'perfume', 'conditioner',
-	'moisturiser', 'moisturizer', 'lipstick', 'mascara',
-	'foundation', 'serum', 'toner', 'sunscreen',
-	'bleach', 'detergent', 'disinfectant', 'polish',
-	'cleaner', 'wax',
-	'plastic', 'metal', 'fabric', 'electronics',
-	'medication', 'drug', 'pill', 'tablet', 'capsule', 'supplement',
 ]
 
 const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024
@@ -290,7 +287,6 @@ const avatarError = ref('')
 
 const halalPref = computed(() => user.value.dietary_prof?.[0]?.halal_pref ?? false)
 
-// Reads custom_preferences array or falls back to mapped user.allergens
 const displayPreferences = computed(() => {
 	const custom = user.value.dietary_prof?.[0]?.custom_preferences ?? []
 	const filtered = custom.length > 0
@@ -307,6 +303,24 @@ const form = reactive({
 	halalPref: false,
 	customPreferences: [] as string[],
 	avatarBase64: null as string | null,
+})
+
+const initialForm = reactive({
+	name: '',
+	email: '',
+	halalPref: false,
+	customPreferences: [] as string[],
+	avatarBase64: null as string | null,
+})
+
+const hasUnsavedChanges = computed(() => {
+	return (
+		form.name !== initialForm.name ||
+		form.email !== initialForm.email ||
+		form.halalPref !== initialForm.halalPref ||
+		JSON.stringify(form.customPreferences) !== JSON.stringify(initialForm.customPreferences) ||
+		form.avatarBase64 !== initialForm.avatarBase64
+	)
 })
 
 async function fetchProfile() {
@@ -331,24 +345,6 @@ async function fetchAllergens() {
 	}
 }
 
-const initialForm = reactive({
-	name: '',
-	email: '',
-	halalPref: false,
-	customPreferences: [] as string[],
-	avatarBase64: null as string | null,
-})
-
-const hasUnsavedChanges = computed(() => {
-	return (
-		form.name !== initialForm.name ||
-		form.email !== initialForm.email ||
-		form.halalPref !== initialForm.halalPref ||
-		JSON.stringify(form.customPreferences) !== JSON.stringify(initialForm.customPreferences) ||
-		form.avatarBase64 !== initialForm.avatarBase64
-	)
-})
-
 function openEditModal() {
 	form.name = user.value.name
 	form.email = user.value.email
@@ -358,15 +354,17 @@ function openEditModal() {
 	avatarError.value = ''
 	saveError.value = ''
 	prefLimitWarning.value = false
+
 	initialForm.name = form.name
 	initialForm.email = form.email
 	initialForm.halalPref = form.halalPref
 	initialForm.customPreferences = [...form.customPreferences]
 	initialForm.avatarBase64 = form.avatarBase64
+
 	isEditModalOpen.value = true
 }
 
-async function closeEditModal() {
+async function attemptCloseModal() {
 	if (hasUnsavedChanges.value) {
 		const alert = await alertController.create({
 			header: 'Unsaved Changes',
@@ -374,12 +372,24 @@ async function closeEditModal() {
 			cssClass: 'custom-make-alert',
 			buttons: [
 				{ text: 'Keep Editing', role: 'cancel', cssClass: 'alert-button-cancel' },
-				{ text: 'Discard Changes', cssClass: 'alert-button-danger', handler: () => { isEditModalOpen.value = false } },
+				{
+					text: 'Discard Changes',
+					cssClass: 'alert-button-danger',
+					handler: () => {
+						isEditModalOpen.value = false
+					},
+				},
 			],
 		})
 		await alert.present()
 	} else {
 		isEditModalOpen.value = false
+	}
+}
+
+function handleModalDismiss() {
+	if (isEditModalOpen.value) {
+		attemptCloseModal()
 	}
 }
 
@@ -408,11 +418,6 @@ function onAvatarSelected(event: Event) {
 		avatarError.value = 'Failed to read the selected file. Please try again.'
 	}
 	reader.readAsDataURL(file)
-}
-
-function removeCustomPreference(pref: string) {
-	form.customPreferences = form.customPreferences.filter((p) => p !== pref)
-	prefLimitWarning.value = false
 }
 
 function toggleWhoAllergen(value: string) {
@@ -445,7 +450,7 @@ async function saveProfile() {
 		})
 
 		user.value = data.user
-		closeEditModal()
+		isEditModalOpen.value = false
 		showSuccessToast.value = true
 	} catch (err) {
 		saveError.value = err instanceof ApiError ? err.message : 'Something went wrong while saving.'
@@ -460,11 +465,7 @@ async function handleLogout() {
 		message: 'Are you sure you want to log out?',
 		cssClass: 'custom-make-alert',
 		buttons: [
-			{
-				text: 'Cancel',
-				role: 'cancel',
-				cssClass: 'alert-button-cancel',
-			},
+			{ text: 'Cancel', role: 'cancel', cssClass: 'alert-button-cancel' },
 			{
 				text: 'Log Out',
 				role: 'destructive',
@@ -649,11 +650,6 @@ onIonViewWillEnter(() => {
 	font-weight: 500;
 }
 
-.chip-remove {
-	cursor: pointer;
-	font-size: 0.9rem;
-}
-
 .pref-chip--halal {
 	background: #fef3c7;
 	color: #92400e;
@@ -663,7 +659,6 @@ onIonViewWillEnter(() => {
 	width: 100%;
 }
 
-/* Actions Card Container (Matches 100% width of profile-inner) */
 .action-card {
 	background: #ffffff;
 	border: 1px solid #e5e7eb;
@@ -728,7 +723,6 @@ onIonViewWillEnter(() => {
 	font-size: 1rem;
 }
 
-/* Responsive Scaling */
 @media (min-width: 768px) {
 	.profile-inner {
 		padding: 32px 24px;
@@ -832,8 +826,8 @@ ion-modal.custom-edit-modal {
 	position: absolute;
 	top: 0;
 	right: 0;
-	width: 22px;
-	height: 22px;
+	width: 24px;
+	height: 24px;
 	border-radius: 50%;
 	background: #ef4444;
 	color: #ffffff;
@@ -842,7 +836,8 @@ ion-modal.custom-edit-modal {
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
-	font-size: 0.65rem;
+	font-size: 0.8rem;
+	z-index: 2;
 }
 
 .custom-edit-modal .avatar-upload-btn {
@@ -859,6 +854,7 @@ ion-modal.custom-edit-modal {
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
+	z-index: 1;
 }
 
 .custom-edit-modal .hidden-input {
@@ -911,11 +907,6 @@ ion-modal.custom-edit-modal {
 .custom-edit-modal .custom-input--disabled {
 	background-color: #ffffff !important;
 	color: #64748b !important;
-}
-
-.custom-edit-modal .chip-row--editable {
-	margin-top: 6px;
-	margin-bottom: 12px;
 }
 
 .custom-edit-modal .save-changes-btn {

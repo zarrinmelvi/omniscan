@@ -26,11 +26,11 @@
 						<span class="brand-label">OmniScan</span>
 						<h1 class="auth-title">Email Verified!</h1>
 						<p class="auth-subtitle">
-							Your account is now active. Taking you home
+							Your account is now active. Setting up your profile
 							<span v-if="redirectCountdown > 0"> in {{ redirectCountdown }}s</span>…
 						</p>
-						<ion-button expand="block" class="submit-button" @click="goToHome">
-							Continue to Home
+						<ion-button expand="block" class="submit-button" @click="goToSetup">
+							Continue to Setup
 						</ion-button>
 					</template>
 
@@ -150,7 +150,7 @@ function startRedirect() {
 		redirectCountdown.value--
 		if (redirectCountdown.value <= 0) {
 			clearInterval(redirectTimer!)
-			goToHome()
+			goToSetup()
 		}
 	}, 1000)
 }
@@ -237,8 +237,8 @@ async function handleResend() {
 	}
 }
 
-function goToHome() {
-	router.push('/tabs/home')
+function goToSetup() {
+	router.push('/register?step=2')
 }
 
 onMounted(() => {

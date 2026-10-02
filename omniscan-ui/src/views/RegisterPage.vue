@@ -287,7 +287,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline } from 'ionicons/icons'
@@ -401,6 +401,23 @@ function handleBack(): void {
 	}
 }
 
+// If the user is already authenticated (e.g. they verified + auto-logged-in
+// in another tab, and the shared-localStorage token is now valid), this tab
+// must not let them re-register. Advance it to the preferences step instead.
+async function redirectIfAlreadyAuthenticated(): Promise<boolean> {
+	await authStore.checkAuth()
+	if (authStore.isAuthenticated) {
+		step.value = 2
+		fetchAllergenCatalog()
+		// Reflect the step in the URL without a full reload so refresh/back behaves.
+		if (route.query.step !== '2') {
+			router.replace({ path: '/register', query: { step: '2' } })
+		}
+		return true
+	}
+	return false
+}
+
 async function handleRegister(): Promise<void> {
 	errorMessage.value = null
 	fieldErrors.name = false
@@ -467,6 +484,13 @@ async function handleRegister(): Promise<void> {
 
 async function acceptTerms(): Promise<void> {
 	isTermsOpen.value = false
+
+	// If this account was already verified + logged in elsewhere, don't
+	// re-register — jump straight to the preferences step.
+	if (await redirectIfAlreadyAuthenticated()) {
+		return
+	}
+
 	isSubmitting.value = true
 	try {
 		const response = await authStore.register(name.value.trim(), email.value, password.value)
@@ -579,11 +603,29 @@ function skipForNow(): void {
 	window.location.href = '/tabs/home'
 }
 
+function onWindowFocus(): void {
+	// Only relevant while still on Step 1; once on Step 2 there's nothing to guard.
+	if (step.value === 1) {
+		redirectIfAlreadyAuthenticated()
+	}
+}
+
 onMounted(async () => {
 	if (step.value === 2) {
 		await authStore.checkAuth()
 		fetchAllergenCatalog()
+		return
 	}
+	// Step 1 on load: if a valid session already exists (verified in another
+	// tab), skip straight to preferences instead of showing the create-account form.
+	await redirectIfAlreadyAuthenticated()
+	window.addEventListener('focus', onWindowFocus)
+	document.addEventListener('visibilitychange', onWindowFocus)
+})
+
+onUnmounted(() => {
+	window.removeEventListener('focus', onWindowFocus)
+	document.removeEventListener('visibilitychange', onWindowFocus)
 })
 </script>
 

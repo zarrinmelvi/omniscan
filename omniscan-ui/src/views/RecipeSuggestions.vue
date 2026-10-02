@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<ion-page>
 		<ion-content class="recipe-content">
 			<!-- Header Block -->
@@ -124,7 +124,7 @@
 
 						<p class="section-label">Adjusted Ingredients</p>
 						<ion-chip v-for="(ingredient, index) in madeRecipeResult.adjusted_ingredients" :key="index" color="success">
-							{{ ingredient.name }} — {{ ingredient.amount_text }}
+							{{ ingredient.name }} â€” {{ ingredient.amount_text }}
 						</ion-chip>
 
 						<p class="section-label mt-4">Instructions</p>
@@ -157,7 +157,8 @@ import {
 	IonSpinner,
 	IonButton,
 	IonAlert,
-	IonModal,
+IonModal,
+toastController,
 } from '@ionic/vue'
 import { restaurantOutline, closeOutline, heart, heartOutline, archiveOutline, checkmarkCircle, chevronForwardOutline } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
@@ -300,7 +301,7 @@ async function toggleLike(recipe: SuggestedRecipe): Promise<void> {
 
 	likingId.value = recipe.id
 
-	// Optimistic update – flip immediately, revert below if the request fails.
+	// Optimistic update â€“ flip immediately, revert below if the request fails.
 	// A card the user just liked while on the Liked tab stays visible until
 	// the next refetch rather than vanishing mid-tap, which reads as a bug
 	// even though it'd be technically correct.
@@ -336,7 +337,7 @@ async function makeRecipe(recipeId: number): Promise<void> {
 
 		madeRecipeResult.value = data.recipe
 		archivedCount.value = data.archived_count ?? 0
-		isResultModalOpen.value = true
+		const toast = await toastController.create({ message: 'Recipe marked as made!', duration: 2000, color: 'success', position: 'bottom' }); await toast.present()
 
 		const affected = recipes.value.find((r) => r.id === recipeId)
 		if (affected) {
@@ -678,12 +679,12 @@ onMounted(() => {
 	margin-top: 16px;
 }
 
-/* Header inner wrapper — full-width band on mobile, centered content on larger screens */
+/* Header inner wrapper â€” full-width band on mobile, centered content on larger screens */
 .header-inner {
 	width: 100%;
 }
 
-/* ---------- TABLET (768–1023px) ---------- */
+/* ---------- TABLET (768â€“1023px) ---------- */
 @media (min-width: 768px) {
 	.header-inner {
 		max-width: 900px;

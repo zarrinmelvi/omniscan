@@ -1,11 +1,11 @@
-<template>
+﻿<template>
 	<ion-page>
 		<ion-content :fullscreen="true" class="home-content">
 			<div class="home-wrap">
 				<!-- Greeting header -->
 				<div class="greeting-row">
 					<div>
-						<h1 class="greeting-title">{{ greeting }}, {{ userName || '…' }}!</h1>
+						<h1 class="greeting-title">{{ greeting }}, {{ userName || 'â€¦' }}!</h1>
 						<p class="greeting-date">{{ formattedDate }}</p>
 					</div>
 					<div class="header-actions">
@@ -29,12 +29,12 @@
 				<div class="stats-row">
 					<button type="button" class="stat-card" @click="goToPantry">
 						<span class="stat-label">Pantry Items:</span>
-						<span class="stat-value">{{ isLoading ? '—' : pantryItemCount }}</span>
+						<span class="stat-value">{{ isLoading ? 'â€”' : pantryItemCount }}</span>
 						<span class="stat-bar stat-bar--green"></span>
 					</button>
 					<button type="button" class="stat-card" @click="goToExpiringPantry">
 						<span class="stat-label">Expiring Soon:</span>
-						<span class="stat-value">{{ isLoading ? '—' : expiringItems.length }}</span>
+						<span class="stat-value">{{ isLoading ? 'â€”' : expiringItems.length }}</span>
 						<span class="stat-bar stat-bar--orange"></span>
 					</button>
 				</div>
@@ -145,7 +145,7 @@
 						</div>
 						<div class="activity-info">
 							<p class="activity-name">{{ activity.message.replace(/\s+was auto-archived$/i, '') }}</p>
-							<p class="activity-meta">{{ labelForActivityType(activity.type) }} · {{ formatRelativeTime(activity.occurred_at) }}</p>
+							<p class="activity-meta">{{ labelForActivityType(activity.type) }} Â· {{ formatRelativeTime(activity.occurred_at) }}</p>
 						</div>
 					</div>
 				</div>
@@ -190,7 +190,7 @@
 
 						<p class="section-label">Adjusted Ingredients</p>
 						<ion-chip v-for="(ingredient, index) in madeRecipeResult.adjusted_ingredients" :key="index" color="success">
-							{{ ingredient.name }} — {{ ingredient.amount_text }}
+							{{ ingredient.name }} â€” {{ ingredient.amount_text }}
 						</ion-chip>
 
 						<p class="section-label mt-4">Instructions</p>
@@ -226,6 +226,7 @@ import {
 	IonAlert,
 	IonModal,
 	onIonViewWillEnter,
+toastController,
 } from '@ionic/vue'
 import {
 	alertCircleOutline,
@@ -507,7 +508,7 @@ async function makeRecipe(recipeId: number): Promise<void> {
 
 		madeRecipeResult.value = data.recipe
 		archivedCount.value = data.archived_count ?? 0
-		isResultModalOpen.value = true
+		const toast = await toastController.create({ message: 'Recipe marked as made!', duration: 2000, color: 'success', position: 'bottom' }); await toast.present()
 
 		const affected = recommendedRecipes.value.find((r) => r.id === recipeId)
 		if (affected) {

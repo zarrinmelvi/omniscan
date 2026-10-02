@@ -1013,7 +1013,7 @@ h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 4px; color: #1e293b; }
 .search-box {
 	display: flex; align-items: center;
 	background: white; border: 1px solid #cbd5e1; border-radius: 8px;
-	padding: 7px 12px; width: 300px; flex-shrink: 0;
+	padding: 7px 12px; width: 220px; flex-shrink: 0;
 }
 .search-icon { color: #94a3b8; margin-right: 9px; flex-shrink: 0; }
 .search-box input { border: none; outline: none; width: 100%; font-size: 0.84rem; color: #334155; background: transparent; }

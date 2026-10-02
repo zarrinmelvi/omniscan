@@ -873,7 +873,8 @@ h1 {
 	border: 1px solid #e2e8f0;
 	border-radius: 8px;
 	padding: 8px 14px;
-	width: 360px;
+	width: 220px;
+	flex-shrink: 0;
 }
 
 .search-icon {

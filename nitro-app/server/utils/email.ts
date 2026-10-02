@@ -12,18 +12,10 @@ interface EmailResult {
 	error?: string
 }
 
-/**
- * Generates a cryptographically secure URL-safe token for email verification.
- */
 export function generateVerificationToken(): string {
 	return crypto.randomBytes(32).toString('base64url')
 }
 
-/**
- * Sends a verification email to a newly registered user.
- * The verification link points to /auth/verify/:token on the frontend.
- * Returns { success: false, error } on any failure — never throws.
- */
 export async function sendVerificationEmail(
 	email: string,
 	name: string,
@@ -52,11 +44,6 @@ export async function sendVerificationEmail(
 	}
 }
 
-/**
- * Sends a welcome email after a user successfully verifies their address.
- * Contains tips only — no CTA buttons or links back to the app.
- * Returns { success: false, error } on any failure — never throws.
- */
 export async function sendWelcomeEmail(email: string, name: string): Promise<EmailResult> {
 	try {
 		const { error } = await resend.emails.send({
@@ -78,10 +65,6 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<Ema
 		return { success: false, error: err?.message ?? 'Unknown error' }
 	}
 }
-
-// ---------------------------------------------------------------------------
-// HTML templates
-// ---------------------------------------------------------------------------
 
 function buildVerificationEmailHtml(name: string, verificationUrl: string): string {
 	return `<!DOCTYPE html>
@@ -194,11 +177,20 @@ function buildWelcomeEmailHtml(name: string): string {
                 <tr>
                   <td style="padding:16px 0;border-bottom:1px solid #f0f0f0;">
                     <p style="margin:0 0 4px;font-size:15px;font-weight:bold;color:#333333;">
-                      📷 Scan product labels
+                      🥗 Set your allergens / allergy list
                     </p>
                     <p style="margin:0;font-size:14px;color:#666666;line-height:1.5;">
-                      Point your camera at any ingredient label for an instant safety and
-                      dietary analysis.
+                      Tell OmniScan about your allergies and if you want Halal verified food products so every scan is personalized to you.
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:16px 0;border-bottom:1px solid #f0f0f0;">
+                    <p style="margin:0 0 4px;font-size:15px;font-weight:bold;color:#333333;">
+                      📷 Scan food product or stock foods
+                    </p>
+                    <p style="margin:0;font-size:14px;color:#666666;line-height:1.5;">
+                      Point your camera at any food products: package name and ingredient labels for an instant safety analysis.
                     </p>
                   </td>
                 </tr>
@@ -208,19 +200,7 @@ function buildWelcomeEmailHtml(name: string): string {
                       🛒 Build your pantry
                     </p>
                     <p style="margin:0;font-size:14px;color:#666666;line-height:1.5;">
-                      Add scanned items to your pantry to track expiration dates and
-                      reduce food waste.
-                    </p>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:16px 0;border-bottom:1px solid #f0f0f0;">
-                    <p style="margin:0 0 4px;font-size:15px;font-weight:bold;color:#333333;">
-                      🥗 Set your dietary preferences
-                    </p>
-                    <p style="margin:0;font-size:14px;color:#666666;line-height:1.5;">
-                      Tell OmniScan about your diet (halal, vegan, allergies, etc.) so
-                      every scan is personalised to you.
+                      Add scanned items to your pantry to track expiration dates and reduce food waste.
                     </p>
                   </td>
                 </tr>
@@ -230,8 +210,7 @@ function buildWelcomeEmailHtml(name: string): string {
                       🍳 Discover recipes
                     </p>
                     <p style="margin:0;font-size:14px;color:#666666;line-height:1.5;">
-                      Find recipes that match what's already in your pantry — less waste,
-                      more delicious meals.
+                      Find recipes that match what's already in your pantry — less waste, more delicious meals.
                     </p>
                   </td>
                 </tr>

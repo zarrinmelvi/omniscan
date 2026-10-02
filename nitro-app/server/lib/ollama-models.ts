@@ -2,18 +2,17 @@ const BASE_HOST = process.env.OLLAMA_HOST || 'https://ollama.com'
 export const OLLAMA_ENDPOINT = `${BASE_HOST.replace(/\/$/, '')}/api/chat`
 
 // Vision + text. Used for: scan photo -> ingredient extraction (OCR),
-// and (once extended) Halal logo detection from the same photo.
-// 256K context, text+image input.
-export const SCAN_VISION_MODEL = 'gemma4:cloud'
+// and Halal logo detection from the same photo.
+// Natively multimodal cloud model (text + image input, 1M context).
+export const SCAN_VISION_MODEL = 'glm-5.3-flash:cloud'
 
-// Text-only reasoning. Used for: semantic allergen matching — reasoning
+// Text reasoning. Used for: semantic allergen matching — reasoning
 // over extracted ingredient text against a user's real allergen profile,
 // beyond what the static IngredientMapping table alone can catch.
-// 198K context, text input.
-export const ALLERGEN_MATCH_MODEL = 'glm-5.1:cloud'
+export const ALLERGEN_MATCH_MODEL = 'deepseek-v4.1-flash:cloud'
 
-// Text-only reasoning, large context. Used for: alternatives ranking and
-// AI-generated recipe suggestions — both need to hold many candidate
-// rows (products or recipes) + pantry + allergen profile at once.
-// 1M context, text input.
-export const GENERATION_MODEL = 'deepseek-v4-flash:cloud'
+// Large-context reasoning. Used for: alternatives ranking, the web-search
+// alternatives normalization, and AI-generated recipe suggestions — all need
+// to hold many candidate rows (products or recipes) + pantry + allergen
+// profile at once. 1M context.
+export const GENERATION_MODEL = 'deepseek-v4.1-flash:cloud'

@@ -30,11 +30,6 @@ export default () => [
 		is_predefined: true,
 	},
 	{
-		name: 'Shellfish',
-		scientific_name: 'Tropomyosin',
-		is_predefined: true,
-	},
-	{
 		name: 'Tree Nuts',
 		scientific_name: 'Juglans regia',
 		is_predefined: true,

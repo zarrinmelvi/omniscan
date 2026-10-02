@@ -2,14 +2,14 @@
  * Backfill: Add missing EU/UK 14 major allergens that are absent from the DB.
  *
  * Missing allergens (already have: Peanuts, Milk, Eggs, Wheat, Soy, Fish,
- * Shellfish, Tree Nuts, Sesame, Mustard):
+ * Tree Nuts, Sesame, Mustard):
  *   - Crustaceans
  *   - Celery
  *   - Sulphur Dioxide / Sulphites
  *   - Lupin
  *   - Molluscs
  *
- * Run with:  tsx prisma/backfill-missing-allergens.ts
+ * Run with:  npx tsx prisma/backfill-missing-allergens.ts
  */
 
 import 'dotenv/config'
@@ -114,20 +114,24 @@ async function main() {
 	let mappingsAdded = 0
 
 	for (const entry of MISSING_ALLERGENS) {
-		// Upsert the allergen — if it already exists by name, skip creation
+		// Upsert the allergen — if it already exists by name, update is_predefined to true
 		const existing = await prisma.allergen.findFirst({ where: { name: entry.name } })
 
 		let allergenId: number
 
 		if (existing) {
-			console.log(`  ✓ Allergen "${entry.name}" already exists (id: ${existing.id}) — skipping creation.`)
+			console.log(`  ✓ Allergen "${entry.name}" already exists (id: ${existing.id}) — updating is_predefined to true.`)
+			await prisma.allergen.update({
+				where: { id: existing.id },
+				data: { is_predefined: true },
+			})
 			allergenId = existing.id
 		} else {
 			const created = await prisma.allergen.create({
 				data: {
 					name: entry.name,
 					scientific_name: entry.scientific_name,
-					is_predefined: false,
+					is_predefined: true,
 				},
 			})
 			allergenId = created.id

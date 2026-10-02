@@ -66,6 +66,7 @@
 					<div class="admin-avatar">{{ initials }}</div>
 					<div class="admin-text">
 						<div class="admin-name">{{ adminAuthStore.admin?.full_name ?? 'Zarrin Melvi Delos Santos' }}</div>
+						<div class="admin-email">{{ adminAuthStore.admin?.email ?? 'delossantoszarrinmelvi@gmail.com' }}</div>
 						<div class="status-row">
 							<svg class="shield-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 								<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -299,6 +300,15 @@ onUnmounted(() => {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+.admin-email {
+	font-size: 0.74rem;
+	color: #64748b;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin-top: 1px;
 }
 
 .status-row {

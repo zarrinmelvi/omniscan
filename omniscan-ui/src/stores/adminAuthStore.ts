@@ -14,6 +14,7 @@ export interface AuthAdmin {
 	id: number
 	full_name: string
 	username: string
+	email?: string | null
 	role: string
 }
 

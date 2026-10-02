@@ -160,6 +160,10 @@
 
 					<!-- Notifications Tab -->
 					<div v-if="activeTab === 'notifications'" class="settings-group">
+						<div class="notify-target">
+							<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+							<span>Notifications and daily reports are sent to <strong>{{ notifyEmail }}</strong></span>
+						</div>
 						<div class="setting-row">
 							<div class="setting-info">
 								<label class="setting-title">Email on New Flag</label>
@@ -207,8 +211,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
+import { useAdminAuthStore } from '@/stores/adminAuthStore'
 
 const DARK_MODE_KEY = 'omniscan_dark_mode'
 
@@ -224,6 +229,9 @@ const activeTab = ref<TabType>('general')
 const isLoading = ref(false)
 const isSaving = ref(false)
 const errorMessage = ref<string | null>(null)
+
+const adminAuthStore = useAdminAuthStore()
+const notifyEmail = computed(() => adminAuthStore.admin?.email ?? 'delossantoszarrinmelvi@gmail.com')
 
 // Form reactive state initialized with image default values
 const form = reactive({
@@ -435,6 +443,28 @@ h1 {
 .setting-control {
 	display: flex;
 	align-items: center;
+}
+
+.notify-target {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 14px;
+	margin: 16px 0 4px;
+	background: #f0fdf4;
+	border: 1px solid #bbf7d0;
+	border-radius: 8px;
+	font-size: 0.84rem;
+	color: #166534;
+}
+
+.notify-target svg {
+	flex-shrink: 0;
+	color: #16a34a;
+}
+
+.notify-target strong {
+	font-weight: 600;
 }
 
 .setting-control.flex-end {

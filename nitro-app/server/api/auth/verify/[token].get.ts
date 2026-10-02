@@ -1,6 +1,9 @@
 import { defineEventHandler, getRouterParam, createError } from 'h3'
+import jwt from 'jsonwebtoken'
 import { prisma } from '../../../lib/prisma'
 import { sendWelcomeEmail } from '../../../utils/email'
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-default-jwt-secret'
 
 export default defineEventHandler(async (event) => {
 	const token = getRouterParam(event, 'token')
@@ -41,7 +44,7 @@ export default defineEventHandler(async (event) => {
 		})
 	}
 
-	// Mark as verified and clear the token
+	// Mark email as verified and clear the verification token
 	try {
 		await prisma.user.update({
 			where: { id: user.id },
@@ -56,13 +59,25 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 500, statusMessage: 'Failed to verify email. Please try again.' })
 	}
 
-	// Send welcome email asynchronously — failure must not block the response
+	// Send welcome email asynchronously (non-blocking)
 	sendWelcomeEmail(user.email, user.name).catch((err) =>
 		console.error('Welcome email failed (non-blocking):', err),
 	)
 
+	// Generate JWT session token for auto-login after email verification
+	const jwtToken = jwt.sign(
+		{ userId: user.id, email: user.email },
+		JWT_SECRET,
+		{ expiresIn: '7d' }
+	)
+
 	return {
 		success: true,
-		message: 'Email verified successfully! You can now log in.',
+		token: jwtToken,
+		user: {
+			id: user.id,
+			name: user.name,
+			email: user.email,
+		},
 	}
 })

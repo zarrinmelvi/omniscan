@@ -106,7 +106,7 @@
 							<button type="button" class="avatar-upload-btn" @click="avatarInputRef?.click()">
 								<ion-icon :icon="cameraOutline" />
 							</button>
-<button v-if="form.avatarBase64" type="button" class="avatar-remove-btn" @click="form.avatarBase64 = null" aria-label="Remove photo">
+.\omniscan-ui\<button v-if="form.avatarBase64" type="button" class="avatar-remove-btn" @click="form.avatarBase64 = null" aria-label="Remove photo">
 <ion-icon :icon="closeOutline" />
 </button>
 							<input ref="avatarInputRef" type="file" accept="image/*" class="hidden-input" @change="onAvatarSelected" />
@@ -366,8 +366,21 @@ function openEditModal() {
 	isEditModalOpen.value = true
 }
 
-function closeEditModal() {
-	isEditModalOpen.value = false
+async function closeEditModal() {
+	if (hasUnsavedChanges.value) {
+		const alert = await alertController.create({
+			header: 'Unsaved Changes',
+			message: 'You have not saved any changes. Are you sure you want to close without saving?',
+			cssClass: 'custom-make-alert',
+			buttons: [
+				{ text: 'Keep Editing', role: 'cancel', cssClass: 'alert-button-cancel' },
+				{ text: 'Discard Changes', cssClass: 'alert-button-danger', handler: () => { isEditModalOpen.value = false } },
+			],
+		})
+		await alert.present()
+	} else {
+		isEditModalOpen.value = false
+	}
 }
 
 function onAvatarSelected(event: Event) {

@@ -1656,3 +1656,8 @@ html.ion-palette-dark .btn-logout-confirm {
 html.ion-palette-dark .btn-logout-confirm:hover {
 	background: #00753a !important;
 }
+
+/* == Pantry detail — saved alternatives rows (dark mode) == */
+html.ion-palette-dark .alt-saved-row__name { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .alt-saved-row__descriptor { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .alt-saved-chip { background: #052e16 !important; color: #86efac !important; }

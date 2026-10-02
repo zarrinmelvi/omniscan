@@ -81,6 +81,7 @@ export type PantryItemCountAggregateOutputType = {
   portion_unit: number
   added_date: number
   is_archived: number
+  saved_alternatives: number
   user_id: number
   product_id: number
   created_at: number
@@ -145,6 +146,7 @@ export type PantryItemCountAggregateInputType = {
   portion_unit?: true
   added_date?: true
   is_archived?: true
+  saved_alternatives?: true
   user_id?: true
   product_id?: true
   created_at?: true
@@ -248,6 +250,7 @@ export type PantryItemGroupByOutputType = {
   portion_unit: string
   added_date: Date
   is_archived: boolean
+  saved_alternatives: runtime.JsonValue | null
   user_id: number
   product_id: number
   created_at: Date
@@ -287,6 +290,7 @@ export type PantryItemWhereInput = {
   portion_unit?: Prisma.StringFilter<"PantryItem"> | string
   added_date?: Prisma.DateTimeFilter<"PantryItem"> | Date | string
   is_archived?: Prisma.BoolFilter<"PantryItem"> | boolean
+  saved_alternatives?: Prisma.JsonNullableFilter<"PantryItem">
   user_id?: Prisma.IntFilter<"PantryItem"> | number
   product_id?: Prisma.IntFilter<"PantryItem"> | number
   created_at?: Prisma.DateTimeFilter<"PantryItem"> | Date | string
@@ -307,6 +311,7 @@ export type PantryItemOrderByWithRelationInput = {
   portion_unit?: Prisma.SortOrder
   added_date?: Prisma.SortOrder
   is_archived?: Prisma.SortOrder
+  saved_alternatives?: Prisma.SortOrderInput | Prisma.SortOrder
   user_id?: Prisma.SortOrder
   product_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -330,6 +335,7 @@ export type PantryItemWhereUniqueInput = Prisma.AtLeast<{
   portion_unit?: Prisma.StringFilter<"PantryItem"> | string
   added_date?: Prisma.DateTimeFilter<"PantryItem"> | Date | string
   is_archived?: Prisma.BoolFilter<"PantryItem"> | boolean
+  saved_alternatives?: Prisma.JsonNullableFilter<"PantryItem">
   user_id?: Prisma.IntFilter<"PantryItem"> | number
   product_id?: Prisma.IntFilter<"PantryItem"> | number
   created_at?: Prisma.DateTimeFilter<"PantryItem"> | Date | string
@@ -350,6 +356,7 @@ export type PantryItemOrderByWithAggregationInput = {
   portion_unit?: Prisma.SortOrder
   added_date?: Prisma.SortOrder
   is_archived?: Prisma.SortOrder
+  saved_alternatives?: Prisma.SortOrderInput | Prisma.SortOrder
   user_id?: Prisma.SortOrder
   product_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -374,6 +381,7 @@ export type PantryItemScalarWhereWithAggregatesInput = {
   portion_unit?: Prisma.StringWithAggregatesFilter<"PantryItem"> | string
   added_date?: Prisma.DateTimeWithAggregatesFilter<"PantryItem"> | Date | string
   is_archived?: Prisma.BoolWithAggregatesFilter<"PantryItem"> | boolean
+  saved_alternatives?: Prisma.JsonNullableWithAggregatesFilter<"PantryItem">
   user_id?: Prisma.IntWithAggregatesFilter<"PantryItem"> | number
   product_id?: Prisma.IntWithAggregatesFilter<"PantryItem"> | number
   created_at?: Prisma.DateTimeWithAggregatesFilter<"PantryItem"> | Date | string
@@ -389,6 +397,7 @@ export type PantryItemCreateInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -407,6 +416,7 @@ export type PantryItemUncheckedCreateInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   user_id: number
   product_id: number
   created_at?: Date | string
@@ -424,6 +434,7 @@ export type PantryItemUpdateInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -442,6 +453,7 @@ export type PantryItemUncheckedUpdateInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   user_id?: Prisma.IntFieldUpdateOperationsInput | number
   product_id?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -460,6 +472,7 @@ export type PantryItemCreateManyInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   user_id: number
   product_id: number
   created_at?: Date | string
@@ -475,6 +488,7 @@ export type PantryItemUpdateManyMutationInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -489,6 +503,7 @@ export type PantryItemUncheckedUpdateManyInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   user_id?: Prisma.IntFieldUpdateOperationsInput | number
   product_id?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -520,6 +535,7 @@ export type PantryItemCountOrderByAggregateInput = {
   portion_unit?: Prisma.SortOrder
   added_date?: Prisma.SortOrder
   is_archived?: Prisma.SortOrder
+  saved_alternatives?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   product_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -697,6 +713,7 @@ export type PantryItemCreateWithoutActivityLogInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -714,6 +731,7 @@ export type PantryItemUncheckedCreateWithoutActivityLogInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   user_id: number
   product_id: number
   created_at?: Date | string
@@ -746,6 +764,7 @@ export type PantryItemUpdateWithoutActivityLogInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -763,6 +782,7 @@ export type PantryItemUncheckedUpdateWithoutActivityLogInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   user_id?: Prisma.IntFieldUpdateOperationsInput | number
   product_id?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -779,6 +799,7 @@ export type PantryItemCreateWithoutUserInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -796,6 +817,7 @@ export type PantryItemUncheckedCreateWithoutUserInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   product_id: number
   created_at?: Date | string
   updated_at?: Date | string
@@ -842,6 +864,7 @@ export type PantryItemScalarWhereInput = {
   portion_unit?: Prisma.StringFilter<"PantryItem"> | string
   added_date?: Prisma.DateTimeFilter<"PantryItem"> | Date | string
   is_archived?: Prisma.BoolFilter<"PantryItem"> | boolean
+  saved_alternatives?: Prisma.JsonNullableFilter<"PantryItem">
   user_id?: Prisma.IntFilter<"PantryItem"> | number
   product_id?: Prisma.IntFilter<"PantryItem"> | number
   created_at?: Prisma.DateTimeFilter<"PantryItem"> | Date | string
@@ -857,6 +880,7 @@ export type PantryItemCreateWithoutNotificationInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -874,6 +898,7 @@ export type PantryItemUncheckedCreateWithoutNotificationInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   user_id: number
   product_id: number
   created_at?: Date | string
@@ -906,6 +931,7 @@ export type PantryItemUpdateWithoutNotificationInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -923,6 +949,7 @@ export type PantryItemUncheckedUpdateWithoutNotificationInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   user_id?: Prisma.IntFieldUpdateOperationsInput | number
   product_id?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -939,6 +966,7 @@ export type PantryItemCreateWithoutProductInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -956,6 +984,7 @@ export type PantryItemUncheckedCreateWithoutProductInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   user_id: number
   created_at?: Date | string
   updated_at?: Date | string
@@ -999,6 +1028,7 @@ export type PantryItemCreateManyUserInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   product_id: number
   created_at?: Date | string
   updated_at?: Date | string
@@ -1013,6 +1043,7 @@ export type PantryItemUpdateWithoutUserInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1030,6 +1061,7 @@ export type PantryItemUncheckedUpdateWithoutUserInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   product_id?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1047,6 +1079,7 @@ export type PantryItemUncheckedUpdateManyWithoutUserInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   product_id?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1062,6 +1095,7 @@ export type PantryItemCreateManyProductInput = {
   portion_unit: string
   added_date: Date | string
   is_archived?: boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   user_id: number
   created_at?: Date | string
   updated_at?: Date | string
@@ -1076,6 +1110,7 @@ export type PantryItemUpdateWithoutProductInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1093,6 +1128,7 @@ export type PantryItemUncheckedUpdateWithoutProductInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   user_id?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1110,6 +1146,7 @@ export type PantryItemUncheckedUpdateManyWithoutProductInput = {
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  saved_alternatives?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   user_id?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1165,6 +1202,7 @@ export type PantryItemSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   portion_unit?: boolean
   added_date?: boolean
   is_archived?: boolean
+  saved_alternatives?: boolean
   user_id?: boolean
   product_id?: boolean
   created_at?: boolean
@@ -1186,6 +1224,7 @@ export type PantryItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   portion_unit?: boolean
   added_date?: boolean
   is_archived?: boolean
+  saved_alternatives?: boolean
   user_id?: boolean
   product_id?: boolean
   created_at?: boolean
@@ -1204,6 +1243,7 @@ export type PantryItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   portion_unit?: boolean
   added_date?: boolean
   is_archived?: boolean
+  saved_alternatives?: boolean
   user_id?: boolean
   product_id?: boolean
   created_at?: boolean
@@ -1222,6 +1262,7 @@ export type PantryItemSelectScalar = {
   portion_unit?: boolean
   added_date?: boolean
   is_archived?: boolean
+  saved_alternatives?: boolean
   user_id?: boolean
   product_id?: boolean
   created_at?: boolean
@@ -1229,7 +1270,7 @@ export type PantryItemSelectScalar = {
   deleted_at?: boolean
 }
 
-export type PantryItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "expiration_date" | "best_before_date" | "storage_location" | "quantity" | "portion_unit" | "added_date" | "is_archived" | "user_id" | "product_id" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["pantryItem"]>
+export type PantryItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "expiration_date" | "best_before_date" | "storage_location" | "quantity" | "portion_unit" | "added_date" | "is_archived" | "saved_alternatives" | "user_id" | "product_id" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["pantryItem"]>
 export type PantryItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
@@ -1263,6 +1304,7 @@ export type $PantryItemPayload<ExtArgs extends runtime.Types.Extensions.Internal
     portion_unit: string
     added_date: Date
     is_archived: boolean
+    saved_alternatives: runtime.JsonValue | null
     user_id: number
     product_id: number
     created_at: Date
@@ -1703,6 +1745,7 @@ export interface PantryItemFieldRefs {
   readonly portion_unit: Prisma.FieldRef<"PantryItem", 'String'>
   readonly added_date: Prisma.FieldRef<"PantryItem", 'DateTime'>
   readonly is_archived: Prisma.FieldRef<"PantryItem", 'Boolean'>
+  readonly saved_alternatives: Prisma.FieldRef<"PantryItem", 'Json'>
   readonly user_id: Prisma.FieldRef<"PantryItem", 'Int'>
   readonly product_id: Prisma.FieldRef<"PantryItem", 'Int'>
   readonly created_at: Prisma.FieldRef<"PantryItem", 'DateTime'>

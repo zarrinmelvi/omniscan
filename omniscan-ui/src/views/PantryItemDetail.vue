@@ -171,15 +171,18 @@
 
 				<!-- ALTERNATIVES -->
 				<template v-else>
-					<div v-if="!item.alternatives?.length" class="info-card alternatives-empty">
+					<div v-if="displayAlternatives.length === 0" class="info-card alternatives-empty">
 						<ion-icon :icon="constructOutline" />
-						<p>{{ item.alternatives_message || 'No alternatives available for this product.' }}</p>
+						<p>{{ item?.alternatives_message || 'No alternatives available for this product.' }}</p>
 					</div>
-					<div v-for="alt in item.alternatives || []" :key="alt.id" class="info-card alt-item">
-						<div class="alt-item__image-placeholder">
-							<ion-icon :icon="imageOutline" />
+					<div v-for="(alt, i) in displayAlternatives" :key="i" class="info-card alt-saved-row">
+						<div class="alt-saved-row__main">
+							<p class="alt-saved-row__name">{{ alt.name }}</p>
+							<p v-if="alt.descriptor" class="alt-saved-row__descriptor">{{ alt.descriptor }}</p>
 						</div>
-						<p class="alt-item__name">{{ alt.brand_name }} {{ alt.product_name }}</p>
+						<div v-if="alt.tags.length" class="alt-saved-row__tags">
+							<span v-for="(t, ti) in alt.tags" :key="ti" class="alt-saved-chip">{{ t }}</span>
+						</div>
 					</div>
 				</template>
 			</div>
@@ -284,7 +287,6 @@ import {
 	constructOutline,
 	closeCircleOutline,
 	warningOutline,
-	imageOutline,
 	chevronUpOutline,
 	chevronDownOutline,
 	createOutline,
@@ -313,6 +315,7 @@ interface PantryItemDetailDto {
 	matched_user_allergens?: string[]
 	alternatives?: any[]
 	alternatives_message?: string | null
+	saved_alternatives?: { name: string; descriptor: string; tags: string[] }[]
 }
 
 interface Product {
@@ -349,6 +352,17 @@ const editForm = reactive({
 })
 
 const matchedUserAllergens = computed(() => item.value?.matched_user_allergens ?? [])
+
+const displayAlternatives = computed<{ name: string; descriptor: string; tags: string[] }[]>(() => {
+	const saved = item.value?.saved_alternatives ?? []
+	if (saved.length > 0) return saved.slice(0, 3)
+	const live = item.value?.alternatives ?? []
+	return live.slice(0, 3).map((a: any) => ({
+		name: `${a.brand_name ?? ''} ${a.product_name ?? ''}`.trim(),
+		descriptor: 'Similar verified product',
+		tags: [] as string[],
+	}))
+})
 
 const isHalalCertified = computed(() => (item.value?.product.halal_certifiers.length ?? 0) > 0 || !!item.value?.product.halal_logo_id)
 const isConfirmedNotHalal = computed(() => !!item.value?.product.confirmed_not_halal && !isHalalCertified.value)
@@ -785,6 +799,18 @@ onIonViewWillEnter(fetchItem)
 	font-size: 0.85rem;
 	margin: 0;
 }
+
+.alt-saved-row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+}
+.alt-saved-row__main { flex: 1; min-width: 0; }
+.alt-saved-row__name { margin: 0; font-weight: 600; font-size: 0.9rem; color: #1f2937; }
+.alt-saved-row__descriptor { margin: 3px 0 0; font-size: 0.8rem; color: #6b7280; line-height: 1.4; }
+.alt-saved-row__tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; flex-shrink: 0; max-width: 45%; }
+.alt-saved-chip { background: #dcfce7; color: #15803d; font-size: 0.7rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
 
 .ingredient-allergen-highlight {
 	background: #fef2f2;

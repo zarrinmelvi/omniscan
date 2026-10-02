@@ -14,6 +14,7 @@ interface CreatePantryItemBody {
 	storage_location?: string
 	quantity?: number
 	unit?: string
+	saved_alternatives?: { name: string; descriptor: string; tags: string[] }[]
 }
 
 function coerceRawIngredients(value: unknown): RawIngredient[] {
@@ -26,6 +27,19 @@ function coerceRawIngredients(value: unknown): RawIngredient[] {
 			unit: typeof item.unit === 'string' ? item.unit : null,
 		}))
 		.filter((i) => i.name.trim().length > 0)
+}
+
+function coerceSavedAlternatives(value: unknown): { name: string; descriptor: string; tags: string[] }[] {
+	if (!Array.isArray(value)) return []
+	return value
+		.filter((a): a is Record<string, unknown> => !!a && typeof a === 'object')
+		.map((a) => ({
+			name: typeof a.name === 'string' ? a.name.trim() : '',
+			descriptor: typeof a.descriptor === 'string' ? a.descriptor.trim() : '',
+			tags: Array.isArray(a.tags) ? a.tags.filter((t): t is string => typeof t === 'string').map((t) => t.trim()).filter(Boolean).slice(0, 4) : [],
+		}))
+		.filter((a) => a.name.length > 0)
+		.slice(0, 3)
 }
 
 export default defineEventHandler(async (event) => {
@@ -155,6 +169,7 @@ export default defineEventHandler(async (event) => {
 				storage_location: storage_location?.trim() || 'Unspecified',
 				added_date: new Date(),
 				is_archived: false,
+				saved_alternatives: coerceSavedAlternatives(body.saved_alternatives),
 			},
 			include: { product: { select: { id: true, product_name: true, image_base64: true } } },
 		})

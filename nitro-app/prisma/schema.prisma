@@ -227,6 +227,7 @@ model PantryItem {
 	portion_unit String
 	added_date DateTime
 	is_archived Boolean @default(false)
+	saved_alternatives Json?
 
 	user User @relation(fields: [user_id], references: [id])
 	user_id Int

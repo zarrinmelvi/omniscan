@@ -97,37 +97,16 @@
 					</div>
 					<ion-spinner v-if="aiLoading" name="crescent" class="alternatives-spinner" />
 					<p v-if="aiError && !aiLoading" class="alternatives-error">{{ aiError }}</p>
-					<div v-for="alt in alternatives" :key="alt.id" class="alt-item">
-						<div class="alt-item__image-placeholder">
-							<ion-icon :icon="imageOutline" />
+					<div v-for="(alt, i) in displayAlternatives" :key="i" class="alt-row">
+						<div class="alt-row__main">
+							<p class="alt-row__name">{{ alt.name }}</p>
+							<p v-if="alt.descriptor" class="alt-row__descriptor">{{ alt.descriptor }}</p>
 						</div>
-						<div class="alt-item__info">
-							<p class="alt-item__name">{{ alt.brand_name }} {{ alt.product_name }}</p>
-						</div>
-					</div>
-					<div v-for="sug in aiSuggestions" :key="sug.product_name" class="alt-item alt-item--ai">
-						<div class="alt-item__image-placeholder alt-item__image-placeholder--ai">
-							<ion-icon :icon="sparklesOutline" />
-						</div>
-						<div class="alt-item__info">
-							<p class="alt-item__name">{{ sug.brand_name }} {{ sug.product_name }}</p>
-							<p class="alt-item__desc">{{ sug.reason }}</p>
+						<div v-if="alt.tags.length" class="alt-row__tags">
+							<span v-for="(t, ti) in alt.tags" :key="ti" class="alt-tag-chip">{{ t }}</span>
 						</div>
 					</div>
-					<div v-for="(wa, i) in webAlternatives" :key="'web-' + i" class="alt-item alt-item--web">
-						<div class="alt-item__image-placeholder alt-item__image-placeholder--ai">
-							<ion-icon :icon="globeOutline" />
-						</div>
-						<div class="alt-item__info">
-							<p class="alt-item__name">{{ wa.simplified_consumer_term }}</p>
-							<p class="alt-item__sci">{{ wa.scientific_raw_term }}</p>
-							<div class="alt-item__meta">
-								<span class="alt-chip alt-chip--allergen">{{ wa.allergen_category }}</span>
-								<span class="alt-chip alt-chip--halal">{{ wa.halal_compliance_note }}</span>
-							</div>
-						</div>
-					</div>
-					<p v-if="!aiLoading && !aiError && alternatives.length === 0 && aiSuggestions.length === 0 && webAlternatives.length === 0" class="alternatives-empty">
+					<p v-if="!aiLoading && !aiError && displayAlternatives.length === 0" class="alternatives-empty">
 						No alternatives found for this product.
 					</p>
 				</div>
@@ -224,7 +203,6 @@ import {
 	imageOutline,
 	sparklesOutline,
 	swapHorizontalOutline,
-	globeOutline,
 } from 'ionicons/icons'
 
 const props = withDefaults(
@@ -291,6 +269,33 @@ const aiSuggestions = ref<{ product_name: string; brand_name: string; reason: st
 const webAlternatives = ref<{ scientific_raw_term: string; simplified_consumer_term: string; allergen_category: string; halal_compliance_note: string }[]>([])
 const aiLoading = ref(false)
 const aiError = ref('')
+
+const displayAlternatives = computed<{ name: string; descriptor: string; tags: string[] }[]>(() => {
+	const out: { name: string; descriptor: string; tags: string[] }[] = []
+	const seen = new Set<string>()
+	const push = (name: string, descriptor: string, tags: string[]) => {
+		const key = name.trim().toLowerCase()
+		if (!key || seen.has(key)) return
+		seen.add(key)
+		out.push({ name: name.trim(), descriptor: descriptor.trim(), tags: tags.filter(Boolean).slice(0, 3) })
+	}
+	// Local DB matches first (most trustworthy)
+	for (const a of alternatives.value) {
+		push(`${a.brand_name ?? ''} ${a.product_name ?? ''}`.trim(), 'Similar verified product', [])
+	}
+	// Primary AI suggestions
+	for (const s of aiSuggestions.value) {
+		push(`${s.brand_name ?? ''} ${s.product_name ?? ''}`.trim(), s.reason ?? '', [])
+	}
+	// Structured web alternatives (have allergen + halal tags)
+	for (const w of webAlternatives.value) {
+		const tags: string[] = []
+		if (w.allergen_category && w.allergen_category !== 'Unknown') tags.push(w.allergen_category)
+		if (w.halal_compliance_note && !/unverified/i.test(w.halal_compliance_note)) tags.push(w.halal_compliance_note)
+		push(w.simplified_consumer_term || w.scientific_raw_term, w.scientific_raw_term && w.simplified_consumer_term && w.scientific_raw_term !== w.simplified_consumer_term ? w.scientific_raw_term : '', tags)
+	}
+	return out.slice(0, 3)
+})
 
 watch(
 	() => props.isOpen,
@@ -459,6 +464,7 @@ async function submitAddToPantry() {
 				storage_location: storageLocation.value,
 				expiration_date: expirationDate.value || undefined,
 				best_before_date: bestBeforeDate.value || undefined,
+				saved_alternatives: displayAlternatives.value,
 			},
 		})
 
@@ -773,6 +779,51 @@ function forceDismiss() {
 	font-size: 0.72rem;
 	font-weight: 500;
 	padding: 3px 8px;
+	border-radius: 999px;
+	white-space: nowrap;
+}
+
+.alt-row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 0;
+	border-bottom: 1px solid #f1f2f4;
+}
+.alt-row:last-of-type {
+	border-bottom: none;
+}
+.alt-row__main {
+	flex: 1;
+	min-width: 0;
+}
+.alt-row__name {
+	margin: 0;
+	font-weight: 600;
+	font-size: 0.88rem;
+	color: #1f2937;
+}
+.alt-row__descriptor {
+	margin: 3px 0 0;
+	font-size: 0.78rem;
+	color: #6b7280;
+	line-height: 1.4;
+}
+.alt-row__tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	justify-content: flex-end;
+	flex-shrink: 0;
+	max-width: 45%;
+}
+.alt-tag-chip {
+	background: #dcfce7;
+	color: #15803d;
+	font-size: 0.7rem;
+	font-weight: 600;
+	padding: 3px 9px;
 	border-radius: 999px;
 	white-space: nowrap;
 }

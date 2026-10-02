@@ -165,6 +165,10 @@ export default defineEventHandler(async (event) => {
 			alternativesMessage = 'No known alternatives for this product yet.'
 		}
 
+		const savedAlternatives = Array.isArray(item.saved_alternatives)
+			? (item.saved_alternatives as { name: string; descriptor: string; tags: string[] }[])
+			: []
+
 		const madeInteractions = await prisma.recipeInteraction.findMany({
 			where: { user_id: authUser.id, made_at: { not: null } },
 			select: {
@@ -214,6 +218,7 @@ export default defineEventHandler(async (event) => {
 				recipes_using_this: recipesUsingThis,
 				alternatives,
 				alternatives_message: alternativesMessage,
+				saved_alternatives: savedAlternatives,
 			},
 		}
 	} catch (err: any) {

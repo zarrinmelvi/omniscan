@@ -269,6 +269,7 @@ export const PantryItemScalarFieldEnum = {
   portion_unit: 'portion_unit',
   added_date: 'added_date',
   is_archived: 'is_archived',
+  saved_alternatives: 'saved_alternatives',
   user_id: 'user_id',
   product_id: 'product_id',
   created_at: 'created_at',
@@ -416,6 +417,14 @@ export const JsonNullValueInput = {
 } as const
 
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {

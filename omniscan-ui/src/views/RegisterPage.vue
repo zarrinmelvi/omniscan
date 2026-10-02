@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<ion-page>
 		<ion-content class="auth-content" :scroll-y="true">
 			<div class="auth-layout">
@@ -100,9 +100,9 @@
 
 				<!-- STEP 2: Dietary Preferences -->
 				<template v-else>
-				<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! 🎉' : 'Almost There!' }}</span>
-					<h1 class="auth-title">Dietary Preferences</h1>
-				<p class="auth-subtitle">{{ route.query.step === '2' ? 'Your account is active. Now personalise your experience:' : 'Select your dietary preferences so we can help you make better choices' }}</p>
+				<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! ðŸŽ‰' : 'Almost There!' }}</span>
+					<h1 class="auth-title">Allergens / Allergy List</h1>
+				<p class="auth-subtitle">{{ route.query.step === '2' ? 'Your account is active. Now personalise your experience:' : 'Select your allergens / allergy list so we can help you make better choices' }}</p>
 
 					<div v-if="isLoadingAllergens" class="state-block">
 						<ion-spinner name="crescent" />
@@ -120,7 +120,7 @@
 							class="pref-card"
 							:class="{ 'pref-card--selected': halalSelected }"
 							@click="toggleHalal()">
-							<span class="pref-emoji">🕌</span>
+							<span class="pref-emoji">ðŸ•Œ</span>
 							<span class="pref-label">Halal</span>
 						</button>
 
@@ -136,7 +136,7 @@
 						</button>
 					</div>
 
-					<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 dietary preferences.</p>
+					<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 allergens / allergies.</p>
 
 					<div v-if="prefsError" class="form-error">{{ prefsError }}</div>
 
@@ -215,9 +215,9 @@
 					</ul>
 					<p>The color-coded results may be presented as:</p>
 					<ul>
-						<li><strong>Green</strong> – Safe</li>
-						<li><strong>Yellow</strong> – Caution</li>
-						<li><strong>Red</strong> – Unsafe/Unsuitable</li>
+						<li><strong>Green</strong> â€“ Safe</li>
+						<li><strong>Yellow</strong> â€“ Caution</li>
+						<li><strong>Red</strong> â€“ Unsafe/Unsuitable</li>
 					</ul>
 					<p>These results are intended only as informational and decision-support guidance.</p>
 
@@ -347,7 +347,7 @@ const PREF_MAX = 5
 
 const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)
 
-// Step 1 — account creation
+// Step 1 â€” account creation
 const name = ref('')
 const email = ref('')
 const password = ref('')
@@ -389,7 +389,7 @@ const KNOWN_TLDS =
 	'sa|ae|eg|il|ar|cl|pe|ve'
 const EMAIL_RE = new RegExp(`^[^\\s@]+@[^\\s@]+(\\.[^\\s@]+)*\\.(${KNOWN_TLDS})$`, 'i')
 
-// Step 2 — dietary preferences
+// Step 2 â€” dietary preferences
 interface Allergen {
 	id: number
 	name: string
@@ -409,18 +409,18 @@ const prefLimitWarning = ref(false)
 const prefTotal = computed(() => selectedAllergenIds.value.length + (halalSelected.value ? 1 : 0))
 
 const ALLERGEN_EMOJI: Record<string, string> = {
-	milk: '🥛',
-	eggs: '🥚',
-	fish: '🐟',
-	shellfish: '🦐',
-	'tree nuts': '🌰',
-	peanuts: '🥜',
-	wheat: '🌾',
-	soy: '🫘',
+	milk: 'ðŸ¥›',
+	eggs: 'ðŸ¥š',
+	fish: 'ðŸŸ',
+	shellfish: 'ðŸ¦',
+	'tree nuts': 'ðŸŒ°',
+	peanuts: 'ðŸ¥œ',
+	wheat: 'ðŸŒ¾',
+	soy: 'ðŸ«˜',
 }
 
 function emojiForAllergen(name: string): string {
-	return ALLERGEN_EMOJI[name.toLowerCase()] ?? '🍽️'
+	return ALLERGEN_EMOJI[name.toLowerCase()] ?? 'ðŸ½ï¸'
 }
 
 function formatAllergenName(name: string): string {
@@ -505,7 +505,7 @@ async function acceptTerms(): Promise<void> {
 	try {
 		const response = await authStore.register(name.value.trim(), email.value, password.value)
 
-		// Backend now requires email verification before login — redirect to check-email page
+		// Backend now requires email verification before login â€” redirect to check-email page
 		if (response.requiresVerification) {
 			router.push({ path: '/check-email', query: { email: email.value } })
 			return
@@ -519,7 +519,7 @@ async function acceptTerms(): Promise<void> {
 	} catch (err) {
 		if (err instanceof ApiError) {
 			if (err.status === 429) {
-				// Unverified account exists — cooldown active, redirect to check-email
+				// Unverified account exists â€” cooldown active, redirect to check-email
 				router.push({ path: '/check-email', query: { email: email.value } })
 			} else {
 				errorMessage.value = err.message
@@ -583,7 +583,7 @@ async function completeSetup(): Promise<void> {
 	prefsError.value = ''
 	setupError.value = ''
 	if (prefTotal.value === 0) {
-		setupError.value = 'Please select at least one dietary preference before completing setup.'
+		setupError.value = 'Please select at least one allergen / allergy before completing setup.'
 		isSavingPrefs.value = false
 		return
 	}

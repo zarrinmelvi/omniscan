@@ -1,9 +1,9 @@
-<template>
+﻿<template>
 	<ion-page>
 		<ion-content class="profile-content">
 			<div v-if="isLoading" class="state-block">
 				<ion-spinner name="crescent" />
-				<p>Loading your profile…</p>
+				<p>Loading your profileâ€¦</p>
 			</div>
 
 			<div v-else-if="loadError" class="state-block">
@@ -85,7 +85,7 @@
 			<!-- Floating Edit Profile Modal -->
 			<ion-modal :is-open="isEditModalOpen" class="custom-edit-modal" @didDismiss="closeEditModal">
 				<div class="modal-card">
-					<!-- Modal Header — sticky, never scrolls -->
+					<!-- Modal Header â€” sticky, never scrolls -->
 					<div class="modal-header-sticky">
 						<div class="modal-header">
 							<h2 class="modal-title">Edit Profile</h2>
@@ -106,6 +106,9 @@
 							<button type="button" class="avatar-upload-btn" @click="avatarInputRef?.click()">
 								<ion-icon :icon="cameraOutline" />
 							</button>
+<button v-if="form.avatarBase64" type="button" class="avatar-remove-btn" @click="form.avatarBase64 = null" aria-label="Remove photo">
+<ion-icon :icon="closeOutline" />
+</button>
 							<input ref="avatarInputRef" type="file" accept="image/*" class="hidden-input" @change="onAvatarSelected" />
 						</div>
 						<p v-if="avatarError" class="form-error">{{ avatarError }}</p>
@@ -137,7 +140,7 @@
 							</span>
 						</div>
 
-						<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 dietary preferences.</p>
+						<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 allergens / allergies.</p>
 						<label class="input-label" style="margin-top: 16px;">Allergens / Allergy List</label>
 						<div class="who-allergen-list">
 							<label v-for="allergen in WHO_ALLERGENS" :key="allergen.value" class="who-allergen-item">
@@ -152,7 +155,7 @@
 
 						<button type="button" class="save-changes-btn" :disabled="isSaving" @click="saveProfile">
 							<ion-spinner v-if="isSaving" name="crescent" />
-							<span>{{ isSaving ? 'Saving…' : 'Save Changes' }}</span>
+							<span>{{ isSaving ? 'Savingâ€¦' : 'Save Changes' }}</span>
 						</button>
 					</div>
 				</div>
@@ -337,11 +340,57 @@ function openEditModal() {
 	avatarError.value = ''
 	saveError.value = ''
 	prefLimitWarning.value = false
-	isEditModalOpen.value = true
+initialForm.name = form.name
+initialForm.email = form.email
+initialForm.halalPref = form.halalPref
+initialForm.customPreferences = [...form.customPreferences]
+initialForm.avatarBase64 = form.avatarBase64
+isEditModalOpen.value = true
 }
 
-function closeEditModal() {
-	isEditModalOpen.value = false
+const initialForm = reactive({
+name: '',
+email: '',
+halalPref: false,
+customPreferences: [] as string[],
+avatarBase64: null as string | null,
+})
+
+const hasUnsavedChanges = computed(() => {
+return (
+form.name !== initialForm.name ||
+form.email !== initialForm.email ||
+form.halalPref !== initialForm.halalPref ||
+JSON.stringify(form.customPreferences) !== JSON.stringify(initialForm.customPreferences) ||
+form.avatarBase64 !== initialForm.avatarBase64
+)
+})
+
+async function closeEditModal() {
+if (hasUnsavedChanges.value) {
+const alert = await alertController.create({
+header: 'Unsaved Changes',
+message: 'You have not saved any changes. Are you sure you want to close without saving?',
+cssClass: 'custom-make-alert',
+buttons: [
+{
+text: 'Keep Editing',
+role: 'cancel',
+cssClass: 'alert-button-cancel',
+},
+{
+text: 'Discard Changes',
+cssClass: 'alert-button-danger',
+handler: () => {
+isEditModalOpen.value = false
+},
+},
+],
+})
+await alert.present()
+} else {
+isEditModalOpen.value = false
+}
 }
 
 function onAvatarSelected(event: Event) {
@@ -803,6 +852,23 @@ ion-modal.custom-edit-modal {
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
+}
+
+.custom-edit-modal .avatar-remove-btn {
+position: absolute;
+top: 0;
+right: 0;
+width: 22px;
+height: 22px;
+border-radius: 50%;
+background: #ef4444;
+color: #ffffff;
+border: 2px solid #ffffff;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+font-size: 0.65rem;
 }
 
 .custom-edit-modal .hidden-input {

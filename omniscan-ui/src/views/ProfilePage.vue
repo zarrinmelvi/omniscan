@@ -147,7 +147,10 @@
 							<IonToggle v-model="form.halalPref" />
 						</div>
 
-						<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 allergens / allergies.</p>
+						<p v-if="isExceedingLimit" class="pref-limit-warning">
+							You can select up to 5 allergens / allergies.
+						</p>
+
 						<label class="input-label" style="margin-top: 16px;">Allergens / Allergy List</label>
 						<div class="who-allergen-list">
 							<label v-for="allergen in WHO_ALLERGENS" :key="allergen.value" class="who-allergen-item">
@@ -160,7 +163,7 @@
 							</label>
 						</div>
 
-						<button type="button" class="save-changes-btn" :disabled="isSaving" @click="saveProfile">
+						<button type="button" class="save-changes-btn" :disabled="isSaving || isExceedingLimit" @click="saveProfile">
 							<ion-spinner v-if="isSaving" name="crescent" />
 							<span>{{ isSaving ? 'Saving…' : 'Save Changes' }}</span>
 						</button>
@@ -281,7 +284,6 @@ const loadError = ref('')
 const isSaving = ref(false)
 const saveError = ref('')
 const showSuccessToast = ref(false)
-const prefLimitWarning = ref(false)
 
 const allergenCatalog = ref<Allergen[]>([])
 
@@ -301,7 +303,7 @@ const displayPreferences = computed(() => {
 	return filtered.filter((p) => p.toLowerCase() !== 'halal')
 })
 
-const prefTotal = computed(() => form.customPreferences.length + (form.halalPref ? 1 : 0))
+const isExceedingLimit = computed(() => form.customPreferences.length > PREF_MAX)
 
 const form = reactive({
 	name: '',
@@ -359,7 +361,6 @@ function openEditModal() {
 	form.avatarBase64 = user.value.avatar_base64
 	avatarError.value = ''
 	saveError.value = ''
-	prefLimitWarning.value = false
 
 	initialForm.name = form.name
 	initialForm.email = form.email
@@ -429,17 +430,14 @@ function onAvatarSelected(event: Event) {
 function toggleWhoAllergen(value: string) {
 	if (form.customPreferences.includes(value)) {
 		form.customPreferences = form.customPreferences.filter((p) => p !== value)
-		prefLimitWarning.value = false
 	} else {
-		if (prefTotal.value >= PREF_MAX) {
-			prefLimitWarning.value = true
-			return
-		}
 		form.customPreferences.push(value)
 	}
 }
 
 async function saveProfile() {
+	if (isExceedingLimit.value) return
+
 	isSaving.value = true
 	saveError.value = ''
 
@@ -930,6 +928,12 @@ ion-modal.custom-edit-modal {
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
+}
+
+.custom-edit-modal .save-changes-btn:disabled {
+	background: #9ca3af;
+	cursor: not-allowed;
+	opacity: 0.7;
 }
 
 .custom-edit-modal .form-error {

@@ -369,6 +369,7 @@ interface Allergen {
 	id: number
 	name: string
 	scientific_name: string
+	is_predefined?: boolean
 }
 
 const allergenCatalog = ref<Allergen[]>([])
@@ -549,7 +550,8 @@ async function fetchAllergenCatalog(): Promise<void> {
 	allergensLoadError.value = ''
 
 	try {
-		allergenCatalog.value = await apiFetch<Allergen[]>('/api/allergen', { method: 'GET' })
+		const rawCatalog = await apiFetch<Allergen[]>('/api/allergen', { method: 'GET' })
+		allergenCatalog.value = rawCatalog.filter((a) => a.is_predefined)
 	} catch (err) {
 		allergensLoadError.value = err instanceof ApiError ? err.message : 'Could not load allergen options.'
 	} finally {
@@ -590,6 +592,17 @@ async function completeSetup(): Promise<void> {
 
 	if (prefTotal.value === 0) {
 		setupError.value = 'Please select at least one allergen / allergy before completing setup or click "Skip for now".'
+		isSavingPrefs.value = false
+		return
+	}
+
+	// 1. Ensure token & session are verified before calling backend
+	await authStore.checkAuth()
+	if (!authStore.isAuthenticated) {
+		prefsError.value = 'Your session has expired. Redirecting to login...'
+		setTimeout(() => {
+			router.push('/login')
+		}, 1500)
 		isSavingPrefs.value = false
 		return
 	}

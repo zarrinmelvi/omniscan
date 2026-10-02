@@ -1520,3 +1520,27 @@ html.ion-palette-dark .btn-discard {
 html.ion-palette-dark .btn-discard:hover {
 	background: #450a0a !important;
 }
+
+/* == Pagination bar — dark mode (Verification Panel + Manage User Profiles) == */
+html.ion-palette-dark .pagination-bar {
+	border-top-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .page-num,
+html.ion-palette-dark .page-nav {
+	background: var(--dm-bg-input) !important;
+	border-color: var(--dm-border) !important;
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .page-num:hover:not(.active),
+html.ion-palette-dark .page-nav:hover:not(:disabled) {
+	background: var(--dm-bg-chip) !important;
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .page-num.active {
+	background: #008744 !important;
+	border-color: #008744 !important;
+	color: #ffffff !important;
+}
+html.ion-palette-dark .page-ellipsis {
+	color: var(--dm-text-secondary) !important;
+}

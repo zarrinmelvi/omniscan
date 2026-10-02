@@ -140,7 +140,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="row in filteredRows" :key="row.id" @click="openReviewModal(row)">
+						<tr v-for="row in pagedRows" :key="row.id" @click="openReviewModal(row)">
 
 							<td class="col-id cell-id">#{{ row.id }}</td>
 
@@ -199,6 +199,25 @@
 						</tr>
 					</tbody>
 				</table>
+			</div>
+
+			<!-- Pagination -->
+			<div v-if="!isLoading && !errorMessage && filteredRows.length > 0" class="pagination-bar">
+				<button class="page-nav" :disabled="currentPage === 1" @click="prevPage" aria-label="Previous page">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+				</button>
+				<template v-for="(item, idx) in pageItems" :key="idx">
+					<button
+						v-if="item !== '...'"
+						class="page-num"
+						:class="{ active: item === currentPage }"
+						@click="goToPage(item as number)"
+					>{{ item }}</button>
+					<span v-else class="page-ellipsis">…</span>
+				</template>
+				<button class="page-nav" :disabled="currentPage === totalPages" @click="nextPage" aria-label="Next page">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+				</button>
 			</div>
 		</div>
 
@@ -404,7 +423,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
 import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 
@@ -606,6 +625,63 @@ const filteredRows = computed<FlaggedScanRow[]>(() => {
 		const tb = new Date(b.created_at).getTime()
 		return sortOrder.value === 'latest' ? tb - ta : ta - tb
 	})
+})
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+const PAGE_SIZE = 10
+const currentPage = ref(1)
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredRows.value.length / PAGE_SIZE)))
+
+const pagedRows = computed<FlaggedScanRow[]>(() => {
+	const start = (currentPage.value - 1) * PAGE_SIZE
+	return filteredRows.value.slice(start, start + PAGE_SIZE)
+})
+
+// Windowed page list capped at 10 visible slots, with ellipsis markers.
+const pageItems = computed<(number | '...')[]>(() => {
+	const total = totalPages.value
+	const current = currentPage.value
+	const MAX = 10
+
+	if (total <= MAX) {
+		return Array.from({ length: total }, (_, i) => i + 1)
+	}
+
+	const items: (number | '...')[] = []
+	const SIBLINGS = 2
+	const left = Math.max(2, current - SIBLINGS)
+	const right = Math.min(total - 1, current + SIBLINGS)
+
+	items.push(1)
+	if (left > 2) items.push('...')
+	for (let p = left; p <= right; p++) items.push(p)
+	if (right < total - 1) items.push('...')
+	items.push(total)
+	return items
+})
+
+function goToPage(p: number): void {
+	if (p < 1 || p > totalPages.value) return
+	currentPage.value = p
+}
+
+function nextPage(): void {
+	if (currentPage.value < totalPages.value) currentPage.value++
+}
+
+function prevPage(): void {
+	if (currentPage.value > 1) currentPage.value--
+}
+
+// Reset to page 1 when the filtered result set changes (search / filter / sort).
+watch([searchQuery, sortOrder, filterVerdict, filterStatus], () => {
+	currentPage.value = 1
+})
+
+// Clamp current page if it falls out of range after data changes.
+watch(totalPages, (tp) => {
+	if (currentPage.value > tp) currentPage.value = tp
 })
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1049,6 +1125,56 @@ tbody tr { cursor: pointer; }
 /* ── State messages ──────────────────────────────────────────────────────── */
 .state-message, .empty-note { padding: 40px; text-align: center; color: #64748b; font-size: 0.9rem; }
 .error-message { padding: 40px; text-align: center; color: #dc2626; font-size: 0.9rem; }
+
+/* ── Pagination ──────────────────────────────────────────────────────────── */
+.pagination-bar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 16px 20px;
+	border-top: 1px solid #f1f5f9;
+	flex-wrap: wrap;
+}
+.page-num,
+.page-nav {
+	min-width: 34px;
+	height: 34px;
+	padding: 0 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid #e2e8f0;
+	background: #ffffff;
+	color: #334155;
+	border-radius: 8px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.page-num:hover:not(.active),
+.page-nav:hover:not(:disabled) {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+}
+.page-num.active {
+	background: #008744;
+	border-color: #008744;
+	color: #ffffff;
+	cursor: default;
+}
+.page-nav:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+.page-ellipsis {
+	min-width: 24px;
+	text-align: center;
+	color: #94a3b8;
+	font-weight: 600;
+	user-select: none;
+}
 
 /* ══════════════════════════════════════════════════════════════════════════ */
 /* SHARED REVIEW SECTIONS (images + detail grid — used by the modal)         */

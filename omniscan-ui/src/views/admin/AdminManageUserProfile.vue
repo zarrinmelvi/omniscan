@@ -207,7 +207,7 @@
 				</thead>
 				<tbody>
 					<tr
-						v-for="user in filteredUsers"
+						v-for="user in pagedUsers"
 						:key="user.id"
 						:class="getRowClass(user)"
 					>
@@ -248,6 +248,25 @@
 					</tr>
 				</tbody>
 			</table>
+
+			<!-- Pagination -->
+			<div v-if="!isLoading && !errorMessage && filteredUsers.length > 0" class="pagination-bar">
+				<button class="page-nav" :disabled="currentPage === 1" @click="prevPage" aria-label="Previous page">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+				</button>
+				<template v-for="(item, idx) in pageItems" :key="idx">
+					<button
+						v-if="item !== '...'"
+						class="page-num"
+						:class="{ active: item === currentPage }"
+						@click="goToPage(item as number)"
+					>{{ item }}</button>
+					<span v-else class="page-ellipsis">…</span>
+				</template>
+				<button class="page-nav" :disabled="currentPage === totalPages" @click="nextPage" aria-label="Next page">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+				</button>
+			</div>
 
 			<!-- Table Footer Legend & Timestamp -->
 			<div class="table-footer">
@@ -317,7 +336,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
 
 interface ApiUserRow {
@@ -478,6 +497,65 @@ const filteredUsers = computed(() => {
 	return [...filtered].sort((a, b) =>
 		sortOrder.value === 'Latest' ? b.sortTs - a.sortTs : a.sortTs - b.sortTs
 	)
+})
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+const PAGE_SIZE = 10
+const currentPage = ref(1)
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredUsers.value.length / PAGE_SIZE)))
+
+const pagedUsers = computed(() => {
+	const start = (currentPage.value - 1) * PAGE_SIZE
+	return filteredUsers.value.slice(start, start + PAGE_SIZE)
+})
+
+// Windowed page list capped at 10 visible slots, with ellipsis markers.
+// Returns an array of page numbers and '...' string markers.
+const pageItems = computed<(number | '...')[]>(() => {
+	const total = totalPages.value
+	const current = currentPage.value
+	const MAX = 10
+
+	if (total <= MAX) {
+		return Array.from({ length: total }, (_, i) => i + 1)
+	}
+
+	// Always show first and last; window the middle around the current page.
+	const items: (number | '...')[] = []
+	const SIBLINGS = 2
+	const left = Math.max(2, current - SIBLINGS)
+	const right = Math.min(total - 1, current + SIBLINGS)
+
+	items.push(1)
+	if (left > 2) items.push('...')
+	for (let p = left; p <= right; p++) items.push(p)
+	if (right < total - 1) items.push('...')
+	items.push(total)
+	return items
+})
+
+function goToPage(p: number): void {
+	if (p < 1 || p > totalPages.value) return
+	currentPage.value = p
+}
+
+function nextPage(): void {
+	if (currentPage.value < totalPages.value) currentPage.value++
+}
+
+function prevPage(): void {
+	if (currentPage.value > 1) currentPage.value--
+}
+
+// Reset to page 1 whenever the filtered result set changes (search / filter / sort).
+watch([searchQuery, filterStatus, sortOrder], () => {
+	currentPage.value = 1
+})
+
+// Guard: if the current page falls out of range after data changes, clamp it.
+watch(totalPages, (tp) => {
+	if (currentPage.value > tp) currentPage.value = tp
 })
 
 const selectedCount = computed(() => selectedIds.value.size)
@@ -1185,4 +1263,54 @@ tr.row-highlight-red {
 .batch-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .batch-btn.notify { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
 .batch-btn.notify:hover:not(:disabled) { background: #dbeafe; }
+
+/* Pagination */
+.pagination-bar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 16px 20px;
+	border-top: 1px solid #f1f5f9;
+	flex-wrap: wrap;
+}
+.page-num,
+.page-nav {
+	min-width: 34px;
+	height: 34px;
+	padding: 0 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid #e2e8f0;
+	background: #ffffff;
+	color: #334155;
+	border-radius: 8px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.page-num:hover:not(.active),
+.page-nav:hover:not(:disabled) {
+	background: #f1f5f9;
+	border-color: #cbd5e1;
+}
+.page-num.active {
+	background: #008744;
+	border-color: #008744;
+	color: #ffffff;
+	cursor: default;
+}
+.page-nav:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+.page-ellipsis {
+	min-width: 24px;
+	text-align: center;
+	color: #94a3b8;
+	font-weight: 600;
+	user-select: none;
+}
 </style>

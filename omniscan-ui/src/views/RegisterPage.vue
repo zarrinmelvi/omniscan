@@ -102,15 +102,15 @@
 								<div class="custom-input-wrapper">
 									<input
 										v-model="confirmPassword"
-										:type="showConfirmPassword ? 'text' : 'password'"
+										:type="showPassword ? 'text' : 'password'"
 										placeholder="Re-enter your password"
 										class="custom-input"
 										:class="{ 'input-error': fieldErrors.confirmPassword }"
 										@input="clearFieldError('confirmPassword')" />
 									<ion-icon
-										:icon="showConfirmPassword ? eyeOffOutline : eyeOutline"
+										:icon="showPassword ? eyeOffOutline : eyeOutline"
 										class="password-toggle"
-										@click="showConfirmPassword = !showConfirmPassword" />
+										@click="showPassword = !showPassword" />
 								</div>
 							</div>
 
@@ -192,7 +192,115 @@
 			<ion-content class="terms-modal-content">
 				<div class="terms-modal-body">
 					<p class="terms-updated">Last Updated: September 7, 2026</p>
+
 					<p>Welcome to OmniScan, a cross-platform pantry management and food information system developed as part of a Bachelor of Science in Information Technology capstone project at STI College San Jose Del Monte.</p>
+					<p>These Terms &amp; Conditions ("Terms") govern your access to and use of the OmniScan web application and mobile application ("Application" or "System"). By creating an account, accessing, or using OmniScan, you acknowledge that you have read, understood, and agreed to these Terms.</p>
+					<p>If you do not agree with any part of these Terms, please discontinue your use of the Application.</p>
+
+					<h4>1. Purpose of OmniScan</h4>
+					<p>OmniScan is designed to assist users in making more informed food purchasing and household food management decisions.</p>
+					<p>The Application provides features that may include:</p>
+					<ul>
+						<li>Food product scanning and image uploading;</li>
+						<li>Ingredient text extraction and interpretation;</li>
+						<li>Potential allergen detection;</li>
+						<li>Halal logo and dietary compliance checking;</li>
+						<li>Color-coded food safety alerts;</li>
+						<li>Alternative product recommendations;</li>
+						<li>Digital pantry management;</li>
+						<li>Expiration and best-before date reminders;</li>
+						<li>AI-generated recipe recommendations; and</li>
+						<li>Personalized dietary profiles.</li>
+					</ul>
+					<p>OmniScan uses technologies such as Optical Character Recognition (OCR), computer vision, artificial intelligence, and reference databases to provide these features.</p>
+
+					<h4>2. Eligibility and Account Registration</h4>
+					<p>Users may be required to create an account to access certain features of OmniScan.</p>
+					<p>When creating an account, you agree to:</p>
+					<ul>
+						<li>Provide accurate and truthful information;</li>
+						<li>Keep your account information up to date;</li>
+						<li>Keep your login credentials confidential;</li>
+						<li>Not share your account with unauthorized individuals; and</li>
+						<li>Notify the system administrators or support team of any suspected unauthorized access.</li>
+					</ul>
+					<p>You are responsible for activities performed through your account.</p>
+
+					<h4>3. Dietary Profile Information</h4>
+					<p>OmniScan allows users to create and manage personalized dietary profiles, including food allergies, allergen sensitivities, and Halal preferences.</p>
+					<p>The information provided in your dietary profile is used to personalize food analysis, safety alerts, filtering, and recommendations.</p>
+					<p>You are responsible for ensuring that the dietary information entered into your profile is complete and accurate. OmniScan cannot guarantee that every dietary restriction, allergy, ingredient, or certification will be identified.</p>
+
+					<h4>4. Food Scanning and AI Analysis</h4>
+					<p>OmniScan may analyze uploaded or scanned food product images using OCR, computer vision, artificial intelligence, and reference databases.</p>
+
+					<h4>5. Food Safety Disclaimer</h4>
+					<p>OmniScan does not guarantee that a food product is completely safe, allergen-free, Halal-certified, or suitable for a particular individual.</p>
+
+					<h4>6. Limitations of Detection</h4>
+					<p>OmniScan's detection and analysis capabilities are subject to the information available to the System.</p>
+
+					<h4>7. Halal Verification</h4>
+					<p>OmniScan may identify selected Halal certification logos and analyze ingredient information related to Halal compliance.</p>
+
+					<h4>8. Pantry Management and Expiration Dates</h4>
+					<p>OmniScan provides a digital pantry feature that allows users to store information about food products and monitor expiration or best-before dates.</p>
+
+					<h4>9. Recipe Recommendations</h4>
+					<p>OmniScan may generate recipe suggestions based on available pantry ingredients and the user's dietary profile.</p>
+
+					<h4>10. User-Uploaded Images and Information</h4>
+					<p>Users may upload photographs of food products and related information for analysis.</p>
+
+					<h4>11. Notifications and Reminders</h4>
+					<p>OmniScan may send notifications regarding food items approaching their expiration dates, dietary warnings, recipe suggestions, account inactivity, and other system-related activities.</p>
+
+					<h4>12. Account Inactivity and Deletion</h4>
+					<p>An account that remains inactive for six (6) months may receive an email notification informing the user that the account is scheduled for deletion.</p>
+
+					<h4>13. Acceptable Use</h4>
+					<p>Users agree not to use OmniScan for unlawful purposes, attempt unauthorized access, disrupt System operations, upload malicious files, or misuse features.</p>
+
+					<h4>14. System Availability</h4>
+					<p>The developers aim to maintain OmniScan's availability; however, continuous or uninterrupted access is not guaranteed.</p>
+
+					<h4>15. Accuracy of Information</h4>
+					<p>While reasonable efforts are made, OmniScan does not guarantee that all information, analyses, classifications, recommendations, or alerts will always be complete, accurate, or current.</p>
+
+					<h4>16. Intellectual Property</h4>
+					<p>The OmniScan name, system design, user interface, software components, documentation, logos, and original materials belong to their respective owners.</p>
+
+					<h4>17. Third-Party Services and Data Sources</h4>
+					<p>OmniScan may rely on third-party technologies, services, or databases.</p>
+
+					<h4>18. Limitation of Liability</h4>
+					<p>To the extent permitted by law, the OmniScan development team shall not be responsible for losses, damages, injuries, dietary reactions, or food-related incidents.</p>
+
+					<h4>19. User Responsibility</h4>
+					<p>By using OmniScan, users acknowledge that they remain responsible for their own food purchasing, preparation, storage, consumption, and dietary decisions.</p>
+
+					<h4>20. Privacy and Personal Information</h4>
+					<p>Personal information is collected, stored, and processed in accordance with applicable data protection requirements.</p>
+
+					<h4>21. Changes to These Terms</h4>
+					<p>The development team may update or modify these Terms when necessary.</p>
+
+					<h4>22. Termination of Access</h4>
+					<p>Access may be suspended or terminated if a user violates these Terms or engages in harmful activity.</p>
+
+					<h4>23. Contact and Support</h4>
+					<p>Users may contact support regarding technical issues or questions through the Contact Support feature available within the Application.</p>
+
+					<h4>24. Acceptance of Terms</h4>
+					<p>By selecting "I Agree", "Accept", or by accessing and using OmniScan, you acknowledge that you have read, understood, and agreed to comply with these Terms &amp; Conditions.</p>
+
+					<div class="terms-footer-meta">
+						<p><strong>OmniScan</strong></p>
+						<p>A Cross-Platform Pantry Manager with Computer Vision for Allergen and Halal Detection and Artificial Intelligence Recommendations</p>
+						<p>Developed as a Capstone Project</p>
+						<p>STI College San Jose Del Monte</p>
+						<p>Bachelor of Science in Information Technology</p>
+					</div>
 
 					<div class="terms-action-row">
 						<ion-button expand="block" class="terms-agree-btn" @click="acceptTerms">
@@ -240,7 +348,6 @@ const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const showPassword = ref(false)
-const showConfirmPassword = ref(false)
 const isSubmitting = ref(false)
 const isTermsOpen = ref(false)
 const errorMessage = ref<string | null>(null)
@@ -909,6 +1016,44 @@ onUnmounted(() => {
 	color: #64748b !important;
 	margin: 0 0 16px;
 	font-weight: 500;
+}
+
+.terms-modal-body h4 {
+	font-size: 0.88rem;
+	font-weight: 700;
+	color: #1e293b !important;
+	margin: 16px 0 6px;
+}
+
+.terms-modal-body p {
+	font-size: 0.82rem;
+	color: #334155 !important;
+	line-height: 1.45;
+	margin: 0 0 10px;
+}
+
+.terms-modal-body ul {
+	margin: 0 0 12px;
+	padding-left: 20px;
+}
+
+.terms-modal-body li {
+	font-size: 0.82rem;
+	line-height: 1.4;
+	color: #334155 !important;
+	margin-bottom: 4px;
+}
+
+.terms-footer-meta {
+	margin-top: 24px;
+	padding-top: 16px;
+	border-top: 1px solid #e2e8f0;
+}
+
+.terms-footer-meta p {
+	font-size: 0.78rem;
+	color: #64748b !important;
+	margin-bottom: 4px;
 }
 
 .terms-action-row {

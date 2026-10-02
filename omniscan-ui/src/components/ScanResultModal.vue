@@ -114,7 +114,20 @@
 							<p class="alt-item__desc">{{ sug.reason }}</p>
 						</div>
 					</div>
-					<p v-if="!aiLoading && !aiError && alternatives.length === 0 && aiSuggestions.length === 0" class="alternatives-empty">
+					<div v-for="(wa, i) in webAlternatives" :key="'web-' + i" class="alt-item alt-item--web">
+						<div class="alt-item__image-placeholder alt-item__image-placeholder--ai">
+							<ion-icon :icon="globeOutline" />
+						</div>
+						<div class="alt-item__info">
+							<p class="alt-item__name">{{ wa.simplified_consumer_term }}</p>
+							<p class="alt-item__sci">{{ wa.scientific_raw_term }}</p>
+							<div class="alt-item__meta">
+								<span class="alt-chip alt-chip--allergen">{{ wa.allergen_category }}</span>
+								<span class="alt-chip alt-chip--halal">{{ wa.halal_compliance_note }}</span>
+							</div>
+						</div>
+					</div>
+					<p v-if="!aiLoading && !aiError && alternatives.length === 0 && aiSuggestions.length === 0 && webAlternatives.length === 0" class="alternatives-empty">
 						No alternatives found for this product.
 					</p>
 				</div>
@@ -211,6 +224,7 @@ import {
 	imageOutline,
 	sparklesOutline,
 	swapHorizontalOutline,
+	globeOutline,
 } from 'ionicons/icons'
 
 const props = withDefaults(
@@ -274,6 +288,7 @@ const ingredientsOpen = ref(true)
 
 const showAlternativesSection = ref(false)
 const aiSuggestions = ref<{ product_name: string; brand_name: string; reason: string }[]>([])
+const webAlternatives = ref<{ scientific_raw_term: string; simplified_consumer_term: string; allergen_category: string; halal_compliance_note: string }[]>([])
 const aiLoading = ref(false)
 const aiError = ref('')
 
@@ -286,6 +301,7 @@ watch(
 			fetchHalalPref()
 			showAlternativesSection.value = false
 			aiSuggestions.value = []
+			webAlternatives.value = []
 			aiLoading.value = false
 			aiError.value = ''
 		}
@@ -318,12 +334,17 @@ async function fetchAiAlternatives() {
 			product_name: product.value.product_name ?? '',
 			brand_name: product.value.brand_name ?? '',
 			user_allergens: personalAllergenAlerts.value.join(','),
+			halal_pref: String(userHalalPref.value),
 		})
-		const data = await apiFetch<{ suggestions: { product_name: string; brand_name: string; reason: string }[] }>(
+		const data = await apiFetch<{
+			suggestions: { product_name: string; brand_name: string; reason: string }[]
+			web_alternatives?: { scientific_raw_term: string; simplified_consumer_term: string; allergen_category: string; halal_compliance_note: string }[]
+		}>(
 			`/api/alternatives/ai-suggest?${params.toString()}`,
 			{ method: 'GET' },
 		)
 		aiSuggestions.value = data.suggestions ?? []
+		webAlternatives.value = data.web_alternatives ?? []
 	} catch (err) {
 		aiError.value = 'Could not load AI suggestions. Please try again.'
 		console.error('AI alternatives fetch error:', err)
@@ -1035,5 +1056,39 @@ function forceDismiss() {
 .alt-item__image-placeholder--ai {
 	background: #f0fdf4;
 	color: #16a34a;
+}
+
+.alt-item__sci {
+	font-size: 0.74rem;
+	color: #94a3b8;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	margin: 2px 0 0;
+	word-break: break-word;
+}
+
+.alt-item__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 6px;
+}
+
+.alt-chip {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 6px;
+	font-size: 0.72rem;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.alt-chip--allergen {
+	background: #fef3c7;
+	color: #92400e;
+}
+
+.alt-chip--halal {
+	background: #dcfce7;
+	color: #15803d;
 }
 </style>

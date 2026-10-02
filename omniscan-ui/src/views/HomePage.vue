@@ -5,13 +5,16 @@
 				<!-- Greeting header -->
 				<div class="greeting-row">
 					<div>
-						<h1 class="greeting-title">{{ greeting }}, {{ userName || 'â€¦' }}!</h1>
+						<h1 class="greeting-title">{{ greeting }}, {{ userName || '...' }}!</h1>
 						<p class="greeting-date">{{ formattedDate }}</p>
 					</div>
 					<div class="header-actions">
+						<!-- Notification Bell Button with Red Badge Dot -->
 						<button type="button" class="bell-btn" @click="goToNotifications" aria-label="Notifications">
 							<ion-icon :icon="notificationsOutline" />
+							<span v-if="unreadNotifCount > 0" class="notif-dot" />
 						</button>
+
 						<button type="button" class="avatar-wrap" @click="goToProfile" aria-label="Go to profile">
 							<img v-if="avatarBase64" :src="avatarBase64" alt="Profile photo" class="avatar-image" />
 							<span v-else class="avatar-initial">{{ (userName || '?').charAt(0) }}</span>
@@ -29,12 +32,12 @@
 				<div class="stats-row">
 					<button type="button" class="stat-card" @click="goToPantry">
 						<span class="stat-label">Pantry Items:</span>
-						<span class="stat-value">{{ isLoading ? 'â€”' : pantryItemCount }}</span>
+						<span class="stat-value">{{ isLoading ? '-' : pantryItemCount }}</span>
 						<span class="stat-bar stat-bar--green"></span>
 					</button>
 					<button type="button" class="stat-card" @click="goToExpiringPantry">
 						<span class="stat-label">Expiring Soon:</span>
-						<span class="stat-value">{{ isLoading ? 'â€”' : expiringItems.length }}</span>
+						<span class="stat-value">{{ isLoading ? '-' : expiringItems.length }}</span>
 						<span class="stat-bar stat-bar--orange"></span>
 					</button>
 				</div>
@@ -51,7 +54,6 @@
 				<div v-else-if="expiringItems.length === 0" class="empty-note">Nothing expiring in the next few days.</div>
 
 				<div v-else class="carousel-container">
-					<!-- Floating White Circle Overlay Navigation Buttons -->
 					<button v-if="showCarouselArrows" type="button" class="carousel-nav carousel-nav--left" aria-label="Scroll left" @click="scrollCarousel(-1)">
 						<ion-icon :icon="chevronBackOutline" />
 					</button>
@@ -145,7 +147,7 @@
 						</div>
 						<div class="activity-info">
 							<p class="activity-name">{{ activity.message.replace(/\s+was auto-archived$/i, '') }}</p>
-							<p class="activity-meta">{{ labelForActivityType(activity.type) }} Â· {{ formatRelativeTime(activity.occurred_at) }}</p>
+							<p class="activity-meta">{{ labelForActivityType(activity.type) }} · {{ formatRelativeTime(activity.occurred_at) }}</p>
 						</div>
 					</div>
 				</div>
@@ -190,7 +192,7 @@
 
 						<p class="section-label">Adjusted Ingredients</p>
 						<ion-chip v-for="(ingredient, index) in madeRecipeResult.adjusted_ingredients" :key="index" color="success">
-							{{ ingredient.name }} â€” {{ ingredient.amount_text }}
+							{{ ingredient.name }} — {{ ingredient.amount_text }}
 						</ion-chip>
 
 						<p class="section-label mt-4">Instructions</p>
@@ -226,7 +228,7 @@ import {
 	IonAlert,
 	IonModal,
 	onIonViewWillEnter,
-toastController,
+	toastController,
 } from '@ionic/vue'
 import {
 	alertCircleOutline,
@@ -316,13 +318,12 @@ const pantryItems = ref<PantryItemDto[]>([])
 const recommendedRecipes = ref<SuggestedRecipe[]>([])
 const activities = ref<ActivityLogDto[]>([])
 const activitiesLoadError = ref('')
+const unreadNotifCount = ref(0)
 
-// Filter out image filenames, legacy 'expiring' logs, and deduplicate rapid consecutive logs
 const filteredActivities = computed(() => {
 	const raw = activities.value.filter((act) => {
 		if ((act.type as string) === 'expiring') return false
 
-		// Hide activity entries where the message is just a filename (e.g., scan-12345.jpg)
 		const msg = act.message.trim().toLowerCase()
 		const isFilename = /\.(jpg|jpeg|png|webp|gif)$/i.test(msg) || /^scan-\d+/i.test(msg)
 
@@ -347,7 +348,6 @@ const filteredActivities = computed(() => {
 	return deduped.slice(0, 6)
 })
 
-// Recipe Modal States
 const isDetailModalOpen = ref(false)
 const selectedRecipe = ref<SuggestedRecipe | null>(null)
 const likingId = ref<number | null>(null)
@@ -605,6 +605,15 @@ async function fetchRecommendations() {
 	}
 }
 
+async function fetchUnreadNotifs() {
+	try {
+		const res = await apiFetch<{ success: boolean; unread_count: number }>('/api/notification', { method: 'GET' })
+		unreadNotifCount.value = res.unread_count || 0
+	} catch {
+		unreadNotifCount.value = 0
+	}
+}
+
 async function loadDashboard() {
 	isLoading.value = true
 	loadError.value = ''
@@ -620,7 +629,7 @@ async function loadDashboard() {
 		avatarBase64.value = userRes.user.avatar_base64
 		pantryItems.value = pantryRes.items
 
-		await fetchRecommendations()
+		await Promise.all([fetchRecommendations(), fetchUnreadNotifs()])
 	} catch (err) {
 		loadError.value = err instanceof ApiError ? err.message : 'Failed to load your dashboard.'
 	}
@@ -634,7 +643,6 @@ async function loadDashboard() {
 		activitiesLoadError.value = err instanceof ApiError ? err.message : 'Failed to load recent activity.'
 	} finally {
 		isLoading.value = false
-		// Check carousel scrollability after data loads and DOM updates
 		setTimeout(() => checkCarouselScrollability(), 100)
 	}
 }
@@ -642,7 +650,6 @@ async function loadDashboard() {
 onIonViewWillEnter(() => {
 	loadDashboard()
 })
-
 </script>
 
 <style scoped>
@@ -678,6 +685,7 @@ onIonViewWillEnter(() => {
 }
 
 .bell-btn {
+	position: relative;
 	width: 38px;
 	height: 38px;
 	border-radius: 50%;
@@ -690,6 +698,33 @@ onIonViewWillEnter(() => {
 	font-size: 1.2rem;
 	cursor: pointer;
 	flex-shrink: 0;
+}
+
+/* Red Notification Badge Dot */
+.notif-dot {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	width: 9px;
+	height: 9px;
+	background-color: #ef4444;
+	border-radius: 50%;
+	border: 2px solid #ffffff;
+	box-sizing: content-box;
+}
+
+/* Dark Mode adjustment for the red dot border & button background */
+:deep(body.dark) .bell-btn,
+:host-context(body.dark) .bell-btn,
+.dark .bell-btn {
+	background: #1e293b;
+	color: #e2e8f0;
+}
+
+:deep(body.dark) .notif-dot,
+:host-context(body.dark) .notif-dot,
+.dark .notif-dot {
+	border-color: #1e293b;
 }
 
 .avatar-wrap {
@@ -732,7 +767,6 @@ onIonViewWillEnter(() => {
 	margin-bottom: 24px;
 }
 
-/* Mobile: Single row with horizontal scroll (1x4 layout) */
 @media (max-width: 767px) {
 	.stats-row {
 		overflow-x: auto;
@@ -750,7 +784,6 @@ onIonViewWillEnter(() => {
 	}
 }
 
-/* Tablet: 2 columns grid */
 @media (min-width: 768px) and (max-width: 1023px) {
 	.stats-row {
 		display: grid;
@@ -759,7 +792,6 @@ onIonViewWillEnter(() => {
 	}
 }
 
-/* Desktop: 4 columns grid */
 @media (min-width: 1024px) {
 	.stats-row {
 		display: grid;
@@ -948,7 +980,6 @@ onIonViewWillEnter(() => {
 	width: 100%;
 }
 
-/* Mobile: single column with 12px gap */
 @media (max-width: 767px) {
 	.recipe-grid {
 		grid-template-columns: 1fr;
@@ -956,7 +987,6 @@ onIonViewWillEnter(() => {
 	}
 }
 
-/* Tablet: 2 columns with 16px gap */
 @media (min-width: 768px) and (max-width: 1023px) {
 	.recipe-grid {
 		grid-template-columns: repeat(2, 1fr);
@@ -964,7 +994,6 @@ onIonViewWillEnter(() => {
 	}
 }
 
-/* Desktop: 3 columns with 20px gap */
 @media (min-width: 1024px) {
 	.recipe-grid {
 		grid-template-columns: repeat(3, 1fr);
@@ -1012,7 +1041,7 @@ onIonViewWillEnter(() => {
 
 .recipe-info {
 	flex: 1;
-	min-width: 0; /* Ensures flex container constrains text width */
+	min-width: 0;
 }
 
 .recipe-title {
@@ -1040,7 +1069,7 @@ onIonViewWillEnter(() => {
 .recipe-arrow {
 	color: #c7c7cc;
 	font-size: 1.1rem;
-	flex-shrink: 0; /* Keeps arrow visible on tight mobile layouts */
+	flex-shrink: 0;
 }
 
 .placeholder-card {

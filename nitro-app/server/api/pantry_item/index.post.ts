@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
+import { matchIngredientsToPantry, extractPantryKeywords, type RawIngredient } from '../../lib/recipe-matching'
 
 interface CreatePantryItemBody {
 	product_id?: number
@@ -15,6 +16,18 @@ interface CreatePantryItemBody {
 	unit?: string
 }
 
+function coerceRawIngredients(value: unknown): RawIngredient[] {
+	if (!Array.isArray(value)) return []
+	return value
+		.filter((item): item is Record<string, unknown> => !!item && typeof item === 'object')
+		.map((item) => ({
+			name: typeof item.name === 'string' ? item.name : '',
+			quantity: typeof item.quantity === 'number' ? item.quantity : null,
+			unit: typeof item.unit === 'string' ? item.unit : null,
+		}))
+		.filter((i) => i.name.trim().length > 0)
+}
+
 export default defineEventHandler(async (event) => {
 	const authUser = requireAuth(event)
 
@@ -26,7 +39,6 @@ export default defineEventHandler(async (event) => {
 
 	const { product_name, image_base64, ingredient_text, simplified_ingredients, expiration_date, best_before_date, storage_location, quantity, unit } = body
 
-	// ONLY check daily limit if this is a manual photo upload (product_id is undefined)
 	if (body.product_id === undefined) {
 		const startOfToday = new Date()
 		startOfToday.setHours(0, 0, 0, 0)
@@ -147,7 +159,6 @@ export default defineEventHandler(async (event) => {
 			include: { product: { select: { id: true, product_name: true, image_base64: true } } },
 		})
 
-		// Log 'added' for scanned catalog items saved to the pantry, and 'uploaded' for manual photo uploads
 		const activityType: 'added' | 'uploaded' = body.product_id !== undefined ? 'added' : 'uploaded'
 
 		await prisma.activityLog.create({
@@ -159,6 +170,71 @@ export default defineEventHandler(async (event) => {
 				pantry_item_id: newItem.id,
 			},
 		})
+
+		// CHECK FOR NEW RECIPE MATCHES & CREATE NOTIFICATION
+		void (async () => {
+			try {
+				const pantryItems = await prisma.pantryItem.findMany({
+					where: { user_id: authUser.id, is_archived: false },
+					select: { id: true, product: { select: { product_name: true } } },
+				})
+
+				const pantryProducts = pantryItems.map((p) => ({ id: p.id, product_name: p.product.product_name }))
+				const keywords = extractPantryKeywords(pantryProducts.map((p) => p.product_name))
+
+				if (keywords.length > 0) {
+					const candidates = await prisma.$queryRaw<{ id: number }[]>`
+						WITH pantry_words AS (
+							SELECT unnest(${keywords}::text[]) AS word
+						),
+						matches AS (
+							SELECT r.id, pw.word, word_similarity(pw.word, r.ingredient_search_text) AS score
+							FROM "Recipe" r, pantry_words pw
+							WHERE pw.word <% r.ingredient_search_text
+						)
+						SELECT id
+						FROM matches
+						GROUP BY id
+						ORDER BY COUNT(DISTINCT word) DESC
+						LIMIT 5
+					`
+
+					if (candidates.length > 0) {
+						const recipes = await prisma.recipe.findMany({
+							where: { id: { in: candidates.map((c) => c.id) } },
+							select: { id: true, name: true, raw_ingredients: true },
+						})
+
+						for (const r of recipes) {
+							const rawIngs = coerceRawIngredients(r.raw_ingredients)
+							if (rawIngs.length === 0) continue
+
+							const { matchedIngredients } = matchIngredientsToPantry(rawIngs, pantryProducts)
+							const isFullMatch = matchedIngredients.length === rawIngs.length
+
+							if (matchedIngredients.length > 0) {
+								const notifType = isFullMatch ? 'pantry_match' : 'recipe_suggestion'
+								const notifMsg = isFullMatch
+									? `New match! You can now cook ${r.name} with your pantry.`
+									: `Adding ${product!.product_name} unlocked recipe suggestion: ${r.name}.`
+
+								await prisma.notification.create({
+									data: {
+										user_id: authUser.id,
+										type: notifType,
+										message: notifMsg,
+										is_read: false,
+									},
+								})
+								break
+							}
+						}
+					}
+				}
+			} catch (notifErr) {
+				console.error('Non-critical notification generation error:', notifErr)
+			}
+		})()
 
 		return { success: true, item: newItem }
 	} catch (err: any) {

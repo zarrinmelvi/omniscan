@@ -114,12 +114,10 @@ export default defineEventHandler(async (event) => {
 			image_url: string | null
 		}[] = []
 
-		// Deduplication tracking to prevent duplicate recipes in suggestion results
 		const seenRecipeIds = new Set<number>()
 		const seenRecipeNames = new Set<string>()
 
 		for (const recipe of recipeRows) {
-			// Prevent duplicate recipe entries by checking ID and normalized name
 			const normalizedName = recipe.name.trim().toLowerCase()
 			if (seenRecipeIds.has(recipe.id) || seenRecipeNames.has(normalizedName)) {
 				continue
@@ -129,17 +127,8 @@ export default defineEventHandler(async (event) => {
 			if (ingredients.length === 0) continue
 
 			const combinedText = ingredients.map((i) => i.name).join(', ').toLowerCase()
-
-			// Was previously `if (allergenMatches.length > 0) continue` — a
-			// recipe containing an allergen is no longer hidden from
-			// suggestions entirely. The user can still choose to make it;
-			// they just see which allergen(s) are present first, the same
-			// way Scan already surfaces allergen warnings without blocking
-			// "Add to Pantry". Halal exclusion below is untouched — only the
-			// allergen behavior changed, per what was actually asked for.
 			const directAllergenMatches = findMatchedUserAllergens(combinedText, userAllergens).map((a) => a.name)
 
-			// Evaluate Dietary Profile Custom Preferences (e.g., "Dairy-free", "avoid msg") against recipe ingredients
 			const preferenceWarnings = new Set<string>()
 			customPreferences.forEach((pref: string) => {
 				const prefKey = pref.toLowerCase().trim()
@@ -152,11 +141,8 @@ export default defineEventHandler(async (event) => {
 				}
 			})
 
-			// Combine direct allergen entity matches and custom preference rule warnings
 			const combinedWarnings = Array.from(new Set([...directAllergenMatches, ...preferenceWarnings]))
-
 			if (combinedWarnings.length > 0) continue
-
 			if (halalPref && findNonHalalKeywords(combinedText).length > 0) continue
 
 			const { matchedIngredients, missingIngredients } = matchIngredientsToPantry(ingredients, pantryProducts)
@@ -165,17 +151,9 @@ export default defineEventHandler(async (event) => {
 			const matchedCount = matchedIngredients.length
 			const totalCount = ingredients.length
 
-			// 1. Exclude recipes with 0 matching items in pantry
-			if (matchedCount === 0) {
-				continue
-			}
+			if (matchedCount === 0) continue
+			if (isMade && matchedCount < totalCount) continue
 
-			// 2. Exclude recipes marked as 'made' unless all required ingredients are present in pantry again
-			if (isMade && matchedCount < totalCount) {
-				continue
-			}
-
-			// Mark recipe as processed before adding to results
 			seenRecipeIds.add(recipe.id)
 			seenRecipeNames.add(normalizedName)
 
@@ -193,6 +171,37 @@ export default defineEventHandler(async (event) => {
 			})
 
 			if (results.length >= RESULTS_LIMIT) break
+		}
+
+		// CREATE NOTIFICATION RECORDS FOR TOP SUGGESTIONS
+		if (results.length > 0) {
+			const topMatch = results[0]
+			const isFullMatch = topMatch.matched_count === topMatch.total_count
+			const notifType = isFullMatch ? 'pantry_match' : 'recipe_suggestion'
+			const notifMsg = isFullMatch
+				? `You have all ingredients to cook ${topMatch.name}!`
+				: `You have ${topMatch.matched_count}/${topMatch.total_count} ingredients for ${topMatch.name}.`
+
+			const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+			const existingNotif = await prisma.notification.findFirst({
+				where: {
+					user_id: authUser.id,
+					type: notifType,
+					message: notifMsg,
+					created_at: { gte: twentyFourHoursAgo },
+				},
+			})
+
+			if (!existingNotif) {
+				await prisma.notification.create({
+					data: {
+						user_id: authUser.id,
+						type: notifType,
+						message: notifMsg,
+						is_read: false,
+					},
+				}).catch(() => {}) // Non-critical write
+			}
 		}
 
 		return { success: true, recipes: results }

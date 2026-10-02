@@ -93,7 +93,7 @@
 
 				<div v-if="showAlternativesSection" class="alternatives-section">
 					<div class="alternatives-disclaimer">
-						Always check the product label before purchasing — suggestions are AI-generated and may not reflect current availability.
+						Always check the product label before consuming — AI suggestions may not guarantee allergen safety or current store availability.
 					</div>
 					<ion-spinner v-if="aiLoading" name="crescent" class="alternatives-spinner" />
 					<p v-if="aiError && !aiLoading" class="alternatives-error">{{ aiError }}</p>

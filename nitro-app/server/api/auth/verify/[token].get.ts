@@ -33,38 +33,36 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid or expired verification link.' })
 	}
 
-	if (user.email_verified) {
-		throw createError({ statusCode: 400, statusMessage: 'This email is already verified.' })
+	// If email is NOT verified yet, update DB and send welcome email
+	if (!user.email_verified) {
+		if (!user.verification_token_expires_at || user.verification_token_expires_at < new Date()) {
+			throw createError({
+				statusCode: 400,
+				statusMessage: 'This verification link has expired. Please request a new one.',
+			})
+		}
+
+		try {
+			await prisma.user.update({
+				where: { id: user.id },
+				data: {
+					email_verified: true,
+					verification_token: null,
+					verification_token_expires_at: null,
+				},
+			})
+		} catch (err) {
+			console.error('Verify token update error:', err)
+			throw createError({ statusCode: 500, statusMessage: 'Failed to verify email. Please try again.' })
+		}
+
+		// Send welcome email asynchronously (non-blocking)
+		sendWelcomeEmail(user.email, user.name).catch((err) =>
+			console.error('Welcome email failed (non-blocking):', err),
+		)
 	}
 
-	if (!user.verification_token_expires_at || user.verification_token_expires_at < new Date()) {
-		throw createError({
-			statusCode: 400,
-			statusMessage: 'This verification link has expired. Please request a new one.',
-		})
-	}
-
-	// Mark email as verified and clear the verification token
-	try {
-		await prisma.user.update({
-			where: { id: user.id },
-			data: {
-				email_verified: true,
-				verification_token: null,
-				verification_token_expires_at: null,
-			},
-		})
-	} catch (err) {
-		console.error('Verify token update error:', err)
-		throw createError({ statusCode: 500, statusMessage: 'Failed to verify email. Please try again.' })
-	}
-
-	// Send welcome email asynchronously (non-blocking)
-	sendWelcomeEmail(user.email, user.name).catch((err) =>
-		console.error('Welcome email failed (non-blocking):', err),
-	)
-
-	// Generate JWT session token for auto-login after email verification
+	// Always generate and return a fresh JWT session token so setup step 2 succeeds seamlessly
 	const jwtToken = jwt.sign(
 		{ userId: user.id, email: user.email },
 		JWT_SECRET,

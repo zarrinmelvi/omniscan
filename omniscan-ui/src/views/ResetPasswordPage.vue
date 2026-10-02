@@ -63,14 +63,22 @@
 							<div class="custom-input-wrapper">
 								<input
 									v-model="confirmPassword"
-									:type="showPassword ? 'text' : 'password'"
+									:type="showConfirmPassword ? 'text' : 'password'"
 									placeholder="Re-enter new password"
 									required
 									class="custom-input" />
+								<ion-icon
+									:icon="showConfirmPassword ? eyeOffOutline : eyeOutline"
+									class="password-toggle"
+									@click="showConfirmPassword = !showConfirmPassword" />
 							</div>
 						</div>
 
-						<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting || !isPasswordValid">
+						<ion-button
+							expand="block"
+							type="submit"
+							class="submit-button"
+							:disabled="isSubmitting || !isPasswordValid || password !== confirmPassword">
 							<ion-spinner v-if="isSubmitting" name="crescent" class="btn-spinner" />
 							<span v-else>Update Password</span>
 						</ion-button>
@@ -99,6 +107,7 @@ const token = (route.query.token as string) || ''
 const password = ref('')
 const confirmPassword = ref('')
 const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 const isSubmitting = ref(false)
 const isCompleted = ref(false)
 const errorMessage = ref<string | null>(null)

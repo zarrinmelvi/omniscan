@@ -964,8 +964,8 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	padding: 16px 24px 10px;
-	margin-top: 8px;
+	padding: 14px 24px 0;
+	margin-top: 14px;
 	background: #f8fafc;
 	border-top: 1px solid #f1f5f9;
 }
@@ -985,7 +985,7 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 	padding: 11px 24px;
 }
 .ingredient-group-table th {
-	padding: 10px 24px;
+	padding: 8px 24px 12px;
 	background: #f8fafc;
 }
 

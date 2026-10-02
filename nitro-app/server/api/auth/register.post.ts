@@ -1,7 +1,7 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import bcrypt from 'bcrypt'
 import { prisma } from '../../lib/prisma'
-import { generateVerificationToken, sendVerificationEmail } from '../../utils/email'
+import { generateVerificationToken, sendVerificationEmail, isAllowedEmailDomain } from '../../utils/email'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const SALT_ROUNDS = 10
@@ -18,8 +18,8 @@ export default defineEventHandler(async (event) => {
 	if (!name || typeof name !== 'string' || !name.trim()) {
 		throw createError({ statusCode: 400, statusMessage: 'Name is required.' })
 	}
-	if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email)) {
-		throw createError({ statusCode: 400, statusMessage: 'A valid email is required.' })
+	if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email) || !isAllowedEmailDomain(email)) {
+		throw createError({ statusCode: 400, statusMessage: 'Only @gmail.com, @outlook.com, @hotmail.com, and @yahoo.com emails are permitted.' })
 	}
 	if (!password || typeof password !== 'string' || password.length < 6) {
 		throw createError({ statusCode: 400, statusMessage: 'Password must be at least 6 characters.' })

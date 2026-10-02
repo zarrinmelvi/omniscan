@@ -10,6 +10,14 @@ const ADMIN_URL = process.env.ADMIN_URL || 'https://admin.omniscan.website'
 
 const resend = new Resend(RESEND_API_KEY)
 
+const ALLOWED_DOMAINS = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com']
+
+export function isAllowedEmailDomain(email: string): boolean {
+	if (!email || !email.includes('@')) return false
+	const domain = email.split('@').pop()?.toLowerCase()
+	return domain ? ALLOWED_DOMAINS.includes(domain) : false
+}
+
 interface EmailResult {
 	success: boolean
 	error?: string
@@ -65,6 +73,30 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<Ema
 		return { success: true }
 	} catch (err: any) {
 		console.error('[email] Failed to send welcome email:', err)
+		return { success: false, error: err?.message ?? 'Unknown error' }
+	}
+}
+
+export async function sendAccountArchivedEmail(email: string, name: string): Promise<EmailResult> {
+	const loginUrl = `${FRONTEND_URL}/login`
+
+	try {
+		const { error } = await resend.emails.send({
+			from: EMAIL_FROM,
+			to: email,
+			subject: 'Your OmniScan account has been archived due to inactivity',
+			html: buildAccountArchivedEmailHtml(name, loginUrl),
+		})
+
+		if (error) {
+			console.error('[email] Resend API error (account archived):', error)
+			return { success: false, error: error.message }
+		}
+
+		console.log(`[email] Account archived email sent to ${email}`)
+		return { success: true }
+	} catch (err: any) {
+		console.error('[email] Failed to send account archived email:', err)
 		return { success: false, error: err?.message ?? 'Unknown error' }
 	}
 }
@@ -222,6 +254,78 @@ function buildWelcomeEmailHtml(name: string): string {
               <p style="margin:32px 0 0;padding-top:24px;border-top:1px solid #eeeeee;
                          font-size:13px;color:#999999;line-height:1.6;">
                 Happy scanning!<br />The OmniScan Team
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 40px;background-color:#f8f8f8;border-top:1px solid #eeeeee;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#aaaaaa;">
+                &copy; ${new Date().getFullYear()} OmniScan. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
+function buildAccountArchivedEmailHtml(name: string, loginUrl: string): string {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account Inactivity Archive Notice</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+               style="background:#ffffff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:32px 40px;border-bottom:3px solid #E53935;text-align:center;">
+              <h1 style="margin:0;font-size:24px;color:#333333;">OmniScan Account Notice</h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px;">
+              <p style="margin:0 0 16px;font-size:18px;color:#333333;">Hi ${name},</p>
+              <p style="margin:0 0 20px;font-size:15px;color:#555555;line-height:1.6;">
+                Your OmniScan account has been inactive for <strong>6 months (180 days)</strong> and has been moved to <strong>Archive</strong>.
+              </p>
+
+              <div style="background-color:#FFEBEE;border-left:4px solid #E53935;padding:16px;border-radius:4px;margin-bottom:24px;">
+                <p style="margin:0;font-size:14px;color:#C62828;line-height:1.5;font-weight:bold;">
+                  ⚠️ You have 7 days (1 week) to log back in before your account and personal data are permanently deleted in compliance with PDPA / GDPR.
+                </p>
+              </div>
+
+              <!-- CTA -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+                <tr>
+                  <td>
+                    <a href="${loginUrl}"
+                       style="display:inline-block;padding:14px 36px;background-color:#E53935;color:#ffffff;
+                              text-decoration:none;border-radius:6px;font-size:16px;font-weight:bold;">
+                      Log In to Keep Account Active
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0;padding-top:24px;border-top:1px solid #eeeeee;font-size:13px;color:#999999;line-height:1.6;">
+                If you choose not to log in within 7 days, your account and associated personal data will be permanently deleted and anonymized.
               </p>
             </td>
           </tr>

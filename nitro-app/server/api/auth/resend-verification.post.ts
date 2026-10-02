@@ -1,6 +1,6 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
-import { generateVerificationToken, sendVerificationEmail } from '../../utils/email'
+import { generateVerificationToken, sendVerificationEmail, isAllowedEmailDomain } from '../../utils/email'
 
 const COOLDOWN_SECONDS = 60
 
@@ -13,8 +13,8 @@ export default defineEventHandler(async (event) => {
 
 	const { email } = body as { email?: string }
 
-	if (!email || typeof email !== 'string') {
-		throw createError({ statusCode: 400, statusMessage: 'Email is required.' })
+	if (!email || typeof email !== 'string' || !isAllowedEmailDomain(email)) {
+		throw createError({ statusCode: 400, statusMessage: 'Only @gmail.com, @outlook.com, @hotmail.com, and @yahoo.com emails are permitted.' })
 	}
 
 	let user

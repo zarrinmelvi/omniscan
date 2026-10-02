@@ -384,6 +384,7 @@ export const AdminScalarFieldEnum = {
   id: 'id',
   full_name: 'full_name',
   username: 'username',
+  email: 'email',
   password: 'password',
   role: 'role'
 } as const

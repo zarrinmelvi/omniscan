@@ -8,6 +8,7 @@ interface AdminTokenPayload {
 	adminId: number
 	username: string
 	role: string
+	email?: string | null
 	type: 'admin'
 }
 
@@ -21,7 +22,7 @@ export default defineEventHandler((event) => {
 			'[DEV BYPASS ACTIVE] No Authorization header — auto-authenticating as admin id 1. ' +
 				'This MUST be disabled in any deployed/production environment.',
 		)
-		event.context.admin = { id: 1, username: 'dev-admin', role: 'admin' }
+		event.context.admin = { id: 1, username: 'dev-admin', role: 'admin', email: 'delossantoszarrinmelvi@gmail.com' }
 		return
 	}
 
@@ -47,7 +48,7 @@ export default defineEventHandler((event) => {
 			return
 		}
 
-		event.context.admin = { id: payload.adminId, username: payload.username, role: payload.role }
+		event.context.admin = { id: payload.adminId, username: payload.username, role: payload.role, email: payload.email ?? null }
 	} catch (err) {
 		event.context.admin = null
 	}

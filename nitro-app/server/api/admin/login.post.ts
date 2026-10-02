@@ -43,13 +43,17 @@ export default defineEventHandler(async (event) => {
 		// `type: 'admin'` is what server/middleware/adminAuth.ts checks for to
 		// distinguish this from a normal user token — both are signed with
 		// the same JWT_SECRET.
-		const token = jwt.sign({ adminId: admin.id, username: admin.username, role: admin.role, type: 'admin' }, JWT_SECRET, {
-			expiresIn: TOKEN_EXPIRY,
-		})
+		const token = jwt.sign(
+			{ adminId: admin.id, username: admin.username, role: admin.role, email: admin.email ?? null, type: 'admin' },
+			JWT_SECRET,
+			{
+				expiresIn: TOKEN_EXPIRY,
+			},
+		)
 
 		return {
 			token,
-			admin: { id: admin.id, full_name: admin.full_name, username: admin.username, role: admin.role },
+			admin: { id: admin.id, full_name: admin.full_name, username: admin.username, role: admin.role, email: admin.email ?? null },
 			message: 'Login successful',
 		}
 	} catch (err: any) {

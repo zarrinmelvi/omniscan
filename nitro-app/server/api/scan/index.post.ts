@@ -9,6 +9,7 @@ import { determineDisallowedCatalogIngredients } from '../../lib/alternative-rea
 import { findAlternativeProducts } from '../../lib/alternative-matching'
 import { normalizeToDateStringOrNull } from '../../lib/date-parse'
 import { getAdminSettings } from '../../lib/admin-settings'
+import { sendNewFlagNotification } from '../../utils/email'
 
 type SafetyVerdict = 'Red' | 'Yellow' | 'Green'
 
@@ -486,6 +487,15 @@ export default defineEventHandler(async (event) => {
 				.catch((err) => {
 					console.error('Failed to create FlaggedScan record:', err)
 				})
+
+			// Fire-and-forget admin notification (gated by the emailOnNewFlag
+			// setting inside sendNewFlagNotification). Non-blocking: the scan
+			// response must not wait on, or fail because of, email delivery.
+			sendNewFlagNotification({
+				productName: product.product_name,
+				flagReason: flagReasonParts.join(' | '),
+				scannedBy: authUser?.email ?? (authUser?.id != null ? `User #${authUser.id}` : undefined),
+			}).catch((err) => console.error('New-flag notification failed (non-blocking):', err))
 		}
 
 		setResponseStatus(event, 201)

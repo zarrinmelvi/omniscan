@@ -38,6 +38,7 @@ export type AdminMinAggregateOutputType = {
   id: number | null
   full_name: string | null
   username: string | null
+  email: string | null
   password: string | null
   role: string | null
 }
@@ -46,6 +47,7 @@ export type AdminMaxAggregateOutputType = {
   id: number | null
   full_name: string | null
   username: string | null
+  email: string | null
   password: string | null
   role: string | null
 }
@@ -54,6 +56,7 @@ export type AdminCountAggregateOutputType = {
   id: number
   full_name: number
   username: number
+  email: number
   password: number
   role: number
   _all: number
@@ -72,6 +75,7 @@ export type AdminMinAggregateInputType = {
   id?: true
   full_name?: true
   username?: true
+  email?: true
   password?: true
   role?: true
 }
@@ -80,6 +84,7 @@ export type AdminMaxAggregateInputType = {
   id?: true
   full_name?: true
   username?: true
+  email?: true
   password?: true
   role?: true
 }
@@ -88,6 +93,7 @@ export type AdminCountAggregateInputType = {
   id?: true
   full_name?: true
   username?: true
+  email?: true
   password?: true
   role?: true
   _all?: true
@@ -183,6 +189,7 @@ export type AdminGroupByOutputType = {
   id: number
   full_name: string
   username: string
+  email: string | null
   password: string
   role: string
   _count: AdminCountAggregateOutputType | null
@@ -214,6 +221,7 @@ export type AdminWhereInput = {
   id?: Prisma.IntFilter<"Admin"> | number
   full_name?: Prisma.StringFilter<"Admin"> | string
   username?: Prisma.StringFilter<"Admin"> | string
+  email?: Prisma.StringNullableFilter<"Admin"> | string | null
   password?: Prisma.StringFilter<"Admin"> | string
   role?: Prisma.StringFilter<"Admin"> | string
   flagged_scan?: Prisma.FlaggedScanListRelationFilter
@@ -223,6 +231,7 @@ export type AdminOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   full_name?: Prisma.SortOrder
   username?: Prisma.SortOrder
+  email?: Prisma.SortOrderInput | Prisma.SortOrder
   password?: Prisma.SortOrder
   role?: Prisma.SortOrder
   flagged_scan?: Prisma.FlaggedScanOrderByRelationAggregateInput
@@ -231,6 +240,7 @@ export type AdminOrderByWithRelationInput = {
 export type AdminWhereUniqueInput = Prisma.AtLeast<{
   id?: number
   username?: string
+  email?: string
   AND?: Prisma.AdminWhereInput | Prisma.AdminWhereInput[]
   OR?: Prisma.AdminWhereInput[]
   NOT?: Prisma.AdminWhereInput | Prisma.AdminWhereInput[]
@@ -238,12 +248,13 @@ export type AdminWhereUniqueInput = Prisma.AtLeast<{
   password?: Prisma.StringFilter<"Admin"> | string
   role?: Prisma.StringFilter<"Admin"> | string
   flagged_scan?: Prisma.FlaggedScanListRelationFilter
-}, "id" | "username">
+}, "id" | "username" | "email">
 
 export type AdminOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   full_name?: Prisma.SortOrder
   username?: Prisma.SortOrder
+  email?: Prisma.SortOrderInput | Prisma.SortOrder
   password?: Prisma.SortOrder
   role?: Prisma.SortOrder
   _count?: Prisma.AdminCountOrderByAggregateInput
@@ -260,6 +271,7 @@ export type AdminScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"Admin"> | number
   full_name?: Prisma.StringWithAggregatesFilter<"Admin"> | string
   username?: Prisma.StringWithAggregatesFilter<"Admin"> | string
+  email?: Prisma.StringNullableWithAggregatesFilter<"Admin"> | string | null
   password?: Prisma.StringWithAggregatesFilter<"Admin"> | string
   role?: Prisma.StringWithAggregatesFilter<"Admin"> | string
 }
@@ -267,6 +279,7 @@ export type AdminScalarWhereWithAggregatesInput = {
 export type AdminCreateInput = {
   full_name: string
   username: string
+  email?: string | null
   password: string
   role: string
   flagged_scan?: Prisma.FlaggedScanCreateNestedManyWithoutAdminInput
@@ -276,6 +289,7 @@ export type AdminUncheckedCreateInput = {
   id?: number
   full_name: string
   username: string
+  email?: string | null
   password: string
   role: string
   flagged_scan?: Prisma.FlaggedScanUncheckedCreateNestedManyWithoutAdminInput
@@ -284,6 +298,7 @@ export type AdminUncheckedCreateInput = {
 export type AdminUpdateInput = {
   full_name?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   flagged_scan?: Prisma.FlaggedScanUpdateManyWithoutAdminNestedInput
@@ -293,6 +308,7 @@ export type AdminUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   full_name?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   flagged_scan?: Prisma.FlaggedScanUncheckedUpdateManyWithoutAdminNestedInput
@@ -302,6 +318,7 @@ export type AdminCreateManyInput = {
   id?: number
   full_name: string
   username: string
+  email?: string | null
   password: string
   role: string
 }
@@ -309,6 +326,7 @@ export type AdminCreateManyInput = {
 export type AdminUpdateManyMutationInput = {
   full_name?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -317,6 +335,7 @@ export type AdminUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   full_name?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -330,6 +349,7 @@ export type AdminCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   full_name?: Prisma.SortOrder
   username?: Prisma.SortOrder
+  email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   role?: Prisma.SortOrder
 }
@@ -342,6 +362,7 @@ export type AdminMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   full_name?: Prisma.SortOrder
   username?: Prisma.SortOrder
+  email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   role?: Prisma.SortOrder
 }
@@ -350,6 +371,7 @@ export type AdminMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   full_name?: Prisma.SortOrder
   username?: Prisma.SortOrder
+  email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   role?: Prisma.SortOrder
 }
@@ -377,6 +399,7 @@ export type AdminUpdateOneWithoutFlagged_scanNestedInput = {
 export type AdminCreateWithoutFlagged_scanInput = {
   full_name: string
   username: string
+  email?: string | null
   password: string
   role: string
 }
@@ -385,6 +408,7 @@ export type AdminUncheckedCreateWithoutFlagged_scanInput = {
   id?: number
   full_name: string
   username: string
+  email?: string | null
   password: string
   role: string
 }
@@ -408,6 +432,7 @@ export type AdminUpdateToOneWithWhereWithoutFlagged_scanInput = {
 export type AdminUpdateWithoutFlagged_scanInput = {
   full_name?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -416,6 +441,7 @@ export type AdminUncheckedUpdateWithoutFlagged_scanInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   full_name?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -455,6 +481,7 @@ export type AdminSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   id?: boolean
   full_name?: boolean
   username?: boolean
+  email?: boolean
   password?: boolean
   role?: boolean
   flagged_scan?: boolean | Prisma.Admin$flagged_scanArgs<ExtArgs>
@@ -465,6 +492,7 @@ export type AdminSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   id?: boolean
   full_name?: boolean
   username?: boolean
+  email?: boolean
   password?: boolean
   role?: boolean
 }, ExtArgs["result"]["admin"]>
@@ -473,6 +501,7 @@ export type AdminSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   id?: boolean
   full_name?: boolean
   username?: boolean
+  email?: boolean
   password?: boolean
   role?: boolean
 }, ExtArgs["result"]["admin"]>
@@ -481,11 +510,12 @@ export type AdminSelectScalar = {
   id?: boolean
   full_name?: boolean
   username?: boolean
+  email?: boolean
   password?: boolean
   role?: boolean
 }
 
-export type AdminOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "full_name" | "username" | "password" | "role", ExtArgs["result"]["admin"]>
+export type AdminOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "full_name" | "username" | "email" | "password" | "role", ExtArgs["result"]["admin"]>
 export type AdminInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   flagged_scan?: boolean | Prisma.Admin$flagged_scanArgs<ExtArgs>
   _count?: boolean | Prisma.AdminCountOutputTypeDefaultArgs<ExtArgs>
@@ -502,6 +532,7 @@ export type $AdminPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     id: number
     full_name: string
     username: string
+    email: string | null
     password: string
     role: string
   }, ExtArgs["result"]["admin"]>
@@ -931,6 +962,7 @@ export interface AdminFieldRefs {
   readonly id: Prisma.FieldRef<"Admin", 'Int'>
   readonly full_name: Prisma.FieldRef<"Admin", 'String'>
   readonly username: Prisma.FieldRef<"Admin", 'String'>
+  readonly email: Prisma.FieldRef<"Admin", 'String'>
   readonly password: Prisma.FieldRef<"Admin", 'String'>
   readonly role: Prisma.FieldRef<"Admin", 'String'>
 }

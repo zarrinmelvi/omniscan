@@ -394,6 +394,7 @@ model Admin {
 	id Int @id @default(autoincrement())
 	full_name String
 	username String @unique
+	email String? @unique
 	password String
 	role String
 	flagged_scan FlaggedScan[] 

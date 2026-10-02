@@ -6,6 +6,7 @@ import { prisma } from '../lib/prisma'
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const EMAIL_FROM = process.env.EMAIL_FROM || 'OmniScan <onboarding@resend.dev>'
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000'
+const ADMIN_URL = process.env.ADMIN_URL || 'https://admin.omniscan.website'
 
 const resend = new Resend(RESEND_API_KEY)
 
@@ -526,7 +527,7 @@ function buildDailySummaryEmailHtml(details: {
                   </td>
                 </tr>`
 
-	const dashboardUrl = `${FRONTEND_URL}/admin/verification`
+	const dashboardUrl = `${ADMIN_URL}/admin/verification`
 	const generatedAt = new Date().toLocaleString('en-US', {
 		timeZone: 'UTC',
 		year: 'numeric',

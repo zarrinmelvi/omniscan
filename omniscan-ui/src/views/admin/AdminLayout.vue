@@ -76,11 +76,34 @@
 					</div>
 				</div>
 
-				<button class="logout-button" @click="handleLogout">
+				<button class="logout-button" @click="showLogoutConfirm = true">
 					Log Out
 				</button>
 			</div>
 		</aside>
+
+		<!-- Logout confirmation -->
+		<Teleport to="body">
+			<div v-if="showLogoutConfirm" class="confirm-delete-overlay" @click.self="cancelLogout">
+				<div class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-label="Sign out confirmation">
+					<div class="confirm-delete-header">
+						<div class="confirm-delete-icon logout-icon">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+								<polyline points="16 17 21 12 16 7"></polyline>
+								<line x1="21" y1="12" x2="9" y2="12"></line>
+							</svg>
+						</div>
+						<h2 class="confirm-delete-title">Sign out?</h2>
+					</div>
+					<p class="confirm-delete-message">You'll be returned to the login page. Any unsaved changes will be lost.</p>
+					<div class="confirm-delete-footer">
+						<button class="btn-cancel" type="button" @click="cancelLogout">Stay Logged In</button>
+						<button class="btn-delete-confirm" type="button" @click="confirmLogout">Sign Out</button>
+					</div>
+				</div>
+			</div>
+		</Teleport>
 
 		<main class="admin-main">
 			<!-- Persistent Top Breadcrumb & Session Header -->
@@ -108,6 +131,8 @@ import { useAdminAuthStore } from '@/stores/adminAuthStore'
 const adminAuthStore = useAdminAuthStore()
 const router = useRouter()
 const route = useRoute()
+
+const showLogoutConfirm = ref(false)
 
 // Dynamically sets breadcrumb page title matching actual router paths
 const currentPageTitle = computed(() => {
@@ -157,18 +182,32 @@ const initials = computed(() => {
 	)
 })
 
-function handleLogout(): void {
+function confirmLogout(): void {
+	showLogoutConfirm.value = false
 	adminAuthStore.logout()
 	router.push({ path: '/admin/login' })
 }
 
+function cancelLogout(): void {
+	showLogoutConfirm.value = false
+}
+
+function onLogoutKeydown(e: KeyboardEvent): void {
+	if (e.key === 'Escape' && showLogoutConfirm.value) {
+		e.preventDefault()
+		cancelLogout()
+	}
+}
+
 onMounted(() => {
+	document.addEventListener('keydown', onLogoutKeydown)
 	timeInterval = setInterval(() => {
 		now.value = new Date()
 	}, 1000)
 })
 
 onUnmounted(() => {
+	document.removeEventListener('keydown', onLogoutKeydown)
 	if (timeInterval) clearInterval(timeInterval)
 })
 </script>
@@ -347,6 +386,12 @@ onUnmounted(() => {
 .logout-button:hover {
 	background: #fff1f2;
 	color: #e11d48;
+}
+
+/* Logout icon — amber tone distinguishes it from the red delete icon */
+.logout-icon {
+	background: #fffbeb !important;
+	color: #d97706 !important;
 }
 
 .admin-main {

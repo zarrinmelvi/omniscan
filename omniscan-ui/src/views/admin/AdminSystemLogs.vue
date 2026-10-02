@@ -148,13 +148,6 @@
 			<div class="log-header">
 				Non-Halal Flagged Scans — Allergen &amp; Safety Flags ({{ flagAuditRows.length }})
 			</div>
-			<div class="flag-audit-controls">
-				<select v-model="flagAuditFilter" class="flag-filter-select">
-					<option value="all">All Types</option>
-					<option value="allergen">Allergen</option>
-					<option value="other">Confidence Flag</option>
-				</select>
-			</div>
 			<div class="log-scroll">
 				<table class="log-table flag-audit-table">
 					<thead>
@@ -169,7 +162,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="row in filteredFlagAuditRows" :key="row.id">
+						<tr v-for="row in flagAuditRows" :key="row.id">
 							<td class="mono muted">#{{ row.id }}</td>
 							<td>
 								<div class="flag-product-name">{{ row.brand_name ? row.brand_name + ' ' : '' }}{{ row.product_name }}</div>
@@ -186,8 +179,8 @@
 							</td>
 							<td class="mono muted">{{ formatFlagDate(row.created_at) }}</td>
 						</tr>
-						<tr v-if="filteredFlagAuditRows.length === 0">
-							<td colspan="7" class="empty-row">No flag records match the current filters.</td>
+						<tr v-if="flagAuditRows.length === 0">
+							<td colspan="7" class="empty-row">No flag records yet.</td>
 						</tr>
 					</tbody>
 				</table>
@@ -252,14 +245,6 @@ const data = ref<SystemLogsResponse | null>(null)
 const errorMessage = ref<string | null>(null)
 
 const flagAuditRows = ref<FlagAuditRow[]>([])
-const flagAuditFilter = ref<'all' | 'allergen' | 'other'>('all')
-
-const filteredFlagAuditRows = computed(() => {
-	return flagAuditRows.value.filter((r) => {
-		if (flagAuditFilter.value !== 'all' && r.halal_flag_type !== flagAuditFilter.value) return false
-		return true
-	})
-})
 
 const overview = computed<Overview>(() => data.value?.overview ?? { avg_latency: 0, peak_latency: 0, p95_latency: 0, total_requests: 0, db_status: '—' })
 const latencySeries = computed<SeriesPoint[]>(() => data.value?.latency_series ?? [])
@@ -486,22 +471,6 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .chip-red { background: #fee2e2; color: #b91c1c; }
 
 /* Flag Audit Tab */
-.flag-audit-controls {
-	display: flex;
-	gap: 10px;
-	padding: 12px 20px;
-	border-bottom: 1px solid #f1f5f9;
-}
-.flag-filter-select {
-	background: #ffffff;
-	border: 1px solid #e2e8f0;
-	border-radius: 8px;
-	padding: 6px 12px;
-	font-size: 0.82rem;
-	color: #334155;
-	outline: none;
-	cursor: pointer;
-}
 .flag-audit-table {
 	min-width: 900px;
 }

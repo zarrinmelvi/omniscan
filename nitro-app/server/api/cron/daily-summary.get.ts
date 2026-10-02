@@ -1,4 +1,4 @@
-import { defineEventHandler, createError, getHeader } from 'h3'
+import { defineEventHandler, createError, getHeader, getQuery } from 'h3'
 import { runTask } from 'nitropack/runtime'
 
 export default defineEventHandler(async (event) => {
@@ -7,6 +7,9 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 401, statusMessage: 'Unauthorized.' })
 	}
 
-	const result = await runTask('notifications:daily-summary')
+	const query = getQuery(event)
+	const force = query.force === '1' || query.force === 'true'
+
+	const result = await runTask('notifications:daily-summary', { payload: { force } })
 	return { success: true, result }
 })

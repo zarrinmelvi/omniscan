@@ -1,6 +1,7 @@
 import { defineTask } from 'nitropack/runtime'
 import { prisma } from '../../lib/prisma'
 import { sendDailySummaryNotification } from '../../utils/email'
+import { getDailySummaryState, markDailySummarySent, utcDateKey } from '../../lib/daily-summary-state'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -10,9 +11,18 @@ export default defineTask({
 		description:
 			'Compiles the flagged scans created in the last 24 hours into a daily summary and emails it to the admin (gated by the Daily Summary Report admin setting).',
 	},
-	async run() {
+	async run({ payload }: { payload?: Record<string, unknown> }) {
 		const now = new Date()
 		const since = new Date(now.getTime() - DAY_MS)
+		const today = utcDateKey(now)
+
+		const force = payload?.force === true || payload?.force === 'true' || payload?.force === '1'
+
+		const state = await getDailySummaryState()
+		if (!force && state.lastSentDate === today) {
+			console.log(`[notifications:daily-summary] Already sent for ${today} — skipping (not forced).`)
+			return { result: 'skipped', reason: 'already-sent', date: today }
+		}
 
 		const flags = await prisma.flaggedScan.findMany({
 			where: { created_at: { gte: since } },
@@ -59,10 +69,21 @@ export default defineTask({
 
 		const emailResult = await sendDailySummaryNotification({ periodLabel, totalFlags, byStatus, topFlags })
 
+		if (emailResult.success) {
+			await markDailySummarySent(today)
+		}
+
 		console.log(
-			`[notifications:daily-summary] ${totalFlags} new flag(s) for ${periodLabel} (pending=${byStatus.pending}, approved=${byStatus.approved}, dismissed=${byStatus.dismissed}, other=${byStatus.other}). Emailed: ${emailResult.success}${emailResult.error ? ` (${emailResult.error})` : ''}.`
+			`[notifications:daily-summary] ${totalFlags} new flag(s) for ${periodLabel} (pending=${byStatus.pending}, approved=${byStatus.approved}, dismissed=${byStatus.dismissed}, other=${byStatus.other}). Emailed: ${emailResult.success}${emailResult.error ? ` (${emailResult.error})` : ''}. forced=${force}`
 		)
 
-		return { result: 'success', totalFlags, emailed: emailResult.success, reason: emailResult.error ?? null }
+		return {
+			result: 'success',
+			totalFlags,
+			emailed: emailResult.success,
+			reason: emailResult.error ?? null,
+			date: today,
+			forced: force,
+		}
 	},
 })

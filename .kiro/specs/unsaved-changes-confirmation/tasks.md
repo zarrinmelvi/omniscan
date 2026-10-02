@@ -6,7 +6,7 @@ This plan implements an unsaved-changes confirmation modal across the Verificati
 
 ## Tasks
 
-- [ ] 1. Create the reusable ConfirmDiscardModal component
+- [x] 1. Create the reusable ConfirmDiscardModal component
   - Create `omniscan-ui/src/components/admin/ConfirmDiscardModal.vue`
   - Props: `open: boolean`, `discardLabel: string`, `title?: string` (default "Unsaved Changes"), `message?: string` (default "You have unsaved changes. If you leave now, they will be lost.")
   - Emits: `keep`, `discard`
@@ -15,18 +15,18 @@ This plan implements an unsaved-changes confirmation modal across the Verificati
   - "Keep Editing" button emits `keep` (styled as safe/primary); discard button shows `discardLabel` (styled destructive/secondary)
   - _Requirements: 3.1, 3.2, 3.3, 3.5, 3.6, 5.1, 5.3_
 
-- [ ] 2. Add dark-mode styles for the confirmation modal
+- [x] 2. Add dark-mode styles for the confirmation modal
   - Append dark-mode overrides for the ConfirmDiscardModal classes to `omniscan-ui/src/theme/dark-mode.css` using existing `--dm-*` tokens
   - Ensure overlay, card, title, message, and both buttons are legible in dark mode
   - _Requirements: 5.2_
 
-- [ ] 3. Wire dirty-state + guarded close into the Verification Panel
-- [ ] 3.1 Add dirty-state tracking to VerificationPanel.vue
+- [x] 3. Wire dirty-state + guarded close into the Verification Panel
+- [x] 3.1 Add dirty-state tracking to VerificationPanel.vue
   - Add refs: `baselineSnapshot` ({ logoId, note }), `showDiscardConfirm`
   - Add `isDirty` computed comparing `modalSelectedLogoId`/`modalNote` to the baseline
   - Capture baseline at the end of `openCorrectionModal(row)` after state is seeded
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
-- [ ] 3.2 Add guarded close path and confirmation handlers
+- [x] 3.2 Add guarded close path and confirmation handlers
   - Add `requestClose()`: no-op if `modalActing`; show confirm if dirty; else call existing `closeModal()`
   - Add `onKeepEditing()` (hide confirm) and `onDiscard()` (hide confirm + `closeModal()`)
   - Rewire Cancel button, × button, and overlay `@click.self` to call `requestClose()`
@@ -34,14 +34,14 @@ This plan implements an unsaved-changes confirmation modal across the Verificati
   - Leave `submitCorrection`/`submitDismiss` success paths unchanged
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 3.4, 4.1, 4.2_
 
-- [ ] 4. Wire dirty-state + guarded close into Manage Product Data
-- [ ] 4.1 Add dirty-state tracking to AdminManageProductData.vue
+- [x] 4. Wire dirty-state + guarded close into Manage Product Data
+- [x] 4.1 Add dirty-state tracking to AdminManageProductData.vue
   - Add refs: `baselineSnapshot` (stable serialized string), `showDiscardConfirm`
   - Add a `snapshotOf(form, aliasTags)` helper producing a stable serialization (fixed key order; alias array lowercased + sorted)
   - Add `isDirty` computed comparing current `form`/`aliasTags` serialization to the baseline
   - Capture baseline at the end of both `openCreateModal()` and `openEditModal()` after seeding
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
-- [ ] 4.2 Add guarded close path and confirmation handlers
+- [x] 4.2 Add guarded close path and confirmation handlers
   - Add `requestClose()`: no-op if `saving`; show confirm if dirty; else call existing `closeModal()`
   - Add `onKeepEditing()` and `onDiscard()` handlers
   - Rewire Cancel button, × button, and overlay `@click.self` to call `requestClose()`
@@ -49,7 +49,7 @@ This plan implements an unsaved-changes confirmation modal across the Verificati
   - Leave `saveModal` success path unchanged
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 3.2, 4.1, 4.2_
 
-- [ ] 5. Verify behavior and theming
+- [x] 5. Verify behavior and theming
   - Build the project and resolve any compile errors
   - Manually verify for each surface: dirty close via Cancel/×/backdrop prompts; Keep Editing retains edits; Discard drops edits; clean close skips the prompt; mid-save close is blocked; successful save closes with no prompt
   - Verify the confirmation modal is legible in dark mode on both surfaces

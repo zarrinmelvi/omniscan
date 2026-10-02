@@ -1490,3 +1490,33 @@ html.ion-palette-dark .footer-note,
 html.ion-palette-dark .page-footer {
 	color: var(--dm-text-secondary) !important;
 }
+
+/* == ConfirmDiscardModal — unsaved changes confirmation dark mode == */
+html.ion-palette-dark .confirm-discard-modal {
+	background: var(--dm-bg-card) !important;
+}
+html.ion-palette-dark .confirm-discard-title {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .confirm-discard-message {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .confirm-discard-icon {
+	background: #431407 !important;
+	color: #fbbf24 !important;
+}
+html.ion-palette-dark .btn-keep {
+	background: #008744 !important;
+	color: #ffffff !important;
+}
+html.ion-palette-dark .btn-keep:hover {
+	background: #00753a !important;
+}
+html.ion-palette-dark .btn-discard {
+	background: var(--dm-bg-card) !important;
+	border-color: #b91c1c !important;
+	color: #fca5a5 !important;
+}
+html.ion-palette-dark .btn-discard:hover {
+	background: #450a0a !important;
+}

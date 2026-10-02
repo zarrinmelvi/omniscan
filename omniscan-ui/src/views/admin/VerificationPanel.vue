@@ -207,7 +207,7 @@
 		<!-- (single review surface — drawer retired in Task 6.5)              -->
 		<!-- ══════════════════════════════════════════════════════════════════ -->
 		<Teleport to="body">
-			<div v-if="modalRow" class="modal-overlay" @click.self="closeModal">
+			<div v-if="modalRow" class="modal-overlay" @click.self="requestClose">
 				<div class="modal" role="dialog" aria-modal="true" :aria-label="`Assign Halal certifying body for ${modalRow.product_name}`">
 
 					<div class="modal-header">
@@ -223,7 +223,7 @@
 								<p class="modal-subtitle">{{ modalRow.brand_name }} {{ modalRow.product_name }}</p>
 							</div>
 						</div>
-						<button class="modal-close" @click="closeModal" aria-label="Close">
+						<button class="modal-close" @click="requestClose" aria-label="Close">
 							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 								<line x1="18" y1="6" x2="6" y2="18"></line>
 								<line x1="6" y1="6" x2="18" y2="18"></line>
@@ -346,7 +346,7 @@
 					<p v-if="modalError" class="modal-error">{{ modalError }}</p>
 
 					<div class="modal-footer">
-						<button class="btn-modal-cancel" :disabled="modalActing" @click="closeModal">Cancel</button>
+						<button class="btn-modal-cancel" :disabled="modalActing" @click="requestClose">Cancel</button>
 						<button class="btn-modal-dismiss" :disabled="modalActing" @click="submitDismiss">
 							{{ modalActing && modalAction === 'dismiss' ? 'Dismissing…' : 'Dismiss Flag' }}
 						</button>
@@ -366,6 +366,14 @@
 				</div>
 			</div>
 		</Teleport>
+
+		<!-- Unsaved changes confirmation -->
+		<ConfirmDiscardModal
+			:open="showDiscardConfirm"
+			discard-label="Discard Changes"
+			@keep="onKeepEditing"
+			@discard="onDiscard"
+		/>
 
 		<!-- ══════════════════════════════════════════════════════════════════ -->
 		<!-- IMAGE LIGHTBOX                                                     -->
@@ -398,6 +406,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
+import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -529,6 +538,15 @@ const modalNote           = ref('')
 const modalActing         = ref(false)
 const modalAction         = ref<'certify' | 'dismiss' | null>(null)
 const modalError          = ref<string | null>(null)
+
+// Unsaved-changes tracking
+const baselineSnapshot    = ref<{ logoId: number | null; note: string }>({ logoId: null, note: '' })
+const showDiscardConfirm  = ref(false)
+
+const isDirty = computed(() =>
+	modalSelectedLogoId.value !== baselineSnapshot.value.logoId ||
+	modalNote.value !== baselineSnapshot.value.note
+)
 
 // Filters
 const searchQuery   = ref('')
@@ -677,6 +695,9 @@ function openCorrectionModal(row: FlaggedScanRow): void {
 	modalNote.value           = ''
 	modalError.value          = null
 	modalAction.value         = null
+	// Snapshot the clean initial state for unsaved-changes detection.
+	baselineSnapshot.value    = { logoId: null, note: '' }
+	showDiscardConfirm.value  = false
 }
 
 /**
@@ -693,6 +714,28 @@ function closeModal(): void {
 	modalAction.value         = null
 	// Clear the loaded scan detail now that the single review surface is closed.
 	closeReviewDrawer()
+}
+
+/**
+ * Guarded close entry point for Cancel / × / backdrop. Prompts for confirmation
+ * when there are unsaved edits; closes immediately when clean.
+ */
+function requestClose(): void {
+	if (modalActing.value) return
+	if (isDirty.value) {
+		showDiscardConfirm.value = true
+		return
+	}
+	closeModal()
+}
+
+function onKeepEditing(): void {
+	showDiscardConfirm.value = false
+}
+
+function onDiscard(): void {
+	showDiscardConfirm.value = false
+	closeModal()
 }
 
 /**

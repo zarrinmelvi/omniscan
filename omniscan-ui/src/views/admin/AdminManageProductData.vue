@@ -216,11 +216,11 @@
 
 		<!-- ══════════════════ CREATE / EDIT MODAL ══════════════════ -->
 		<Teleport to="body">
-			<div v-if="modalOpen" class="modal-overlay" @click.self="closeModal">
+			<div v-if="modalOpen" class="modal-overlay" @click.self="requestClose">
 				<div class="modal" role="dialog" aria-modal="true">
 					<div class="modal-header">
 						<h2 class="modal-title">{{ modalMode === 'create' ? 'Add' : 'Edit' }} {{ tabSingular }}</h2>
-						<button class="modal-close" @click="closeModal" aria-label="Close">
+						<button class="modal-close" @click="requestClose" aria-label="Close">
 							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 								<line x1="18" y1="6" x2="6" y2="18"></line>
 								<line x1="6" y1="6" x2="18" y2="18"></line>
@@ -316,7 +316,7 @@
 					</div>
 
 					<div class="modal-footer">
-						<button class="btn-modal-cancel" :disabled="saving" @click="closeModal">Cancel</button>
+						<button class="btn-modal-cancel" :disabled="saving" @click="requestClose">Cancel</button>
 						<button class="btn-modal-save" :disabled="saving" @click="saveModal">
 							{{ saving ? 'Saving…' : (modalMode === 'create' ? 'Create' : 'Save Changes') }}
 						</button>
@@ -324,12 +324,21 @@
 				</div>
 			</div>
 		</Teleport>
+
+		<!-- Unsaved changes confirmation -->
+		<ConfirmDiscardModal
+			:open="showDiscardConfirm"
+			:discard-label="discardLabel"
+			@keep="onKeepEditing"
+			@discard="onDiscard"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
+import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 
 type TabType = 'allergen' | 'halal' | 'ingredient'
 
@@ -386,6 +395,25 @@ const modalError = ref<string | null>(null)
 const saving = ref(false)
 const editingId = ref<number | null>(null)
 const form = ref<Record<string, any>>({})
+
+// ─── Unsaved-changes tracking ───────────────────────────────────────────────
+const baselineSnapshot = ref<string>('')
+const showDiscardConfirm = ref(false)
+
+/**
+ * Produce a stable serialization of the current editing surface so the dirty
+ * check is order- and case-insensitive for alias tags. Object fields are read
+ * in a fixed key order; the alias array is lowercased and sorted.
+ */
+function snapshotOf(formVal: Record<string, any>, aliases: string[]): string {
+	const keys = Object.keys(formVal).sort()
+	const orderedForm: Record<string, any> = {}
+	for (const k of keys) orderedForm[k] = formVal[k]
+	const normalizedAliases = [...aliases].map((a) => a.trim().toLowerCase()).sort()
+	return JSON.stringify({ form: orderedForm, aliases: normalizedAliases })
+}
+
+const isDirty = computed(() => snapshotOf(form.value, aliasTags.value) !== baselineSnapshot.value)
 
 // Alias/mapping editor state (Allergen modal only)
 const aliasTags = ref<string[]>([])
@@ -547,6 +575,8 @@ function openCreateModal(): void {
 	} else {
 		form.value = { scientific_term: '', simplified_term: '', allergen_id: undefined }
 	}
+	baselineSnapshot.value = snapshotOf(form.value, aliasTags.value)
+	showDiscardConfirm.value = false
 	modalOpen.value = true
 }
 
@@ -569,6 +599,8 @@ function openEditModal(item: any): void {
 	} else {
 		form.value = { scientific_term: item.scientific_term, simplified_term: item.simplified_term, allergen_id: item.allergen_id }
 	}
+	baselineSnapshot.value = snapshotOf(form.value, aliasTags.value)
+	showDiscardConfirm.value = false
 	modalOpen.value = true
 }
 
@@ -577,6 +609,30 @@ function closeModal(): void {
 	modalOpen.value = false
 	modalError.value = null
 }
+
+/**
+ * Guarded close entry point for Cancel / × / backdrop. Prompts for confirmation
+ * when there are unsaved edits; closes immediately when clean.
+ */
+function requestClose(): void {
+	if (saving.value) return
+	if (isDirty.value) {
+		showDiscardConfirm.value = true
+		return
+	}
+	closeModal()
+}
+
+function onKeepEditing(): void {
+	showDiscardConfirm.value = false
+}
+
+function onDiscard(): void {
+	showDiscardConfirm.value = false
+	closeModal()
+}
+
+const discardLabel = computed(() => (modalMode.value === 'create' ? 'Discard Item' : 'Discard Changes'))
 
 // ─── Save (create or edit) ─────────────────────────────────────────────────────
 async function saveModal(): Promise<void> {

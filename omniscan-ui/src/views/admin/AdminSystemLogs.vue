@@ -193,6 +193,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
+import { useRoute } from 'vue-router'
 
 interface Overview {
 	avg_latency: number
@@ -234,6 +235,7 @@ interface FlagAuditRow {
 }
 
 const activeTab = ref('overview')
+const route = useRoute()
 const tabs = [
 	{ id: 'overview', label: 'Overview' },
 	{ id: 'api-latency', label: 'API Latency' },
@@ -394,6 +396,11 @@ async function fetchLogs(): Promise<void> {
 }
 
 onMounted(() => {
+	const VALID_TABS = ['overview', 'api-latency', 'prisma-queries', 'flag-audit'] as const
+	const tabParam = route.query.tab
+	if (typeof tabParam === 'string' && (VALID_TABS as readonly string[]).includes(tabParam)) {
+		activeTab.value = tabParam
+	}
 	fetchLogs()
 	fetchFlagAudit()
 	clock = setInterval(() => (now.value = new Date()), 1000)

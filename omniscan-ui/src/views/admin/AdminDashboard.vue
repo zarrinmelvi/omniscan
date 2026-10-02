@@ -21,7 +21,7 @@
 				<div class="stat-card blue-card">
 					<div class="stat-label">Database Integrity</div>
 					<div class="stat-value">[ {{ stats?.resolution_rate ?? 0 }}% ]</div>
-					<div class="stat-footer-text">NOMINAL — <a href="#" class="stat-link inline-link">View Report</a></div>
+					<div class="stat-footer-text">NOMINAL — <router-link to="/admin/systemlogs?tab=prisma-queries" class="stat-link inline-link">View Report</router-link></div>
 				</div>
 			</div>
 

@@ -948,11 +948,11 @@ html.ion-palette-dark .desktop-nav .nav-header {
 }
 
 html.ion-palette-dark .desktop-nav .nav-item {
-  color: var(--dm-text-secondary) !important;
+  color: var(--dm-text-primary) !important;
 }
 
 html.ion-palette-dark .desktop-nav .nav-item ion-icon {
-  color: var(--dm-text-secondary) !important;
+  color: var(--dm-text-primary) !important;
 }
 
 /* Inactive nav item hover state in dark mode */

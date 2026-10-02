@@ -385,13 +385,22 @@ const prefTotal = computed(() => selectedAllergenIds.value.length + (halalSelect
 
 const ALLERGEN_EMOJI: Record<string, string> = {
 	milk: '🥛',
+	'milk / dairy': '🥛',
 	eggs: '🥚',
 	fish: '🐟',
-	shellfish: '🦐',
+	crustaceans: '🦐',
+	molluscs: '🦪',
 	'tree nuts': '🌰',
 	peanuts: '🥜',
 	wheat: '🌾',
 	soy: '🫘',
+	'soy / soya': '🫘',
+	sesame: '🌱',
+	mustard: '🟡',
+	celery: '🥬',
+	'sulphur dioxide / sulphites': '🍷',
+	sulphites: '🍷',
+	lupin: '🌸',
 }
 
 function emojiForAllergen(name: string): string {

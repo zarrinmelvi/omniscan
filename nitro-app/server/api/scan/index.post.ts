@@ -101,7 +101,7 @@ function buildPrompt(): string {
 		'"net_quantity" should be the numeric net quantity printed on the label (e.g. 500 for "500ml", 1 for "1L", 250 for "250g"). Return only the number, not the unit. If no net quantity is visible, return null.',
 		'"net_unit" should be the unit of measure as printed (e.g. "ml", "L", "g", "kg", "oz", "fl oz", "pcs", "pack"). Return only the unit string, lowercase. If no unit is visible or net_quantity is null, return null.',
 		'Do not invent ingredients, certifications, product identity, or a date that are not visibly present.',
-		'"is_real_photo" must be true ONLY when the image is a genuine real-world photograph of a physical food product. Set is_real_photo to false for cartoons, drawings, illustrations, anime, digital art, paintings, sketches, screenshots of apps, or any non-photographic depiction — even if it shows food.',
+		'"is_real_photo" must be true for genuine real-world photographs of physical food products AND for stock or marketing images of real food product packaging, even if the packaging contains cartoon mascots, illustrated characters, or graphic design elements. Set is_real_photo to false ONLY when the entire image is a cartoon, hand-drawn illustration, anime, digital art, painting, sketch, screenshot of an app, or contains no real food product packaging at all.',
 	].join(' ')
 }
 
@@ -305,7 +305,7 @@ export default defineEventHandler(async (event) => {
 	if (!extraction.is_real_photo) {
 		throw createError({
 			statusCode: 422,
-			statusMessage: 'Please scan a real photo of a food product — cartoons, drawings, and illustrations are not supported.',
+			statusMessage: 'Please upload a photo of a real food product packaging. Pure illustrations, drawings, or non-food images are not supported.',
 		})
 	}
 

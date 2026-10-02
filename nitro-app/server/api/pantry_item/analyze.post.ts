@@ -54,7 +54,7 @@ function buildAnalyzePrompt(): string {
 		'"net_quantity" is the numeric net quantity on the label (e.g. 500 for "500ml"). Return only the number or null.',
 		'"net_unit" is the unit of measure as printed, lowercase (e.g. "ml", "g", "L", "kg", "oz"). Return null if absent.',
 		'Do not invent information not visible on the packaging.',
-		'"is_real_photo" must be true only for genuine real-world photographs. Set to false for cartoons, drawings, illustrations, digital art, or any non-photographic image.',
+		'"is_real_photo" must be true for genuine real-world photographs AND for stock or marketing images of real food product packaging, even if the packaging contains cartoon mascots, illustrated characters, or graphic design elements. Set is_real_photo to false ONLY when the entire image is a cartoon, hand-drawn illustration, anime, digital art, painting, sketch, screenshot of an app, or contains no real food product packaging at all.',
 	].join(' ')
 }
 

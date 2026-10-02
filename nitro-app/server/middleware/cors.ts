@@ -1,7 +1,6 @@
 import { defineEventHandler, setResponseHeaders, setResponseStatus } from 'h3'
 
 // All origins that are permitted to call this API.
-// Add new deployment URLs here when a new frontend project is created.
 const ALLOWED_ORIGINS = [
 	'http://localhost:5173',            // local Vite dev
 	'http://localhost',                 // Android Capacitor default
@@ -17,10 +16,11 @@ export default defineEventHandler((event) => {
 	const origin = event.node.req.headers.origin
 
 	// Reflect the request origin if it is in the allow-list; otherwise fall
-	// back to the primary client origin so the header is always present.
+	// back to primary client origin (omniscan.website).
+	const primaryClientOrigin = 'https://omniscan.website'
 	const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin)
 		? origin
-		: ALLOWED_ORIGINS[1]
+		: primaryClientOrigin
 
 	setResponseHeaders(event, {
 		'Access-Control-Allow-Origin': allowOrigin,
@@ -34,4 +34,6 @@ export default defineEventHandler((event) => {
 		setResponseStatus(event, 204)
 		return ''
 	}
+
+	return
 })

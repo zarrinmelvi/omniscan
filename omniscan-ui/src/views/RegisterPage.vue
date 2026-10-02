@@ -405,7 +405,7 @@ const ALLERGEN_EMOJI: Record<string, string> = {
 }
 
 function emojiForAllergen(name: string): string {
-	return ALLERGEN_EMOJI[name.toLowerCase()] ?? '🍽️'
+	return ALLERGEN_EMOJI[name.toLowerCase()] ?? '🍽️️'
 }
 
 function formatAllergenName(name: string): string {
@@ -420,15 +420,11 @@ function handleBack(): void {
 	}
 }
 
-// If the user is already authenticated (e.g. they verified + auto-logged-in
-// in another tab, and the shared-localStorage token is now valid), this tab
-// must not let them re-register. Advance it to the preferences step instead.
 async function redirectIfAlreadyAuthenticated(): Promise<boolean> {
 	await authStore.checkAuth()
 	if (authStore.isAuthenticated) {
 		step.value = 2
 		fetchAllergenCatalog()
-		// Reflect the step in the URL without a full reload so refresh/back behaves.
 		if (route.query.step !== '2') {
 			router.replace({ path: '/register', query: { step: '2' } })
 		}
@@ -504,8 +500,6 @@ async function handleRegister(): Promise<void> {
 async function acceptTerms(): Promise<void> {
 	isTermsOpen.value = false
 
-	// If this account was already verified + logged in elsewhere, don't
-	// re-register — jump straight to the preferences step.
 	if (await redirectIfAlreadyAuthenticated()) {
 		return
 	}
@@ -596,10 +590,9 @@ async function completeSetup(): Promise<void> {
 		return
 	}
 
-	// 1. Ensure token & session are verified before calling backend
 	await authStore.checkAuth()
 	if (!authStore.isAuthenticated) {
-		prefsError.value = 'Your session has expired. Redirecting to login...'
+		prefsError.value = 'Your verification session expired. Please sign in to continue.'
 		setTimeout(() => {
 			router.push('/login')
 		}, 1500)
@@ -635,7 +628,6 @@ function skipForNow(): void {
 }
 
 function onWindowFocus(): void {
-	// Only relevant while still on Step 1; once on Step 2 there's nothing to guard.
 	if (step.value === 1) {
 		redirectIfAlreadyAuthenticated()
 	}
@@ -647,8 +639,6 @@ onMounted(async () => {
 		fetchAllergenCatalog()
 		return
 	}
-	// Step 1 on load: if a valid session already exists (verified in another
-	// tab), skip straight to preferences instead of showing the create-account form.
 	await redirectIfAlreadyAuthenticated()
 	window.addEventListener('focus', onWindowFocus)
 	document.addEventListener('visibilitychange', onWindowFocus)

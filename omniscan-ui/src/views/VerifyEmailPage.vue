@@ -183,8 +183,6 @@ async function verifyToken() {
 
 		if (result.token) {
 			localStorage.setItem(TOKEN_KEY, result.token)
-			// Populate the auth store so isAuthenticated is true immediately
-			// (checkAuth reads the token we just stored and loads /api/auth/me).
 			authStore.token = result.token
 			await authStore.checkAuth()
 		}

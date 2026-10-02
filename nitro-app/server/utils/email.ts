@@ -481,7 +481,7 @@ export async function sendDailySummaryNotification(details: {
 		const { error } = await resend.emails.send({
 			from: EMAIL_FROM,
 			to: recipient.email,
-			subject: `📊 Daily summary: ${details.totalFlags} new flag(s) — ${details.periodLabel}`,
+			subject: `Daily summary: ${details.totalFlags} new flag(s) — ${details.periodLabel}`,
 			html: buildDailySummaryEmailHtml(details),
 		})
 
@@ -526,6 +526,17 @@ function buildDailySummaryEmailHtml(details: {
                   </td>
                 </tr>`
 
+	const dashboardUrl = `${FRONTEND_URL}/admin/verification`
+	const generatedAt = new Date().toLocaleString('en-US', {
+		timeZone: 'UTC',
+		year: 'numeric',
+		month: 'short',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		hour12: false,
+	})
+
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -543,7 +554,7 @@ function buildDailySummaryEmailHtml(details: {
           <!-- Header -->
           <tr>
             <td style="padding:32px 40px;border-bottom:3px solid #1E88E5;text-align:center;">
-              <h1 style="margin:0;font-size:24px;color:#333333;">📊 Daily Summary Report</h1>
+              <h1 style="margin:0;font-size:24px;color:#333333;">Daily Summary Report</h1>
             </td>
           </tr>
 
@@ -580,6 +591,17 @@ function buildDailySummaryEmailHtml(details: {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${topFlagsRows}
               </table>
 
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px 0 8px;">
+                <tr>
+                  <td align="center" style="border-radius:6px;background-color:#008744;">
+                    <a href="${dashboardUrl}"
+                       style="display:inline-block;padding:13px 32px;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:6px;">
+                      View in Dashboard
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
               <p style="margin:24px 0 0;padding-top:24px;border-top:1px solid #eeeeee;font-size:13px;color:#999999;line-height:1.6;">
                 You are receiving this because "Daily Summary Report" is enabled in Admin Settings.
               </p>
@@ -589,6 +611,9 @@ function buildDailySummaryEmailHtml(details: {
           <!-- Footer -->
           <tr>
             <td style="padding:24px 40px;background-color:#f8f8f8;border-top:1px solid #eeeeee;text-align:center;">
+              <p style="margin:0 0 6px;font-size:12px;color:#aaaaaa;">
+                Generated ${generatedAt} UTC
+              </p>
               <p style="margin:0;font-size:12px;color:#aaaaaa;">
                 &copy; ${new Date().getFullYear()} OmniScan. All rights reserved.
               </p>

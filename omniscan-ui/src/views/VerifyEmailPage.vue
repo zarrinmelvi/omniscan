@@ -26,11 +26,11 @@
 						<span class="brand-label">OmniScan</span>
 						<h1 class="auth-title">Email Verified!</h1>
 						<p class="auth-subtitle">
-							Your account is now active. Setting up your profile
+							Your account is now active. Taking you home
 							<span v-if="redirectCountdown > 0"> in {{ redirectCountdown }}s</span>…
 						</p>
-						<ion-button expand="block" class="submit-button" @click="goToSetup">
-							Continue to Setup
+						<ion-button expand="block" class="submit-button" @click="goToHome">
+							Continue to Home
 						</ion-button>
 					</template>
 
@@ -41,9 +41,9 @@
 						</div>
 						<span class="brand-label">OmniScan</span>
 						<h1 class="auth-title">Already Verified</h1>
-						<p class="auth-subtitle">This email address is already verified. Setting up your profile…</p>
-						<ion-button expand="block" class="submit-button" @click="goToSetup">
-							Continue to Setup
+						<p class="auth-subtitle">This email address is already verified. Redirecting to login…</p>
+						<ion-button expand="block" class="submit-button" @click="() => router.push('/login')">
+							Go to Login
 						</ion-button>
 					</template>
 
@@ -114,7 +114,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import {
 	checkmarkCircleOutline,
@@ -123,12 +123,15 @@ import {
 	timeOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
+import { useAuthStore } from '@/stores/authStore'
 
 const TOKEN_KEY = 'omniscan_token'
 
 type VerifyState = 'loading' | 'success' | 'already-verified' | 'expired' | 'error'
 
 const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
 
 const state = ref<VerifyState>('loading')
 const errorMessage = ref('')
@@ -147,7 +150,7 @@ function startRedirect() {
 		redirectCountdown.value--
 		if (redirectCountdown.value <= 0) {
 			clearInterval(redirectTimer!)
-			goToSetup()
+			goToHome()
 		}
 	}, 1000)
 }
@@ -180,6 +183,10 @@ async function verifyToken() {
 
 		if (result.token) {
 			localStorage.setItem(TOKEN_KEY, result.token)
+			// Populate the auth store so isAuthenticated is true immediately
+			// (checkAuth reads the token we just stored and loads /api/auth/me).
+			authStore.token = result.token
+			await authStore.checkAuth()
 		}
 
 		state.value = 'success'
@@ -189,7 +196,7 @@ async function verifyToken() {
 			const msg = err.message.toLowerCase()
 			if (msg.includes('already verified')) {
 				state.value = 'already-verified'
-				startRedirect()
+				setTimeout(() => router.push('/login'), 2500)
 			} else if (msg.includes('expired')) {
 				state.value = 'expired'
 			} else {
@@ -230,8 +237,8 @@ async function handleResend() {
 	}
 }
 
-function goToSetup() {
-	window.location.href = '/register?step=2'
+function goToHome() {
+	router.push('/tabs/home')
 }
 
 onMounted(() => {

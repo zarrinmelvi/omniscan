@@ -70,7 +70,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr v-for="item in filteredAllergens" :key="item.id">
+							<tr v-for="item in pagedAllergens" :key="item.id">
 								<td class="cell-id">#{{ item.id }}</td>
 								<td class="cell-allergen">{{ item.name }}</td>
 								<td class="cell-aliases">{{ item.scientific_name || '—' }}</td>
@@ -101,6 +101,26 @@
 							</tr>
 						</tbody>
 					</table>
+				</div>
+				<div v-if="filteredAllergens.length > 0" class="pagination-bar">
+					<span class="pagination-count">{{ allergenRangeLabel }}</span>
+					<div class="pagination-controls">
+						<button class="page-nav" :disabled="allergenPage === 1" @click="prevAllergenPage" aria-label="Previous page">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+						</button>
+						<template v-for="(item, idx) in allergenPageItems" :key="idx">
+							<button
+								v-if="item !== '...'"
+								class="page-num"
+								:class="{ active: item === allergenPage }"
+								@click="goToAllergenPage(item as number)"
+							>{{ item }}</button>
+							<span v-else class="page-ellipsis">…</span>
+						</template>
+						<button class="page-nav" :disabled="allergenPage === allergenTotalPages" @click="nextAllergenPage" aria-label="Next page">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+						</button>
+					</div>
 				</div>
 			</template>
 
@@ -347,7 +367,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
 import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal.vue'
@@ -485,6 +505,68 @@ const filteredAllergens = computed(() => {
 	return allergens.value.filter((a) => a.name.toLowerCase().includes(q) || a.scientific_name.toLowerCase().includes(q))
 })
 
+// ─── Allergen Dictionary pagination ─────────────────────────────────────────
+const ALLERGEN_PAGE_SIZE = 10
+const allergenPage = ref(1)
+
+const allergenTotalPages = computed(() =>
+	Math.max(1, Math.ceil(filteredAllergens.value.length / ALLERGEN_PAGE_SIZE)),
+)
+
+const pagedAllergens = computed(() => {
+	const start = (allergenPage.value - 1) * ALLERGEN_PAGE_SIZE
+	return filteredAllergens.value.slice(start, start + ALLERGEN_PAGE_SIZE)
+})
+
+// Human-readable "Showing X–Y of Z" range for the current page.
+const allergenRangeLabel = computed(() => {
+	const total = filteredAllergens.value.length
+	if (total === 0) return 'No records'
+	const start = (allergenPage.value - 1) * ALLERGEN_PAGE_SIZE + 1
+	const end = Math.min(allergenPage.value * ALLERGEN_PAGE_SIZE, total)
+	return `Showing ${start}–${end} of ${total}`
+})
+
+// Array of page numbers with '...' markers (first/last always shown, window of ±2 around current).
+const allergenPageItems = computed<(number | '...')[]>(() => {
+	const total = allergenTotalPages.value
+	const current = allergenPage.value
+	const MAX = 10
+	if (total <= MAX) {
+		return Array.from({ length: total }, (_, i) => i + 1)
+	}
+	const items: (number | '...')[] = []
+	const SIBLINGS = 2
+	const left = Math.max(2, current - SIBLINGS)
+	const right = Math.min(total - 1, current + SIBLINGS)
+	items.push(1)
+	if (left > 2) items.push('...')
+	for (let p = left; p <= right; p++) items.push(p)
+	if (right < total - 1) items.push('...')
+	items.push(total)
+	return items
+})
+
+function goToAllergenPage(p: number): void {
+	if (p < 1 || p > allergenTotalPages.value) return
+	allergenPage.value = p
+}
+function nextAllergenPage(): void {
+	if (allergenPage.value < allergenTotalPages.value) allergenPage.value++
+}
+function prevAllergenPage(): void {
+	if (allergenPage.value > 1) allergenPage.value--
+}
+
+// Reset to page 1 when the search filter changes.
+watch(searchQuery, () => {
+	allergenPage.value = 1
+})
+// Clamp if the current page falls out of range after data changes.
+watch(allergenTotalPages, (tp) => {
+	if (allergenPage.value > tp) allergenPage.value = tp
+})
+
 const filteredHalalLogos = computed(() => {
 	const q = searchQuery.value.trim().toLowerCase()
 	if (!q) return halalLogos.value
@@ -569,6 +651,7 @@ function switchTab(tab: TabType): void {
 	activeTab.value = tab
 	searchQuery.value = ''
 	ingredientAllergenFilter.value = 'all'
+	allergenPage.value = 1
 	fetchTabContent(tab)
 }
 
@@ -881,12 +964,14 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	padding: 14px 24px 6px;
+	padding: 16px 24px 10px;
+	margin-top: 8px;
 	background: #f8fafc;
 	border-top: 1px solid #f1f5f9;
 }
 .allergen-group-header:first-child {
 	border-top: none;
+	margin-top: 0;
 }
 .group-count {
 	font-size: 0.74rem;
@@ -894,10 +979,75 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 	font-weight: 500;
 }
 .ingredient-group-table {
-	margin-bottom: 0;
+	margin-bottom: 4px;
+}
+.ingredient-group-table td {
+	padding: 11px 24px;
 }
 .ingredient-group-table th {
+	padding: 10px 24px;
 	background: #f8fafc;
+}
+
+/* Pagination (Allergen Dictionary) */
+.pagination-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 16px 24px;
+	border-top: 1px solid #f1f5f9;
+	flex-wrap: wrap;
+}
+.pagination-count {
+	font-size: 0.8rem;
+	color: #94a3b8;
+	font-weight: 500;
+}
+.pagination-controls {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+.page-num,
+.page-nav {
+	min-width: 34px;
+	height: 34px;
+	padding: 0 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid #e2e8f0;
+	background: #ffffff;
+	color: #334155;
+	border-radius: 8px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.page-num:hover:not(.active),
+.page-nav:hover:not(:disabled) {
+	background: #f1f5f9;
+	border-color: #cbd5e1;
+}
+.page-num.active {
+	background: #008744;
+	border-color: #008744;
+	color: #ffffff;
+	cursor: default;
+}
+.page-nav:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+.page-ellipsis {
+	min-width: 24px;
+	text-align: center;
+	color: #94a3b8;
+	font-weight: 600;
+	user-select: none;
 }
 
 .card-footer-notice { padding: 16px 24px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 0.82rem; color: #94a3b8; }

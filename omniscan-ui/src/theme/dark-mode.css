@@ -1544,3 +1544,33 @@ html.ion-palette-dark .page-num.active {
 html.ion-palette-dark .page-ellipsis {
 	color: var(--dm-text-secondary) !important;
 }
+
+/* == ConfirmDeleteModal — delete confirmation dark mode == */
+html.ion-palette-dark .confirm-delete-modal {
+	background: var(--dm-bg-card) !important;
+}
+html.ion-palette-dark .confirm-delete-title {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .confirm-delete-message {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .confirm-delete-icon {
+	background: #450a0a !important;
+	color: #fca5a5 !important;
+}
+html.ion-palette-dark .btn-cancel {
+	background: var(--dm-bg-card) !important;
+	border-color: var(--dm-border) !important;
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .btn-cancel:hover:not(:disabled) {
+	background: var(--dm-bg-chip) !important;
+}
+html.ion-palette-dark .btn-delete-confirm {
+	background: #dc2626 !important;
+	color: #ffffff !important;
+}
+html.ion-palette-dark .btn-delete-confirm:hover:not(:disabled) {
+	background: #b91c1c !important;
+}

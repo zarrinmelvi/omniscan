@@ -332,6 +332,17 @@
 			@keep="onKeepEditing"
 			@discard="onDiscard"
 		/>
+
+		<!-- Delete record confirmation -->
+		<ConfirmDeleteModal
+			:open="showDeleteConfirm"
+			:busy="deleting"
+			title="Delete record"
+			message="Delete this record from the knowledge base? This cannot be undone."
+			confirm-label="Delete"
+			@cancel="cancelDelete"
+			@confirm="confirmDelete"
+		/>
 	</div>
 </template>
 
@@ -339,6 +350,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
 import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
+import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal.vue'
 
 type TabType = 'allergen' | 'halal' | 'ingredient'
 
@@ -689,18 +701,38 @@ async function saveModal(): Promise<void> {
 }
 
 // ─── Delete ─────────────────────────────────────────────────────────────────
-async function removeItem(id: number): Promise<void> {
-	if (!confirm('Delete this record from the knowledge base? This cannot be undone.')) return
+const deleteTargetId = ref<number | null>(null)
+const deleting = ref(false)
+const showDeleteConfirm = computed(() => deleteTargetId.value !== null)
+
+/** Opens the custom confirmation modal for the given record id. */
+function removeItem(id: number): void {
+	deleteTargetId.value = id
+}
+
+function cancelDelete(): void {
+	if (deleting.value) return
+	deleteTargetId.value = null
+}
+
+async function confirmDelete(): Promise<void> {
+	if (deleteTargetId.value === null) return
+	const id = deleteTargetId.value
 	const endpointMap: Record<TabType, string> = {
 		allergen: '/api/allergen',
 		halal: '/api/halal_logo',
 		ingredient: '/api/ingredient_mapping',
 	}
+	deleting.value = true
 	try {
 		await apiFetch(`${endpointMap[activeTab.value]}?id=${id}`, { method: 'DELETE', isAdmin: true })
+		deleteTargetId.value = null
 		await fetchTabContent(activeTab.value)
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to delete record.'
+		deleteTargetId.value = null
+	} finally {
+		deleting.value = false
 	}
 }
 

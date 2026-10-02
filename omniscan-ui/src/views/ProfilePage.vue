@@ -1,9 +1,9 @@
-﻿<template>
+<template>
 	<ion-page>
 		<ion-content class="profile-content">
 			<div v-if="isLoading" class="state-block">
 				<ion-spinner name="crescent" />
-				<p>Loading your profileâ€¦</p>
+				<p>Loading your profile…</p>
 			</div>
 
 			<div v-else-if="loadError" class="state-block">
@@ -85,7 +85,7 @@
 			<!-- Floating Edit Profile Modal -->
 			<ion-modal :is-open="isEditModalOpen" class="custom-edit-modal" @didDismiss="closeEditModal">
 				<div class="modal-card">
-					<!-- Modal Header â€” sticky, never scrolls -->
+					<!-- Modal Header — sticky, never scrolls -->
 					<div class="modal-header-sticky">
 						<div class="modal-header">
 							<h2 class="modal-title">Edit Profile</h2>
@@ -155,7 +155,7 @@
 
 						<button type="button" class="save-changes-btn" :disabled="isSaving" @click="saveProfile">
 							<ion-spinner v-if="isSaving" name="crescent" />
-							<span>{{ isSaving ? 'Savingâ€¦' : 'Save Changes' }}</span>
+							<span>{{ isSaving ? 'Saving…' : 'Save Changes' }}</span>
 						</button>
 					</div>
 				</div>
@@ -331,6 +331,24 @@ async function fetchAllergens() {
 	}
 }
 
+const initialForm = reactive({
+	name: '',
+	email: '',
+	halalPref: false,
+	customPreferences: [] as string[],
+	avatarBase64: null as string | null,
+})
+
+const hasUnsavedChanges = computed(() => {
+	return (
+		form.name !== initialForm.name ||
+		form.email !== initialForm.email ||
+		form.halalPref !== initialForm.halalPref ||
+		JSON.stringify(form.customPreferences) !== JSON.stringify(initialForm.customPreferences) ||
+		form.avatarBase64 !== initialForm.avatarBase64
+	)
+})
+
 function openEditModal() {
 	form.name = user.value.name
 	form.email = user.value.email
@@ -340,57 +358,16 @@ function openEditModal() {
 	avatarError.value = ''
 	saveError.value = ''
 	prefLimitWarning.value = false
-initialForm.name = form.name
-initialForm.email = form.email
-initialForm.halalPref = form.halalPref
-initialForm.customPreferences = [...form.customPreferences]
-initialForm.avatarBase64 = form.avatarBase64
-isEditModalOpen.value = true
+	initialForm.name = form.name
+	initialForm.email = form.email
+	initialForm.halalPref = form.halalPref
+	initialForm.customPreferences = [...form.customPreferences]
+	initialForm.avatarBase64 = form.avatarBase64
+	isEditModalOpen.value = true
 }
 
-const initialForm = reactive({
-name: '',
-email: '',
-halalPref: false,
-customPreferences: [] as string[],
-avatarBase64: null as string | null,
-})
-
-const hasUnsavedChanges = computed(() => {
-return (
-form.name !== initialForm.name ||
-form.email !== initialForm.email ||
-form.halalPref !== initialForm.halalPref ||
-JSON.stringify(form.customPreferences) !== JSON.stringify(initialForm.customPreferences) ||
-form.avatarBase64 !== initialForm.avatarBase64
-)
-})
-
-async function closeEditModal() {
-if (hasUnsavedChanges.value) {
-const alert = await alertController.create({
-header: 'Unsaved Changes',
-message: 'You have not saved any changes. Are you sure you want to close without saving?',
-cssClass: 'custom-make-alert',
-buttons: [
-{
-text: 'Keep Editing',
-role: 'cancel',
-cssClass: 'alert-button-cancel',
-},
-{
-text: 'Discard Changes',
-cssClass: 'alert-button-danger',
-handler: () => {
-isEditModalOpen.value = false
-},
-},
-],
-})
-await alert.present()
-} else {
-isEditModalOpen.value = false
-}
+function closeEditModal() {
+	isEditModalOpen.value = false
 }
 
 function onAvatarSelected(event: Event) {
@@ -838,6 +815,23 @@ ion-modal.custom-edit-modal {
 	color: #9ca3af;
 }
 
+.custom-edit-modal .avatar-remove-btn {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #ef4444;
+	color: #ffffff;
+	border: 2px solid #ffffff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 0.65rem;
+}
+
 .custom-edit-modal .avatar-upload-btn {
 	position: absolute;
 	bottom: 0;
@@ -852,23 +846,6 @@ ion-modal.custom-edit-modal {
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
-}
-
-.custom-edit-modal .avatar-remove-btn {
-position: absolute;
-top: 0;
-right: 0;
-width: 22px;
-height: 22px;
-border-radius: 50%;
-background: #ef4444;
-color: #ffffff;
-border: 2px solid #ffffff;
-display: flex;
-align-items: center;
-justify-content: center;
-cursor: pointer;
-font-size: 0.65rem;
 }
 
 .custom-edit-modal .hidden-input {

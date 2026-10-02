@@ -29,7 +29,7 @@
 		<!-- OVERVIEW TAB: System Health Summary -->
 		<div v-if="activeTab === 'overview'" class="health-summary">
 			<!-- API Latency status -->
-			<div class="health-card">
+			<div class="health-card health-card--clickable" role="button" tabindex="0" @click="activeTab = 'api-latency'" @keydown.enter="activeTab = 'api-latency'">
 				<div class="health-card-head">
 					<div class="health-icon" :class="latencyHealth.class">
 						<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
@@ -46,7 +46,7 @@
 			</div>
 
 			<!-- Database connection status -->
-			<div class="health-card">
+			<div class="health-card health-card--clickable" role="button" tabindex="0" @click="activeTab = 'prisma-queries'" @keydown.enter="activeTab = 'prisma-queries'">
 				<div class="health-card-head">
 					<div class="health-icon" :class="dbHealth.class">
 						<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
@@ -58,7 +58,7 @@
 			</div>
 
 			<!-- Recent alerts / warnings -->
-			<div class="health-card">
+			<div class="health-card health-card--clickable" role="button" tabindex="0" @click="activeTab = 'flag-audit'" @keydown.enter="activeTab = 'flag-audit'">
 				<div class="health-card-head">
 					<div class="health-icon" :class="alerts.length ? 'health-warn' : 'health-ok'">
 						<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
@@ -552,6 +552,19 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 	flex-direction: column;
 	gap: 12px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+.health-card--clickable {
+	cursor: pointer;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.health-card--clickable:hover {
+	border-color: #008744;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+	transform: translateY(-2px);
+}
+.health-card--clickable:focus-visible {
+	outline: 2px solid #008744;
+	outline-offset: 2px;
 }
 .health-card-head {
 	display: flex;

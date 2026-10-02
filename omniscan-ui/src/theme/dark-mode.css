@@ -1574,3 +1574,39 @@ html.ion-palette-dark .btn-delete-confirm {
 html.ion-palette-dark .btn-delete-confirm:hover:not(:disabled) {
 	background: #b91c1c !important;
 }
+
+/* == System Logs — Overview health summary cards dark mode == */
+html.ion-palette-dark .health-card {
+	background: var(--dm-bg-card) !important;
+	border-color: var(--dm-border) !important;
+	box-shadow: none !important;
+}
+html.ion-palette-dark .health-card--clickable:hover {
+	border-color: #4ade80 !important;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+html.ion-palette-dark .health-title {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .hm-value {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .hm-label,
+html.ion-palette-dark .health-foot {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .health-alert-item {
+	color: var(--dm-text-secondary) !important;
+}
+
+/* Status text colors — brighter tints for dark backgrounds */
+html.ion-palette-dark .health-status.health-ok { color: #4ade80 !important; }
+html.ion-palette-dark .health-status.health-warn { color: #fbbf24 !important; }
+html.ion-palette-dark .health-status.health-bad { color: #f87171 !important; }
+html.ion-palette-dark .health-status.health-neutral { color: var(--dm-text-secondary) !important; }
+
+/* Soft tinted icon badges on dark surface */
+html.ion-palette-dark .health-icon.health-ok { background: #052e16 !important; color: #4ade80 !important; }
+html.ion-palette-dark .health-icon.health-warn { background: #431407 !important; color: #fbbf24 !important; }
+html.ion-palette-dark .health-icon.health-bad { background: #450a0a !important; color: #f87171 !important; }
+html.ion-palette-dark .health-icon.health-neutral { background: var(--dm-bg-chip) !important; color: var(--dm-text-secondary) !important; }

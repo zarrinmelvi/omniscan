@@ -26,38 +26,6 @@
 
 		<p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
-		<!-- Stat cards (always visible) -->
-		<div class="stat-cards">
-			<div class="stat-card purple-card">
-				<div class="card-header-row">
-					<svg class="card-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-					<span class="stat-label">Avg. Latency</span>
-				</div>
-				<div class="stat-value purple-text">{{ overview.avg_latency }}ms</div>
-			</div>
-			<div class="stat-card orange-card">
-				<div class="card-header-row">
-					<svg class="card-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-					<span class="stat-label">Peak Latency</span>
-				</div>
-				<div class="stat-value orange-text">{{ overview.peak_latency }}ms</div>
-			</div>
-			<div class="stat-card blue-card">
-				<div class="card-header-row">
-					<svg class="card-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-					<span class="stat-label">Total Requests</span>
-				</div>
-				<div class="stat-value blue-text">{{ overview.total_requests.toLocaleString() }}</div>
-			</div>
-			<div class="stat-card green-card">
-				<div class="card-header-row">
-					<svg class="card-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M21 19c0 1.66-4 3-9 3s-9-1.34-9-3"></path></svg>
-					<span class="stat-label">DB Status</span>
-				</div>
-				<div class="stat-value" :class="dbStatusClass">{{ overview.db_status }}</div>
-			</div>
-		</div>
-
 		<!-- OVERVIEW + API LATENCY TAB: chart -->
 		<div v-if="activeTab === 'overview' || activeTab === 'api-latency'" class="chart-card">
 			<div class="chart-header">
@@ -123,20 +91,6 @@
 						<tr v-if="(data?.prisma_queries.length ?? 0) === 0"><td colspan="4" class="empty-row">No queries recorded yet.</td></tr>
 					</tbody>
 				</table>
-			</div>
-		</div>
-
-		<!-- RAW LOGS TAB -->
-		<div v-if="activeTab === 'raw-logs'" class="log-card">
-			<div class="log-header">Raw Logs ({{ data?.raw_logs.length ?? 0 }})</div>
-			<div class="log-scroll console">
-				<div v-for="(l, i) in data?.raw_logs ?? []" :key="i" class="console-line">
-					<span class="muted">{{ l.time }}</span>
-					<span class="level-tag" :class="'level-' + l.level">{{ l.level.toUpperCase() }}</span>
-					<span class="source-tag">{{ l.source }}</span>
-					<span class="console-msg">{{ l.message }}</span>
-				</div>
-				<div v-if="(data?.raw_logs.length ?? 0) === 0" class="console-line muted">No log events recorded yet.</div>
 			</div>
 		</div>
 
@@ -256,7 +210,6 @@ const tabs = [
 	{ id: 'overview', label: 'Overview' },
 	{ id: 'api-latency', label: 'API Latency' },
 	{ id: 'prisma-queries', label: 'Prisma Queries' },
-	{ id: 'raw-logs', label: 'Raw Logs' },
 	{ id: 'flag-audit', label: 'Flag Audit' },
 ]
 
@@ -435,17 +388,6 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 
 .error-message { padding: 14px 18px; margin-bottom: 20px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 0.85rem; }
 
-.stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-.stat-card { background: #ffffff; border-radius: 12px; padding: 16px 20px; display: flex; flex-direction: column; justify-content: center; }
-.purple-card { border: 1px solid #e9d5ff; background-color: #faf5ff; }
-.orange-card { border: 1px solid #ffedd5; background-color: #fff7ed; }
-.blue-card { border: 1px solid #dbeafe; background-color: #eff6ff; }
-.green-card { border: 1px solid #dcfce7; background-color: #f0fdf4; }
-.card-header-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
-.card-icon { color: #64748b; }
-.stat-label { font-size: 0.82rem; color: #475569; font-weight: 500; }
-.stat-value { font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
-.purple-text { color: #9333ea; }
 .orange-text { color: #ea580c; }
 .blue-text { color: #2563eb; }
 .green-text { color: #16a34a; }
@@ -484,17 +426,6 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .chip-blue { background: #dbeafe; color: #2563eb; }
 .chip-yellow { background: #fef9c3; color: #a16207; }
 .chip-red { background: #fee2e2; color: #b91c1c; }
-
-/* Console (raw logs) */
-.console { background: #0f172a; padding: 12px 16px; }
-.console-line { display: flex; align-items: baseline; gap: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; padding: 3px 0; color: #cbd5e1; line-height: 1.5; }
-.console .muted { color: #64748b; }
-.level-tag { font-weight: 700; flex-shrink: 0; }
-.level-info { color: #38bdf8; }
-.level-warn { color: #fbbf24; }
-.level-error { color: #f87171; }
-.source-tag { color: #a78bfa; flex-shrink: 0; }
-.console-msg { color: #e2e8f0; word-break: break-word; }
 
 /* Services */
 .services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }

@@ -659,6 +659,12 @@ onIonViewWillEnter(() => {
 	background-color: #f9fafb;
 }
 
+@media (prefers-color-scheme: dark) {
+	.action-row:hover {
+		background-color: #334155;
+	}
+}
+
 .action-left {
 	display: flex;
 	align-items: center;

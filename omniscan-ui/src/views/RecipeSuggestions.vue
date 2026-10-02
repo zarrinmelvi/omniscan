@@ -15,11 +15,12 @@
 						<button type="button" class="tab-chip" :class="{ 'tab-chip--active-liked': activeTab === 'liked' }" @click="setTab('liked')">
 							<ion-icon :icon="activeTab === 'liked' ? heart : heartOutline" class="chip-icon" />
 							Liked
+							<span v-if="activeTab === 'liked' && likedCount > 0" class="tab-badge">{{ likedCount }}</span>
 						</button>
 						<button type="button" class="tab-chip" :class="{ 'tab-chip--active-made': activeTab === 'made' }" @click="setTab('made')">
 							<ion-icon :icon="archiveOutline" class="chip-icon" />
 							Made
-							<span v-if="madeCount > 0" class="tab-badge">{{ madeCount }}</span>
+							<span v-if="activeTab === 'made' && madeCount > 0" class="tab-badge">{{ madeCount }}</span>
 						</button>
 					</div>
 				</div>
@@ -207,8 +208,10 @@ const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 const makingId = ref<number | null>(null)
 const madeTotal = ref<number>(0)
+const likedTotal = ref<number>(0)
 
 const madeCount = computed(() => madeTotal.value)
+const likedCount = computed(() => likedTotal.value)
 
 // Detail modal state
 const isDetailModalOpen = ref(false)
@@ -280,6 +283,8 @@ async function fetchSuggestions(): Promise<void> {
 			madeTotal.value = data.recipes.filter((r) => r.made).length
 		} else if (activeTab.value === 'made') {
 			madeTotal.value = data.recipes.length
+		} else if (activeTab.value === 'liked') {
+			likedTotal.value = data.recipes.length
 		}
 		emptyMessage.value = data.message ?? TAB_DEFAULT_EMPTY_MESSAGE[activeTab.value]
 	} catch (err) {
@@ -427,6 +432,12 @@ onMounted(() => {
 .tab-chip--active-made {
 	background: #344154;
 	color: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+	.tab-chip--active-made {
+		background: #94a3b8;
+	}
 }
 
 .tab-badge {

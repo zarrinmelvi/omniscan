@@ -424,6 +424,7 @@ function daysLabel(item: PantryItemDto): string {
 	const diff = daysBetween(new Date(), date)
 	if (diff < 0) return `Expired ${Math.abs(diff)}d ago`
 	if (diff === 0) return 'Expires today'
+	if (diff === 1) return '1 day'
 	return `${diff} days`
 }
 
@@ -900,6 +901,10 @@ onIonViewWillEnter(() => {
 	line-height: 0;
 	padding: 0;
 	cursor: pointer;
+}
+
+.check-btn:hover {
+	color: #f97316;
 }
 
 .card-image {

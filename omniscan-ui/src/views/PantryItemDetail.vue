@@ -197,7 +197,7 @@
 					<div v-if="editError" class="edit-error">{{ editError }}</div>
 
 					<!-- Storage Location -->
-					<label class="edit-label">Storage Location</label>
+					<label class="field-label-brown">Storage Location</label>
 					<div class="storage-option-row">
 						<button
 							v-for="loc in ['Fridge', 'Freezer', 'Cupboard']"
@@ -211,7 +211,7 @@
 					</div>
 
 					<!-- Quantity & Unit -->
-					<label class="edit-label">Quantity &amp; Unit</label>
+					<label class="field-label-brown">Quantity &amp; Unit</label>
 					<div class="edit-qty-row">
 						<input
 							v-model.number="editForm.quantity"
@@ -225,7 +225,7 @@
 					</div>
 
 					<!-- Expiration Date -->
-					<label class="edit-label">Expiration Date</label>
+					<label class="field-label-brown">Expiration Date</label>
 					<input
 						v-model="editForm.expiration_date"
 						type="date"
@@ -234,13 +234,15 @@
 						@change="onExpirationDateChange" />
 
 					<!-- Best Before Date -->
-					<label class="edit-label">Best Before Date</label>
+					<label class="field-label-brown">Best Before Date</label>
 					<input
 						v-model="editForm.best_before_date"
 						type="date"
 						class="edit-date-input"
 						:class="{ 'edit-date-input--filled': !!editForm.best_before_date }"
 						@change="onBestBeforeDateChange" />
+					
+					<p v-if="editForm.expiration_date && editForm.best_before_date" class="validation-hint">You can only update one date</p>
 
 					<button
 						type="button"
@@ -883,6 +885,14 @@ onIonViewWillEnter(fetchItem)
   display: block;
 }
 
+.field-label-brown {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #92400e;
+  margin: 10px 0 5px;
+}
+
 .storage-option-row {
   display: flex;
   gap: 8px;
@@ -990,6 +1000,12 @@ onIonViewWillEnter(fetchItem)
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 0.85rem;
+}
+
+.validation-hint {
+  color: #dc2626;
+  font-size: 0.75rem;
+  margin: 4px 0 0;
 }
 </style>
 

@@ -86,13 +86,13 @@ const navItems = [
 }
 
 .nav-item--active {
-	background: #e9f9ef;
-	color: #00a651;
+	background: #05c450;
+	color: #ffffff;
 	font-weight: 600;
 }
 
 .nav-item--active ion-icon {
-	color: #05c450;
+	color: #ffffff;
 }
 
 .nav-item ion-icon {

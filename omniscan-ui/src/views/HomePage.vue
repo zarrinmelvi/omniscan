@@ -52,7 +52,7 @@
 
 				<div v-else class="carousel-container">
 					<!-- Floating White Circle Overlay Navigation Buttons -->
-					<button type="button" class="carousel-nav carousel-nav--left" aria-label="Scroll left" @click="scrollCarousel(-1)">
+					<button v-if="showCarouselArrows" type="button" class="carousel-nav carousel-nav--left" aria-label="Scroll left" @click="scrollCarousel(-1)">
 						<ion-icon :icon="chevronBackOutline" />
 					</button>
 
@@ -83,7 +83,7 @@
 						</button>
 					</div>
 
-					<button type="button" class="carousel-nav carousel-nav--right" aria-label="Scroll right" @click="scrollCarousel(1)">
+					<button v-if="showCarouselArrows" type="button" class="carousel-nav carousel-nav--right" aria-label="Scroll right" @click="scrollCarousel(1)">
 						<ion-icon :icon="chevronForwardOutline" />
 					</button>
 				</div>
@@ -379,6 +379,7 @@ const alertButtons = [
 ]
 
 const carouselRef = ref<HTMLElement | null>(null)
+const showCarouselArrows = ref(true)
 
 const activeItems = computed(() => pantryItems.value.filter((item) => !item.is_archived))
 const pantryItemCount = computed(() => activeItems.value.length)
@@ -425,6 +426,13 @@ function expiryLabel(item: PantryItemDto): string {
 
 function scrollCarousel(direction: 1 | -1) {
 	carouselRef.value?.scrollBy({ left: direction * 180, behavior: 'smooth' })
+}
+
+function checkCarouselScrollability() {
+	if (carouselRef.value) {
+		const container = carouselRef.value
+		showCarouselArrows.value = container.scrollWidth > container.clientWidth
+	}
 }
 
 function goToPantry() {
@@ -625,12 +633,15 @@ async function loadDashboard() {
 		activitiesLoadError.value = err instanceof ApiError ? err.message : 'Failed to load recent activity.'
 	} finally {
 		isLoading.value = false
+		// Check carousel scrollability after data loads and DOM updates
+		setTimeout(() => checkCarouselScrollability(), 100)
 	}
 }
 
 onIonViewWillEnter(() => {
 	loadDashboard()
 })
+
 </script>
 
 <style scoped>

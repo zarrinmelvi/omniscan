@@ -24,7 +24,7 @@
 								<input
 									v-model="password"
 									:type="showPassword ? 'text' : 'password'"
-									placeholder="Min. 8 characters"
+									placeholder="Enter new password"
 									required
 									class="custom-input" />
 								<ion-icon
@@ -34,19 +34,43 @@
 							</div>
 						</div>
 
-						<div class="form-group">
+						<!-- Password Requirements Checklist -->
+						<div class="password-checklist">
+							<div class="check-item" :class="{ valid: passCriteria.length }">
+								<ion-icon :icon="passCriteria.length ? checkmarkCircle : closeCircle" />
+								<span>At least 8 characters</span>
+							</div>
+							<div class="check-item" :class="{ valid: passCriteria.upper }">
+								<ion-icon :icon="passCriteria.upper ? checkmarkCircle : closeCircle" />
+								<span>At least 1 uppercase letter (A-Z)</span>
+							</div>
+							<div class="check-item" :class="{ valid: passCriteria.lower }">
+								<ion-icon :icon="passCriteria.lower ? checkmarkCircle : closeCircle" />
+								<span>At least 1 lowercase letter (a-z)</span>
+							</div>
+							<div class="check-item" :class="{ valid: passCriteria.number }">
+								<ion-icon :icon="passCriteria.number ? checkmarkCircle : closeCircle" />
+								<span>At least 1 number (0-9)</span>
+							</div>
+							<div class="check-item" :class="{ valid: passCriteria.special }">
+								<ion-icon :icon="passCriteria.special ? checkmarkCircle : closeCircle" />
+								<span>At least 1 special character (!@#$%^&*)</span>
+							</div>
+						</div>
+
+						<div class="form-group margin-top">
 							<label class="input-label">Confirm New Password</label>
 							<div class="custom-input-wrapper">
 								<input
 									v-model="confirmPassword"
 									:type="showPassword ? 'text' : 'password'"
-									placeholder="Re-enter password"
+									placeholder="Re-enter new password"
 									required
 									class="custom-input" />
 							</div>
 						</div>
 
-						<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
+						<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting || !isPasswordValid">
 							<ion-spinner v-if="isSubmitting" name="crescent" class="btn-spinner" />
 							<span v-else>Update Password</span>
 						</ion-button>
@@ -62,10 +86,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
-import { eyeOutline, eyeOffOutline } from 'ionicons/icons'
+import { eyeOutline, eyeOffOutline, checkmarkCircle, closeCircle } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
 const route = useRoute()
@@ -80,6 +104,23 @@ const isCompleted = ref(false)
 const errorMessage = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
 
+// Password Strictness Checks
+const passCriteria = computed(() => {
+	const val = password.value
+	return {
+		length: val.length >= 8,
+		upper: /[A-Z]/.test(val),
+		lower: /[a-z]/.test(val),
+		number: /[0-9]/.test(val),
+		special: /[^A-Za-z0-9]/.test(val),
+	}
+})
+
+const isPasswordValid = computed(() => {
+	const c = passCriteria.value
+	return c.length && c.upper && c.lower && c.number && c.special
+})
+
 async function handleResetPassword() {
 	errorMessage.value = null
 	successMessage.value = null
@@ -89,8 +130,8 @@ async function handleResetPassword() {
 		return
 	}
 
-	if (password.value.length < 8) {
-		errorMessage.value = 'Password must be at least 8 characters long.'
+	if (!isPasswordValid.value) {
+		errorMessage.value = 'Please ensure your password meets all safety criteria.'
 		return
 	}
 
@@ -128,14 +169,23 @@ async function handleResetPassword() {
 .auth-card { max-width: 380px; margin: 0 auto; padding: 24px 24px 32px; background: #ffffff; }
 .brand-label { display: block; color: #05c450; font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; }
 .auth-title { font-size: 1.85rem; font-weight: 700; color: #111827; margin: 0 0 6px; letter-spacing: -0.02em; }
-.auth-subtitle { color: #6b7280; font-size: 0.85rem; line-height: 1.4; margin: 0 0 24px; }
-.form-group { margin-bottom: 14px; }
+.auth-subtitle { color: #6b7280; font-size: 0.85rem; line-height: 1.4; margin: 0 0 20px; }
+.form-group { margin-bottom: 12px; }
+.margin-top { margin-top: 16px; }
 .input-label { display: block; font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 6px; }
 .custom-input-wrapper { position: relative; display: flex; align-items: center; }
 .custom-input { width: 100%; height: 46px; border: 1px solid #e5e7eb; border-radius: 12px; padding: 0 14px; font-size: 16px; color: #111827; outline: none; background: #ffffff; }
 .custom-input:focus { border-color: #05c450; }
 .password-toggle { position: absolute; right: 14px; font-size: 1.1rem; color: #6b7280; cursor: pointer; }
-.submit-button { --background: #05c450; --background-activated: #04ab45; --border-radius: 9999px; --color: #ffffff; font-weight: 600; font-size: 0.95rem; height: 48px; text-transform: none; margin-top: 16px; }
+
+/* Checklist Styling */
+.password-checklist { background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 10px; padding: 10px 12px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.check-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #9ca3af; }
+.check-item.valid { color: #16a34a; font-weight: 500; }
+.check-item ion-icon { font-size: 0.95rem; }
+
+.submit-button { --background: #05c450; --background-activated: #04ab45; --border-radius: 9999px; --color: #ffffff; font-weight: 600; font-size: 0.95rem; height: 48px; text-transform: none; margin-top: 20px; }
+.submit-button[disabled] { opacity: 0.6; }
 .btn-spinner { width: 18px; height: 18px; }
 .switch-auth { text-align: center; margin-top: 24px; font-size: 0.85rem; color: #4b5563; }
 .switch-link { color: #05c450; font-weight: 600; text-decoration: none; margin-left: 2px; }

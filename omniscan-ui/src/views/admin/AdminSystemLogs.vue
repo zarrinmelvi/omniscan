@@ -5,7 +5,7 @@
 				<h1>System Logs</h1>
 				<span class="live-indicator">
 					<span class="dot"></span>
-					Live · {{ currentTimeUtc }} UTC
+					Live
 				</span>
 			</div>
 			<p class="subtitle">Nitro server performance · Prisma queries · Ollama Pro latency</p>

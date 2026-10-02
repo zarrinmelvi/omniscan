@@ -124,7 +124,7 @@
 
 						<p class="section-label">Adjusted Ingredients</p>
 						<ion-chip v-for="(ingredient, index) in madeRecipeResult.adjusted_ingredients" :key="index" color="success">
-							{{ ingredient.name }} â€” {{ ingredient.amount_text }}
+							{{ ingredient.name }} — {{ ingredient.amount_text }}
 						</ion-chip>
 
 						<p class="section-label mt-4">Instructions</p>
@@ -157,8 +157,8 @@ import {
 	IonSpinner,
 	IonButton,
 	IonAlert,
-IonModal,
-toastController,
+	IonModal,
+	toastController,
 } from '@ionic/vue'
 import { restaurantOutline, closeOutline, heart, heartOutline, archiveOutline, checkmarkCircle, chevronForwardOutline } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
@@ -301,10 +301,6 @@ async function toggleLike(recipe: SuggestedRecipe): Promise<void> {
 
 	likingId.value = recipe.id
 
-	// Optimistic update â€“ flip immediately, revert below if the request fails.
-	// A card the user just liked while on the Liked tab stays visible until
-	// the next refetch rather than vanishing mid-tap, which reads as a bug
-	// even though it'd be technically correct.
 	const previousLiked = recipe.liked
 	recipe.liked = !previousLiked
 
@@ -679,25 +675,30 @@ onMounted(() => {
 	margin-top: 16px;
 }
 
-/* Header inner wrapper â€” full-width band on mobile, centered content on larger screens */
+/* Header inner wrapper — full-width band on mobile, centered content on larger screens */
 .header-inner {
 	width: 100%;
 }
 
-/* ---------- TABLET (768â€“1023px) ---------- */
+/* ---------- TABLET (768–1023px) ---------- */
 @media (min-width: 768px) {
+	.header-container {
+		padding: 24px 32px 16px;
+	}
+
 	.header-inner {
-		max-width: 900px;
+		max-width: 1100px;
 		margin: 0 auto;
 	}
 
 	.cards-list {
-		max-width: 900px;
+		max-width: 1100px;
+		padding: 24px 32px 32px;
 		margin: 0 auto;
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(3, 1fr);
 		grid-auto-rows: 1fr;
-		gap: 16px;
+		gap: 20px;
 	}
 
 	.recipe-card {
@@ -714,19 +715,26 @@ onMounted(() => {
 
 	.empty-state,
 	.loading-container {
-		max-width: 900px;
+		max-width: 1100px;
 		margin: 0 auto;
 	}
 }
 
 /* ---------- DESKTOP (>=1024px) ---------- */
 @media (min-width: 1024px) {
+	.header-container {
+		padding: 32px 48px 20px;
+	}
+
 	.header-inner {
 		max-width: 1100px;
+		margin: 0 auto;
 	}
 
 	.cards-list {
 		max-width: 1100px;
+		padding: 24px 48px 48px;
+		margin: 0 auto;
 		grid-template-columns: repeat(3, 1fr);
 		gap: 20px;
 	}
@@ -734,6 +742,7 @@ onMounted(() => {
 	.empty-state,
 	.loading-container {
 		max-width: 1100px;
+		margin: 0 auto;
 	}
 }
 </style>

@@ -41,9 +41,9 @@
 						</div>
 						<span class="brand-label">OmniScan</span>
 						<h1 class="auth-title">Already Verified</h1>
-						<p class="auth-subtitle">This email address is already verified. You can log in.</p>
-						<ion-button expand="block" class="submit-button" router-link="/login">
-							Go to Login
+						<p class="auth-subtitle">This email address is already verified. Setting up your profile…</p>
+						<ion-button expand="block" class="submit-button" @click="goToSetup">
+							Continue to Setup
 						</ion-button>
 					</template>
 
@@ -189,6 +189,7 @@ async function verifyToken() {
 			const msg = err.message.toLowerCase()
 			if (msg.includes('already verified')) {
 				state.value = 'already-verified'
+				startRedirect()
 			} else if (msg.includes('expired')) {
 				state.value = 'expired'
 			} else {

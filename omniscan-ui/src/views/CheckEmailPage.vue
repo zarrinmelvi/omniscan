@@ -9,12 +9,11 @@
 					</div>
 				</aside>
 				<div class="auth-card">
-					<div class="email-icon-wrapper">
-						<ion-icon :icon="mailOutline" class="email-icon" />
-					</div>
-
-					<!-- Guard: email param missing (user navigated directly) -->
+					<!-- Guard: email param missing -->
 					<template v-if="!email">
+						<div class="email-icon-wrapper">
+							<ion-icon :icon="mailOutline" class="email-icon" />
+						</div>
 						<span class="brand-label">OmniScan</span>
 						<h1 class="auth-title">No Email Found</h1>
 						<p class="auth-subtitle">
@@ -25,54 +24,84 @@
 						</ion-button>
 					</template>
 
+					<!-- STEP A: VERIFYING IN PROGRESS -->
+					<template v-else-if="syncState === 'verifying'">
+						<div class="email-icon-wrapper">
+							<ion-spinner name="crescent" class="verify-spinner" />
+						</div>
+						<span class="brand-label">OmniScan</span>
+						<h1 class="auth-title">Verifying your email…</h1>
+						<p class="auth-subtitle">Please wait a moment while we update your account.</p>
+					</template>
+
+					<!-- STEP B: EMAIL VERIFIED SUCCESS -->
+					<template v-else-if="syncState === 'verified'">
+						<div class="email-icon-wrapper">
+							<ion-icon :icon="checkmarkCircleOutline" class="email-icon email-icon--success" />
+						</div>
+						<span class="brand-label">OmniScan</span>
+						<h1 class="auth-title">Email Verified!</h1>
+						<p class="auth-subtitle">
+							Your account is active. Setting up your profile
+							<span v-if="redirectCountdown > 0"> in {{ redirectCountdown }}s</span>…
+						</p>
+						<ion-button expand="block" class="resend-button" @click="goToSetup">
+							Continue to Setup
+						</ion-button>
+					</template>
+
+					<!-- DEFAULT: CHECK YOUR EMAIL STATE -->
 					<template v-else>
-					<h1 class="auth-title">Check Your Email</h1>
-					<p class="auth-subtitle">
-						We sent a verification link to<br />
-						<strong class="email-highlight">{{ email }}</strong>
-					</p>
+						<div class="email-icon-wrapper">
+							<ion-icon :icon="mailOutline" class="email-icon" />
+						</div>
+						<h1 class="auth-title">Check Your Email</h1>
+						<p class="auth-subtitle">
+							We sent a verification link to<br />
+							<strong class="email-highlight">{{ email }}</strong>
+						</p>
 
-					<!-- Success feedback -->
-					<div v-if="successMessage" class="feedback-banner feedback-banner--success">
-						<ion-icon :icon="checkmarkCircleOutline" />
-						{{ successMessage }}
-					</div>
+						<!-- Success feedback -->
+						<div v-if="successMessage" class="feedback-banner feedback-banner--success">
+							<ion-icon :icon="checkmarkCircleOutline" />
+							{{ successMessage }}
+						</div>
 
-					<!-- Error feedback -->
-					<div v-if="errorMessage" class="feedback-banner feedback-banner--error">
-						<ion-icon :icon="alertCircleOutline" />
-						{{ errorMessage }}
-					</div>
+						<!-- Error feedback -->
+						<div v-if="errorMessage" class="feedback-banner feedback-banner--error">
+							<ion-icon :icon="alertCircleOutline" />
+							{{ errorMessage }}
+						</div>
 
-					<ion-button
-						expand="block"
-						class="resend-button"
-						:disabled="isResending || cooldown > 0"
-						@click="handleResend">
-						<ion-spinner v-if="isResending" name="crescent" class="btn-spinner" />
-						<span v-else-if="cooldown > 0">Resend in {{ cooldown }}s</span>
-						<span v-else>Resend verification email</span>
-					</ion-button>
+						<ion-button
+							expand="block"
+							class="resend-button"
+							:disabled="isResending || cooldown > 0"
+							@click="handleResend">
+							<ion-spinner v-if="isResending" name="crescent" class="btn-spinner" />
+							<span v-else-if="cooldown > 0">Resend in {{ cooldown }}s</span>
+							<span v-else>Resend verification email</span>
+						</ion-button>
 
-					<div class="tips-box">
-						<p class="tips-title">Didn't receive it?</p>
-						<ul class="tips-list">
-							<li>Check your spam or junk folder</li>
-							<li>The link expires in 24 hours</li>
-							<li>Make sure <strong>{{ email }}</strong> is correct</li>
-						</ul>
-					</div>
+						<div class="tips-box">
+							<p class="tips-title">Didn't receive it?</p>
+							<ul class="tips-list">
+								<li>Check your spam or junk folder</li>
+								<li>The link expires in 24 hours</li>
+								<li>Make sure <strong>{{ email }}</strong> is correct</li>
+							</ul>
+						</div>
 
-					<p class="switch-auth">
-						Wrong email?
-						<router-link to="/register" class="switch-link">Register again</router-link>
-					</p>
+						<p class="switch-auth">
+							Wrong email?
+							<router-link to="/register" class="switch-link">Register again</router-link>
+						</p>
 
-					<p class="switch-auth">
-						Already verified?
-						<router-link to="/login" class="switch-link">Sign In</router-link>
-					</p>
-				</template><!-- end v-else -->
+						<p class="switch-auth">
+							Already verified?
+							<router-link to="/login" class="switch-link">Sign In</router-link>
+						</p>
+					</template>
 				</div>
 			</div>
 		</ion-content>
@@ -84,17 +113,23 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import { mailOutline, checkmarkCircleOutline, alertCircleOutline } from 'ionicons/icons'
-import { apiFetch, ApiError } from '@/utils/api'
+import { apiFetch } from '@/utils/api'
+
+type SyncState = 'idle' | 'verifying' | 'verified'
 
 const route = useRoute()
 const email = ref((route.query.email as string) || '')
 
+const syncState = ref<SyncState>('idle')
 const isResending = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
 const cooldown = ref(0)
+const redirectCountdown = ref(3)
 
 let cooldownTimer: ReturnType<typeof setInterval> | null = null
+let pollTimer: ReturnType<typeof setInterval> | null = null
+let redirectTimer: ReturnType<typeof setInterval> | null = null
 
 function startCooldown(seconds = 60) {
 	cooldown.value = seconds
@@ -105,6 +140,46 @@ function startCooldown(seconds = 60) {
 			cooldownTimer = null
 		}
 	}, 1000)
+}
+
+function startRedirect() {
+	redirectTimer = setInterval(() => {
+		redirectCountdown.value--
+		if (redirectCountdown.value <= 0) {
+			clearInterval(redirectTimer!)
+			goToSetup()
+		}
+	}, 1000)
+}
+
+function goToSetup() {
+	window.location.href = '/register?step=2'
+}
+
+async function checkVerificationStatus() {
+	if (!email.value || syncState.value !== 'idle') return
+
+	try {
+		const res = await apiFetch<{ email_verified?: boolean; verified?: boolean }>(
+			`/api/auth/me?email=${encodeURIComponent(email.value)}`,
+			{ method: 'GET', skipAuth: true }
+		)
+
+		if (res && (res.email_verified || res.verified)) {
+			if (pollTimer) clearInterval(pollTimer)
+
+			// Step A: Show "Verifying your email…"
+			syncState.value = 'verifying'
+
+			// Step B: Transition to "Email Verified!" -> Auto-redirect to Step 2
+			setTimeout(() => {
+				syncState.value = 'verified'
+				startRedirect()
+			}, 1200)
+		}
+	} catch (err) {
+		// Silent check during background polling
+	}
 }
 
 async function handleResend() {
@@ -122,28 +197,39 @@ async function handleResend() {
 		})
 		successMessage.value = 'Verification email sent! Please check your inbox.'
 		startCooldown(60)
-	} catch (err) {
-		if (err instanceof ApiError && err.status === 429) {
-			// Extract remaining seconds from the message if possible
-			const match = err.message.match(/(\d+) second/)
+	} catch (err: any) {
+		if (err?.status === 429) {
+			const match = err?.message?.match(/(\d+) second/)
 			const remaining = match ? parseInt(match[1]) : 60
 			startCooldown(remaining)
 			errorMessage.value = err.message
 		} else {
-			errorMessage.value = err instanceof ApiError ? err.message : 'Failed to resend. Please try again.'
+			errorMessage.value = err?.message ?? 'Failed to resend. Please try again.'
 		}
 	} finally {
 		isResending.value = false
 	}
 }
 
-// Start with a short cooldown so users can't spam immediately after registering
+function handleVisibilityChange() {
+	if (document.visibilityState === 'visible') {
+		checkVerificationStatus()
+	}
+}
+
 onMounted(() => {
 	startCooldown(60)
+	if (email.value) {
+		pollTimer = setInterval(checkVerificationStatus, 2500)
+		window.addEventListener('visibilitychange', handleVisibilityChange)
+	}
 })
 
 onUnmounted(() => {
 	if (cooldownTimer) clearInterval(cooldownTimer)
+	if (pollTimer) clearInterval(pollTimer)
+	if (redirectTimer) clearInterval(redirectTimer)
+	window.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
 
@@ -176,6 +262,16 @@ onUnmounted(() => {
 
 .email-icon {
 	font-size: 3.5rem;
+	color: #05c450;
+}
+
+.email-icon--success {
+	color: #05c450;
+}
+
+.verify-spinner {
+	width: 56px;
+	height: 56px;
 	color: #05c450;
 }
 

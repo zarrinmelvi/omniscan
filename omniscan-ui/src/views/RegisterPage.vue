@@ -849,15 +849,20 @@ onMounted(async () => {
 	margin: -12px 0 12px;
 }
 
+/* Modal Light Mode Override */
 .terms-sheet-modal {
 	--height: 85%;
 	--border-radius: 20px 20px 0 0;
+	--background: #ffffff !important;
+	--color: #111827 !important;
+	color-scheme: light !important;
 }
 
 .terms-modal-header {
-	background: var(--ion-background-color, #ffffff);
+	background: #ffffff !important;
 	padding: 16px 20px 8px;
-	border-bottom: 1px solid var(--ion-color-light-shade, #e2e8f0);
+	border-bottom: 1px solid #e2e8f0;
+	color-scheme: light !important;
 }
 
 .terms-modal-header-flex {
@@ -869,21 +874,26 @@ onMounted(async () => {
 .terms-modal-title {
 	font-size: 1.1rem;
 	font-weight: 700;
-	color: var(--ion-text-color, #111827);
+	color: #111827 !important;
 	margin: 0;
 }
 
 .terms-modal-content {
-	--background: var(--ion-background-color, #ffffff);
+	--background: #ffffff !important;
+	--color: #1e293b !important;
+	color-scheme: light !important;
 }
 
 .terms-modal-body {
 	padding: 16px 20px 40px;
+	background: #ffffff !important;
+	color: #334155 !important;
+	color-scheme: light !important;
 }
 
 .terms-updated {
 	font-size: 0.78rem;
-	color: #64748b;
+	color: #64748b !important;
 	margin: 0 0 16px;
 	font-weight: 500;
 }
@@ -891,13 +901,13 @@ onMounted(async () => {
 .terms-modal-body h4 {
 	font-size: 0.88rem;
 	font-weight: 700;
-	color: #1e293b;
+	color: #1e293b !important;
 	margin: 16px 0 6px;
 }
 
 .terms-modal-body p {
 	font-size: 0.82rem;
-	color: #334155;
+	color: #334155 !important;
 	line-height: 1.45;
 	margin: 0 0 10px;
 }
@@ -910,7 +920,19 @@ onMounted(async () => {
 .terms-modal-body li {
 	font-size: 0.82rem;
 	line-height: 1.4;
-	color: #334155;
+	color: #334155 !important;
+	margin-bottom: 4px;
+}
+
+.terms-footer-meta {
+	margin-top: 24px;
+	padding-top: 16px;
+	border-top: 1px solid #e2e8f0;
+}
+
+.terms-footer-meta p {
+	font-size: 0.78rem;
+	color: #64748b !important;
 	margin-bottom: 4px;
 }
 
@@ -925,7 +947,7 @@ onMounted(async () => {
 	--background: #05c450;
 	--background-activated: #04ab45;
 	--border-radius: 9999px;
-	--color: #ffffff;
+	--color: #ffffff !important;
 	font-weight: 600;
 	height: 48px;
 	text-transform: none;
@@ -933,8 +955,8 @@ onMounted(async () => {
 
 .terms-disagree-btn {
 	--border-radius: 9999px;
-	--border-color: var(--ion-color-medium, #9ca3af);
-	--color: var(--ion-text-color, #374151);
+	--border-color: #9ca3af;
+	--color: #374151 !important;
 	font-weight: 600;
 	height: 48px;
 	text-transform: none;

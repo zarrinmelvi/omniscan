@@ -1,4 +1,4 @@
-﻿<template>
+<template>
 	<ion-page>
 		<ion-content :fullscreen="true" class="home-content">
 			<div class="home-wrap">

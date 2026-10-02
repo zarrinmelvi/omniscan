@@ -1,4 +1,4 @@
-﻿<template>
+<template>
 	<ion-page>
 		<ion-content class="recipe-content">
 			<!-- Header Block -->

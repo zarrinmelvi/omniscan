@@ -4,6 +4,9 @@ import { defineEventHandler, setResponseHeaders, setResponseStatus } from 'h3'
 // Add new deployment URLs here when a new frontend project is created.
 const ALLOWED_ORIGINS = [
 	'http://localhost:5173',            // local Vite dev
+	'http://localhost',                 // Android Capacitor default
+	'https://localhost',                // Android Capacitor (HTTPS scheme)
+	'capacitor://localhost',            // iOS/Android Capacitor scheme
 	'https://omniscan.website',         // client portal (custom domain)
 	'https://omniscan-ui-eight.vercel.app', // client portal (Vercel URL, kept for safety)
 	'https://admin.omniscan.website',   // admin portal (custom domain)

@@ -145,20 +145,6 @@
 			</div>
 		</div>
 
-		<!-- Service health cards (always visible) -->
-		<div class="services-grid">
-			<div v-for="svc in services" :key="svc.name" class="service-card">
-				<div class="service-info">
-					<span class="service-name">{{ svc.name }}</span>
-					<span class="status-text" :class="serviceStatusClass(svc.status)">{{ serviceStatusLabel(svc.status) }}</span>
-					<span class="service-detail">{{ svc.detail }}</span>
-				</div>
-				<div class="service-uptime">
-					<span class="uptime-val">{{ svc.latencyMs != null ? svc.latencyMs + 'ms' : '—' }}</span>
-					<span class="uptime-label">latency</span>
-				</div>
-			</div>
-		</div>
 	</div>
 </template>
 
@@ -227,7 +213,6 @@ const filteredFlagAuditRows = computed(() => {
 })
 
 const overview = computed<Overview>(() => data.value?.overview ?? { avg_latency: 0, peak_latency: 0, p95_latency: 0, total_requests: 0, db_status: '—' })
-const services = computed<ServiceHealth[]>(() => data.value?.services ?? [])
 const latencySeries = computed<SeriesPoint[]>(() => data.value?.latency_series ?? [])
 const latencyTarget = computed(() => data.value?.latency_target_ms ?? 300)
 const peakAlert = computed(() => overview.value.peak_latency > latencyTarget.value)
@@ -288,17 +273,6 @@ function latencyClass(ms: number): string {
 	if (ms >= latencyTarget.value * 0.66) return 'orange-text'
 	return ''
 }
-function serviceStatusClass(status: string): string {
-	if (status === 'operational') return 'green-status'
-	if (status === 'degraded') return 'orange-status'
-	return 'red-status'
-}
-function serviceStatusLabel(status: string): string {
-	if (status === 'operational') return 'Operational'
-	if (status === 'degraded') return 'Degraded'
-	return 'Down'
-}
-
 // --- Live clock ---
 const now = ref(new Date())
 let clock: ReturnType<typeof setInterval> | null = null
@@ -426,20 +400,6 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .chip-blue { background: #dbeafe; color: #2563eb; }
 .chip-yellow { background: #fef9c3; color: #a16207; }
 .chip-red { background: #fee2e2; color: #b91c1c; }
-
-/* Services */
-.services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-.service-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; }
-.service-info { display: flex; flex-direction: column; gap: 3px; }
-.service-name { font-size: 0.9rem; font-weight: 600; color: #1e293b; }
-.status-text { font-size: 0.8rem; font-weight: 500; }
-.service-detail { font-size: 0.74rem; color: #94a3b8; }
-.green-status { color: #16a34a; }
-.orange-status { color: #d97706; }
-.red-status { color: #dc2626; }
-.service-uptime { display: flex; flex-direction: column; align-items: flex-end; }
-.uptime-val { font-size: 0.9rem; font-weight: 600; color: #334155; }
-.uptime-label { font-size: 0.75rem; color: #94a3b8; }
 
 /* Flag Audit Tab */
 .flag-audit-controls {

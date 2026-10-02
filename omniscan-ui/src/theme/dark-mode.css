@@ -192,7 +192,7 @@ html.ion-palette-dark .info-card,
 html.ion-palette-dark .notif-item,
 html.ion-palette-dark .back-prompt-card {
   background: var(--dm-bg-card);
-  border-color: var(--dm-border);
+  border-color: var(--dm-border) !important;
 }
 html.ion-palette-dark .card-title,
 html.ion-palette-dark .archived-title,
@@ -233,8 +233,12 @@ html.ion-palette-dark .placeholder-icon {
 }
 
 /* === Profile page === */
-html.ion-palette-dark .header-section {
-  background: var(--dm-header-bg);
+html.ion-palette-dark .header-section,
+html.ion-palette-dark .action-card,
+html.ion-palette-dark .profile-card {
+  background: var(--dm-bg-card) !important;
+  border: 1px solid var(--dm-border) !important;
+  box-shadow: none !important;
 }
 html.ion-palette-dark .user-name {
   color: var(--dm-text-primary);
@@ -244,17 +248,30 @@ html.ion-palette-dark .section-label {
   color: var(--dm-text-secondary);
 }
 html.ion-palette-dark .action-row {
-  background: var(--dm-bg-card);
-  color: var(--dm-text-primary);
+  background: var(--dm-bg-card) !important;
+  color: var(--dm-text-primary) !important;
+  border-bottom-color: var(--dm-border) !important;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+html.ion-palette-dark .action-row:hover {
+  background: var(--dm-bg-chip) !important;
+  color: var(--dm-text-primary) !important;
 }
 html.ion-palette-dark .action-icon {
-  color: var(--dm-text-secondary);
+  color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .action-row:hover .action-icon {
+  color: var(--dm-text-primary) !important;
 }
 html.ion-palette-dark .action-row--danger {
-  color: #f87171;
+  color: #f87171 !important;
 }
 html.ion-palette-dark .action-row--danger .action-icon {
-  color: #f87171;
+  color: #f87171 !important;
+}
+html.ion-palette-dark .action-row--danger:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
 }
 
 /* === Edit Profile modal === */
@@ -396,21 +413,31 @@ html.ion-palette-dark .filter-clear {
   color: #93c5fd;
 }
 
-/* === Tab row (PantryItemDetail) === */
+/* === Tab row (PantryItemDetail - Transparent Segment Bar) === */
 html.ion-palette-dark .tab-row {
-  border-bottom-color: var(--dm-border);
+  background: transparent !important;
+  border-bottom-color: var(--dm-border) !important;
 }
-html.ion-palette-dark .tab-btn {
-  color: var(--dm-text-primary);
+
+html.ion-palette-dark .tab-row .tab-btn {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  color: var(--dm-text-secondary) !important;
+  box-shadow: none !important;
 }
-html.ion-palette-dark .tab-btn--active {
-  color: #4ade80;
-  border-bottom-color: #4ade80;
+
+html.ion-palette-dark .tab-row .tab-btn--active {
+  background: transparent !important;
+  color: #05c450 !important;
+  border-bottom: 2px solid #05c450 !important;
+  font-weight: 600 !important;
 }
 
 /* === Settings page === */
 html.ion-palette-dark .settings-card {
   background: var(--dm-bg-card);
+  border: 1px solid var(--dm-border) !important;
 }
 html.ion-palette-dark .row-title {
   color: var(--dm-text-primary);
@@ -616,7 +643,7 @@ html.ion-palette-dark .light-gray-icon {
   color: var(--dm-text-secondary);
 }
 
-/* === Profile page main-body white background === */
+/* === Profile page main-body background === */
 html.ion-palette-dark .main-body {
   background-color: var(--dm-bg-page);
 }
@@ -741,18 +768,28 @@ html.ion-palette-dark .alternatives-empty { color: var(--dm-text-secondary); }
 html.ion-palette-dark ion-alert.non-product-alert { --background: var(--dm-bg-card); }
 
 /* ── Recipe Tab Segment Chips - Dark Mode ──────────────────────────────────── */
-html.ion-palette-dark .tab-chip { background: var(--dm-bg-chip); color: var(--dm-text-primary); }
+html.ion-palette-dark .tab-chip {
+  background: var(--dm-bg-chip) !important;
+  color: var(--dm-text-secondary) !important;
+}
+
+html.ion-palette-dark .tab-chip--active,
 html.ion-palette-dark .tab-chip--active-all {
   background: #05c450 !important;
   color: #ffffff !important;
+  font-weight: 600 !important;
 }
+
 html.ion-palette-dark .tab-chip--active-liked {
   background: #ff2d55 !important;
   color: #ffffff !important;
+  font-weight: 600 !important;
 }
+
 html.ion-palette-dark .tab-chip--active-made {
-  background: #334155 !important;
+  background: #00b14f !important;
   color: #ffffff !important;
+  font-weight: 600 !important;
 }
 
 /* ── Floating Heart Overlay Button - Dark Mode ──────────────────────────────── */

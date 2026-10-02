@@ -1,9 +1,9 @@
 <template>
-	<!-- Centered Floating Alert Dialog for Non-Products -->
+	<!-- Centered Floating Alert Dialog for Non-Products / Drawings -->
 	<ion-alert
 		:is-open="isOpen && !!data?.isNotProduct"
 		header="Analysis Results"
-		:message="data?.reasons?.[0] || 'This doesn\'t look like a food or beverage product. OmniScan only tracks food items — try scanning the packaging of something edible or drinkable.'"
+		:message="data?.reasons?.[0] || 'Cartoons and drawings are not supported. Please upload a real photo of a food item.'"
 		:buttons="['CLOSE RESULTS']"
 		class="non-product-alert"
 		@didDismiss="handleDismiss"

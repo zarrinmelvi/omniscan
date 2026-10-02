@@ -388,10 +388,18 @@ async function goToStep2(): Promise<void> {
 			headers: { Authorization: `Bearer ${token}` },
 			body: fd,
 		})
+		
 		if (!response.ok) {
+			const errData = await response.json().catch(() => ({}))
+			if (errData?.statusMessage) {
+				nonFoodDetected.value = true
+				nonFoodMessage.value = errData.statusMessage
+				return
+			}
 			step.value = 2
 			return
 		}
+		
 		const result: AnalyzeResult = await response.json()
 		if (!result.is_food_product || result.is_real_photo === false) {
 			nonFoodDetected.value = true

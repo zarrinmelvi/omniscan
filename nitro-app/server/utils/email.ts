@@ -77,6 +77,34 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<Ema
 	}
 }
 
+export async function sendPasswordResetEmail(
+	email: string,
+	name: string,
+	token: string
+): Promise<EmailResult> {
+	const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`
+
+	try {
+		const { error } = await resend.emails.send({
+			from: EMAIL_FROM,
+			to: email,
+			subject: 'Reset your OmniScan password',
+			html: buildPasswordResetEmailHtml(name, resetUrl),
+		})
+
+		if (error) {
+			console.error('[email] Resend API error (password reset):', error)
+			return { success: false, error: error.message }
+		}
+
+		console.log(`[email] Password reset email sent to ${email}`)
+		return { success: true }
+	} catch (err: any) {
+		console.error('[email] Failed to send password reset email:', err)
+		return { success: false, error: err?.message ?? 'Unknown error' }
+	}
+}
+
 export async function sendAccountArchivedEmail(email: string, name: string): Promise<EmailResult> {
 	const loginUrl = `${FRONTEND_URL}/login`
 
@@ -254,6 +282,80 @@ function buildWelcomeEmailHtml(name: string): string {
               <p style="margin:32px 0 0;padding-top:24px;border-top:1px solid #eeeeee;
                          font-size:13px;color:#999999;line-height:1.6;">
                 Happy scanning!<br />The OmniScan Team
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 40px;background-color:#f8f8f8;border-top:1px solid #eeeeee;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#aaaaaa;">
+                &copy; ${new Date().getFullYear()} OmniScan. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
+function buildPasswordResetEmailHtml(name: string, resetUrl: string): string {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reset your OmniScan password</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+               style="background:#ffffff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:32px 40px;border-bottom:3px solid #05c450;text-align:center;">
+              <h1 style="margin:0;font-size:26px;color:#333333;">OmniScan</h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px;">
+              <p style="margin:0 0 16px;font-size:18px;color:#333333;">Hi ${name},</p>
+              <p style="margin:0 0 24px;font-size:15px;color:#555555;line-height:1.6;">
+                We received a request to reset your OmniScan password. Click the button below to choose a new password:
+              </p>
+
+              <!-- CTA -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+                <tr>
+                  <td>
+                    <a href="${resetUrl}"
+                       style="display:inline-block;padding:14px 36px;background-color:#05c450;color:#ffffff;
+                              text-decoration:none;border-radius:6px;font-size:16px;font-weight:bold;">
+                      Reset Password
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 8px;font-size:13px;color:#777777;">
+                Or copy and paste this link into your browser:
+              </p>
+              <p style="margin:0 0 32px;font-size:13px;">
+                <a href="${resetUrl}" style="color:#05c450;word-break:break-all;">${resetUrl}</a>
+              </p>
+
+              <p style="margin:0;padding-top:24px;border-top:1px solid #eeeeee;font-size:13px;color:#999999;line-height:1.6;">
+                <strong>This link expires in 30 minutes.</strong><br />
+                If you didn't request a password reset, you can safely ignore this email.
               </p>
             </td>
           </tr>

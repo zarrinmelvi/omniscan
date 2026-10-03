@@ -43,3 +43,10 @@
     --container-max-width: 1280px;
   }
 }
+
+/* Safe Area Inset Fallback for Native Status Bar Spacing */
+ion-header,
+ion-toolbar,
+.content-container {
+  padding-top: env(safe-area-inset-top);
+}

@@ -398,6 +398,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Capacitor } from '@capacitor/core'
+import { StatusBar, Style } from '@capacitor/status-bar'
 import {
 	IonPage,
 	IonHeader,
@@ -501,23 +503,34 @@ function savePrefs() {
 	localStorage.setItem(NOTIF_PREF_KEY, String(notificationsPermission.value))
 }
 
+async function updateNativeStatusBar(isDark: boolean) {
+	if (Capacitor.isNativePlatform()) {
+		// Style.Dark = Light icons for dark mode
+		// Style.Light = Dark icons for light mode
+		await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light })
+	}
+}
+
 function applyDarkModeClass(enabled: boolean) {
 	document.documentElement.classList.toggle('ion-palette-dark', enabled)
 }
 
-function onDarkModeToggle() {
+async function onDarkModeToggle() {
 	localStorage.setItem(DARK_MODE_KEY, String(darkMode.value))
 	applyDarkModeClass(darkMode.value)
+	await updateNativeStatusBar(darkMode.value)
 }
 
 function contactSupport() {
 	window.location.href = 'mailto:support@omniscan.app'
 }
 
-onMounted(() => {
+onMounted(async () => {
 	cameraPermission.value = localStorage.getItem(CAMERA_PREF_KEY) !== 'false'
 	notificationsPermission.value = localStorage.getItem(NOTIF_PREF_KEY) !== 'false'
 	darkMode.value = localStorage.getItem(DARK_MODE_KEY) === 'true'
+
+	await updateNativeStatusBar(darkMode.value)
 })
 </script>
 

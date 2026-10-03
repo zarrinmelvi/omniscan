@@ -16,6 +16,8 @@
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { IonApp, IonRouterOutlet } from '@ionic/vue'
+import { Capacitor } from '@capacitor/core'
+import { StatusBar, Style } from '@capacitor/status-bar'
 import { useBreakpoint } from '@/utils/useBreakpoint'
 import DesktopNav from '@/components/DesktopNav.vue'
 
@@ -25,12 +27,23 @@ const { isDesktop } = useBreakpoint()
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 const isTabsRoute = computed(() => route.path.startsWith('/tabs/'))
 
-// Applies the Dark Mode preference saved from Settings on every app boot —
-// without this, the toggle would only visually take effect while the
-// Settings page itself was open.
-onMounted(() => {
+// Helper to update native status bar icons based on dark mode state
+async function updateStatusBar(isDark: boolean) {
+	if (Capacitor.isNativePlatform()) {
+		// Style.Dark = Light text/icons for dark backgrounds
+		// Style.Light = Dark text/icons for light backgrounds
+		await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light })
+	}
+}
+
+onMounted(async () => {
 	const darkModeEnabled = localStorage.getItem('omniscan_dark_mode') === 'true'
 	document.documentElement.classList.toggle('ion-palette-dark', darkModeEnabled)
+
+	if (Capacitor.isNativePlatform()) {
+		await StatusBar.setOverlaysWebView({ overlay: false })
+		await updateStatusBar(darkModeEnabled)
+	}
 })
 </script>
 

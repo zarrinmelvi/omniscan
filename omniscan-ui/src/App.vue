@@ -27,12 +27,13 @@ const { isDesktop } = useBreakpoint()
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 const isTabsRoute = computed(() => route.path.startsWith('/tabs/'))
 
-// Helper to update native status bar icons based on dark mode state
+// Helper to update native status bar icons and background color based on dark mode state
 async function updateStatusBar(isDark: boolean) {
 	if (Capacitor.isNativePlatform()) {
-		// Style.Dark = Light text/icons for dark backgrounds
-		// Style.Light = Dark text/icons for light backgrounds
+		// Style.Dark = Light icons for dark background (#121212)
+		// Style.Light = Dark icons for light background (#f8f9fa)
 		await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light })
+		await StatusBar.setBackgroundColor({ color: isDark ? '#121212' : '#f8f9fa' })
 	}
 }
 
@@ -41,6 +42,7 @@ onMounted(async () => {
 	document.documentElement.classList.toggle('ion-palette-dark', darkModeEnabled)
 
 	if (Capacitor.isNativePlatform()) {
+		await StatusBar.show()
 		await StatusBar.setOverlaysWebView({ overlay: false })
 		await updateStatusBar(darkModeEnabled)
 	}

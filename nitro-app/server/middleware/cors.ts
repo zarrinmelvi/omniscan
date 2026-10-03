@@ -7,9 +7,10 @@ const ALLOWED_ORIGINS = [
 	'https://localhost',                // Android Capacitor (HTTPS scheme)
 	'capacitor://localhost',            // iOS/Android Capacitor scheme
 	'https://omniscan.website',         // client portal (custom domain)
-	'https://omniscan-ui-eight.vercel.app', // client portal (Vercel URL, kept for safety)
-	'https://admin.omniscan.website',   // admin portal (custom domain)
-	process.env.CORS_ORIGIN,            // escape hatch via env var
+	'https://omniscan-ui-eight.vercel.app', // client portal (Vercel URL)
+	'https://omniscan-ten.vercel.app',  // nitro backend domain
+	'https://admin.omniscan.website',   // admin portal
+	process.env.CORS_ORIGIN,            
 ].filter(Boolean) as string[]
 
 export default defineEventHandler((event) => {

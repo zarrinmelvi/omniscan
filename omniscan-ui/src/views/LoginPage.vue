@@ -9,77 +9,77 @@
 					</div>
 				</aside>
 				<div class="auth-card">
-				<button type="button" class="back-button" @click="$router.push('/')">
-					<ion-icon :icon="chevronBackOutline" />
-				</button>
+					<button type="button" class="back-button" @click="$router.push('/')">
+						<ion-icon :icon="chevronBackOutline" />
+					</button>
 
-				<span class="brand-label">OmniScan</span>
-				<h1 class="auth-title">Welcome Back</h1>
-				<p class="auth-subtitle">Sign in to continue managing your pantry</p>
+					<span class="brand-label">OmniScan</span>
+					<h1 class="auth-title">Welcome Back</h1>
+					<p class="auth-subtitle">Sign in to continue managing your pantry</p>
 
-				<div v-if="errorMessage" class="form-error">
-					{{ errorMessage }}
-					<!-- Resend button shown only when login blocked due to unverified email -->
-					<div v-if="requiresVerification" class="resend-row">
-						<ion-button
-							size="small"
-							fill="outline"
-							class="resend-inline-button"
-							:disabled="isResending || cooldown > 0"
-							@click="handleResend">
-							<ion-spinner v-if="isResending" name="crescent" class="btn-spinner" />
-							<span v-else-if="cooldown > 0">Resend in {{ cooldown }}s</span>
-							<span v-else>Resend verification email</span>
+					<div v-if="errorMessage" class="form-error">
+						{{ errorMessage }}
+						<!-- Resend button shown only when login blocked due to unverified email -->
+						<div v-if="requiresVerification" class="resend-row">
+							<ion-button
+								size="small"
+								fill="outline"
+								class="resend-inline-button"
+								:disabled="isResending || cooldown > 0"
+								@click="handleResend">
+								<ion-spinner v-if="isResending" name="crescent" class="btn-spinner" />
+								<span v-else-if="cooldown > 0">Resend in {{ cooldown }}s</span>
+								<span v-else>Resend verification email</span>
+							</ion-button>
+						</div>
+					</div>
+
+					<div v-if="resendSuccess" class="form-success">
+						Verification email sent! Check your inbox.
+					</div>
+
+					<form @submit.prevent="handleLogin">
+						<div class="form-group">
+							<label class="input-label">Email Address</label>
+							<div class="custom-input-wrapper">
+								<input v-model="email" type="email" placeholder="your@email.com" required class="custom-input" />
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="input-label">Password</label>
+							<div class="custom-input-wrapper">
+								<input
+									v-model="password"
+									:type="showPassword ? 'text' : 'password'"
+									placeholder="Enter your password"
+									required
+									class="custom-input" />
+								<ion-icon
+									:icon="showPassword ? eyeOffOutline : eyeOutline"
+									class="password-toggle"
+									@click="showPassword = !showPassword" />
+							</div>
+						</div>
+
+						<div class="form-row">
+							<label class="checkbox-container">
+								<input v-model="rememberMe" type="checkbox" class="custom-checkbox-input" />
+								<span class="custom-checkbox-box"></span>
+								<span class="remember-label">Remember me</span>
+							</label>
+							<router-link to="/forgot-password" class="forgot-link">Forgot password?</router-link>
+						</div>
+
+						<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
+							{{ isSubmitting ? 'Signing in...' : 'Sign In' }}
 						</ion-button>
-					</div>
-				</div>
+					</form>
 
-				<div v-if="resendSuccess" class="form-success">
-					Verification email sent! Check your inbox.
-				</div>
-
-				<form @submit.prevent="handleLogin">
-					<div class="form-group">
-						<label class="input-label">Email Address</label>
-						<div class="custom-input-wrapper">
-							<input v-model="email" type="email" placeholder="your@email.com" required class="custom-input" />
-						</div>
-					</div>
-
-					<div class="form-group">
-						<label class="input-label">Password</label>
-						<div class="custom-input-wrapper">
-							<input
-								v-model="password"
-								:type="showPassword ? 'text' : 'password'"
-								placeholder="Enter your password"
-								required
-								class="custom-input" />
-							<ion-icon
-								:icon="showPassword ? eyeOffOutline : eyeOutline"
-								class="password-toggle"
-								@click="showPassword = !showPassword" />
-						</div>
-					</div>
-
-					<div class="form-row">
-						<label class="checkbox-container">
-							<input v-model="rememberMe" type="checkbox" class="custom-checkbox-input" />
-							<span class="custom-checkbox-box"></span>
-							<span class="remember-label">Remember me</span>
-						</label>
-						<router-link to="/forgot-password" class="forgot-link">Forgot password?</router-link>
-					</div>
-
-					<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
-						{{ isSubmitting ? 'Signing in...' : 'Sign In' }}
-					</ion-button>
-				</form>
-
-				<p class="switch-auth">
-					Don't have an account?
-					<router-link to="/register" class="switch-link">Get Started</router-link>
-				</p>
+					<p class="switch-auth">
+						Don't have an account?
+						<router-link to="/register" class="switch-link">Get Started</router-link>
+					</p>
 				</div>
 			</div>
 		</ion-content>
@@ -88,11 +88,13 @@
 
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError } from '@/utils/api'
 
+const router = useRouter()
 const authStore = useAuthStore()
 
 const email = ref('')
@@ -155,13 +157,13 @@ async function handleLogin(): Promise<void> {
 
 	try {
 		await authStore.login(email.value, password.value)
-		window.location.href = '/tabs/home'
-	} catch (err) {
+		await router.replace('/tabs/home')
+	} catch (err: any) {
 		if (err instanceof ApiError && err.status === 403) {
 			requiresVerification.value = true
 			errorMessage.value = 'Your email is not verified yet. Check your inbox or request a new link.'
 		} else {
-			errorMessage.value = err instanceof ApiError ? err.message : 'Login failed. Please try again.'
+			errorMessage.value = err?.message || 'Login failed. Please try again.'
 		}
 	} finally {
 		isSubmitting.value = false
@@ -253,7 +255,7 @@ onUnmounted(() => {
 	border: 1px solid #e5e7eb;
 	border-radius: 12px;
 	padding: 0 14px;
-	font-size: 16px; /* keep >=16px to avoid iOS zoom on focus */
+	font-size: 16px;
 	color: #111827;
 	outline: none;
 	background: #ffffff;
@@ -291,7 +293,6 @@ onUnmounted(() => {
 	user-select: none;
 }
 
-/* Hide native browser checkbox */
 .custom-checkbox-input {
 	position: absolute;
 	opacity: 0;
@@ -300,7 +301,6 @@ onUnmounted(() => {
 	width: 0;
 }
 
-/* Custom Checkbox Frame */
 .custom-checkbox-box {
 	width: 18px;
 	height: 18px;
@@ -318,13 +318,11 @@ onUnmounted(() => {
 	border-color: #05c450;
 }
 
-/* Checked State Styling */
 .custom-checkbox-input:checked ~ .custom-checkbox-box {
 	background-color: #05c450;
 	border-color: #05c450;
 }
 
-/* White Checkmark Icon */
 .custom-checkbox-box::after {
 	content: '';
 	width: 4px;
@@ -419,7 +417,7 @@ onUnmounted(() => {
 	font-size: 0.85rem;
 }
 
-/* TABLET (>=768px): roomier vertically centered card */
+/* TABLET (>=768px) */
 @media (min-width: 768px) {
 	.auth-layout {
 		display: flex;
@@ -435,7 +433,7 @@ onUnmounted(() => {
 	}
 }
 
-/* DESKTOP (>=1024px): two-panel split layout */
+/* DESKTOP (>=1024px) */
 @media (min-width: 1024px) {
 	.auth-layout {
 		display: grid;
@@ -483,7 +481,6 @@ onUnmounted(() => {
 		padding: 48px 64px;
 	}
 
-	/* Constrain the actual form column width and center it in the right panel */
 	.auth-card > * {
 		width: 100%;
 		max-width: 400px;
@@ -491,7 +488,6 @@ onUnmounted(() => {
 		margin-right: auto;
 	}
 
-	/* The brand panel replaces the need for the mobile back button */
 	.auth-card .back-button {
 		display: none;
 	}

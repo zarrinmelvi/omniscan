@@ -47,6 +47,12 @@
 /* Push main views down safely below system status bar */
 ion-page,
 ion-header,
-.content-container {
+ion-toolbar,
+.auth-layout,
+.home-header,
+.pantry-container,
+.scan-container,
+.recipe-container,
+.profile-container {
   padding-top: env(safe-area-inset-top);
 }

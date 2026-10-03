@@ -55,6 +55,11 @@ onMounted(async () => {
 	margin-left: 260px;
 }
 
+/* Ensure root router outlet respects status bar top inset */
+ion-router-outlet {
+	padding-top: env(safe-area-inset-top);
+}
+
 /* Remove offset on smaller screens */
 @media (max-width: 1023px) {
 	.with-desktop-nav {

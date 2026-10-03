@@ -43,7 +43,7 @@ onMounted(async () => {
 
 	if (Capacitor.isNativePlatform()) {
 		await StatusBar.show()
-		await StatusBar.setOverlaysWebView({ overlay: false })
+		await StatusBar.setOverlaysWebView({ overlay: true })
 		await updateStatusBar(darkModeEnabled)
 	}
 })
@@ -53,11 +53,6 @@ onMounted(async () => {
 /* Offset main content when desktop navigation is shown */
 .with-desktop-nav {
 	margin-left: 260px;
-}
-
-/* Ensure root router outlet respects status bar top inset */
-ion-router-outlet {
-	padding-top: env(safe-area-inset-top);
 }
 
 /* Remove offset on smaller screens */

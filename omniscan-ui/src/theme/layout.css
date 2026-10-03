@@ -44,15 +44,14 @@
   }
 }
 
-/* Push main views down safely below system status bar */
+/* Force safe-area top inset padding on custom page headers & top containers */
 ion-page,
-ion-header,
-ion-toolbar,
-.auth-layout,
+ion-content,
 .home-header,
-.pantry-container,
-.scan-container,
-.recipe-container,
-.profile-container {
-  padding-top: env(safe-area-inset-top);
+.pantry-header,
+.scan-header,
+.recipe-header,
+.profile-header,
+.auth-layout {
+  padding-top: env(safe-area-inset-top) !important;
 }

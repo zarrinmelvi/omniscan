@@ -346,24 +346,24 @@
 						<p>STI College San Jose Del Monte</p>
 						<p>Bachelor of Science in Information Technology</p>
 					</div>
-
-					<div v-if="!termsScrolledToBottom" class="terms-scroll-hint">
-						<ion-button fill="clear" size="small" class="terms-scroll-btn" @click="scrollTermsToBottom">
-							<ion-icon :icon="arrowDownOutline" slot="start" />
-							Scroll to Bottom
-						</ion-button>
-					</div>
-
-					<div class="terms-action-row">
-						<ion-button expand="block" class="terms-agree-btn" :disabled="!termsScrolledToBottom" @click="acceptTerms">
-							I Agree
-						</ion-button>
-						<ion-button expand="block" fill="outline" class="terms-disagree-btn" @click="disagreeTerms">
-							I Disagree
-						</ion-button>
-					</div>
 				</div>
 			</ion-content>
+			<ion-footer class="ion-no-border terms-modal-footer">
+				<div v-if="!termsScrolledToBottom" class="terms-scroll-hint">
+					<ion-button fill="clear" size="small" class="terms-scroll-btn" @click="scrollTermsToBottom">
+						<ion-icon :icon="arrowDownOutline" slot="start" />
+						Scroll to Bottom
+					</ion-button>
+				</div>
+				<div class="terms-action-row">
+					<ion-button expand="block" class="terms-agree-btn" :disabled="!termsScrolledToBottom" @click="acceptTerms">
+						I Agree
+					</ion-button>
+					<ion-button expand="block" fill="outline" class="terms-disagree-btn" @click="disagreeTerms">
+						I Disagree
+					</ion-button>
+				</div>
+			</ion-footer>
 		</ion-modal>
 	</ion-page>
 </template>
@@ -371,7 +371,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, toastController } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, IonFooter, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, checkmarkCircle, closeCircle, arrowDownOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
@@ -1223,7 +1223,13 @@ onUnmounted(() => {
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
-	margin-top: 32px;
+	margin-top: 0;
+}
+
+.terms-modal-footer {
+	background: #ffffff;
+	padding: 10px 20px 16px;
+	border-top: 1px solid #e2e8f0;
 }
 
 .terms-agree-btn {

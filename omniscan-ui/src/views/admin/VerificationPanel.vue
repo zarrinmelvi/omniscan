@@ -12,11 +12,22 @@
 					</svg>
 				</div>
 				<div>
-					<h1>Halal Verification Panel</h1>
-					<p class="subtitle">Review unverified Halal logos · Assign certifying bodies · Resolve compliance flags</p>
+					<h1>Dataset Correction & Model Training Pipeline</h1>
+					<p class="subtitle">Correct AI extraction errors · Submit ground-truth data · Improve future model accuracy</p>
 				</div>
 			</div>
 		</header>
+
+		<!-- Training pipeline banner -->
+		<div class="training-banner">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"></path>
+			</svg>
+			<p>
+				<strong>Model Training Pipeline.</strong>
+				Corrections submitted here are recorded as ground-truth data and queued for the next AI model retraining cycle. This process does not override live Halal certification status — it improves future AI extraction accuracy.
+			</p>
+		</div>
 
 		<!-- ── Metric Cards ────────────────────────────────────────────────── -->
 		<div v-if="!isLoading && !errorMessage" class="summary-cards">
@@ -238,7 +249,7 @@
 								</svg>
 							</div>
 							<div>
-								<h2 class="modal-title">Assign Halal Certifying Body</h2>
+								<h2 class="modal-title">Correct AI Detection (Ground Truth)</h2>
 								<p class="modal-subtitle">{{ modalRow.brand_name }} {{ modalRow.product_name }}</p>
 							</div>
 						</div>
@@ -315,7 +326,7 @@
 						</div>
 					</section>
 
-					<div class="modal-section-label">Select an authorized certifying body from the Halal logo library:</div>
+					<div class="modal-section-label">Select the correct certifying body to submit as ground-truth correction:</div>
 
 					<div v-if="halalLogos.length === 0" class="empty-logos">No Halal logos found in library.</div>
 
@@ -367,7 +378,7 @@
 					<div class="modal-footer">
 						<button class="btn-modal-cancel" :disabled="modalActing" @click="requestClose">Cancel</button>
 						<button class="btn-modal-dismiss" :disabled="modalActing" @click="submitDismiss">
-							{{ modalActing && modalAction === 'dismiss' ? 'Dismissing…' : 'Dismiss Flag' }}
+							{{ modalActing && modalAction === 'dismiss' ? 'Dismissing…' : 'Mark as Correct (No Change)' }}
 						</button>
 						<button
 							class="btn-modal-certify"
@@ -378,7 +389,7 @@
 								<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
 								<polyline points="9 12 11 14 15 10"></polyline>
 							</svg>
-							{{ modalActing && modalAction === 'certify' ? 'Certifying…' : 'Certify & Resolve' }}
+							{{ modalActing && modalAction === 'certify' ? 'Submitting…' : 'Submit Correction' }}
 						</button>
 					</div>
 
@@ -968,6 +979,28 @@ onMounted(() => {
 }
 h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 4px; color: #1e293b; }
 .subtitle { color: #64748b; font-size: 0.84rem; margin: 0; }
+
+/* ── Training Pipeline Banner ────────────────────────────────────────────── */
+.training-banner {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	background: #eff6ff;
+	border: 1px solid #bfdbfe;
+	border-radius: 8px;
+	padding: 14px 18px;
+	margin-bottom: 20px;
+	color: #1e40af;
+	font-size: 13px;
+	line-height: 1.5;
+}
+.training-banner svg {
+	flex-shrink: 0;
+	margin-top: 2px;
+}
+.training-banner p {
+	margin: 0;
+}
 
 /* ── Summary Cards ───────────────────────────────────────────────────────── */
 .summary-cards {

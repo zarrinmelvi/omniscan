@@ -104,14 +104,16 @@
 						<div class="setting-row">
 							<div class="setting-info">
 								<label for="reviewThreshold" class="setting-title">Review Confidence Threshold (%)</label>
-								<p class="setting-desc">Scans below this confidence are sent to the verification panel</p>
+								<p class="setting-desc">Display only — backend threshold is hardcoded to 90% (REQ-EPIC2)</p>
 							</div>
 							<div class="setting-control">
 								<input 
 									id="reviewThreshold" 
-									v-model.number="form.reviewConfidenceThreshold" 
+									:value="form.reviewConfidenceThreshold" 
 									type="number" 
-									class="text-input number-input" 
+									class="text-input number-input readonly-field" 
+									readonly
+									disabled
 								/>
 							</div>
 						</div>
@@ -119,14 +121,16 @@
 						<div class="setting-row">
 							<div class="setting-info">
 								<label for="autoFlagThreshold" class="setting-title">Auto-Flag Threshold (%)</label>
-								<p class="setting-desc">Scans above this confidence are automatically flagged as high priority</p>
+								<p class="setting-desc">Display only — auto-flag threshold is enforced server-side</p>
 							</div>
 							<div class="setting-control">
 								<input 
 									id="autoFlagThreshold" 
-									v-model.number="form.autoFlagThreshold" 
+									:value="form.autoFlagThreshold" 
 									type="number" 
-									class="text-input number-input" 
+									class="text-input number-input readonly-field" 
+									readonly
+									disabled
 								/>
 							</div>
 						</div>

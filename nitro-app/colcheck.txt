@@ -1,0 +1,21 @@
+Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+      at deprecatedSslModeWarning (C:\Users\Zarrin\Desktop\Projects\nitro-app\node_modules\pg-connection-string\index.js:216:13)
+      at parse (C:\Users\Zarrin\Desktop\Projects\nitro-app\node_modules\pg-connection-string\index.js:143:11)
+      at new ConnectionParameters (C:\Users\Zarrin\Desktop\Projects\nitro-app\node_modules\pg\lib\connection-parameters.js:60:42)
+      at new Client (C:\Users\Zarrin\Desktop\Projects\nitro-app\node_modules\pg\lib\client.js:54:33)
+      at newClient (C:\Users\Zarrin\Desktop\Projects\nitro-app\node_modules\pg-pool\index.js:241:20)
+      at connect (C:\Users\Zarrin\Desktop\Projects\nitro-app\node_modules\pg-pool\index.js:235:10)
+      at query (C:\Users\Zarrin\Desktop\Projects\nitro-app\node_modules\pg-pool\index.js:449:10)
+      at performIO (C:\Users\Zarrin\Desktop\Projects\nitro-app\node_modules\@prisma\adapter-pg\dist\index.mjs:618:40)
+      at queryRaw (C:\Users\Zarrin\Desktop\Projects\nitro-app\node_modules\@prisma\adapter-pg\dist\index.mjs:568:41)
+      at async <anonymous> (C:\Users\Zarrin\Desktop\Projects\nitro-app\node_modules\@prisma\client\runtime\client.js:65:6595)
+      at async request (C:\Users\Zarrin\Desktop\Projects\nitro-app\node_modules\@prisma\client\runtime\client.js:65:7197)
+
+COLUMN_EXISTS:true

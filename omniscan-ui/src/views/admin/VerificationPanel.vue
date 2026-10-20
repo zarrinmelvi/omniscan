@@ -151,7 +151,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="row in pagedRows" :key="row.id" @click="openReviewModal(row)">
+						<tr v-for="row in pagedRows" :key="row.id" @click="openAuditModal(row)">
 
 							<td class="col-id cell-id">#{{ row.id }}</td>
 

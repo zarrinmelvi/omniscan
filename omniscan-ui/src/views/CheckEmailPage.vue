@@ -42,11 +42,11 @@
 						<span class="brand-label">OmniScan</span>
 						<h1 class="auth-title">Email Verified!</h1>
 						<p class="auth-subtitle">
-							Your account is active. Setting up your profile
-							<span v-if="redirectCountdown > 0"> in {{ redirectCountdown }}s</span>…
+							Your account is active. Please continue in the tab where you opened the
+							verification link to finish setting up your profile.
 						</p>
-						<ion-button expand="block" class="resend-button" @click="goToSetup">
-							Continue to Setup
+						<ion-button expand="block" class="resend-button" router-link="/login">
+							Sign In
 						</ion-button>
 					</template>
 
@@ -125,11 +125,9 @@ const isResending = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
 const cooldown = ref(0)
-const redirectCountdown = ref(3)
 
 let cooldownTimer: ReturnType<typeof setInterval> | null = null
 let pollTimer: ReturnType<typeof setInterval> | null = null
-let redirectTimer: ReturnType<typeof setInterval> | null = null
 
 const ALLOWED_DOMAINS = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com']
 
@@ -150,20 +148,6 @@ function startCooldown(seconds = 60) {
 	}, 1000)
 }
 
-function startRedirect() {
-	redirectTimer = setInterval(() => {
-		redirectCountdown.value--
-		if (redirectCountdown.value <= 0) {
-			clearInterval(redirectTimer!)
-			goToSetup()
-		}
-	}, 1000)
-}
-
-function goToSetup() {
-	window.location.href = '/register?step=2'
-}
-
 async function checkVerificationStatus() {
 	if (!email.value || syncState.value !== 'idle') return
 
@@ -179,10 +163,10 @@ async function checkVerificationStatus() {
 			// Step A: Show "Verifying your email…"
 			syncState.value = 'verifying'
 
-			// Step B: Transition to "Email Verified!" -> Auto-redirect to Step 2
+			// Step B: Transition to "Email Verified!" — the user continues in the
+			// tab where they opened the verification link (that tab holds the session).
 			setTimeout(() => {
 				syncState.value = 'verified'
-				startRedirect()
 			}, 1200)
 		}
 	} catch (err) {
@@ -241,7 +225,6 @@ onMounted(() => {
 onUnmounted(() => {
 	if (cooldownTimer) clearInterval(cooldownTimer)
 	if (pollTimer) clearInterval(pollTimer)
-	if (redirectTimer) clearInterval(redirectTimer)
 	window.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>

@@ -1,6 +1,7 @@
 <template>
 	<ion-page>
 		<ion-content class="profile-content">
+			<AppHeader />
 			<div v-if="isLoading" class="state-block">
 				<ion-spinner name="crescent" />
 				<p>Loading your profile…</p>
@@ -195,6 +196,7 @@ import {
 	cameraOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
+import AppHeader from '@/components/AppHeader.vue'
 import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()

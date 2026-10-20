@@ -1,6 +1,7 @@
 <template>
 	<ion-page class="scan-page">
 		<ion-content class="scan-content">
+			<AppHeader />
 			<div class="page-container">
 				<!-- Top Header Area -->
 				<header class="header-section">
@@ -126,6 +127,7 @@ import { API_BASE_URL } from '@/utils/api'
 import { cameraOutline, closeOutline, scanOutline } from 'ionicons/icons'
 import ScanResultModal from '../components/ScanResultModal.vue'
 import PhotoPantryUploadModal from '../components/PhotoPantryUploadModal.vue'
+import AppHeader from '@/components/AppHeader.vue'
 
 const TOKEN_KEY = 'omniscan_token'
 

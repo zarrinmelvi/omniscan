@@ -115,6 +115,7 @@
 
 		<!-- Scrollable Content -->
 		<ion-content :fullscreen="true" class="pantry-content">
+			<AppHeader />
 			<div class="pantry-wrap">
 				<!-- ACTIVE VIEW GRID -->
 				<template v-if="view === 'active'">
@@ -276,6 +277,7 @@ import {
 	arrowUpOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
+import AppHeader from '@/components/AppHeader.vue'
 
 interface Product {
 	id: number

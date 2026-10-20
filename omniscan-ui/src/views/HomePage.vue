@@ -1,6 +1,7 @@
 <template>
 	<ion-page>
 		<ion-content :fullscreen="true" class="home-content">
+			<AppHeader />
 			<div class="home-wrap">
 				<!-- Greeting header -->
 				<div class="greeting-row">
@@ -9,12 +10,6 @@
 						<p class="greeting-date">{{ formattedDate }}</p>
 					</div>
 					<div class="header-actions">
-						<!-- Notification Bell Button with Red Badge Dot -->
-						<button type="button" class="bell-btn" @click="goToNotifications" aria-label="Notifications">
-							<ion-icon :icon="notificationsOutline" />
-							<span v-if="unreadNotifCount > 0" class="notif-dot" />
-						</button>
-
 						<button type="button" class="avatar-wrap" @click="goToProfile" aria-label="Go to profile">
 							<img v-if="avatarBase64" :src="avatarBase64" alt="Profile photo" class="avatar-image" />
 							<span v-else class="avatar-initial">{{ (userName || '?').charAt(0) }}</span>
@@ -240,12 +235,12 @@ import {
 	cameraOutline,
 	addCircleOutline,
 	checkmarkCircleOutline,
-	notificationsOutline,
 	archiveOutline,
 	closeOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
+import AppHeader from '@/components/AppHeader.vue'
 
 const router = useRouter()
 
@@ -318,7 +313,6 @@ const pantryItems = ref<PantryItemDto[]>([])
 const recommendedRecipes = ref<SuggestedRecipe[]>([])
 const activities = ref<ActivityLogDto[]>([])
 const activitiesLoadError = ref('')
-const unreadNotifCount = ref(0)
 
 const filteredActivities = computed(() => {
 	const raw = activities.value.filter((act) => {
@@ -442,10 +436,6 @@ function goToPantry() {
 
 function goToProfile() {
 	router.push('/tabs/profile')
-}
-
-function goToNotifications() {
-	router.push('/tabs/notifications')
 }
 
 function goToPantryItemDetail(id: number) {
@@ -605,15 +595,6 @@ async function fetchRecommendations() {
 	}
 }
 
-async function fetchUnreadNotifs() {
-	try {
-		const res = await apiFetch<{ success: boolean; unread_count: number }>('/api/notification', { method: 'GET' })
-		unreadNotifCount.value = res.unread_count || 0
-	} catch {
-		unreadNotifCount.value = 0
-	}
-}
-
 async function loadDashboard() {
 	isLoading.value = true
 	loadError.value = ''
@@ -629,7 +610,7 @@ async function loadDashboard() {
 		avatarBase64.value = userRes.user.avatar_base64
 		pantryItems.value = pantryRes.items
 
-		await Promise.all([fetchRecommendations(), fetchUnreadNotifs()])
+		await Promise.all([fetchRecommendations()])
 	} catch (err) {
 		loadError.value = err instanceof ApiError ? err.message : 'Failed to load your dashboard.'
 	}
@@ -682,49 +663,6 @@ onIonViewWillEnter(() => {
 	display: flex;
 	align-items: center;
 	gap: 10px;
-}
-
-.bell-btn {
-	position: relative;
-	width: 38px;
-	height: 38px;
-	border-radius: 50%;
-	background: #f1f5f9;
-	border: none;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: #334155;
-	font-size: 1.2rem;
-	cursor: pointer;
-	flex-shrink: 0;
-}
-
-/* Red Notification Badge Dot */
-.notif-dot {
-	position: absolute;
-	top: 5px;
-	right: 5px;
-	width: 9px;
-	height: 9px;
-	background-color: #ef4444;
-	border-radius: 50%;
-	border: 2px solid #ffffff;
-	box-sizing: content-box;
-}
-
-/* Dark Mode adjustment for the red dot border & button background */
-:deep(body.dark) .bell-btn,
-:host-context(body.dark) .bell-btn,
-.dark .bell-btn {
-	background: #1e293b;
-	color: #e2e8f0;
-}
-
-:deep(body.dark) .notif-dot,
-:host-context(body.dark) .notif-dot,
-.dark .notif-dot {
-	border-color: #1e293b;
 }
 
 .avatar-wrap {

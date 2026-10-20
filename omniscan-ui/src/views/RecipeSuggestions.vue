@@ -1,6 +1,7 @@
 <template>
 	<ion-page>
 		<ion-content class="recipe-content">
+			<AppHeader />
 			<!-- Header Block -->
 			<div class="header-container">
 				<div class="header-inner">
@@ -163,6 +164,7 @@ import {
 import { restaurantOutline, closeOutline, heart, heartOutline, archiveOutline, checkmarkCircle, chevronForwardOutline } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
+import AppHeader from '@/components/AppHeader.vue'
 
 interface SuggestedRecipe {
 	id: number

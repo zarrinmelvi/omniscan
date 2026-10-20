@@ -189,15 +189,52 @@ router.beforeEach(async (to, from, next) => {
 	}
 	// ─────────────────────────────────────────────────────────────────────
 
-	if (to.path.startsWith('/tabs')) {
-		const authStore = useAuthStore()
-		if (!authStore.isAuthenticated) {
+	// ── Restore consumer session ──────────────────────────────────────────
+	// checkAuth() is async (network round-trip to /api/auth/me). Only called
+	// when the Pinia store is empty — avoids redundant calls on subsequent
+	// navigations within the same page session.
+	// Bug 4 fix: wrap in try/catch so a network error never hangs navigation.
+	const authStore = useAuthStore()
+	if (!authStore.isAuthenticated) {
+		try {
 			await authStore.checkAuth()
-		}
-		if (!authStore.isAuthenticated) {
-			return next('/login')
+		} catch {
+			// Treat any unexpected error as unauthenticated — do not block.
+			authStore.user = null
+			authStore.token = null
 		}
 	}
+	// ─────────────────────────────────────────────────────────────────────
+
+	// ── Restore admin session (synchronous, no network) ───────────────────
+	// checkAdminAuth() reads from sessionStorage only; safe to call on every
+	// navigation. Moving it here (from beforeEnter only) ensures it runs for
+	// routes like /admin/login that are NOT children of the /admin parent
+	// and therefore never hit the beforeEnter guard.
+	const adminAuthStore = useAdminAuthStore()
+	adminAuthStore.checkAdminAuth()
+	// ─────────────────────────────────────────────────────────────────────
+
+	// ── Already-authenticated redirects (Bug 3 fix) ───────────────────────
+	// Redirect authenticated consumers away from auth pages they no longer
+	// need. Excludes flow-specific pages (check-email, verify/:token,
+	// forgot-password, reset-password) — authenticated users may legitimately
+	// land on those mid-flow.
+	const authOnlyPaths = ['/', '/login', '/register']
+	if (authOnlyPaths.includes(to.path) && authStore.isAuthenticated) {
+		return next('/tabs/home')
+	}
+	if (to.path === '/admin/login' && adminAuthStore.isAuthenticated) {
+		return next('/admin/dashboard')
+	}
+	// ─────────────────────────────────────────────────────────────────────
+
+	// ── Protected consumer routes ─────────────────────────────────────────
+	if (to.path.startsWith('/tabs') && !authStore.isAuthenticated) {
+		return next('/login')
+	}
+	// ─────────────────────────────────────────────────────────────────────
+
 	next()
 })
 

@@ -43,6 +43,16 @@ export const useAuthStore = defineStore('auth', {
 
 	actions: {
 		async login(email: string, password: string): Promise<LoginResponse> {
+			// Bug 1a fix: evict any active admin session before establishing
+			// the consumer session — only one session type may be active at a time.
+			// Dynamic import avoids a circular dependency at module load time
+			// (authStore ↔ adminAuthStore would otherwise create a cycle).
+			const { useAdminAuthStore } = await import('@/stores/adminAuthStore')
+			const adminAuthStore = useAdminAuthStore()
+			if (adminAuthStore.isAuthenticated) {
+				adminAuthStore.logout()
+			}
+
 			const response = await apiFetch<LoginResponse>('/api/auth/login', {
 				method: 'POST',
 				body: { email, password },

@@ -41,6 +41,16 @@ export const useAdminAuthStore = defineStore('adminAuth', {
 
 	actions: {
 		async login(username: string, password: string): Promise<AdminLoginResponse> {
+			// Bug 1b fix: evict any active consumer session before establishing
+			// the admin session — only one session type may be active at a time.
+			// Dynamic import avoids a circular dependency at module load time
+			// (adminAuthStore ↔ authStore would otherwise create a cycle).
+			const { useAuthStore } = await import('@/stores/authStore')
+			const authStore = useAuthStore()
+			if (authStore.isAuthenticated) {
+				authStore.logout()
+			}
+
 			const response = await apiFetch<AdminLoginResponse>('/api/admin/login', {
 				method: 'POST',
 				body: { username, password },
@@ -48,8 +58,10 @@ export const useAdminAuthStore = defineStore('adminAuth', {
 				isAdmin: true,
 			})
 
-			localStorage.setItem(ADMIN_TOKEN_KEY, response.token)
-			localStorage.setItem(ADMIN_KEY, JSON.stringify(response.admin))
+			// Bug 2 fix: use sessionStorage instead of localStorage so admin
+			// credentials are cleared automatically when the tab/window closes.
+			sessionStorage.setItem(ADMIN_TOKEN_KEY, response.token)
+			sessionStorage.setItem(ADMIN_KEY, JSON.stringify(response.admin))
 			this.token = response.token
 			this.admin = response.admin
 
@@ -59,8 +71,9 @@ export const useAdminAuthStore = defineStore('adminAuth', {
 		logout(): void {
 			this.admin = null
 			this.token = null
-			localStorage.removeItem(ADMIN_TOKEN_KEY)
-			localStorage.removeItem(ADMIN_KEY)
+			// Bug 2 fix: remove from sessionStorage (was localStorage).
+			sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+			sessionStorage.removeItem(ADMIN_KEY)
 			// Strip dark mode class immediately so the login page doesn't
 			// inherit it and cause a dark→light flash on logout.
 			document.documentElement.classList.remove('ion-palette-dark')
@@ -68,13 +81,14 @@ export const useAdminAuthStore = defineStore('adminAuth', {
 		},
 
 		// Synchronous, unlike the user store's checkAuth() — restores from
-		// localStorage only, no network round trip (see ADMIN_KEY comment
+		// sessionStorage only, no network round trip (see ADMIN_KEY comment
 		// above for why). Call this before checking isAuthenticated on any
 		// fresh page load, since Pinia state doesn't survive a reload on its
 		// own.
 		checkAdminAuth(): void {
-			const storedToken = localStorage.getItem(ADMIN_TOKEN_KEY)
-			const storedAdmin = localStorage.getItem(ADMIN_KEY)
+			// Bug 2 fix: read from sessionStorage (was localStorage).
+			const storedToken = sessionStorage.getItem(ADMIN_TOKEN_KEY)
+			const storedAdmin = sessionStorage.getItem(ADMIN_KEY)
 
 			if (!storedToken || !storedAdmin) {
 				this.admin = null
@@ -88,8 +102,8 @@ export const useAdminAuthStore = defineStore('adminAuth', {
 			} catch {
 				this.admin = null
 				this.token = null
-				localStorage.removeItem(ADMIN_TOKEN_KEY)
-				localStorage.removeItem(ADMIN_KEY)
+				sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+				sessionStorage.removeItem(ADMIN_KEY)
 			}
 		},
 	},

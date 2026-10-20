@@ -42,7 +42,12 @@ function isAuthExempt(endpoint: string, skipAuth?: boolean): boolean {
 }
 
 function getToken(isAdmin?: boolean): string | null {
-	return localStorage.getItem(isAdmin ? ADMIN_TOKEN_KEY : TOKEN_KEY)
+	// Bug 2 fix: admin token now lives in sessionStorage (cleared on tab close).
+	// Consumer token remains in localStorage (intentional — persists across tabs).
+	if (isAdmin) {
+		return sessionStorage.getItem(ADMIN_TOKEN_KEY)
+	}
+	return localStorage.getItem(TOKEN_KEY)
 }
 
 async function parseJsonSafely(response: Response): Promise<unknown> {

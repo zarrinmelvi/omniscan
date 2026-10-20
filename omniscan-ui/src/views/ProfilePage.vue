@@ -82,14 +82,6 @@
 				color="success"
 				@didDismiss="showSuccessToast = false" />
 
-			<ion-toast
-				:is-open="showLimitToast"
-				message="Maximum of 5 allergens allowed."
-				:duration="2500"
-				color="warning"
-				position="top"
-				@didDismiss="showLimitToast = false" />
-
 			<!-- Floating Edit Profile Modal -->
 			<ion-modal
 				:is-open="isEditModalOpen"
@@ -155,17 +147,24 @@
 							<IonToggle v-model="form.halalPref" />
 						</div>
 
-						<p v-if="isExceedingLimit" class="pref-limit-warning">
-							You can select up to 5 allergens / allergies.
+						<label class="input-label allergen-heading" style="margin-top: 16px;">
+							Allergens / Allergy List
+							<span v-if="isAtAllergenLimit" class="allergen-max-hint">(Max 5)</span>
+						</label>
+						<p v-if="isAtAllergenLimit" class="allergen-inline-helper">
+							Maximum limit of 5 allergens reached. Uncheck an item to select another.
 						</p>
-
-						<label class="input-label" style="margin-top: 16px;">Allergens / Allergy List</label>
 						<div class="who-allergen-list">
-							<label v-for="allergen in WHO_ALLERGENS" :key="allergen.value" class="who-allergen-item">
+							<label
+								v-for="allergen in WHO_ALLERGENS"
+								:key="allergen.value"
+								class="who-allergen-item"
+								:class="{ 'who-allergen-item--disabled': isAtAllergenLimit && !form.customPreferences.includes(allergen.value) }">
 								<input
 									type="checkbox"
 									class="who-allergen-checkbox"
 									:checked="form.customPreferences.includes(allergen.value)"
+									:disabled="isAtAllergenLimit && !form.customPreferences.includes(allergen.value)"
 									@change="toggleWhoAllergen(allergen.value)" />
 								<span>{{ allergen.label }}</span>
 							</label>
@@ -292,7 +291,6 @@ const loadError = ref('')
 const isSaving = ref(false)
 const saveError = ref('')
 const showSuccessToast = ref(false)
-const showLimitToast = ref(false)
 
 const allergenCatalog = ref<Allergen[]>([])
 
@@ -313,6 +311,7 @@ const displayPreferences = computed(() => {
 })
 
 const isExceedingLimit = computed(() => form.customPreferences.length > PREF_MAX)
+const isAtAllergenLimit = computed(() => form.customPreferences.length >= PREF_MAX)
 
 const form = reactive({
 	name: '',
@@ -441,7 +440,8 @@ function toggleWhoAllergen(value: string) {
 		form.customPreferences = form.customPreferences.filter((p) => p !== value)
 	} else {
 		if (form.customPreferences.length >= PREF_MAX) {
-			showLimitToast.value = true
+			// At the cap — unselected items are disabled in the UI, so this is a
+			// defensive no-op. No toast (replaced by inline helper + disabled state).
 			return
 		}
 		form.customPreferences.push(value)
@@ -1031,5 +1031,42 @@ ion-modal.custom-edit-modal {
 	background-size: 12px 12px;
 	background-position: center;
 	background-repeat: no-repeat;
+}
+
+.custom-edit-modal .who-allergen-item--disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+.custom-edit-modal .who-allergen-checkbox:disabled {
+	cursor: not-allowed;
+	background-color: #f1f5f9;
+	border-color: #e2e8f0;
+}
+
+.custom-edit-modal .allergen-heading {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.custom-edit-modal .allergen-max-hint {
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: #d97706;
+	background: #fef3c7;
+	padding: 2px 8px;
+	border-radius: 9999px;
+}
+
+.custom-edit-modal .allergen-inline-helper {
+	font-size: 0.76rem;
+	color: #92400e;
+	background: #fffbeb;
+	border: 1px solid #fde68a;
+	border-radius: 8px;
+	padding: 8px 10px;
+	margin: 6px 0 4px;
+	line-height: 1.4;
 }
 </style>

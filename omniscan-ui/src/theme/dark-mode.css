@@ -1661,3 +1661,34 @@ html.ion-palette-dark .btn-logout-confirm:hover {
 html.ion-palette-dark .alt-saved-row__name { color: var(--dm-text-primary) !important; }
 html.ion-palette-dark .alt-saved-row__descriptor { color: var(--dm-text-secondary) !important; }
 html.ion-palette-dark .alt-saved-chip { background: #052e16 !important; color: #86efac !important; }
+
+/* == Global AppHeader (shared top bar on tab pages) — dark mode == */
+html.ion-palette-dark .app-header-shell {
+	--background: var(--dm-header-bg) !important;
+	background: var(--dm-header-bg) !important;
+}
+html.ion-palette-dark .app-header {
+	background: var(--dm-header-bg) !important;
+	border-bottom-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .app-header__theme {
+	background: var(--dm-bg-chip) !important;
+	color: #fbbf24 !important;
+}
+html.ion-palette-dark .app-header__bell {
+	background: var(--dm-bg-chip) !important;
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .app-header__notif-badge {
+	border-color: var(--dm-header-bg) !important;
+}
+
+/* == Loading skeletons — dark mode == */
+html.ion-palette-dark .skeleton-card {
+	background: var(--dm-bg-card) !important;
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .shimmer {
+	background: linear-gradient(90deg, #334155 25%, #475569 37%, #334155 63%) !important;
+	background-size: 400% 100% !important;
+}

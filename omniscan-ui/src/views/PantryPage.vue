@@ -5,11 +5,6 @@
 		</ion-header>
 		<!-- Fixed White Header Controls -->
 		<div class="header-container">
-			<!-- ARCHIVED VIEW SEARCH (active view has its own inline search + sort below) -->
-			<div v-if="view === 'archived'" class="search-row">
-				<ion-searchbar v-model="searchQuery" placeholder="Search" class="search-bar" :show-clear-button="searchQuery ? 'always' : 'never'" />
-			</div>
-
 			<!-- Active / Archived Segment Container -->
 			<div class="view-toggle-wrap">
 				<div class="view-toggle">
@@ -86,6 +81,7 @@
 
 			<!-- ARCHIVED VIEW HEADER INFO -->
 			<template v-else>
+				<div class="search-sort-row"><ion-searchbar v-model="searchQuery" placeholder="Search" class="search-bar" :show-clear-button="searchQuery ? 'always' : 'never'" /></div>
 				<div class="archived-header-row">
 					<span class="archived-subhead">Items you've marked as consumed</span>
 					<span class="auto-delete-info">

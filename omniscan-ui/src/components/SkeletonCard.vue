@@ -40,8 +40,8 @@ defineProps<{ variant?: 'pantry' | 'stat' | 'row' }>()
 	0% { background-position: 100% 0; }
 	100% { background-position: -100% 0; }
 }
-:global(body.dark) .skeleton-card { background: #1e293b; border-color: #334155; }
-:global(body.dark) .shimmer {
+:global(html.ion-palette-dark) .skeleton-card { background: #1e293b; border-color: #334155; }
+:global(html.ion-palette-dark) .shimmer {
 	background: linear-gradient(90deg, #334155 25%, #475569 37%, #334155 63%);
 	background-size: 400% 100%;
 }

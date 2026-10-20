@@ -128,15 +128,15 @@
 								<div class="custom-input-wrapper">
 									<input
 										v-model="confirmPassword"
-										:type="showPassword ? 'text' : 'password'"
+										:type="showConfirmPassword ? 'text' : 'password'"
 										placeholder="Re-enter your password"
 										class="custom-input"
 										:class="{ 'input-error': fieldErrors.confirmPassword }"
 										@input="clearFieldError('confirmPassword')" />
 									<ion-icon
-										:icon="showPassword ? eyeOffOutline : eyeOutline"
+										:icon="showConfirmPassword ? eyeOffOutline : eyeOutline"
 										class="password-toggle"
-										@click="showPassword = !showPassword" />
+										@click="showConfirmPassword = !showConfirmPassword" />
 								</div>
 							</div>
 
@@ -397,6 +397,7 @@ const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 const isSubmitting = ref(false)
 const isTermsOpen = ref(false)
 const errorMessage = ref<string | null>(null)

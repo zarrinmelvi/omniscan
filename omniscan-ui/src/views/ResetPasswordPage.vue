@@ -63,14 +63,14 @@
 							<div class="custom-input-wrapper">
 								<input
 									v-model="confirmPassword"
-									:type="showPassword ? 'text' : 'password'"
+									:type="showConfirmPassword ? 'text' : 'password'"
 									placeholder="Re-enter new password"
 									required
 									class="custom-input" />
 								<ion-icon
-									:icon="showPassword ? eyeOffOutline : eyeOutline"
+									:icon="showConfirmPassword ? eyeOffOutline : eyeOutline"
 									class="password-toggle"
-									@click="showPassword = !showPassword" />
+									@click="showConfirmPassword = !showConfirmPassword" />
 							</div>
 						</div>
 
@@ -107,6 +107,7 @@ const token = (route.query.token as string) || ''
 const password = ref('')
 const confirmPassword = ref('')
 const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 const isSubmitting = ref(false)
 const isCompleted = ref(false)
 const errorMessage = ref<string | null>(null)

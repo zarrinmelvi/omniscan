@@ -2,8 +2,8 @@
 	<ion-page>
 		<!-- Fixed White Header Controls -->
 		<div class="header-container">
-			<!-- Search bar -->
-			<div class="search-row">
+			<!-- ARCHIVED VIEW SEARCH (active view has its own inline search + sort below) -->
+			<div v-if="view === 'archived'" class="search-row">
 				<ion-searchbar v-model="searchQuery" placeholder="Search" class="search-bar" :show-clear-button="searchQuery ? 'always' : 'never'" />
 			</div>
 
@@ -27,6 +27,22 @@
 
 			<!-- ACTIVE VIEW FILTERS -->
 			<template v-if="view === 'active'">
+				<div class="search-sort-row">
+					<ion-searchbar
+						v-model="searchQuery"
+						placeholder="Search"
+						class="search-bar"
+						:show-clear-button="searchQuery ? 'always' : 'never'" />
+					<div class="select-wrapper">
+						<select v-model="sortOption" class="native-sort-select">
+							<option v-for="opt in currentSortOptions" :key="opt.value" :value="opt.value">
+								{{ opt.label }}
+							</option>
+						</select>
+						<span class="select-arrow">▼</span>
+					</div>
+				</div>
+
 				<div v-if="expiringOnly" class="filter-banner">
 					<span>Showing items expiring soon</span>
 					<button type="button" class="filter-clear" @click="expiringOnly = false">
@@ -62,24 +78,6 @@
 				<div class="scanned-stat-row">
 					<span class="scanned-stat-row__label">Total Items Scanned</span>
 					<span class="scanned-stat-row__value">{{ totalItemsScanned }}</span>
-				</div>
-
-				<div class="sort-row">
-					<span class="sort-row__label">
-						<span class="sort-arrows">
-							<ion-icon :icon="arrowDownOutline" />
-							<ion-icon :icon="arrowUpOutline" />
-						</span>
-						Sort
-					</span>
-					<div class="select-wrapper">
-						<select v-model="sortOption" class="native-sort-select">
-							<option v-for="opt in currentSortOptions" :key="opt.value" :value="opt.value">
-								{{ opt.label }}
-							</option>
-						</select>
-						<span class="select-arrow">▼</span>
-					</div>
 				</div>
 			</template>
 
@@ -136,7 +134,7 @@
 
 					<div v-else class="card-grid">
 						<div
-							v-for="item in filteredActiveItems"
+							v-for="item in pagedActiveItems"
 							:key="item.id"
 							class="pantry-card"
 							role="button"
@@ -178,6 +176,19 @@
 								<span v-if="item.category && item.category !== 'Uncategorized'" class="category-badge">{{ item.category }}</span>
 							</div>
 						</div>
+					</div>
+
+					<div v-if="pantryTotalPages > 1" class="pantry-pagination">
+						<button class="page-nav" :disabled="currentPantryPage === 1" @click="prevPantryPage" aria-label="Previous page">‹</button>
+						<template v-for="(item, idx) in pantryPageItems" :key="idx">
+							<button
+								v-if="item !== '...'"
+								class="page-num"
+								:class="{ active: item === currentPantryPage }"
+								@click="goToPantryPage(item as number)">{{ item }}</button>
+							<span v-else class="page-ellipsis">…</span>
+						</template>
+						<button class="page-nav" :disabled="currentPantryPage === pantryTotalPages" @click="nextPantryPage" aria-label="Next page">›</button>
 					</div>
 				</template>
 
@@ -321,6 +332,9 @@ const categoryFilter = ref<string>('All')
 const sortOption = ref<SortOption>('expiring_soonest')
 const searchQuery = ref('')
 
+const PANTRY_PAGE_SIZE = 12
+const currentPantryPage = ref(1)
+
 const currentSortOptions = computed<SortOptionItem[]>(() => {
 	if (view.value === 'active') {
 		return [
@@ -403,6 +417,37 @@ const filteredActiveItems = computed(() => {
 	}
 
 	return sorted
+})
+
+const pantryTotalPages = computed(() => Math.max(1, Math.ceil(filteredActiveItems.value.length / PANTRY_PAGE_SIZE)))
+const pagedActiveItems = computed(() => {
+	const start = (currentPantryPage.value - 1) * PANTRY_PAGE_SIZE
+	return filteredActiveItems.value.slice(start, start + PANTRY_PAGE_SIZE)
+})
+const pantryPageItems = computed<(number | '...')[]>(() => {
+	const total = pantryTotalPages.value
+	const current = currentPantryPage.value
+	const MAX = 7
+	if (total <= MAX) return Array.from({ length: total }, (_, i) => i + 1)
+	const items: (number | '...')[] = []
+	const left = Math.max(2, current - 1)
+	const right = Math.min(total - 1, current + 1)
+	items.push(1)
+	if (left > 2) items.push('...')
+	for (let p = left; p <= right; p++) items.push(p)
+	if (right < total - 1) items.push('...')
+	items.push(total)
+	return items
+})
+function goToPantryPage(p: number) { if (p >= 1 && p <= pantryTotalPages.value) currentPantryPage.value = p }
+function nextPantryPage() { if (currentPantryPage.value < pantryTotalPages.value) currentPantryPage.value++ }
+function prevPantryPage() { if (currentPantryPage.value > 1) currentPantryPage.value-- }
+
+watch([searchQuery, sortOption, locationFilter, categoryFilter, () => filteredActiveItems.value.length], () => {
+	if (currentPantryPage.value > pantryTotalPages.value) currentPantryPage.value = pantryTotalPages.value
+})
+watch([searchQuery, locationFilter, categoryFilter], () => {
+	currentPantryPage.value = 1
 })
 
 const filteredArchivedItems = computed(() => {
@@ -665,6 +710,23 @@ onIonViewWillEnter(() => {
 	transform: translateY(-50%);
 	width: 18px;
 	height: 18px;
+}
+
+/* Inline search + sort row (active view) */
+.search-sort-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 12px 4px;
+}
+.search-sort-row .search-bar {
+	flex: 1;
+	--box-shadow: none;
+	padding: 0;
+}
+.search-sort-row .select-wrapper {
+	position: relative;
+	flex-shrink: 0;
 }
 
 /* View Toggle Container */
@@ -1005,6 +1067,41 @@ onIonViewWillEnter(() => {
 	padding: 2px 6px;
 	border-radius: 6px;
 	font-weight: 500;
+}
+
+/* Pantry Pagination */
+.pantry-pagination {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 16px 12px 24px;
+	flex-wrap: wrap;
+}
+.pantry-pagination .page-nav,
+.pantry-pagination .page-num {
+	min-width: 34px;
+	height: 34px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	background: #ffffff;
+	color: #334155;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+.pantry-pagination .page-num.active {
+	background: #05c450;
+	border-color: #05c450;
+	color: #ffffff;
+}
+.pantry-pagination .page-nav:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+.pantry-pagination .page-ellipsis {
+	padding: 0 4px;
+	color: #94a3b8;
 }
 
 /* Archived List & Cards */

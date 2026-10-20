@@ -49,6 +49,7 @@ interface ScanAiExtraction {
 	simplified_ingredients: string
 	halal_logo_detected: boolean
 	certifying_body: string
+	halal_certifier_confidence: number  // 0.0–1.0, AI's own confidence in certifying_body
 	expiration_date: string | null
 	net_quantity: number | null
 	net_unit: string | null
@@ -94,8 +95,8 @@ function buildPrompt(): string {
 		'"halal_logo_detected" should be true if an actual Halal certification mark is visible on ANY panel across the attached images — typically a circular or shield-shaped logo, often containing the word "HALAL" in Latin',
 		"or Arabic script, sometimes alongside a certifying body's name or initials (e.g. JAKIM, MUIS, ESMA,",
 		'IFANCA). Do not infer Halal status from ingredients alone — this field is strictly about a visible logo/mark.',
-		'"certifying_body" should be the name or initials of the certifying body as printed near/on the logo,',
-		'exactly as it appears, or an empty string if no logo was detected or the certifying body text is not legible.',
+		'"certifying_body" should be the name or initials of the certifying body as printed near/on the logo, exactly as it appears, or an empty string if no logo was detected or the certifying body text is not legible. Known certifying bodies include: JAKIM, MUIS, ESMA, IFANCA, IDCP, NCMF, HDIP, MASLAHA, HICCIP, BPJPH — match against these if the printed text is similar.',
+		'"halal_certifier_confidence" should be a number between 0.0 and 1.0 representing your confidence that you have correctly identified the certifying body from the visible logo or text. Use 0.0 if no logo was detected, 0.5 if a logo is visible but the certifying body text is not clearly legible, and 0.9 or higher only if the certifying body name or initials are clearly and unambiguously visible on the packaging.',
 		'"expiration_date" should be any printed expiration date, best-before date, or use-by date visible on any part of the packaging — look for text labeled "EXP", "Expiry", "Best Before", "BB", "Use By", or similar.',
 		'Convert whatever format is printed (e.g. "31 DEC 2026", "12/31/2026", "2026.12.31")',
 		'into strict ISO format YYYY-MM-DD. If the printed date is ambiguous, partially obscured, or you are not',
@@ -135,6 +136,9 @@ function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 		simplified_ingredients: normalizeToString(candidate.simplified_ingredients),
 		halal_logo_detected: normalizeToBoolean(candidate.halal_logo_detected),
 		certifying_body: normalizeToString(candidate.certifying_body),
+		halal_certifier_confidence: typeof candidate.halal_certifier_confidence === 'number'
+			? Math.max(0, Math.min(1, candidate.halal_certifier_confidence))
+			: 0,
 		expiration_date: normalizeToDateStringOrNull(candidate.expiration_date),
 		net_quantity: typeof candidate.net_quantity === 'number' ? candidate.net_quantity : null,
 		net_unit: typeof candidate.net_unit === 'string' && candidate.net_unit.trim() ? candidate.net_unit.trim().toLowerCase() : null,
@@ -286,6 +290,7 @@ export default defineEventHandler(async (event) => {
 			simplified_ingredients: mockText,
 			halal_logo_detected: false,
 			certifying_body: '',
+			halal_certifier_confidence: 0,
 			expiration_date: null,
 			net_quantity: null,
 			net_unit: null,
@@ -387,6 +392,27 @@ export default defineEventHandler(async (event) => {
 		]
 	}
 
+	// Automatic certifier resolution — no human selection allowed.
+	// If AI identified a certifier AND confidence >= 90% AND it matches a
+	// known HalalLogo in the DB → mark as AI-verified directly.
+	// If confidence < 90% OR logo detected but certifier unmatched → rescan required.
+	const CERTIFIER_CONFIDENCE_THRESHOLD = AI_OCR_CONFIDENCE_THRESHOLD
+
+	const aiCertifierConfident = extraction.halal_certifier_confidence >= CERTIFIER_CONFIDENCE_THRESHOLD
+	const halalUnverified = extraction.halal_logo_detected && (
+		matchedHalalLogos.length === 0 || !aiCertifierConfident
+	)
+
+	// If a Halal logo was detected but cannot be confidently identified, reject
+	// the scan immediately — do not store an ambiguous product record.
+	if (extraction.halal_logo_detected && !aiCertifierConfident && matchedHalalLogos.length === 0) {
+		throw createError({
+			statusCode: 422,
+			statusMessage: 'A Halal certification logo was detected but could not be identified with sufficient confidence. Please re-scan with a clearer view of the certification mark.',
+			data: { rescan_required: true, reason: 'halal_certifier_unidentified' },
+		})
+	}
+
 	// Ensure primary image saved to database is always the front packaging view
 	let mainProductImage = imageDataUri
 	let secondaryProductImage = imageDataUriBack
@@ -407,7 +433,7 @@ export default defineEventHandler(async (event) => {
 				image_base64_back: secondaryProductImage ?? undefined,
 				is_verified: false,
 				...(matchedHalalLogo ? { halal_logo_id: matchedHalalLogo.id } : {}),
-				halal_unverified: extraction.halal_logo_detected && matchedHalalLogos.length === 0,
+				halal_unverified: halalUnverified,
 			},
 		})
 
@@ -471,8 +497,6 @@ export default defineEventHandler(async (event) => {
 				})
 			}
 		}
-
-		const halalUnverified = extraction.halal_logo_detected && matchedHalalLogos.length === 0
 
 		// Convert stored 0.0-1.0 score to 0-100 percentage for threshold comparison
 		const confidencePct = Math.round(Number(scan.ai_confidence_score) * 100)

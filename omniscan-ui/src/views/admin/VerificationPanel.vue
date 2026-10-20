@@ -193,18 +193,17 @@
 
 							<td class="col-actions">
 								<div class="btn-row">
-									<button
-										class="btn-correct"
-										:disabled="actingOnId === row.id"
-										@click.stop="openReviewModal(row)"
-									>
-										<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-											<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-											<polyline points="9 12 11 14 15 10"></polyline>
-										</svg>
-										Correct
-									</button>
-								</div>
+								<button
+									class="btn-view"
+									@click.stop="openAuditModal(row)"
+								>
+									<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+										<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+										<circle cx="12" cy="12" r="3"></circle>
+									</svg>
+									View
+								</button>
+							</div>
 							</td>
 
 						</tr>
@@ -237,23 +236,24 @@
 		<!-- (single review surface — drawer retired in Task 6.5)              -->
 		<!-- ══════════════════════════════════════════════════════════════════ -->
 		<Teleport to="body">
-			<div v-if="modalRow" class="modal-overlay" @click.self="requestClose">
-				<div class="modal" role="dialog" aria-modal="true" :aria-label="`Assign Halal certifying body for ${modalRow.product_name}`">
+			<div v-if="modalRow" class="modal-overlay" @click.self="closeModal">
+				<div class="modal" role="dialog" aria-modal="true" :aria-label="`Audit detail for ${modalRow.product_name}`">
 
 					<div class="modal-header">
 						<div class="modal-title-group">
 							<div class="modal-icon-wrap">
 								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-									<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-									<polyline points="9 12 11 14 15 10"></polyline>
+									<circle cx="12" cy="12" r="10"></circle>
+									<line x1="12" y1="8" x2="12" y2="12"></line>
+									<line x1="12" y1="16" x2="12.01" y2="16"></line>
 								</svg>
 							</div>
 							<div>
-								<h2 class="modal-title">Correct AI Detection (Ground Truth)</h2>
+								<h2 class="modal-title">AI Scan Audit Detail</h2>
 								<p class="modal-subtitle">{{ modalRow.brand_name }} {{ modalRow.product_name }}</p>
 							</div>
 						</div>
-						<button class="modal-close" @click="requestClose" aria-label="Close">
+						<button class="modal-close" @click="closeModal" aria-label="Close">
 							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 								<line x1="18" y1="6" x2="6" y2="18"></line>
 								<line x1="6" y1="6" x2="18" y2="18"></line>
@@ -261,6 +261,7 @@
 						</button>
 					</div>
 
+					<!-- Flag context -->
 					<div class="modal-flag-context">
 						<div class="flag-capsule" :class="verdictClass(modalRow.safety_verdict)" style="max-width:100%">
 							<span class="flag-dot"></span>
@@ -271,7 +272,7 @@
 						</div>
 					</div>
 
-					<!-- Region (a): hi-res zoomable scan images (loaded via reviewDetail) -->
+					<!-- Scan images (read-only) -->
 					<section class="modal-images">
 						<div class="modal-section-label">Scanned Images</div>
 						<div class="image-row">
@@ -307,103 +308,63 @@
 						</div>
 					</section>
 
-					<!-- Region (b): fully un-truncated AI detection notes (loaded via reviewDetail) -->
-					<section v-if="reviewDetail" class="modal-notes-section">
-						<div class="modal-section-label">AI Detection Notes</div>
-						<div class="detail-grid" style="padding: 0 24px 8px">
-							<div class="detail-row full-span">
-								<span class="detail-key">Flag Reason</span>
-								<span class="detail-val flag-reason-text">{{ reviewDetail.clean_flag_reason }}</span>
+					<!-- AI Detection audit data (read-only) -->
+					<section class="modal-audit-section">
+						<div class="modal-section-label">AI Detection Audit</div>
+						<div class="audit-grid">
+							<div class="audit-row">
+								<span class="audit-key">Confidence Score</span>
+								<span class="audit-val" :class="confidenceClass(modalRow.safety_verdict, modalRow.confidence)">
+									{{ modalRow.confidence }}%
+								</span>
 							</div>
-							<div v-if="reviewDetail.flag_reason && reviewDetail.flag_reason !== reviewDetail.clean_flag_reason" class="detail-row full-span">
-								<span class="detail-key">Full Flag Reason</span>
-								<span class="detail-val flag-reason-text">{{ reviewDetail.flag_reason }}</span>
+							<div class="audit-row">
+								<span class="audit-key">Safety Verdict</span>
+								<span class="audit-val">{{ modalRow.safety_verdict ?? '—' }}</span>
 							</div>
-							<div v-if="reviewDetail.ocr_flag_reason && reviewDetail.ocr_flag_reason !== reviewDetail.flag_reason" class="detail-row full-span">
-								<span class="detail-key">Raw OCR Flag</span>
-								<span class="detail-val flag-reason-text mono">{{ reviewDetail.ocr_flag_reason }}</span>
+							<div class="audit-row">
+								<span class="audit-key">Status</span>
+								<span class="status-pill" :class="statusClass(modalRow.status)">{{ statusLabel(modalRow.status) }}</span>
+							</div>
+							<div class="audit-row">
+								<span class="audit-key">Scanned By</span>
+								<span class="audit-val">{{ modalRow.scanned_by }}</span>
+							</div>
+							<div class="audit-row">
+								<span class="audit-key">Flag Reason</span>
+								<span class="audit-val flag-reason-text">{{ modalRow.clean_flag_reason }}</span>
+							</div>
+							<div v-if="reviewDetail?.flag_reason && reviewDetail.flag_reason !== modalRow.clean_flag_reason" class="audit-row">
+								<span class="audit-key">Full Flag Reason</span>
+								<span class="audit-val flag-reason-text">{{ reviewDetail.flag_reason }}</span>
+							</div>
+							<div v-if="reviewDetail?.ocr_flag_reason && reviewDetail.ocr_flag_reason !== reviewDetail?.flag_reason" class="audit-row">
+								<span class="audit-key">Raw OCR Output</span>
+								<span class="audit-val flag-reason-text mono">{{ reviewDetail.ocr_flag_reason }}</span>
+							</div>
+							<div v-if="reviewDetail?.ingredient_text" class="audit-row">
+								<span class="audit-key">Ingredients (OCR)</span>
+								<span class="audit-val ingredient-text">{{ reviewDetail.ingredient_text }}</span>
 							</div>
 						</div>
 					</section>
 
-					<div class="modal-section-label">Select the correct certifying body to submit as ground-truth correction:</div>
-
-					<div v-if="halalLogos.length === 0" class="empty-logos">No Halal logos found in library.</div>
-
-					<div v-else class="logo-grid">
-						<button
-							v-for="logo in halalLogos"
-							:key="logo.id"
-							class="logo-card"
-							:class="{ selected: modalSelectedLogoId === logo.id }"
-							@click="modalSelectedLogoId = logo.id"
-						>
-							<div class="logo-card-img">
-								<img
-									v-if="logo.logo_src"
-									:src="logo.logo_src"
-									:alt="logo.certifier"
-									class="logo-img"
-									@error="(e) => ((e.target as HTMLImageElement).style.display = 'none')"
-								/>
-								<span v-else class="logo-fallback">☪</span>
-							</div>
-							<div class="logo-card-body">
-								<span class="logo-certifier">{{ logo.certifier }}</span>
-								<span v-if="logo.full_name" class="logo-full-name">{{ logo.full_name }}</span>
-								<span class="logo-accredited-badge">Active</span>
-							</div>
-							<div v-if="modalSelectedLogoId === logo.id" class="logo-check">
-								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-									<polyline points="20 6 9 17 4 12"></polyline>
-								</svg>
-							</div>
-						</button>
+					<!-- Read-only notice -->
+					<div class="audit-readonly-notice">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+							<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+						</svg>
+						<span>This panel is read-only. Halal certifier identification is performed automatically by the AI pipeline during scanning.</span>
 					</div>
-
-					<div class="modal-notes">
-						<label class="notes-label" :for="`modal-notes-${modalRow.id}`">Admin note (optional)</label>
-						<textarea
-							:id="`modal-notes-${modalRow.id}`"
-							v-model="modalNote"
-							class="notes-input"
-							rows="2"
-							placeholder="e.g. Logo matched to JAKIM after manual review of packaging image…"
-						></textarea>
-					</div>
-
-					<!-- Error message inside modal -->
-					<p v-if="modalError" class="modal-error">{{ modalError }}</p>
 
 					<div class="modal-footer">
-						<button class="btn-modal-cancel" :disabled="modalActing" @click="requestClose">Cancel</button>
-						<button class="btn-modal-dismiss" :disabled="modalActing" @click="submitDismiss">
-							{{ modalActing && modalAction === 'dismiss' ? 'Dismissing…' : 'Mark as Correct (No Change)' }}
-						</button>
-						<button
-							class="btn-modal-certify"
-							:disabled="!modalSelectedLogoId || modalActing"
-							@click="submitCorrection"
-						>
-							<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-								<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-								<polyline points="9 12 11 14 15 10"></polyline>
-							</svg>
-							{{ modalActing && modalAction === 'certify' ? 'Submitting…' : 'Submit Correction' }}
-						</button>
+						<button class="btn-modal-cancel" @click="closeModal">Close</button>
 					</div>
 
 				</div>
 			</div>
 		</Teleport>
-
-		<!-- Unsaved changes confirmation -->
-		<ConfirmDiscardModal
-			:open="showDiscardConfirm"
-			discard-label="Discard Changes"
-			@keep="onKeepEditing"
-			@discard="onDiscard"
-		/>
 
 		<!-- ══════════════════════════════════════════════════════════════════ -->
 		<!-- IMAGE LIGHTBOX                                                     -->
@@ -436,7 +397,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
-import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -493,16 +453,6 @@ interface ScanDetail {
 	scanned_by_email: string | null
 }
 
-interface HalalLogoOption {
-	id: number
-	certifier: string
-	full_name: string | null
-	image_path: string | null
-	/** Resolved relative URL for the logo asset, ready for use in <img :src> */
-	logo_src: string | null
-	is_accredited: boolean
-}
-
 // ─── Confidence palette ───────────────────────────────────────────────────────
 
 const CONFIDENCE_POOL = [72, 91, 68, 85, 77, 63, 88, 74, 59, 82]
@@ -515,20 +465,12 @@ function deriveConfidence(id: number): number {
 const rawScans     = ref<FlaggedScanRaw[]>([])
 const isLoading    = ref(true)
 const errorMessage = ref<string | null>(null)
-const actingOnId   = ref<number | null>(null)
-const halalLogos   = ref<HalalLogoOption[]>([])
 
 // Loaded scan detail — powers the unified review modal's image + notes regions
-// (loaded via GET /api/admin/flagged-scans/[id]; see openReviewDrawer).
 const reviewDetail    = ref<ScanDetail | null>(null)
 const reviewLoadingId = ref<number | null>(null)
 
-// Computed confidence for the loaded scan detail (uses the same deterministic pool)
-const reviewConfidence = computed(() =>
-	reviewDetail.value ? deriveConfidence(reviewDetail.value.id) : 0
-)
-
-// data: URI for the front scan image in the Review drawer
+// data: URI for the front scan image in the Review modal
 const reviewFrontSrc = computed<string | null>(() => {
 	const d = reviewDetail.value
 	if (!d) return null
@@ -538,7 +480,7 @@ const reviewFrontSrc = computed<string | null>(() => {
 	return null
 })
 
-// data: URI for the back scan image in the Review drawer
+// data: URI for the back scan image in the Review modal
 const reviewBackSrc = computed<string | null>(() => {
 	const d = reviewDetail.value
 	if (!d) return null
@@ -561,22 +503,8 @@ function closeLightbox(): void {
 	lightboxSrc.value = null
 }
 
-// Correction modal
-const modalRow            = ref<FlaggedScanRow | null>(null)
-const modalSelectedLogoId = ref<number | null>(null)
-const modalNote           = ref('')
-const modalActing         = ref(false)
-const modalAction         = ref<'certify' | 'dismiss' | null>(null)
-const modalError          = ref<string | null>(null)
-
-// Unsaved-changes tracking
-const baselineSnapshot    = ref<{ logoId: number | null; note: string }>({ logoId: null, note: '' })
-const showDiscardConfirm  = ref(false)
-
-const isDirty = computed(() =>
-	modalSelectedLogoId.value !== baselineSnapshot.value.logoId ||
-	modalNote.value !== baselineSnapshot.value.note
-)
+// Audit modal
+const modalRow = ref<FlaggedScanRow | null>(null)
 
 // Filters
 const searchQuery   = ref('')
@@ -590,8 +518,6 @@ const flaggedScans = computed<FlaggedScanRow[]>(() =>
 	rawScans.value.map((s) => ({
 		...s,
 		confidence: s.ai_confidence_score ?? deriveConfidence(s.id),
-		// Build a data URI from the stored base64 string so <img :src="..."> works
-		// directly without a separate HTTP request to a file server.
 		thumb_src: s.image_base64
 			? (s.image_base64.startsWith('data:') ? s.image_base64 : `data:image/jpeg;base64,${s.image_base64}`)
 			: null,
@@ -758,165 +684,17 @@ async function openReviewDrawer(id: number): Promise<void> {
 	}
 }
 
-function closeReviewDrawer(): void {
-	reviewDetail.value = null
-}
+// ─── Audit Modal ──────────────────────────────────────────────────────────────
 
-/**
- * Unified review open path (Task 6.2): load the scan detail (so the modal's
- * read-only sections — hi-res images, AI notes, attribution — are populated
- * from GET /api/admin/flagged-scans/[id]) AND open the correction modal for the
- * same row. Reuses openReviewDrawer's load (reviewDetail + reviewLoadingId) and
- * openCorrectionModal's state seeding.
- */
-async function openReviewModal(row: FlaggedScanRow): Promise<void> {
+async function openAuditModal(row: FlaggedScanRow): Promise<void> {
+	modalRow.value = row
+	// Load full detail (images + OCR notes) for the read-only audit view
 	await openReviewDrawer(row.id)
-	openCorrectionModal(row)
 }
 
-// ─── Correction Modal ─────────────────────────────────────────────────────────
-
-function openCorrectionModal(row: FlaggedScanRow): void {
-	modalRow.value            = row
-	modalSelectedLogoId.value = null
-	modalNote.value           = ''
-	modalError.value          = null
-	modalAction.value         = null
-	// Snapshot the clean initial state for unsaved-changes detection.
-	baselineSnapshot.value    = { logoId: null, note: '' }
-	showDiscardConfirm.value  = false
-}
-
-/**
- * Close the modal only when we are NOT mid-request.
- * Called manually (Cancel / × button). NOT called inside submitCorrection /
- * submitDismiss — those clear state themselves after the fetch resolves.
- */
 function closeModal(): void {
-	if (modalActing.value) return
-	modalRow.value            = null
-	modalSelectedLogoId.value = null
-	modalNote.value           = ''
-	modalError.value          = null
-	modalAction.value         = null
-	// Clear the loaded scan detail now that the single review surface is closed.
-	closeReviewDrawer()
-}
-
-/**
- * Guarded close entry point for Cancel / × / backdrop. Prompts for confirmation
- * when there are unsaved edits; closes immediately when clean.
- */
-function requestClose(): void {
-	if (modalActing.value) return
-	if (isDirty.value) {
-		showDiscardConfirm.value = true
-		return
-	}
-	closeModal()
-}
-
-function onKeepEditing(): void {
-	showDiscardConfirm.value = false
-}
-
-function onDiscard(): void {
-	showDiscardConfirm.value = false
-	closeModal()
-}
-
-/**
- * Apply the local optimistic state update so the table row and counters
- * update instantly without waiting for a full refetch, then refresh from
- * the server in the background.
- */
-function applyLocalStatusUpdate(id: number, newStatus: string, adminCorrection?: string): void {
-	const idx = rawScans.value.findIndex((s) => s.id === id)
-	if (idx !== -1) {
-		rawScans.value[idx] = {
-			...rawScans.value[idx],
-			status: newStatus,
-			admin_correction: adminCorrection ?? rawScans.value[idx].admin_correction,
-		}
-	}
-}
-
-async function submitCorrection(): Promise<void> {
-	if (!modalRow.value || !modalSelectedLogoId.value) return
-
-	const id         = modalRow.value.id
-	const logoId     = modalSelectedLogoId.value
-	const note       = modalNote.value
-
-	modalActing.value = true
-	modalAction.value = 'certify'
-	modalError.value  = null
-
-	try {
-		await apiFetch(`/api/admin/flagged-scans/${id}/approve`, {
-			method: 'POST',
-			body: {
-				halal_logo_id:    logoId,
-				admin_correction: note || undefined,
-			},
-			isAdmin: true,
-		})
-
-		// 1. Optimistic update — row badge + counters flip immediately
-		applyLocalStatusUpdate(id, 'approved', note || undefined)
-
-		// 2. Clear modal state — safe now because the request succeeded
-		modalRow.value            = null
-		modalSelectedLogoId.value = null
-		modalNote.value           = ''
-		modalError.value          = null
-		modalAction.value         = null
-		reviewDetail.value        = null
-
-		// 3. Background server refresh (non-blocking — UI already updated)
-		fetchFlaggedScans().catch(console.error)
-	} catch (err) {
-		// Keep modal open, show error inside it
-		modalError.value = err instanceof ApiError ? err.message : 'Failed to certify scan. Please try again.'
-	} finally {
-		modalActing.value = false
-		modalAction.value = null
-	}
-}
-
-async function submitDismiss(): Promise<void> {
-	if (!modalRow.value) return
-
-	const id   = modalRow.value.id
-	const note = modalNote.value
-
-	modalActing.value = true
-	modalAction.value = 'dismiss'
-	modalError.value  = null
-
-	try {
-		await apiFetch(`/api/admin/flagged-scans/${id}/dismiss`, {
-			method: 'POST',
-			body: { admin_correction: note || undefined },
-			isAdmin: true,
-		})
-
-		applyLocalStatusUpdate(id, 'dismissed', note || undefined)
-
-		modalRow.value            = null
-		modalSelectedLogoId.value = null
-		modalNote.value           = ''
-		modalError.value          = null
-		modalAction.value         = null
-		reviewDetail.value        = null
-
-		fetchFlaggedScans().catch(console.error)
-	} catch (err) {
-		modalError.value = err instanceof ApiError ? err.message : 'Failed to dismiss scan. Please try again.'
-	} finally {
-		modalActing.value = false
-		modalAction.value = null
-	}
+	modalRow.value = null
+	reviewDetail.value = null
 }
 
 // ─── API ──────────────────────────────────────────────────────────────────────
@@ -938,21 +716,8 @@ async function fetchFlaggedScans(): Promise<void> {
 	}
 }
 
-async function fetchHalalLogos(): Promise<void> {
-	try {
-		const data = await apiFetch<{ halalLogo: HalalLogoOption[]; halalLogoCount: number }>(
-			'/api/halal_logo?take=100&skip=0',
-			{ method: 'GET', isAdmin: true }
-		)
-		halalLogos.value = data.halalLogo
-	} catch (err) {
-		console.error('Failed to fetch halal logos:', err)
-	}
-}
-
-onMounted(() => {
-	fetchFlaggedScans()
-	fetchHalalLogos()
+onMounted(async () => {
+	await fetchFlaggedScans()
 })
 </script>
 
@@ -1343,4 +1108,73 @@ tbody tr { cursor: pointer; }
 /* Lightbox fade transition */
 .lightbox-fade-enter-active, .lightbox-fade-leave-active { transition: opacity 0.18s ease; }
 .lightbox-fade-enter-from, .lightbox-fade-leave-to { opacity: 0; }
+
+/* ── View button ─────────────────────────────────────────────────────────── */
+.btn-view {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 5px 12px;
+	border-radius: 6px;
+	font-size: 0.8rem;
+	font-weight: 600;
+	cursor: pointer;
+	border: 1px solid #e2e8f0;
+	background: #f8fafc;
+	color: #475569;
+	transition: all 0.15s;
+}
+.btn-view:hover {
+	background: #e2e8f0;
+	color: #1e293b;
+}
+
+/* ── Audit modal sections ─────────────────────────────────────────────────── */
+.modal-audit-section {
+	padding: 0 24px 12px;
+}
+.audit-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 12px 0 4px;
+}
+.audit-row {
+	display: flex;
+	gap: 16px;
+	align-items: flex-start;
+}
+.audit-key {
+	width: 160px;
+	flex-shrink: 0;
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: #64748b;
+}
+.audit-val {
+	font-size: 0.88rem;
+	color: #1e293b;
+	flex: 1;
+}
+.audit-val.ingredient-text {
+	font-size: 0.82rem;
+	line-height: 1.5;
+	color: #475569;
+}
+.audit-readonly-notice {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 12px 24px 0;
+	padding: 10px 14px;
+	background: #f0fdf4;
+	border: 1px solid #bbf7d0;
+	border-radius: 8px;
+	font-size: 0.82rem;
+	color: #166534;
+}
+.audit-readonly-notice svg {
+	flex-shrink: 0;
+	margin-top: 1px;
+}
 </style>

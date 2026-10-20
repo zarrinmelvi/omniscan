@@ -234,7 +234,7 @@
 					<h2 class="terms-modal-title">Terms &amp; Conditions</h2>
 				</div>
 			</ion-header>
-			<ion-content class="terms-modal-content">
+			<ion-content class="terms-modal-content" ref="termsContentRef" :scroll-events="true" @ionScroll="onTermsScroll">
 				<div class="terms-modal-body">
 					<p class="terms-updated">Last Updated: September 7, 2026</p>
 
@@ -347,8 +347,15 @@
 						<p>Bachelor of Science in Information Technology</p>
 					</div>
 
+					<div v-if="!termsScrolledToBottom" class="terms-scroll-hint">
+						<ion-button fill="clear" size="small" class="terms-scroll-btn" @click="scrollTermsToBottom">
+							<ion-icon :icon="arrowDownOutline" slot="start" />
+							Scroll to Bottom
+						</ion-button>
+					</div>
+
 					<div class="terms-action-row">
-						<ion-button expand="block" class="terms-agree-btn" @click="acceptTerms">
+						<ion-button expand="block" class="terms-agree-btn" :disabled="!termsScrolledToBottom" @click="acceptTerms">
 							I Agree
 						</ion-button>
 						<ion-button expand="block" fill="outline" class="terms-disagree-btn" @click="disagreeTerms">
@@ -362,10 +369,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, toastController } from '@ionic/vue'
-import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, checkmarkCircle, closeCircle } from 'ionicons/icons'
+import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, checkmarkCircle, closeCircle, arrowDownOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
 
@@ -403,6 +410,50 @@ const showConfirmPassword = ref(false)
 const isSubmitting = ref(false)
 const isTermsOpen = ref(false)
 const errorMessage = ref<string | null>(null)
+
+// Terms & Conditions scroll gate — the user must reach the bottom of the
+// terms text before "I Agree" is enabled.
+const termsContentRef = ref<any>(null)
+const termsScrolledToBottom = ref(false)
+
+function onTermsScroll(ev: CustomEvent): void {
+	const detail = ev.detail as { scrollTop: number }
+	const el = ev.target as any
+	// Use the scroll element dimensions to detect bottom with a small threshold.
+	const scrollEl = el?.scrollEl || el
+	if (!scrollEl) return
+	const reached = detail.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 24
+	if (reached) termsScrolledToBottom.value = true
+}
+
+async function scrollTermsToBottom(): Promise<void> {
+	const content = termsContentRef.value?.$el ?? termsContentRef.value
+	if (content && typeof content.getScrollElement === 'function') {
+		await content.getScrollElement()
+		await content.scrollToBottom(300)
+		// Fallback: mark as reached after programmatic scroll completes.
+		setTimeout(() => { termsScrolledToBottom.value = true }, 350)
+	} else {
+		termsScrolledToBottom.value = true
+	}
+}
+
+watch(isTermsOpen, async (open) => {
+	if (open) {
+		termsScrolledToBottom.value = false
+		await nextTick()
+		// After render, if content isn't scrollable, enable immediately.
+		setTimeout(async () => {
+			const content = termsContentRef.value?.$el ?? termsContentRef.value
+			if (content && typeof content.getScrollElement === 'function') {
+				const scrollEl = await content.getScrollElement()
+				if (scrollEl.scrollHeight <= scrollEl.clientHeight + 24) {
+					termsScrolledToBottom.value = true
+				}
+			}
+		}, 300)
+	}
+})
 
 // Password Strictness Checks
 const passCriteria = computed(() => {
@@ -1150,6 +1201,22 @@ onUnmounted(() => {
 	font-size: 0.78rem;
 	color: #64748b !important;
 	margin-bottom: 4px;
+}
+
+.terms-scroll-hint {
+	display: flex;
+	justify-content: center;
+	margin: 8px 0 4px;
+}
+
+.terms-scroll-btn {
+	--color: #05c450;
+	font-size: 0.82rem;
+	text-transform: none;
+}
+
+.terms-agree-btn[disabled] {
+	opacity: 0.5;
 }
 
 .terms-action-row {

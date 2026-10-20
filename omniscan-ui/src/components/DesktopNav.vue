@@ -1,8 +1,5 @@
 <template>
 	<nav class="desktop-nav">
-		<div class="nav-header">
-			<h1 class="nav-title">OmniScan</h1>
-		</div>
 		<ul class="nav-menu">
 			<li v-for="item in navItems" :key="item.path">
 				<router-link :to="item.path" class="nav-item" active-class="nav-item--active">
@@ -47,21 +44,9 @@ const navItems = [
 	z-index: 1000;
 }
 
-.nav-header {
-	padding: 0 24px 24px;
-	border-bottom: 1px solid var(--ion-border-color, #e5e7eb);
-}
-
-.nav-title {
-	font-size: 20px;
-	font-weight: 700;
-	color: #05c450;
-	margin: 0;
-}
-
 .nav-menu {
 	list-style: none;
-	padding: 16px 0;
+	padding: 8px 0;
 	margin: 0;
 	display: flex;
 	flex-direction: column;

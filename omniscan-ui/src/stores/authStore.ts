@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { apiFetch, ApiError } from '@/utils/api'
 
 const TOKEN_KEY = 'omniscan_token'
+const ADMIN_TOKEN_KEY = 'omniscan_admin_token'
+const ADMIN_KEY = 'omniscan_admin'
 
 export interface AuthUser {
 	id: number
@@ -37,21 +39,25 @@ export const useAuthStore = defineStore('auth', {
 	}),
 
 	getters: {
-		// Derived, not raw state — kept in sync with user/token automatically
 		isAuthenticated: (state): boolean => !!state.token && !!state.user,
 	},
 
 	actions: {
 		async login(email: string, password: string): Promise<LoginResponse> {
-			// Bug 1a fix: evict any active admin session before establishing
-			// the consumer session — only one session type may be active at a time.
-			// Dynamic import avoids a circular dependency at module load time
-			// (authStore ↔ adminAuthStore would otherwise create a cycle).
+			// Bug 1a fix — cross-tab: directly remove admin tokens from sessionStorage
+			// before proceeding. sessionStorage is tab-scoped so this clears the
+			// current tab's admin session only (correct behavior — other tabs have
+			// independent sessionStorage). This is synchronous so it completes before
+			// the network call, avoiding any race with concurrent navigations.
+			sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+			sessionStorage.removeItem(ADMIN_KEY)
+
+			// Also reset the current tab's admin Pinia instance (same-tab isolation).
+			// Dynamic import avoids the circular dependency at module load time.
 			const { useAdminAuthStore } = await import('@/stores/adminAuthStore')
 			const adminAuthStore = useAdminAuthStore()
-			if (adminAuthStore.isAuthenticated) {
-				adminAuthStore.logout()
-			}
+			adminAuthStore.admin = null
+			adminAuthStore.token = null
 
 			const response = await apiFetch<LoginResponse>('/api/auth/login', {
 				method: 'POST',
@@ -73,7 +79,7 @@ export const useAuthStore = defineStore('auth', {
 				skipAuth: true,
 			})
 
-			return response // does not auto-login — caller decides what happens next
+			return response
 		},
 
 		logout(): void {
@@ -83,6 +89,19 @@ export const useAuthStore = defineStore('auth', {
 		},
 
 		async checkAuth(): Promise<void> {
+			// Cross-tab session isolation guard: if an admin session is active in
+			// sessionStorage, no consumer session may coexist. Force consumer logout.
+			// This fires on every navigation via the router beforeEach guard, so
+			// Tab A will detect that Tab B logged in as admin on the next navigation
+			// or page refresh — the consumer session is invalidated immediately.
+			const adminTokenPresent = !!sessionStorage.getItem(ADMIN_TOKEN_KEY)
+			if (adminTokenPresent) {
+				this.user = null
+				this.token = null
+				localStorage.removeItem(TOKEN_KEY)
+				return
+			}
+
 			const storedToken = localStorage.getItem(TOKEN_KEY)
 
 			if (!storedToken) {

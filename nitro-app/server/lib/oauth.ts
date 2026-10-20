@@ -3,9 +3,13 @@ export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
 // e.g. https://omniscan-ten.vercel.app/api/auth/google/callback
 export const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/auth/google/callback'
-// Where to send the browser after a successful/failed OAuth login (frontend)
-export const OAUTH_FRONTEND_SUCCESS = process.env.OAUTH_FRONTEND_SUCCESS || 'http://localhost:5173/tabs/home'
-export const OAUTH_FRONTEND_FAILURE = process.env.OAUTH_FRONTEND_FAILURE || 'http://localhost:5173/login'
+// Frontend client portal base URL. Production custom domain by default.
+// Reuses the same FRONTEND_URL env var the email templates use, so the OAuth
+// redirect target and verification/reset links always point at the same host.
+export const FRONTEND_URL = process.env.FRONTEND_URL || 'https://omniscan.website'
+// Derived landing targets after a successful / failed OAuth login.
+export const OAUTH_FRONTEND_SUCCESS = `${FRONTEND_URL.replace(/\/$/, '')}/tabs/home`
+export const OAUTH_FRONTEND_FAILURE = `${FRONTEND_URL.replace(/\/$/, '')}/login`
 
 export function isGoogleOAuthConfigured(): boolean {
 	return Boolean(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET)

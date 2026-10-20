@@ -1,7 +1,9 @@
 <template>
 	<ion-page>
-		<ion-content :fullscreen="true" class="home-content">
+		<ion-header class="app-header-shell">
 			<AppHeader />
+		</ion-header>
+		<ion-content :fullscreen="true" class="home-content">
 			<div class="home-wrap">
 				<!-- Greeting header -->
 				<div class="greeting-row">
@@ -218,7 +220,6 @@ import {
 	IonButtons,
 	IonChip,
 	IonIcon,
-	IonSpinner,
 	IonButton,
 	IonAlert,
 	IonModal,
@@ -635,6 +636,12 @@ onIonViewWillEnter(() => {
 </script>
 
 <style scoped>
+.app-header-shell {
+	--background: #ffffff;
+}
+.app-header-shell::after {
+	display: none; /* remove Ionic's default header bottom shadow line */
+}
 .home-content {
 	--background: #f8fafc;
 }

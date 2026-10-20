@@ -1,7 +1,9 @@
 <template>
 	<ion-page class="scan-page">
-		<ion-content class="scan-content">
+		<ion-header class="app-header-shell">
 			<AppHeader />
+		</ion-header>
+		<ion-content class="scan-content">
 			<div class="page-container">
 				<!-- Top Header Area -->
 				<header class="header-section">
@@ -115,6 +117,7 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import {
 	IonPage,
 	IonContent,
+	IonHeader,
 	IonButton,
 	IonSpinner,
 	IonIcon,
@@ -714,6 +717,12 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.app-header-shell {
+	--background: #ffffff;
+}
+.app-header-shell::after {
+	display: none; /* remove Ionic's default header bottom shadow line */
+}
 .scan-page {
 	--background: #ffffff;
 }

@@ -1,5 +1,8 @@
 <template>
 	<ion-page>
+		<ion-header class="app-header-shell">
+			<AppHeader />
+		</ion-header>
 		<!-- Fixed White Header Controls -->
 		<div class="header-container">
 			<!-- ARCHIVED VIEW SEARCH (active view has its own inline search + sort below) -->
@@ -113,7 +116,6 @@
 
 		<!-- Scrollable Content -->
 		<ion-content :fullscreen="true" class="pantry-content">
-			<AppHeader />
 			<div class="pantry-wrap">
 				<!-- ACTIVE VIEW GRID -->
 				<template v-if="view === 'active'">
@@ -267,10 +269,10 @@ import { useRoute, useRouter } from 'vue-router'
 import {
 	IonPage,
 	IonContent,
+	IonHeader,
 	IonSearchbar,
 	IonButton,
 	IonIcon,
-	IonSpinner,
 	alertController,
 	onIonViewWillEnter,
 } from '@ionic/vue'
@@ -662,6 +664,13 @@ onIonViewWillEnter(() => {
 </script>
 
 <style scoped>
+.app-header-shell {
+	--background: #ffffff;
+}
+.app-header-shell::after {
+	display: none; /* remove Ionic's default header bottom shadow line */
+}
+
 /* Header Container */
 .header-container {
 	background: #ffffff;

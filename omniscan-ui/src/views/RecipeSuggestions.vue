@@ -1,7 +1,9 @@
 <template>
 	<ion-page>
-		<ion-content class="recipe-content">
+		<ion-header class="app-header-shell">
 			<AppHeader />
+		</ion-header>
+		<ion-content class="recipe-content">
 			<!-- Header Block -->
 			<div class="header-container">
 				<div class="header-inner">
@@ -373,6 +375,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.app-header-shell {
+	--background: #ffffff;
+}
+.app-header-shell::after {
+	display: none; /* remove Ionic's default header bottom shadow line */
+}
 .recipe-content {
 	--background: #f9fafb;
 	--color: #0f172a;

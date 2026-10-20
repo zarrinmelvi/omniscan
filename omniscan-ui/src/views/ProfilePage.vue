@@ -1,7 +1,9 @@
 <template>
 	<ion-page>
-		<ion-content class="profile-content">
+		<ion-header class="app-header-shell">
 			<AppHeader />
+		</ion-header>
+		<ion-content class="profile-content">
 			<div v-if="isLoading" class="state-block">
 				<ion-spinner name="crescent" />
 				<p>Loading your profile…</p>
@@ -185,7 +187,7 @@
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToast, IonModal, IonToggle, alertController, onIonViewWillEnter } from '@ionic/vue'
+import { IonPage, IonContent, IonHeader, IonButton, IonIcon, IonSpinner, IonToast, IonModal, IonToggle, alertController, onIonViewWillEnter } from '@ionic/vue'
 import {
 	alertCircleOutline,
 	pencilOutline,
@@ -514,6 +516,12 @@ onIonViewWillEnter(() => {
 </script>
 
 <style scoped>
+.app-header-shell {
+	--background: #ffffff;
+}
+.app-header-shell::after {
+	display: none; /* remove Ionic's default header bottom shadow line */
+}
 .profile-content {
 	--background: #f8fafc;
 	--overflow: hidden;

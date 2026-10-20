@@ -134,7 +134,7 @@
 						<h3 class="info-card__title">Product Information</h3>
 						<div class="info-row">
 							<span>Category:</span>
-							<strong>{{ item.storage_location }}</strong>
+							<strong>{{ item.category || 'Uncategorized' }}</strong>
 						</div>
 						<div class="info-row">
 							<span>Days until expiry:</span>

@@ -29,11 +29,13 @@ export type AggregateProduct = {
 export type ProductAvgAggregateOutputType = {
   id: number | null
   halal_logo_id: number | null
+  canonical_product_id: number | null
 }
 
 export type ProductSumAggregateOutputType = {
   id: number | null
   halal_logo_id: number | null
+  canonical_product_id: number | null
 }
 
 export type ProductMinAggregateOutputType = {
@@ -48,6 +50,8 @@ export type ProductMinAggregateOutputType = {
   halal_logo_id: number | null
   confirmed_not_halal: boolean | null
   halal_unverified: boolean | null
+  canonical_key: string | null
+  canonical_product_id: number | null
   created_at: Date | null
   updated_at: Date | null
   deleted_at: Date | null
@@ -65,6 +69,8 @@ export type ProductMaxAggregateOutputType = {
   halal_logo_id: number | null
   confirmed_not_halal: boolean | null
   halal_unverified: boolean | null
+  canonical_key: string | null
+  canonical_product_id: number | null
   created_at: Date | null
   updated_at: Date | null
   deleted_at: Date | null
@@ -82,6 +88,8 @@ export type ProductCountAggregateOutputType = {
   halal_logo_id: number
   confirmed_not_halal: number
   halal_unverified: number
+  canonical_key: number
+  canonical_product_id: number
   created_at: number
   updated_at: number
   deleted_at: number
@@ -92,11 +100,13 @@ export type ProductCountAggregateOutputType = {
 export type ProductAvgAggregateInputType = {
   id?: true
   halal_logo_id?: true
+  canonical_product_id?: true
 }
 
 export type ProductSumAggregateInputType = {
   id?: true
   halal_logo_id?: true
+  canonical_product_id?: true
 }
 
 export type ProductMinAggregateInputType = {
@@ -111,6 +121,8 @@ export type ProductMinAggregateInputType = {
   halal_logo_id?: true
   confirmed_not_halal?: true
   halal_unverified?: true
+  canonical_key?: true
+  canonical_product_id?: true
   created_at?: true
   updated_at?: true
   deleted_at?: true
@@ -128,6 +140,8 @@ export type ProductMaxAggregateInputType = {
   halal_logo_id?: true
   confirmed_not_halal?: true
   halal_unverified?: true
+  canonical_key?: true
+  canonical_product_id?: true
   created_at?: true
   updated_at?: true
   deleted_at?: true
@@ -145,6 +159,8 @@ export type ProductCountAggregateInputType = {
   halal_logo_id?: true
   confirmed_not_halal?: true
   halal_unverified?: true
+  canonical_key?: true
+  canonical_product_id?: true
   created_at?: true
   updated_at?: true
   deleted_at?: true
@@ -249,6 +265,8 @@ export type ProductGroupByOutputType = {
   halal_logo_id: number | null
   confirmed_not_halal: boolean
   halal_unverified: boolean
+  canonical_key: string | null
+  canonical_product_id: number | null
   created_at: Date
   updated_at: Date
   deleted_at: Date | null
@@ -289,6 +307,8 @@ export type ProductWhereInput = {
   halal_logo_id?: Prisma.IntNullableFilter<"Product"> | number | null
   confirmed_not_halal?: Prisma.BoolFilter<"Product"> | boolean
   halal_unverified?: Prisma.BoolFilter<"Product"> | boolean
+  canonical_key?: Prisma.StringNullableFilter<"Product"> | string | null
+  canonical_product_id?: Prisma.IntNullableFilter<"Product"> | number | null
   created_at?: Prisma.DateTimeFilter<"Product"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Product"> | Date | string
   deleted_at?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
@@ -299,6 +319,8 @@ export type ProductWhereInput = {
   ingredients?: Prisma.IngredientListRelationFilter
   activityLog?: Prisma.ActivityLogListRelationFilter
   notification?: Prisma.NotificationListRelationFilter
+  canonical_product?: Prisma.XOR<Prisma.ProductNullableScalarRelationFilter, Prisma.ProductWhereInput> | null
+  duplicates?: Prisma.ProductListRelationFilter
 }
 
 export type ProductOrderByWithRelationInput = {
@@ -313,6 +335,8 @@ export type ProductOrderByWithRelationInput = {
   halal_logo_id?: Prisma.SortOrderInput | Prisma.SortOrder
   confirmed_not_halal?: Prisma.SortOrder
   halal_unverified?: Prisma.SortOrder
+  canonical_key?: Prisma.SortOrderInput | Prisma.SortOrder
+  canonical_product_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   deleted_at?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -323,6 +347,8 @@ export type ProductOrderByWithRelationInput = {
   ingredients?: Prisma.IngredientOrderByRelationAggregateInput
   activityLog?: Prisma.ActivityLogOrderByRelationAggregateInput
   notification?: Prisma.NotificationOrderByRelationAggregateInput
+  canonical_product?: Prisma.ProductOrderByWithRelationInput
+  duplicates?: Prisma.ProductOrderByRelationAggregateInput
 }
 
 export type ProductWhereUniqueInput = Prisma.AtLeast<{
@@ -340,6 +366,8 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   halal_logo_id?: Prisma.IntNullableFilter<"Product"> | number | null
   confirmed_not_halal?: Prisma.BoolFilter<"Product"> | boolean
   halal_unverified?: Prisma.BoolFilter<"Product"> | boolean
+  canonical_key?: Prisma.StringNullableFilter<"Product"> | string | null
+  canonical_product_id?: Prisma.IntNullableFilter<"Product"> | number | null
   created_at?: Prisma.DateTimeFilter<"Product"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Product"> | Date | string
   deleted_at?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
@@ -350,6 +378,8 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   ingredients?: Prisma.IngredientListRelationFilter
   activityLog?: Prisma.ActivityLogListRelationFilter
   notification?: Prisma.NotificationListRelationFilter
+  canonical_product?: Prisma.XOR<Prisma.ProductNullableScalarRelationFilter, Prisma.ProductWhereInput> | null
+  duplicates?: Prisma.ProductListRelationFilter
 }, "id">
 
 export type ProductOrderByWithAggregationInput = {
@@ -364,6 +394,8 @@ export type ProductOrderByWithAggregationInput = {
   halal_logo_id?: Prisma.SortOrderInput | Prisma.SortOrder
   confirmed_not_halal?: Prisma.SortOrder
   halal_unverified?: Prisma.SortOrder
+  canonical_key?: Prisma.SortOrderInput | Prisma.SortOrder
+  canonical_product_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   deleted_at?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -389,6 +421,8 @@ export type ProductScalarWhereWithAggregatesInput = {
   halal_logo_id?: Prisma.IntNullableWithAggregatesFilter<"Product"> | number | null
   confirmed_not_halal?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
   halal_unverified?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
+  canonical_key?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
+  canonical_product_id?: Prisma.IntNullableWithAggregatesFilter<"Product"> | number | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
   deleted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Product"> | Date | string | null
@@ -404,6 +438,7 @@ export type ProductCreateInput = {
   image_base64_back?: string | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -414,6 +449,8 @@ export type ProductCreateInput = {
   ingredients?: Prisma.IngredientCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationCreateNestedManyWithoutProductInput
+  canonical_product?: Prisma.ProductCreateNestedOneWithoutDuplicatesInput
+  duplicates?: Prisma.ProductCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductUncheckedCreateInput = {
@@ -428,6 +465,8 @@ export type ProductUncheckedCreateInput = {
   halal_logo_id?: number | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
+  canonical_product_id?: number | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -437,6 +476,7 @@ export type ProductUncheckedCreateInput = {
   ingredients?: Prisma.IngredientUncheckedCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutProductInput
+  duplicates?: Prisma.ProductUncheckedCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductUpdateInput = {
@@ -449,6 +489,7 @@ export type ProductUpdateInput = {
   image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -459,6 +500,8 @@ export type ProductUpdateInput = {
   ingredients?: Prisma.IngredientUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUpdateManyWithoutProductNestedInput
+  canonical_product?: Prisma.ProductUpdateOneWithoutDuplicatesNestedInput
+  duplicates?: Prisma.ProductUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductUncheckedUpdateInput = {
@@ -473,6 +516,8 @@ export type ProductUncheckedUpdateInput = {
   halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_product_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -482,6 +527,7 @@ export type ProductUncheckedUpdateInput = {
   ingredients?: Prisma.IngredientUncheckedUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUncheckedUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUncheckedUpdateManyWithoutProductNestedInput
+  duplicates?: Prisma.ProductUncheckedUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductCreateManyInput = {
@@ -496,6 +542,8 @@ export type ProductCreateManyInput = {
   halal_logo_id?: number | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
+  canonical_product_id?: number | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -511,6 +559,7 @@ export type ProductUpdateManyMutationInput = {
   image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -528,6 +577,8 @@ export type ProductUncheckedUpdateManyInput = {
   halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_product_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -543,6 +594,16 @@ export type ProductScalarRelationFilter = {
   isNot?: Prisma.ProductWhereInput
 }
 
+export type ProductListRelationFilter = {
+  every?: Prisma.ProductWhereInput
+  some?: Prisma.ProductWhereInput
+  none?: Prisma.ProductWhereInput
+}
+
+export type ProductOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
 export type ProductCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   brand_name?: Prisma.SortOrder
@@ -555,6 +616,8 @@ export type ProductCountOrderByAggregateInput = {
   halal_logo_id?: Prisma.SortOrder
   confirmed_not_halal?: Prisma.SortOrder
   halal_unverified?: Prisma.SortOrder
+  canonical_key?: Prisma.SortOrder
+  canonical_product_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   deleted_at?: Prisma.SortOrder
@@ -563,6 +626,7 @@ export type ProductCountOrderByAggregateInput = {
 export type ProductAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   halal_logo_id?: Prisma.SortOrder
+  canonical_product_id?: Prisma.SortOrder
 }
 
 export type ProductMaxOrderByAggregateInput = {
@@ -577,6 +641,8 @@ export type ProductMaxOrderByAggregateInput = {
   halal_logo_id?: Prisma.SortOrder
   confirmed_not_halal?: Prisma.SortOrder
   halal_unverified?: Prisma.SortOrder
+  canonical_key?: Prisma.SortOrder
+  canonical_product_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   deleted_at?: Prisma.SortOrder
@@ -594,6 +660,8 @@ export type ProductMinOrderByAggregateInput = {
   halal_logo_id?: Prisma.SortOrder
   confirmed_not_halal?: Prisma.SortOrder
   halal_unverified?: Prisma.SortOrder
+  canonical_key?: Prisma.SortOrder
+  canonical_product_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   deleted_at?: Prisma.SortOrder
@@ -602,16 +670,7 @@ export type ProductMinOrderByAggregateInput = {
 export type ProductSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   halal_logo_id?: Prisma.SortOrder
-}
-
-export type ProductListRelationFilter = {
-  every?: Prisma.ProductWhereInput
-  some?: Prisma.ProductWhereInput
-  none?: Prisma.ProductWhereInput
-}
-
-export type ProductOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
+  canonical_product_id?: Prisma.SortOrder
 }
 
 export type ProductCreateNestedOneWithoutActivityLogInput = {
@@ -658,6 +717,64 @@ export type ProductUpdateOneRequiredWithoutIngredientsNestedInput = {
   upsert?: Prisma.ProductUpsertWithoutIngredientsInput
   connect?: Prisma.ProductWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProductUpdateToOneWithWhereWithoutIngredientsInput, Prisma.ProductUpdateWithoutIngredientsInput>, Prisma.ProductUncheckedUpdateWithoutIngredientsInput>
+}
+
+export type ProductCreateNestedOneWithoutDuplicatesInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutDuplicatesInput, Prisma.ProductUncheckedCreateWithoutDuplicatesInput>
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutDuplicatesInput
+  connect?: Prisma.ProductWhereUniqueInput
+}
+
+export type ProductCreateNestedManyWithoutCanonical_productInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutCanonical_productInput, Prisma.ProductUncheckedCreateWithoutCanonical_productInput> | Prisma.ProductCreateWithoutCanonical_productInput[] | Prisma.ProductUncheckedCreateWithoutCanonical_productInput[]
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutCanonical_productInput | Prisma.ProductCreateOrConnectWithoutCanonical_productInput[]
+  createMany?: Prisma.ProductCreateManyCanonical_productInputEnvelope
+  connect?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+}
+
+export type ProductUncheckedCreateNestedManyWithoutCanonical_productInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutCanonical_productInput, Prisma.ProductUncheckedCreateWithoutCanonical_productInput> | Prisma.ProductCreateWithoutCanonical_productInput[] | Prisma.ProductUncheckedCreateWithoutCanonical_productInput[]
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutCanonical_productInput | Prisma.ProductCreateOrConnectWithoutCanonical_productInput[]
+  createMany?: Prisma.ProductCreateManyCanonical_productInputEnvelope
+  connect?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+}
+
+export type ProductUpdateOneWithoutDuplicatesNestedInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutDuplicatesInput, Prisma.ProductUncheckedCreateWithoutDuplicatesInput>
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutDuplicatesInput
+  upsert?: Prisma.ProductUpsertWithoutDuplicatesInput
+  disconnect?: Prisma.ProductWhereInput | boolean
+  delete?: Prisma.ProductWhereInput | boolean
+  connect?: Prisma.ProductWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProductUpdateToOneWithWhereWithoutDuplicatesInput, Prisma.ProductUpdateWithoutDuplicatesInput>, Prisma.ProductUncheckedUpdateWithoutDuplicatesInput>
+}
+
+export type ProductUpdateManyWithoutCanonical_productNestedInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutCanonical_productInput, Prisma.ProductUncheckedCreateWithoutCanonical_productInput> | Prisma.ProductCreateWithoutCanonical_productInput[] | Prisma.ProductUncheckedCreateWithoutCanonical_productInput[]
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutCanonical_productInput | Prisma.ProductCreateOrConnectWithoutCanonical_productInput[]
+  upsert?: Prisma.ProductUpsertWithWhereUniqueWithoutCanonical_productInput | Prisma.ProductUpsertWithWhereUniqueWithoutCanonical_productInput[]
+  createMany?: Prisma.ProductCreateManyCanonical_productInputEnvelope
+  set?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  disconnect?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  delete?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  connect?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  update?: Prisma.ProductUpdateWithWhereUniqueWithoutCanonical_productInput | Prisma.ProductUpdateWithWhereUniqueWithoutCanonical_productInput[]
+  updateMany?: Prisma.ProductUpdateManyWithWhereWithoutCanonical_productInput | Prisma.ProductUpdateManyWithWhereWithoutCanonical_productInput[]
+  deleteMany?: Prisma.ProductScalarWhereInput | Prisma.ProductScalarWhereInput[]
+}
+
+export type ProductUncheckedUpdateManyWithoutCanonical_productNestedInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutCanonical_productInput, Prisma.ProductUncheckedCreateWithoutCanonical_productInput> | Prisma.ProductCreateWithoutCanonical_productInput[] | Prisma.ProductUncheckedCreateWithoutCanonical_productInput[]
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutCanonical_productInput | Prisma.ProductCreateOrConnectWithoutCanonical_productInput[]
+  upsert?: Prisma.ProductUpsertWithWhereUniqueWithoutCanonical_productInput | Prisma.ProductUpsertWithWhereUniqueWithoutCanonical_productInput[]
+  createMany?: Prisma.ProductCreateManyCanonical_productInputEnvelope
+  set?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  disconnect?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  delete?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  connect?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  update?: Prisma.ProductUpdateWithWhereUniqueWithoutCanonical_productInput | Prisma.ProductUpdateWithWhereUniqueWithoutCanonical_productInput[]
+  updateMany?: Prisma.ProductUpdateManyWithWhereWithoutCanonical_productInput | Prisma.ProductUpdateManyWithWhereWithoutCanonical_productInput[]
+  deleteMany?: Prisma.ProductScalarWhereInput | Prisma.ProductScalarWhereInput[]
 }
 
 export type ProductCreateNestedManyWithoutHalal_logoInput = {
@@ -754,6 +871,7 @@ export type ProductCreateWithoutActivityLogInput = {
   image_base64_back?: string | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -763,6 +881,8 @@ export type ProductCreateWithoutActivityLogInput = {
   scan?: Prisma.ScanCreateNestedManyWithoutProductInput
   ingredients?: Prisma.IngredientCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationCreateNestedManyWithoutProductInput
+  canonical_product?: Prisma.ProductCreateNestedOneWithoutDuplicatesInput
+  duplicates?: Prisma.ProductCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductUncheckedCreateWithoutActivityLogInput = {
@@ -777,6 +897,8 @@ export type ProductUncheckedCreateWithoutActivityLogInput = {
   halal_logo_id?: number | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
+  canonical_product_id?: number | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -785,6 +907,7 @@ export type ProductUncheckedCreateWithoutActivityLogInput = {
   scan?: Prisma.ScanUncheckedCreateNestedManyWithoutProductInput
   ingredients?: Prisma.IngredientUncheckedCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutProductInput
+  duplicates?: Prisma.ProductUncheckedCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductCreateOrConnectWithoutActivityLogInput = {
@@ -813,6 +936,7 @@ export type ProductUpdateWithoutActivityLogInput = {
   image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -822,6 +946,8 @@ export type ProductUpdateWithoutActivityLogInput = {
   scan?: Prisma.ScanUpdateManyWithoutProductNestedInput
   ingredients?: Prisma.IngredientUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUpdateManyWithoutProductNestedInput
+  canonical_product?: Prisma.ProductUpdateOneWithoutDuplicatesNestedInput
+  duplicates?: Prisma.ProductUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutActivityLogInput = {
@@ -836,6 +962,8 @@ export type ProductUncheckedUpdateWithoutActivityLogInput = {
   halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_product_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -844,6 +972,7 @@ export type ProductUncheckedUpdateWithoutActivityLogInput = {
   scan?: Prisma.ScanUncheckedUpdateManyWithoutProductNestedInput
   ingredients?: Prisma.IngredientUncheckedUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUncheckedUpdateManyWithoutProductNestedInput
+  duplicates?: Prisma.ProductUncheckedUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductCreateWithoutNotificationInput = {
@@ -856,6 +985,7 @@ export type ProductCreateWithoutNotificationInput = {
   image_base64_back?: string | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -865,6 +995,8 @@ export type ProductCreateWithoutNotificationInput = {
   scan?: Prisma.ScanCreateNestedManyWithoutProductInput
   ingredients?: Prisma.IngredientCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogCreateNestedManyWithoutProductInput
+  canonical_product?: Prisma.ProductCreateNestedOneWithoutDuplicatesInput
+  duplicates?: Prisma.ProductCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductUncheckedCreateWithoutNotificationInput = {
@@ -879,6 +1011,8 @@ export type ProductUncheckedCreateWithoutNotificationInput = {
   halal_logo_id?: number | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
+  canonical_product_id?: number | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -887,6 +1021,7 @@ export type ProductUncheckedCreateWithoutNotificationInput = {
   scan?: Prisma.ScanUncheckedCreateNestedManyWithoutProductInput
   ingredients?: Prisma.IngredientUncheckedCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutProductInput
+  duplicates?: Prisma.ProductUncheckedCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductCreateOrConnectWithoutNotificationInput = {
@@ -915,6 +1050,7 @@ export type ProductUpdateWithoutNotificationInput = {
   image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -924,6 +1060,8 @@ export type ProductUpdateWithoutNotificationInput = {
   scan?: Prisma.ScanUpdateManyWithoutProductNestedInput
   ingredients?: Prisma.IngredientUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUpdateManyWithoutProductNestedInput
+  canonical_product?: Prisma.ProductUpdateOneWithoutDuplicatesNestedInput
+  duplicates?: Prisma.ProductUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutNotificationInput = {
@@ -938,6 +1076,8 @@ export type ProductUncheckedUpdateWithoutNotificationInput = {
   halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_product_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -946,6 +1086,7 @@ export type ProductUncheckedUpdateWithoutNotificationInput = {
   scan?: Prisma.ScanUncheckedUpdateManyWithoutProductNestedInput
   ingredients?: Prisma.IngredientUncheckedUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUncheckedUpdateManyWithoutProductNestedInput
+  duplicates?: Prisma.ProductUncheckedUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductCreateWithoutIngredientsInput = {
@@ -958,6 +1099,7 @@ export type ProductCreateWithoutIngredientsInput = {
   image_base64_back?: string | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -967,6 +1109,8 @@ export type ProductCreateWithoutIngredientsInput = {
   scan?: Prisma.ScanCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationCreateNestedManyWithoutProductInput
+  canonical_product?: Prisma.ProductCreateNestedOneWithoutDuplicatesInput
+  duplicates?: Prisma.ProductCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductUncheckedCreateWithoutIngredientsInput = {
@@ -981,6 +1125,8 @@ export type ProductUncheckedCreateWithoutIngredientsInput = {
   halal_logo_id?: number | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
+  canonical_product_id?: number | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -989,6 +1135,7 @@ export type ProductUncheckedCreateWithoutIngredientsInput = {
   scan?: Prisma.ScanUncheckedCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutProductInput
+  duplicates?: Prisma.ProductUncheckedCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductCreateOrConnectWithoutIngredientsInput = {
@@ -1017,6 +1164,7 @@ export type ProductUpdateWithoutIngredientsInput = {
   image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1026,6 +1174,8 @@ export type ProductUpdateWithoutIngredientsInput = {
   scan?: Prisma.ScanUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUpdateManyWithoutProductNestedInput
+  canonical_product?: Prisma.ProductUpdateOneWithoutDuplicatesNestedInput
+  duplicates?: Prisma.ProductUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutIngredientsInput = {
@@ -1040,6 +1190,8 @@ export type ProductUncheckedUpdateWithoutIngredientsInput = {
   halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_product_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1048,6 +1200,218 @@ export type ProductUncheckedUpdateWithoutIngredientsInput = {
   scan?: Prisma.ScanUncheckedUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUncheckedUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUncheckedUpdateManyWithoutProductNestedInput
+  duplicates?: Prisma.ProductUncheckedUpdateManyWithoutCanonical_productNestedInput
+}
+
+export type ProductCreateWithoutDuplicatesInput = {
+  brand_name: string
+  product_name: string
+  ingredient_text: string
+  simplified_ingredients: string
+  is_verified?: boolean
+  image_base64?: string | null
+  image_base64_back?: string | null
+  confirmed_not_halal?: boolean
+  halal_unverified?: boolean
+  canonical_key?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  halal_logo?: Prisma.HalalLogoCreateNestedOneWithoutProductInput
+  halal_logos?: Prisma.ProductHalalLogoCreateNestedManyWithoutProductInput
+  pantry_item?: Prisma.PantryItemCreateNestedManyWithoutProductInput
+  scan?: Prisma.ScanCreateNestedManyWithoutProductInput
+  ingredients?: Prisma.IngredientCreateNestedManyWithoutProductInput
+  activityLog?: Prisma.ActivityLogCreateNestedManyWithoutProductInput
+  notification?: Prisma.NotificationCreateNestedManyWithoutProductInput
+  canonical_product?: Prisma.ProductCreateNestedOneWithoutDuplicatesInput
+}
+
+export type ProductUncheckedCreateWithoutDuplicatesInput = {
+  id?: number
+  brand_name: string
+  product_name: string
+  ingredient_text: string
+  simplified_ingredients: string
+  is_verified?: boolean
+  image_base64?: string | null
+  image_base64_back?: string | null
+  halal_logo_id?: number | null
+  confirmed_not_halal?: boolean
+  halal_unverified?: boolean
+  canonical_key?: string | null
+  canonical_product_id?: number | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  halal_logos?: Prisma.ProductHalalLogoUncheckedCreateNestedManyWithoutProductInput
+  pantry_item?: Prisma.PantryItemUncheckedCreateNestedManyWithoutProductInput
+  scan?: Prisma.ScanUncheckedCreateNestedManyWithoutProductInput
+  ingredients?: Prisma.IngredientUncheckedCreateNestedManyWithoutProductInput
+  activityLog?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutProductInput
+  notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutProductInput
+}
+
+export type ProductCreateOrConnectWithoutDuplicatesInput = {
+  where: Prisma.ProductWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProductCreateWithoutDuplicatesInput, Prisma.ProductUncheckedCreateWithoutDuplicatesInput>
+}
+
+export type ProductCreateWithoutCanonical_productInput = {
+  brand_name: string
+  product_name: string
+  ingredient_text: string
+  simplified_ingredients: string
+  is_verified?: boolean
+  image_base64?: string | null
+  image_base64_back?: string | null
+  confirmed_not_halal?: boolean
+  halal_unverified?: boolean
+  canonical_key?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  halal_logo?: Prisma.HalalLogoCreateNestedOneWithoutProductInput
+  halal_logos?: Prisma.ProductHalalLogoCreateNestedManyWithoutProductInput
+  pantry_item?: Prisma.PantryItemCreateNestedManyWithoutProductInput
+  scan?: Prisma.ScanCreateNestedManyWithoutProductInput
+  ingredients?: Prisma.IngredientCreateNestedManyWithoutProductInput
+  activityLog?: Prisma.ActivityLogCreateNestedManyWithoutProductInput
+  notification?: Prisma.NotificationCreateNestedManyWithoutProductInput
+  duplicates?: Prisma.ProductCreateNestedManyWithoutCanonical_productInput
+}
+
+export type ProductUncheckedCreateWithoutCanonical_productInput = {
+  id?: number
+  brand_name: string
+  product_name: string
+  ingredient_text: string
+  simplified_ingredients: string
+  is_verified?: boolean
+  image_base64?: string | null
+  image_base64_back?: string | null
+  halal_logo_id?: number | null
+  confirmed_not_halal?: boolean
+  halal_unverified?: boolean
+  canonical_key?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  halal_logos?: Prisma.ProductHalalLogoUncheckedCreateNestedManyWithoutProductInput
+  pantry_item?: Prisma.PantryItemUncheckedCreateNestedManyWithoutProductInput
+  scan?: Prisma.ScanUncheckedCreateNestedManyWithoutProductInput
+  ingredients?: Prisma.IngredientUncheckedCreateNestedManyWithoutProductInput
+  activityLog?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutProductInput
+  notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutProductInput
+  duplicates?: Prisma.ProductUncheckedCreateNestedManyWithoutCanonical_productInput
+}
+
+export type ProductCreateOrConnectWithoutCanonical_productInput = {
+  where: Prisma.ProductWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProductCreateWithoutCanonical_productInput, Prisma.ProductUncheckedCreateWithoutCanonical_productInput>
+}
+
+export type ProductCreateManyCanonical_productInputEnvelope = {
+  data: Prisma.ProductCreateManyCanonical_productInput | Prisma.ProductCreateManyCanonical_productInput[]
+  skipDuplicates?: boolean
+}
+
+export type ProductUpsertWithoutDuplicatesInput = {
+  update: Prisma.XOR<Prisma.ProductUpdateWithoutDuplicatesInput, Prisma.ProductUncheckedUpdateWithoutDuplicatesInput>
+  create: Prisma.XOR<Prisma.ProductCreateWithoutDuplicatesInput, Prisma.ProductUncheckedCreateWithoutDuplicatesInput>
+  where?: Prisma.ProductWhereInput
+}
+
+export type ProductUpdateToOneWithWhereWithoutDuplicatesInput = {
+  where?: Prisma.ProductWhereInput
+  data: Prisma.XOR<Prisma.ProductUpdateWithoutDuplicatesInput, Prisma.ProductUncheckedUpdateWithoutDuplicatesInput>
+}
+
+export type ProductUpdateWithoutDuplicatesInput = {
+  brand_name?: Prisma.StringFieldUpdateOperationsInput | string
+  product_name?: Prisma.StringFieldUpdateOperationsInput | string
+  ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
+  simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
+  is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  halal_logo?: Prisma.HalalLogoUpdateOneWithoutProductNestedInput
+  halal_logos?: Prisma.ProductHalalLogoUpdateManyWithoutProductNestedInput
+  pantry_item?: Prisma.PantryItemUpdateManyWithoutProductNestedInput
+  scan?: Prisma.ScanUpdateManyWithoutProductNestedInput
+  ingredients?: Prisma.IngredientUpdateManyWithoutProductNestedInput
+  activityLog?: Prisma.ActivityLogUpdateManyWithoutProductNestedInput
+  notification?: Prisma.NotificationUpdateManyWithoutProductNestedInput
+  canonical_product?: Prisma.ProductUpdateOneWithoutDuplicatesNestedInput
+}
+
+export type ProductUncheckedUpdateWithoutDuplicatesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  brand_name?: Prisma.StringFieldUpdateOperationsInput | string
+  product_name?: Prisma.StringFieldUpdateOperationsInput | string
+  ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
+  simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
+  is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_product_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  halal_logos?: Prisma.ProductHalalLogoUncheckedUpdateManyWithoutProductNestedInput
+  pantry_item?: Prisma.PantryItemUncheckedUpdateManyWithoutProductNestedInput
+  scan?: Prisma.ScanUncheckedUpdateManyWithoutProductNestedInput
+  ingredients?: Prisma.IngredientUncheckedUpdateManyWithoutProductNestedInput
+  activityLog?: Prisma.ActivityLogUncheckedUpdateManyWithoutProductNestedInput
+  notification?: Prisma.NotificationUncheckedUpdateManyWithoutProductNestedInput
+}
+
+export type ProductUpsertWithWhereUniqueWithoutCanonical_productInput = {
+  where: Prisma.ProductWhereUniqueInput
+  update: Prisma.XOR<Prisma.ProductUpdateWithoutCanonical_productInput, Prisma.ProductUncheckedUpdateWithoutCanonical_productInput>
+  create: Prisma.XOR<Prisma.ProductCreateWithoutCanonical_productInput, Prisma.ProductUncheckedCreateWithoutCanonical_productInput>
+}
+
+export type ProductUpdateWithWhereUniqueWithoutCanonical_productInput = {
+  where: Prisma.ProductWhereUniqueInput
+  data: Prisma.XOR<Prisma.ProductUpdateWithoutCanonical_productInput, Prisma.ProductUncheckedUpdateWithoutCanonical_productInput>
+}
+
+export type ProductUpdateManyWithWhereWithoutCanonical_productInput = {
+  where: Prisma.ProductScalarWhereInput
+  data: Prisma.XOR<Prisma.ProductUpdateManyMutationInput, Prisma.ProductUncheckedUpdateManyWithoutCanonical_productInput>
+}
+
+export type ProductScalarWhereInput = {
+  AND?: Prisma.ProductScalarWhereInput | Prisma.ProductScalarWhereInput[]
+  OR?: Prisma.ProductScalarWhereInput[]
+  NOT?: Prisma.ProductScalarWhereInput | Prisma.ProductScalarWhereInput[]
+  id?: Prisma.IntFilter<"Product"> | number
+  brand_name?: Prisma.StringFilter<"Product"> | string
+  product_name?: Prisma.StringFilter<"Product"> | string
+  ingredient_text?: Prisma.StringFilter<"Product"> | string
+  simplified_ingredients?: Prisma.StringFilter<"Product"> | string
+  is_verified?: Prisma.BoolFilter<"Product"> | boolean
+  image_base64?: Prisma.StringNullableFilter<"Product"> | string | null
+  image_base64_back?: Prisma.StringNullableFilter<"Product"> | string | null
+  halal_logo_id?: Prisma.IntNullableFilter<"Product"> | number | null
+  confirmed_not_halal?: Prisma.BoolFilter<"Product"> | boolean
+  halal_unverified?: Prisma.BoolFilter<"Product"> | boolean
+  canonical_key?: Prisma.StringNullableFilter<"Product"> | string | null
+  canonical_product_id?: Prisma.IntNullableFilter<"Product"> | number | null
+  created_at?: Prisma.DateTimeFilter<"Product"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"Product"> | Date | string
+  deleted_at?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
 }
 
 export type ProductCreateWithoutHalal_logoInput = {
@@ -1060,6 +1424,7 @@ export type ProductCreateWithoutHalal_logoInput = {
   image_base64_back?: string | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1069,6 +1434,8 @@ export type ProductCreateWithoutHalal_logoInput = {
   ingredients?: Prisma.IngredientCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationCreateNestedManyWithoutProductInput
+  canonical_product?: Prisma.ProductCreateNestedOneWithoutDuplicatesInput
+  duplicates?: Prisma.ProductCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductUncheckedCreateWithoutHalal_logoInput = {
@@ -1082,6 +1449,8 @@ export type ProductUncheckedCreateWithoutHalal_logoInput = {
   image_base64_back?: string | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
+  canonical_product_id?: number | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1091,6 +1460,7 @@ export type ProductUncheckedCreateWithoutHalal_logoInput = {
   ingredients?: Prisma.IngredientUncheckedCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutProductInput
+  duplicates?: Prisma.ProductUncheckedCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductCreateOrConnectWithoutHalal_logoInput = {
@@ -1119,26 +1489,6 @@ export type ProductUpdateManyWithWhereWithoutHalal_logoInput = {
   data: Prisma.XOR<Prisma.ProductUpdateManyMutationInput, Prisma.ProductUncheckedUpdateManyWithoutHalal_logoInput>
 }
 
-export type ProductScalarWhereInput = {
-  AND?: Prisma.ProductScalarWhereInput | Prisma.ProductScalarWhereInput[]
-  OR?: Prisma.ProductScalarWhereInput[]
-  NOT?: Prisma.ProductScalarWhereInput | Prisma.ProductScalarWhereInput[]
-  id?: Prisma.IntFilter<"Product"> | number
-  brand_name?: Prisma.StringFilter<"Product"> | string
-  product_name?: Prisma.StringFilter<"Product"> | string
-  ingredient_text?: Prisma.StringFilter<"Product"> | string
-  simplified_ingredients?: Prisma.StringFilter<"Product"> | string
-  is_verified?: Prisma.BoolFilter<"Product"> | boolean
-  image_base64?: Prisma.StringNullableFilter<"Product"> | string | null
-  image_base64_back?: Prisma.StringNullableFilter<"Product"> | string | null
-  halal_logo_id?: Prisma.IntNullableFilter<"Product"> | number | null
-  confirmed_not_halal?: Prisma.BoolFilter<"Product"> | boolean
-  halal_unverified?: Prisma.BoolFilter<"Product"> | boolean
-  created_at?: Prisma.DateTimeFilter<"Product"> | Date | string
-  updated_at?: Prisma.DateTimeFilter<"Product"> | Date | string
-  deleted_at?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
-}
-
 export type ProductCreateWithoutPantry_itemInput = {
   brand_name: string
   product_name: string
@@ -1149,6 +1499,7 @@ export type ProductCreateWithoutPantry_itemInput = {
   image_base64_back?: string | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1158,6 +1509,8 @@ export type ProductCreateWithoutPantry_itemInput = {
   ingredients?: Prisma.IngredientCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationCreateNestedManyWithoutProductInput
+  canonical_product?: Prisma.ProductCreateNestedOneWithoutDuplicatesInput
+  duplicates?: Prisma.ProductCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductUncheckedCreateWithoutPantry_itemInput = {
@@ -1172,6 +1525,8 @@ export type ProductUncheckedCreateWithoutPantry_itemInput = {
   halal_logo_id?: number | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
+  canonical_product_id?: number | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1180,6 +1535,7 @@ export type ProductUncheckedCreateWithoutPantry_itemInput = {
   ingredients?: Prisma.IngredientUncheckedCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutProductInput
+  duplicates?: Prisma.ProductUncheckedCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductCreateOrConnectWithoutPantry_itemInput = {
@@ -1208,6 +1564,7 @@ export type ProductUpdateWithoutPantry_itemInput = {
   image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1217,6 +1574,8 @@ export type ProductUpdateWithoutPantry_itemInput = {
   ingredients?: Prisma.IngredientUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUpdateManyWithoutProductNestedInput
+  canonical_product?: Prisma.ProductUpdateOneWithoutDuplicatesNestedInput
+  duplicates?: Prisma.ProductUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutPantry_itemInput = {
@@ -1231,6 +1590,8 @@ export type ProductUncheckedUpdateWithoutPantry_itemInput = {
   halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_product_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1239,6 +1600,7 @@ export type ProductUncheckedUpdateWithoutPantry_itemInput = {
   ingredients?: Prisma.IngredientUncheckedUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUncheckedUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUncheckedUpdateManyWithoutProductNestedInput
+  duplicates?: Prisma.ProductUncheckedUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductCreateWithoutScanInput = {
@@ -1251,6 +1613,7 @@ export type ProductCreateWithoutScanInput = {
   image_base64_back?: string | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1260,6 +1623,8 @@ export type ProductCreateWithoutScanInput = {
   ingredients?: Prisma.IngredientCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationCreateNestedManyWithoutProductInput
+  canonical_product?: Prisma.ProductCreateNestedOneWithoutDuplicatesInput
+  duplicates?: Prisma.ProductCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductUncheckedCreateWithoutScanInput = {
@@ -1274,6 +1639,8 @@ export type ProductUncheckedCreateWithoutScanInput = {
   halal_logo_id?: number | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
+  canonical_product_id?: number | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1282,6 +1649,7 @@ export type ProductUncheckedCreateWithoutScanInput = {
   ingredients?: Prisma.IngredientUncheckedCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutProductInput
+  duplicates?: Prisma.ProductUncheckedCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductCreateOrConnectWithoutScanInput = {
@@ -1310,6 +1678,7 @@ export type ProductUpdateWithoutScanInput = {
   image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1319,6 +1688,8 @@ export type ProductUpdateWithoutScanInput = {
   ingredients?: Prisma.IngredientUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUpdateManyWithoutProductNestedInput
+  canonical_product?: Prisma.ProductUpdateOneWithoutDuplicatesNestedInput
+  duplicates?: Prisma.ProductUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutScanInput = {
@@ -1333,6 +1704,8 @@ export type ProductUncheckedUpdateWithoutScanInput = {
   halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_product_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1341,6 +1714,7 @@ export type ProductUncheckedUpdateWithoutScanInput = {
   ingredients?: Prisma.IngredientUncheckedUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUncheckedUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUncheckedUpdateManyWithoutProductNestedInput
+  duplicates?: Prisma.ProductUncheckedUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductCreateWithoutHalal_logosInput = {
@@ -1353,6 +1727,7 @@ export type ProductCreateWithoutHalal_logosInput = {
   image_base64_back?: string | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1362,6 +1737,8 @@ export type ProductCreateWithoutHalal_logosInput = {
   ingredients?: Prisma.IngredientCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationCreateNestedManyWithoutProductInput
+  canonical_product?: Prisma.ProductCreateNestedOneWithoutDuplicatesInput
+  duplicates?: Prisma.ProductCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductUncheckedCreateWithoutHalal_logosInput = {
@@ -1376,6 +1753,8 @@ export type ProductUncheckedCreateWithoutHalal_logosInput = {
   halal_logo_id?: number | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
+  canonical_product_id?: number | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1384,6 +1763,7 @@ export type ProductUncheckedCreateWithoutHalal_logosInput = {
   ingredients?: Prisma.IngredientUncheckedCreateNestedManyWithoutProductInput
   activityLog?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutProductInput
   notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutProductInput
+  duplicates?: Prisma.ProductUncheckedCreateNestedManyWithoutCanonical_productInput
 }
 
 export type ProductCreateOrConnectWithoutHalal_logosInput = {
@@ -1412,6 +1792,7 @@ export type ProductUpdateWithoutHalal_logosInput = {
   image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1421,6 +1802,8 @@ export type ProductUpdateWithoutHalal_logosInput = {
   ingredients?: Prisma.IngredientUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUpdateManyWithoutProductNestedInput
+  canonical_product?: Prisma.ProductUpdateOneWithoutDuplicatesNestedInput
+  duplicates?: Prisma.ProductUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutHalal_logosInput = {
@@ -1435,6 +1818,8 @@ export type ProductUncheckedUpdateWithoutHalal_logosInput = {
   halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_product_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1443,6 +1828,92 @@ export type ProductUncheckedUpdateWithoutHalal_logosInput = {
   ingredients?: Prisma.IngredientUncheckedUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUncheckedUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUncheckedUpdateManyWithoutProductNestedInput
+  duplicates?: Prisma.ProductUncheckedUpdateManyWithoutCanonical_productNestedInput
+}
+
+export type ProductCreateManyCanonical_productInput = {
+  id?: number
+  brand_name: string
+  product_name: string
+  ingredient_text: string
+  simplified_ingredients: string
+  is_verified?: boolean
+  image_base64?: string | null
+  image_base64_back?: string | null
+  halal_logo_id?: number | null
+  confirmed_not_halal?: boolean
+  halal_unverified?: boolean
+  canonical_key?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+}
+
+export type ProductUpdateWithoutCanonical_productInput = {
+  brand_name?: Prisma.StringFieldUpdateOperationsInput | string
+  product_name?: Prisma.StringFieldUpdateOperationsInput | string
+  ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
+  simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
+  is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  halal_logo?: Prisma.HalalLogoUpdateOneWithoutProductNestedInput
+  halal_logos?: Prisma.ProductHalalLogoUpdateManyWithoutProductNestedInput
+  pantry_item?: Prisma.PantryItemUpdateManyWithoutProductNestedInput
+  scan?: Prisma.ScanUpdateManyWithoutProductNestedInput
+  ingredients?: Prisma.IngredientUpdateManyWithoutProductNestedInput
+  activityLog?: Prisma.ActivityLogUpdateManyWithoutProductNestedInput
+  notification?: Prisma.NotificationUpdateManyWithoutProductNestedInput
+  duplicates?: Prisma.ProductUpdateManyWithoutCanonical_productNestedInput
+}
+
+export type ProductUncheckedUpdateWithoutCanonical_productInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  brand_name?: Prisma.StringFieldUpdateOperationsInput | string
+  product_name?: Prisma.StringFieldUpdateOperationsInput | string
+  ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
+  simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
+  is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  halal_logos?: Prisma.ProductHalalLogoUncheckedUpdateManyWithoutProductNestedInput
+  pantry_item?: Prisma.PantryItemUncheckedUpdateManyWithoutProductNestedInput
+  scan?: Prisma.ScanUncheckedUpdateManyWithoutProductNestedInput
+  ingredients?: Prisma.IngredientUncheckedUpdateManyWithoutProductNestedInput
+  activityLog?: Prisma.ActivityLogUncheckedUpdateManyWithoutProductNestedInput
+  notification?: Prisma.NotificationUncheckedUpdateManyWithoutProductNestedInput
+  duplicates?: Prisma.ProductUncheckedUpdateManyWithoutCanonical_productNestedInput
+}
+
+export type ProductUncheckedUpdateManyWithoutCanonical_productInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  brand_name?: Prisma.StringFieldUpdateOperationsInput | string
+  product_name?: Prisma.StringFieldUpdateOperationsInput | string
+  ingredient_text?: Prisma.StringFieldUpdateOperationsInput | string
+  simplified_ingredients?: Prisma.StringFieldUpdateOperationsInput | string
+  is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  halal_logo_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type ProductCreateManyHalal_logoInput = {
@@ -1456,6 +1927,8 @@ export type ProductCreateManyHalal_logoInput = {
   image_base64_back?: string | null
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: string | null
+  canonical_product_id?: number | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1471,6 +1944,7 @@ export type ProductUpdateWithoutHalal_logoInput = {
   image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1480,6 +1954,8 @@ export type ProductUpdateWithoutHalal_logoInput = {
   ingredients?: Prisma.IngredientUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUpdateManyWithoutProductNestedInput
+  canonical_product?: Prisma.ProductUpdateOneWithoutDuplicatesNestedInput
+  duplicates?: Prisma.ProductUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutHalal_logoInput = {
@@ -1493,6 +1969,8 @@ export type ProductUncheckedUpdateWithoutHalal_logoInput = {
   image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_product_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1502,6 +1980,7 @@ export type ProductUncheckedUpdateWithoutHalal_logoInput = {
   ingredients?: Prisma.IngredientUncheckedUpdateManyWithoutProductNestedInput
   activityLog?: Prisma.ActivityLogUncheckedUpdateManyWithoutProductNestedInput
   notification?: Prisma.NotificationUncheckedUpdateManyWithoutProductNestedInput
+  duplicates?: Prisma.ProductUncheckedUpdateManyWithoutCanonical_productNestedInput
 }
 
 export type ProductUncheckedUpdateManyWithoutHalal_logoInput = {
@@ -1515,6 +1994,8 @@ export type ProductUncheckedUpdateManyWithoutHalal_logoInput = {
   image_base64_back?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmed_not_halal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   halal_unverified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canonical_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_product_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1532,6 +2013,7 @@ export type ProductCountOutputType = {
   ingredients: number
   activityLog: number
   notification: number
+  duplicates: number
 }
 
 export type ProductCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1541,6 +2023,7 @@ export type ProductCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   ingredients?: boolean | ProductCountOutputTypeCountIngredientsArgs
   activityLog?: boolean | ProductCountOutputTypeCountActivityLogArgs
   notification?: boolean | ProductCountOutputTypeCountNotificationArgs
+  duplicates?: boolean | ProductCountOutputTypeCountDuplicatesArgs
 }
 
 /**
@@ -1595,6 +2078,13 @@ export type ProductCountOutputTypeCountNotificationArgs<ExtArgs extends runtime.
   where?: Prisma.NotificationWhereInput
 }
 
+/**
+ * ProductCountOutputType without action
+ */
+export type ProductCountOutputTypeCountDuplicatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProductWhereInput
+}
+
 
 export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1608,6 +2098,8 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   halal_logo_id?: boolean
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: boolean
+  canonical_product_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   deleted_at?: boolean
@@ -1618,6 +2110,8 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   ingredients?: boolean | Prisma.Product$ingredientsArgs<ExtArgs>
   activityLog?: boolean | Prisma.Product$activityLogArgs<ExtArgs>
   notification?: boolean | Prisma.Product$notificationArgs<ExtArgs>
+  canonical_product?: boolean | Prisma.Product$canonical_productArgs<ExtArgs>
+  duplicates?: boolean | Prisma.Product$duplicatesArgs<ExtArgs>
   _count?: boolean | Prisma.ProductCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
 
@@ -1633,10 +2127,13 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   halal_logo_id?: boolean
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: boolean
+  canonical_product_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   deleted_at?: boolean
   halal_logo?: boolean | Prisma.Product$halal_logoArgs<ExtArgs>
+  canonical_product?: boolean | Prisma.Product$canonical_productArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
 
 export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1651,10 +2148,13 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   halal_logo_id?: boolean
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: boolean
+  canonical_product_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   deleted_at?: boolean
   halal_logo?: boolean | Prisma.Product$halal_logoArgs<ExtArgs>
+  canonical_product?: boolean | Prisma.Product$canonical_productArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
 
 export type ProductSelectScalar = {
@@ -1669,12 +2169,14 @@ export type ProductSelectScalar = {
   halal_logo_id?: boolean
   confirmed_not_halal?: boolean
   halal_unverified?: boolean
+  canonical_key?: boolean
+  canonical_product_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   deleted_at?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "brand_name" | "product_name" | "ingredient_text" | "simplified_ingredients" | "is_verified" | "image_base64" | "image_base64_back" | "halal_logo_id" | "confirmed_not_halal" | "halal_unverified" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "brand_name" | "product_name" | "ingredient_text" | "simplified_ingredients" | "is_verified" | "image_base64" | "image_base64_back" | "halal_logo_id" | "confirmed_not_halal" | "halal_unverified" | "canonical_key" | "canonical_product_id" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   halal_logo?: boolean | Prisma.Product$halal_logoArgs<ExtArgs>
   halal_logos?: boolean | Prisma.Product$halal_logosArgs<ExtArgs>
@@ -1683,13 +2185,17 @@ export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   ingredients?: boolean | Prisma.Product$ingredientsArgs<ExtArgs>
   activityLog?: boolean | Prisma.Product$activityLogArgs<ExtArgs>
   notification?: boolean | Prisma.Product$notificationArgs<ExtArgs>
+  canonical_product?: boolean | Prisma.Product$canonical_productArgs<ExtArgs>
+  duplicates?: boolean | Prisma.Product$duplicatesArgs<ExtArgs>
   _count?: boolean | Prisma.ProductCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProductIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   halal_logo?: boolean | Prisma.Product$halal_logoArgs<ExtArgs>
+  canonical_product?: boolean | Prisma.Product$canonical_productArgs<ExtArgs>
 }
 export type ProductIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   halal_logo?: boolean | Prisma.Product$halal_logoArgs<ExtArgs>
+  canonical_product?: boolean | Prisma.Product$canonical_productArgs<ExtArgs>
 }
 
 export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1702,6 +2208,8 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     ingredients: Prisma.$IngredientPayload<ExtArgs>[]
     activityLog: Prisma.$ActivityLogPayload<ExtArgs>[]
     notification: Prisma.$NotificationPayload<ExtArgs>[]
+    canonical_product: Prisma.$ProductPayload<ExtArgs> | null
+    duplicates: Prisma.$ProductPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1715,6 +2223,8 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     halal_logo_id: number | null
     confirmed_not_halal: boolean
     halal_unverified: boolean
+    canonical_key: string | null
+    canonical_product_id: number | null
     created_at: Date
     updated_at: Date
     deleted_at: Date | null
@@ -2119,6 +2629,8 @@ export interface Prisma__ProductClient<T, Null = never, ExtArgs extends runtime.
   ingredients<T extends Prisma.Product$ingredientsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$ingredientsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IngredientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   activityLog<T extends Prisma.Product$activityLogArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$activityLogArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notification<T extends Prisma.Product$notificationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$notificationArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  canonical_product<T extends Prisma.Product$canonical_productArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$canonical_productArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  duplicates<T extends Prisma.Product$duplicatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$duplicatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2159,6 +2671,8 @@ export interface ProductFieldRefs {
   readonly halal_logo_id: Prisma.FieldRef<"Product", 'Int'>
   readonly confirmed_not_halal: Prisma.FieldRef<"Product", 'Boolean'>
   readonly halal_unverified: Prisma.FieldRef<"Product", 'Boolean'>
+  readonly canonical_key: Prisma.FieldRef<"Product", 'String'>
+  readonly canonical_product_id: Prisma.FieldRef<"Product", 'Int'>
   readonly created_at: Prisma.FieldRef<"Product", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"Product", 'DateTime'>
   readonly deleted_at: Prisma.FieldRef<"Product", 'DateTime'>
@@ -2723,6 +3237,49 @@ export type Product$notificationArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
+}
+
+/**
+ * Product.canonical_product
+ */
+export type Product$canonical_productArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Product
+   */
+  select?: Prisma.ProductSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Product
+   */
+  omit?: Prisma.ProductOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProductInclude<ExtArgs> | null
+  where?: Prisma.ProductWhereInput
+}
+
+/**
+ * Product.duplicates
+ */
+export type Product$duplicatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Product
+   */
+  select?: Prisma.ProductSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Product
+   */
+  omit?: Prisma.ProductOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProductInclude<ExtArgs> | null
+  where?: Prisma.ProductWhereInput
+  orderBy?: Prisma.ProductOrderByWithRelationInput | Prisma.ProductOrderByWithRelationInput[]
+  cursor?: Prisma.ProductWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProductScalarFieldEnum | Prisma.ProductScalarFieldEnum[]
 }
 
 /**

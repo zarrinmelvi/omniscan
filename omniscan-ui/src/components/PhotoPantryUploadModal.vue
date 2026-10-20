@@ -252,6 +252,15 @@ interface AnalyzeResult {
 const props = defineProps<{ isOpen: boolean }>()
 const emit = defineEmits<{ close: []; created: [] }>()
 
+async function showQuotaModal(message: string): Promise<void> {
+	const alert = await alertController.create({
+		header: 'Storage Limit Reached',
+		message: message || 'You have reached the maximum of 100 active pantry items. Archive or remove items to free up space.',
+		buttons: ['Got it'],
+	})
+	await alert.present()
+}
+
 const step = ref<1 | 2>(1)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const previewUrl = ref<string | null>(null)
@@ -522,6 +531,10 @@ async function handleSubmit(): Promise<void> {
 		emit('created')
 		forceDismiss()
 	} catch (err) {
+		if (err instanceof ApiError && err.status === 429 && (err.data as any)?.quota_exceeded) {
+			await showQuotaModal(err.message)
+			return
+		}
 		formError.value = err instanceof ApiError ? err.message : 'Failed to add item to pantry.'
 		console.error('Add to pantry error:', err)
 	} finally {

@@ -2261,6 +2261,8 @@ export const ProductScalarFieldEnum = {
   halal_logo_id: 'halal_logo_id',
   confirmed_not_halal: 'confirmed_not_halal',
   halal_unverified: 'halal_unverified',
+  canonical_key: 'canonical_key',
+  canonical_product_id: 'canonical_product_id',
   created_at: 'created_at',
   updated_at: 'updated_at',
   deleted_at: 'deleted_at'

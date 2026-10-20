@@ -221,9 +221,22 @@ model Product {
 	// Needed so the Pantry Overview can actually render a "Not verified"
 	// state — without this, Product had no way to record that fact at all.
 	halal_unverified Boolean @default(false)
+	// Epic 6 dedup: normalized "brand|product_name" key used to detect when two
+	// scans refer to the same real-world product. Nullable because legacy rows
+	// and manual placeholders may not have one. Not @unique — multiple user-owned
+	// rows can share a canonical_key; the FIRST such row becomes the canonical one.
+	canonical_key String?
+	// Self-relation: when this row is a duplicate of an earlier scan of the same
+	// product, canonical_product_id points at the earliest (canonical) Product.
+	// Null means THIS row is itself canonical (or has no known duplicate).
+	canonical_product   Product?  @relation("ProductCanonical", fields: [canonical_product_id], references: [id])
+	canonical_product_id Int?
+	duplicates          Product[] @relation("ProductCanonical")
 	created_at DateTime @default(now())
   	updated_at DateTime @updatedAt
   	deleted_at DateTime?
+
+	@@index([canonical_key])
 }
 
 model HalalLogo {	

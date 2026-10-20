@@ -2,6 +2,8 @@ import { defineEventHandler, readBody, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 import { matchIngredientsToPantry, extractPantryKeywords, type RawIngredient } from '../../lib/recipe-matching'
+import { buildCanonicalKey, findCanonicalProduct } from '../../lib/product-dedup'
+import { assertPantryQuotaAvailable } from '../../lib/quota'
 
 interface CreatePantryItemBody {
 	product_id?: number
@@ -44,6 +46,8 @@ function coerceSavedAlternatives(value: unknown): { name: string; descriptor: st
 
 export default defineEventHandler(async (event) => {
 	const authUser = requireAuth(event)
+
+	await assertPantryQuotaAvailable(authUser.id)
 
 	const body = (await readBody(event).catch(() => null)) as CreatePantryItemBody | null
 
@@ -132,30 +136,24 @@ export default defineEventHandler(async (event) => {
 				throw createError({ statusCode: 400, statusMessage: 'product_name is required.' })
 			}
 
-			let existing = await prisma.product.findFirst({
-				where: { product_name: product_name.trim() },
+			const canonicalKey = buildCanonicalKey('Manually Added', product_name.trim())
+			const canonicalMatch = await findCanonicalProduct('Manually Added', product_name.trim())
+
+			const created = await prisma.product.create({
+				data: {
+					brand_name: 'Manually Added',
+					product_name: product_name.trim(),
+					ingredient_text: ingredient_text?.trim() || canonicalMatch?.ingredient_text || 'Unknown',
+					simplified_ingredients: simplified_ingredients?.trim() || canonicalMatch?.simplified_ingredients || ingredient_text?.trim() || 'Unknown',
+					image_base64: image_base64 || null,
+					is_verified: false,
+					halal_logo_id: null,
+					canonical_key: canonicalKey,
+					...(canonicalMatch ? { canonical_product_id: canonicalMatch.id } : {}),
+				},
+				select: { id: true, product_name: true },
 			})
-
-			if (!existing) {
-				existing = await prisma.product.create({
-					data: {
-						brand_name: 'Manually Added',
-						product_name: product_name.trim(),
-						ingredient_text: ingredient_text?.trim() || 'Unknown',
-						simplified_ingredients: simplified_ingredients?.trim() || ingredient_text?.trim() || 'Unknown',
-						image_base64: image_base64 || null,
-						is_verified: false,
-						halal_logo_id: null,
-					},
-				})
-			} else if (image_base64) {
-				existing = await prisma.product.update({
-					where: { id: existing.id },
-					data: { image_base64 },
-				})
-			}
-
-			product = existing
+			product = created
 		}
 
 		const newItem = await prisma.pantryItem.create({

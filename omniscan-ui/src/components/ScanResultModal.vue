@@ -192,7 +192,16 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { IonModal, IonAlert, IonContent, IonIcon, IonButton, IonSpinner, alertController } from '@ionic/vue'
-import { apiFetch } from '@/utils/api'
+import { apiFetch, ApiError } from '@/utils/api'
+
+async function showQuotaModal(message: string): Promise<void> {
+	const alert = await alertController.create({
+		header: 'Storage Limit Reached',
+		message: message || 'You have reached the maximum of 100 active pantry items. Archive or remove items to free up space.',
+		buttons: ['Got it'],
+	})
+	await alert.present()
+}
 import {
 	closeOutline,
 	checkmarkCircleOutline,
@@ -471,6 +480,10 @@ async function submitAddToPantry() {
 		emit('added')
 		forceDismiss()
 	} catch (err) {
+		if (err instanceof ApiError && err.status === 429 && (err.data as any)?.quota_exceeded) {
+			await showQuotaModal(err.message)
+			return
+		}
 		submitError.value = err instanceof Error ? err.message : 'Failed to add item to pantry.'
 	} finally {
 		submitting.value = false

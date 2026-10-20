@@ -5,6 +5,7 @@ import { OLLAMA_ENDPOINT, SCAN_VISION_MODEL } from '../../lib/ollama-models'
 import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens } from '../../lib/allergen-matching'
 import { stripCodeFences } from '../../lib/ai-json'
 import { matchCatalogProduct, CATALOG_PRODUCT_SELECT } from '../../lib/catalog-matching'
+import { buildCanonicalKey, findCanonicalProduct } from '../../lib/product-dedup'
 import { determineDisallowedCatalogIngredients } from '../../lib/alternative-reasoning'
 import { findAlternativeProducts } from '../../lib/alternative-matching'
 import { normalizeToDateStringOrNull } from '../../lib/date-parse'
@@ -423,18 +424,25 @@ export default defineEventHandler(async (event) => {
 		secondaryProductImage = imageDataUri
 	}
 
+	const canonicalKey = buildCanonicalKey(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
+	const canonicalMatch = await findCanonicalProduct(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
+
 	try {
 		const product = await prisma.product.create({
 			data: {
 				brand_name: extraction.brand || 'Unknown',
 				product_name: extraction.product_name || imageField.filename,
-				ingredient_text: extraction.ingredients_text,
-				simplified_ingredients: extraction.simplified_ingredients,
+				// Inherit canonical ingredient text when the fresh extraction is empty,
+				// so a re-scan of a known product benefits from the earlier good read.
+				ingredient_text: extraction.ingredients_text.trim() || canonicalMatch?.ingredient_text || extraction.ingredients_text,
+				simplified_ingredients: extraction.simplified_ingredients.trim() || canonicalMatch?.simplified_ingredients || extraction.simplified_ingredients,
 				image_base64: mainProductImage,
 				image_base64_back: secondaryProductImage ?? undefined,
 				is_verified: false,
 				...(matchedHalalLogo ? { halal_logo_id: matchedHalalLogo.id } : {}),
 				halal_unverified: halalUnverified,
+				canonical_key: canonicalKey,
+				...(canonicalMatch ? { canonical_product_id: canonicalMatch.id } : {}),
 			},
 		})
 
@@ -600,6 +608,8 @@ export default defineEventHandler(async (event) => {
 					simplified_ingredients: product.simplified_ingredients,
 					halal_logo_id: product.halal_logo_id,
 					halal_unverified: product.halal_unverified,
+					canonical_product_id: product.canonical_product_id,
+					is_duplicate: product.canonical_product_id != null,
 					image_base64: product.image_base64,
 					image_base64_back: product.image_base64_back,
 					expiration_date_detected: extraction.expiration_date,

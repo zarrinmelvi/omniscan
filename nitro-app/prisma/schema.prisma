@@ -67,6 +67,10 @@ model User {
   verification_token            String?   @unique
   verification_token_expires_at DateTime?
   last_verification_sent_at     DateTime?
+  // Epic 7: timestamp of the last inactivity warning email sent. Null until a
+  // warning fires. Reset to null on login so a fresh inactivity cycle can warn
+  // again. Prevents the daily cron from re-sending the same warning.
+  inactivity_warning_sent_at    DateTime?
 
   notifications Notification[]
   dietary_prof DietaryProfile[]

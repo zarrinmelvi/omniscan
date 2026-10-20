@@ -129,6 +129,106 @@ export async function sendAccountArchivedEmail(email: string, name: string): Pro
 	}
 }
 
+export async function sendInactivityWarningEmail(email: string, name: string): Promise<EmailResult> {
+	const loginUrl = `${FRONTEND_URL}/login`
+
+	try {
+		const { error } = await resend.emails.send({
+			from: EMAIL_FROM,
+			to: email,
+			subject: 'We miss you at OmniScan — sign in to keep your account active',
+			html: buildInactivityWarningEmailHtml(name, loginUrl),
+		})
+
+		if (error) {
+			console.error('[email] Resend API error (inactivity warning):', error)
+			return { success: false, error: error.message }
+		}
+
+		console.log(`[email] Inactivity warning email sent to ${email}`)
+		return { success: true }
+	} catch (err: any) {
+		console.error('[email] Failed to send inactivity warning email:', err)
+		return { success: false, error: err?.message ?? 'Unknown error' }
+	}
+}
+
+function buildInactivityWarningEmailHtml(name: string, loginUrl: string): string {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>We miss you at OmniScan</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+               style="background:#ffffff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:32px 40px;border-bottom:3px solid #4CAF50;text-align:center;">
+              <h1 style="margin:0;font-size:24px;color:#333333;">We miss you at OmniScan 👋</h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px;">
+              <p style="margin:0 0 16px;font-size:18px;color:#333333;">Hi ${name},</p>
+              <p style="margin:0 0 20px;font-size:15px;color:#555555;line-height:1.6;">
+                It's been about <strong>30 days</strong> since you last signed in to OmniScan. We just wanted to check in!
+              </p>
+
+              <div style="background-color:#E8F5E9;border-left:4px solid #4CAF50;padding:16px;border-radius:4px;margin-bottom:24px;">
+                <p style="margin:0;font-size:14px;color:#2E7D32;line-height:1.5;">
+                  ✅ Good news — nothing has been deleted. Your pantry, scans, and preferences are all still here, right where you left them.
+                </p>
+              </div>
+
+              <p style="margin:0 0 24px;font-size:15px;color:#555555;line-height:1.6;">
+                Just sign back in to pick up where you left off. Accounts that stay inactive for an extended period may eventually be archived, so a quick sign-in keeps everything active.
+              </p>
+
+              <!-- CTA -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+                <tr>
+                  <td>
+                    <a href="${loginUrl}"
+                       style="display:inline-block;padding:14px 36px;background-color:#4CAF50;color:#ffffff;
+                              text-decoration:none;border-radius:6px;font-size:16px;font-weight:bold;">
+                      Sign In to OmniScan
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0;padding-top:24px;border-top:1px solid #eeeeee;font-size:13px;color:#999999;line-height:1.6;">
+                If you no longer wish to use OmniScan, you can simply ignore this email.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 40px;background-color:#f8f8f8;border-top:1px solid #eeeeee;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#aaaaaa;">
+                &copy; ${new Date().getFullYear()} OmniScan. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
 function buildVerificationEmailHtml(name: string, verificationUrl: string): string {
 	return `<!DOCTYPE html>
 <html lang="en">

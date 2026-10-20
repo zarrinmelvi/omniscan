@@ -110,7 +110,7 @@ export default defineEventHandler(async (event) => {
 					data: { oauth_provider: 'google', oauth_provider_id: profile.id, email_verified: true },
 				})
 			}
-			await prisma.user.update({ where: { id: user.id }, data: { last_active: new Date() } }).catch(() => {})
+			await prisma.user.update({ where: { id: user.id }, data: { last_active: new Date(), inactivity_warning_sent_at: null } }).catch(() => {})
 		}
 
 		await logAuditEvent({

@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
 		})
 
 		await prisma.user
-			.update({ where: { id: user.id }, data: { last_active: new Date() } })
+			.update({ where: { id: user.id }, data: { last_active: new Date(), inactivity_warning_sent_at: null } })
 			.catch((err) => console.error('Failed to update last_active:', err))
 
 		await logAuditEvent({

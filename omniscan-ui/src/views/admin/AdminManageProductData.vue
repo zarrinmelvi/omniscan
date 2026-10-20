@@ -170,7 +170,7 @@
 						<label class="filter-label">Filter by allergen:</label>
 						<select v-model="ingredientAllergenFilter" class="ingredient-filter-select">
 							<option value="all">All Allergens</option>
-							<option v-for="a in allergens" :key="a.id" :value="a.name">{{ a.name }}</option>
+							<option v-for="a in sortedAllergens" :key="a.id" :value="a.name">{{ a.name }}</option>
 						</select>
 					</div>
 					<span class="ingredient-count-label">
@@ -327,7 +327,7 @@
 								<span class="field-label">Mapped allergen / category *</span>
 								<select v-model.number="form.allergen_id" class="field-input">
 									<option :value="undefined" disabled>Select an allergen…</option>
-									<option v-for="a in allergens" :key="a.id" :value="a.id">{{ a.name }}</option>
+									<option v-for="a in sortedAllergens" :key="a.id" :value="a.id">{{ a.name }}</option>
 								</select>
 							</label>
 						</template>
@@ -501,8 +501,12 @@ const tabSingular = computed(() => {
 // ─── Filtering ──────────────────────────────────────────────────────────────
 const filteredAllergens = computed(() => {
 	const q = searchQuery.value.trim().toLowerCase()
-	if (!q) return allergens.value
-	return allergens.value.filter((a) => a.name.toLowerCase().includes(q) || a.scientific_name.toLowerCase().includes(q))
+	const base = q
+		? allergens.value.filter((a) => a.name.toLowerCase().includes(q) || a.scientific_name.toLowerCase().includes(q))
+		: allergens.value
+	// Epic 9 deliverable 3: sort A-Z by name to match the Ingredient Mappings
+	// view (which groups alphabetically by allergen). Keeps both views consistent.
+	return [...base].sort((a, b) => a.name.localeCompare(b.name))
 })
 
 // ─── Allergen Dictionary pagination ─────────────────────────────────────────
@@ -566,6 +570,10 @@ watch(searchQuery, () => {
 watch(allergenTotalPages, (tp) => {
 	if (allergenPage.value > tp) allergenPage.value = tp
 })
+
+// Allergen list sorted A-Z for dropdowns (ingredient filter + mapping modal),
+// matching the alphabetical ordering used elsewhere (Epic 9 deliverable 3).
+const sortedAllergens = computed(() => [...allergens.value].sort((a, b) => a.name.localeCompare(b.name)))
 
 const filteredHalalLogos = computed(() => {
 	const q = searchQuery.value.trim().toLowerCase()

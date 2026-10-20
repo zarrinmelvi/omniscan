@@ -182,27 +182,33 @@
 							<ion-button size="small" fill="clear" @click="fetchAllergenCatalog">Retry</ion-button>
 						</div>
 
-						<div v-else class="pref-grid">
-							<button
-								type="button"
-								class="pref-card"
-								:class="{ 'pref-card--selected': halalSelected }"
-								@click="toggleHalal()">
-								<span class="pref-emoji">🕌</span>
-								<span class="pref-label">Halal</span>
-							</button>
+						<template v-else>
+							<div class="dietary-pref-section">
+								<p class="pref-section-label">Dietary Preference</p>
+								<button
+									type="button"
+									class="pref-card pref-card--halal"
+									:class="{ 'pref-card--selected': halalSelected }"
+									@click="toggleHalal()">
+									<span class="pref-emoji">🕌</span>
+									<span class="pref-label">Halal</span>
+								</button>
+							</div>
+							<p class="pref-section-label">Allergens / Allergies (up to 5)</p>
 
-							<button
-								v-for="allergen in allergenCatalog"
-								:key="allergen.id"
-								type="button"
-								class="pref-card"
-								:class="{ 'pref-card--selected': selectedAllergenIds.includes(allergen.id) }"
-								@click="toggleAllergen(allergen.id)">
-								<span class="pref-emoji">{{ emojiForAllergen(allergen.name) }}</span>
-								<span class="pref-label">{{ formatAllergenName(allergen.name) }}</span>
-							</button>
-						</div>
+							<div class="pref-grid">
+								<button
+									v-for="allergen in allergenCatalog"
+									:key="allergen.id"
+									type="button"
+									class="pref-card"
+									:class="{ 'pref-card--selected': selectedAllergenIds.includes(allergen.id) }"
+									@click="toggleAllergen(allergen.id)">
+									<span class="pref-emoji">{{ emojiForAllergen(allergen.name) }}</span>
+									<span class="pref-label">{{ formatAllergenName(allergen.name) }}</span>
+								</button>
+							</div>
+						</template>
 
 						<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 allergens / allergies.</p>
 
@@ -472,7 +478,9 @@ const prefsError = ref('')
 const setupError = ref('')
 const prefLimitWarning = ref(false)
 
-const prefTotal = computed(() => selectedAllergenIds.value.length + (halalSelected.value ? 1 : 0))
+// Halal is a dietary/certification preference, NOT an allergen — it must not
+// count toward the 5-allergen cap (Epic 9 deliverable 1).
+const allergenCount = computed(() => selectedAllergenIds.value.length)
 
 const ALLERGEN_EMOJI: Record<string, string> = {
 	milk: '🥛',
@@ -634,8 +642,9 @@ function toggleAllergen(id: number): void {
 		selectedAllergenIds.value = selectedAllergenIds.value.filter((existingId) => existingId !== id)
 		prefLimitWarning.value = false
 	} else {
-		if (prefTotal.value >= PREF_MAX) {
+		if (allergenCount.value >= PREF_MAX) {
 			prefLimitWarning.value = true
+			void showToast('Maximum of 5 allergens allowed.', 'warning')
 			return
 		}
 		selectedAllergenIds.value.push(id)
@@ -643,14 +652,8 @@ function toggleAllergen(id: number): void {
 }
 
 function toggleHalal(): void {
-	if (!halalSelected.value && prefTotal.value >= PREF_MAX) {
-		prefLimitWarning.value = true
-		return
-	}
+	// Halal is independent of the allergen cap — always toggleable.
 	halalSelected.value = !halalSelected.value
-	if (!halalSelected.value) {
-		prefLimitWarning.value = false
-	}
 }
 
 async function completeSetup(): Promise<void> {
@@ -660,7 +663,7 @@ async function completeSetup(): Promise<void> {
 	prefsError.value = ''
 	setupError.value = ''
 
-	if (prefTotal.value === 0) {
+	if (allergenCount.value === 0 && !halalSelected.value) {
 		setupError.value = 'Please select at least one allergen / allergy before completing setup or click "Skip for now".'
 		isSavingPrefs.value = false
 		return
@@ -993,6 +996,10 @@ onUnmounted(() => {
 	justify-content: center;
 	padding: 24px 0;
 }
+
+.dietary-pref-section { margin-bottom: 16px; }
+.pref-section-label { font-size: 0.82rem; font-weight: 700; color: #374151; margin: 0 0 10px; }
+.pref-card--halal { max-width: 160px; }
 
 .pref-grid {
 	display: grid;

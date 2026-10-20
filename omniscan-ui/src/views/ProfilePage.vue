@@ -82,6 +82,14 @@
 				color="success"
 				@didDismiss="showSuccessToast = false" />
 
+			<ion-toast
+				:is-open="showLimitToast"
+				message="Maximum of 5 allergens allowed."
+				:duration="2500"
+				color="warning"
+				position="top"
+				@didDismiss="showLimitToast = false" />
+
 			<!-- Floating Edit Profile Modal -->
 			<ion-modal
 				:is-open="isEditModalOpen"
@@ -284,6 +292,7 @@ const loadError = ref('')
 const isSaving = ref(false)
 const saveError = ref('')
 const showSuccessToast = ref(false)
+const showLimitToast = ref(false)
 
 const allergenCatalog = ref<Allergen[]>([])
 
@@ -431,6 +440,10 @@ function toggleWhoAllergen(value: string) {
 	if (form.customPreferences.includes(value)) {
 		form.customPreferences = form.customPreferences.filter((p) => p !== value)
 	} else {
+		if (form.customPreferences.length >= PREF_MAX) {
+			showLimitToast.value = true
+			return
+		}
 		form.customPreferences.push(value)
 	}
 }

@@ -1,2 +1,9 @@
 .vercel
 .env*
+
+# Local verification / type-check scratch output (never committed)
+*tsc*.txt
+*tsc-out.txt
+*listing*.txt
+gen-output.txt
+vtsc-exit.txt

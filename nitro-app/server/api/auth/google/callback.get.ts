@@ -1,5 +1,6 @@
 import { defineEventHandler, getQuery, sendRedirect, createError } from 'h3'
 import jwt from 'jsonwebtoken'
+import { randomUUID } from 'crypto'
 import { prisma } from '../../../lib/prisma'
 import {
 	GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI,
@@ -122,7 +123,9 @@ export default defineEventHandler(async (event) => {
 		})
 
 		// 4. Issue the same JWT shape as the normal login endpoint
-		const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: TOKEN_EXPIRY })
+		const sessionToken = randomUUID()
+		await prisma.user.update({ where: { id: user.id }, data: { session_token: sessionToken } })
+		const token = jwt.sign({ userId: user.id, email: user.email, sid: sessionToken }, JWT_SECRET, { expiresIn: TOKEN_EXPIRY })
 
 		// 5. Redirect to frontend with the token in the URL fragment (consumed by the OAuth landing handler)
 		return sendRedirect(event, `${OAUTH_FRONTEND_SUCCESS}?oauth_token=${encodeURIComponent(token)}`)

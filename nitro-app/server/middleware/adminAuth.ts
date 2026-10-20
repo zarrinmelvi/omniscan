@@ -1,5 +1,6 @@
 import { defineEventHandler, getHeader } from 'h3'
 import jwt from 'jsonwebtoken'
+import { prisma } from '../lib/prisma'
 
 const JWT_SECRET = process.env.JWT_SECRET
 const isDevelopment = process.env.NODE_ENV === 'development'
@@ -10,9 +11,10 @@ interface AdminTokenPayload {
 	role: string
 	email?: string | null
 	type: 'admin'
+	sid?: string
 }
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
 	event.context.admin = null
 
 	const authHeader = getHeader(event, 'authorization')
@@ -46,6 +48,18 @@ export default defineEventHandler((event) => {
 
 		if (payload.type !== 'admin' || typeof payload.adminId !== 'number') {
 			return
+		}
+
+		// Single-session enforcement: only enforce when the token carries a sid.
+		if (payload.sid) {
+			const dbAdmin = await prisma.admin.findUnique({
+				where: { id: payload.adminId },
+				select: { session_token: true },
+			})
+			if (!dbAdmin || dbAdmin.session_token == null || dbAdmin.session_token !== payload.sid) {
+				event.context.admin = null
+				return
+			}
 		}
 
 		event.context.admin = { id: payload.adminId, username: payload.username, role: payload.role, email: payload.email ?? null }

@@ -20,6 +20,7 @@ import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import { useBreakpoint } from '@/utils/useBreakpoint'
 import DesktopNav from '@/components/DesktopNav.vue'
+import { startSessionWatcher } from '@/composables/useSessionWatcher'
 
 const route = useRoute()
 const { isDesktop } = useBreakpoint()
@@ -46,6 +47,12 @@ onMounted(async () => {
 		await StatusBar.setOverlaysWebView({ overlay: true })
 		await updateStatusBar(darkModeEnabled)
 	}
+
+	// Watch the consumer session in the background so a server-side invalidation
+	// (newer login elsewhere, or an admin login in the same browser) auto-logs
+	// the consumer out within a few seconds, without needing a manual refresh.
+	// No-ops while unauthenticated, so it's safe to call unconditionally here.
+	startSessionWatcher()
 })
 </script>
 

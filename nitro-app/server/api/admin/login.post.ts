@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import { randomUUID } from 'crypto'
 import { prisma } from '../../lib/prisma'
 import { logAuditEvent } from '../../lib/audit-logger'
 
@@ -44,8 +45,12 @@ export default defineEventHandler(async (event) => {
 		// `type: 'admin'` is what server/middleware/adminAuth.ts checks for to
 		// distinguish this from a normal user token — both are signed with
 		// the same JWT_SECRET.
+		const sessionToken = randomUUID()
+
+		await prisma.admin.update({ where: { id: admin.id }, data: { session_token: sessionToken } })
+
 		const token = jwt.sign(
-			{ adminId: admin.id, username: admin.username, role: admin.role, email: admin.email ?? null, type: 'admin' },
+			{ adminId: admin.id, username: admin.username, role: admin.role, email: admin.email ?? null, type: 'admin', sid: sessionToken },
 			JWT_SECRET,
 			{
 				expiresIn: TOKEN_EXPIRY,

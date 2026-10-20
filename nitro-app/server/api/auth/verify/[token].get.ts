@@ -1,5 +1,6 @@
 import { defineEventHandler, getRouterParam, createError } from 'h3'
 import jwt from 'jsonwebtoken'
+import { randomUUID } from 'crypto'
 import { prisma } from '../../../lib/prisma'
 import { sendWelcomeEmail } from '../../../utils/email'
 
@@ -63,8 +64,11 @@ export default defineEventHandler(async (event) => {
 	}
 
 	// Always generate and return a fresh JWT session token so setup step 2 succeeds seamlessly
+	const sessionToken = randomUUID()
+	await prisma.user.update({ where: { id: user.id }, data: { session_token: sessionToken } })
+
 	const jwtToken = jwt.sign(
-		{ userId: user.id, email: user.email },
+		{ userId: user.id, email: user.email, sid: sessionToken },
 		JWT_SECRET,
 		{ expiresIn: '7d' }
 	)

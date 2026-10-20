@@ -2140,6 +2140,7 @@ export const UserScalarFieldEnum = {
   verification_token: 'verification_token',
   verification_token_expires_at: 'verification_token_expires_at',
   last_verification_sent_at: 'last_verification_sent_at',
+  session_token: 'session_token',
   inactivity_warning_sent_at: 'inactivity_warning_sent_at',
   created_at: 'created_at',
   updated_at: 'updated_at',
@@ -2417,6 +2418,7 @@ export const AdminScalarFieldEnum = {
   email: 'email',
   password: 'password',
   role: 'role',
+  session_token: 'session_token',
   created_at: 'created_at',
   updated_at: 'updated_at',
   deleted_at: 'deleted_at'

@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import { randomUUID } from 'crypto'
 import { prisma } from '../../lib/prisma'
 import { logAuditEvent } from '../../lib/audit-logger'
 
@@ -59,12 +60,14 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
-		const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
+		const sessionToken = randomUUID()
+
+		const token = jwt.sign({ userId: user.id, email: user.email, sid: sessionToken }, JWT_SECRET, {
 			expiresIn: TOKEN_EXPIRY,
 		})
 
 		await prisma.user
-			.update({ where: { id: user.id }, data: { last_active: new Date(), inactivity_warning_sent_at: null } })
+			.update({ where: { id: user.id }, data: { last_active: new Date(), inactivity_warning_sent_at: null, session_token: sessionToken } })
 			.catch((err) => console.error('Failed to update last_active:', err))
 
 		await logAuditEvent({

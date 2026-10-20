@@ -1,5 +1,6 @@
 import { defineEventHandler, getHeader } from 'h3'
 import jwt from 'jsonwebtoken'
+import { prisma } from '../lib/prisma'
 
 const JWT_SECRET = process.env.JWT_SECRET
 const isDevelopment = process.env.NODE_ENV === 'development'
@@ -7,9 +8,10 @@ const isDevelopment = process.env.NODE_ENV === 'development'
 interface AuthTokenPayload {
 	userId: number
 	email: string
+	sid?: string
 }
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
 	event.context.user = null
 
 	const authHeader = getHeader(event, 'authorization')
@@ -43,6 +45,22 @@ export default defineEventHandler((event) => {
 
 	try {
 		const payload = jwt.verify(token, JWT_SECRET) as AuthTokenPayload
+
+		// Single-session enforcement: tokens issued after this feature carry a
+		// `sid` claim that must match the user's currently-stored session_token.
+		// Tokens without a sid (issued before this change, or the dev bypass)
+		// are left to the existing behaviour.
+		if (payload.sid) {
+			const dbUser = await prisma.user.findUnique({
+				where: { id: payload.userId },
+				select: { session_token: true },
+			})
+			if (!dbUser || dbUser.session_token == null || dbUser.session_token !== payload.sid) {
+				event.context.user = null
+				return
+			}
+		}
+
 		event.context.user = { id: payload.userId, email: payload.email }
 	} catch (err) {
 		event.context.user = null

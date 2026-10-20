@@ -49,8 +49,15 @@ model AuditEvent {
 model User { 
   id    Int     @id @default(autoincrement()) 
   name String 
+  first_name String?
+  last_name  String?
+  username   String? @unique
+  // OAuth: provider identity. Null for password accounts.
+  oauth_provider    String?
+  oauth_provider_id String?
+  // password is nullable now because OAuth accounts have no local password.
   email String  @unique 
-  password String 
+  password String?
   last_active DateTime
   status String
   avatar_base64 String? 
@@ -72,6 +79,8 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   deleted_at DateTime?
+
+  @@index([oauth_provider, oauth_provider_id])
 } 
 
 model DietaryProfile {

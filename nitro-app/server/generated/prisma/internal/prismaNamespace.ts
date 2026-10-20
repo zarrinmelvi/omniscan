@@ -2126,6 +2126,11 @@ export type AuditEventScalarFieldEnum = (typeof AuditEventScalarFieldEnum)[keyof
 export const UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  first_name: 'first_name',
+  last_name: 'last_name',
+  username: 'username',
+  oauth_provider: 'oauth_provider',
+  oauth_provider_id: 'oauth_provider_id',
   email: 'email',
   password: 'password',
   last_active: 'last_active',

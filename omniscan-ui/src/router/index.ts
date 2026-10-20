@@ -170,6 +170,19 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
+	// ── OAuth callback landing ─────────────────────────────────────────────
+	// The backend redirects here with ?oauth_token=...
+	// Consume it, establish the consumer session, then strip it from the URL.
+	if (to.query.oauth_token && typeof to.query.oauth_token === 'string') {
+		const authStore = useAuthStore()
+		await authStore.loginWithOAuthToken(to.query.oauth_token)
+		// Remove the token from the URL and proceed to the clean destination
+		const cleanQuery = { ...to.query }
+		delete cleanQuery.oauth_token
+		return next({ path: to.path, query: cleanQuery, replace: true })
+	}
+	// ─────────────────────────────────────────────────────────────────────
+
 	// ── Mode restriction ──────────────────────────────────────────────────
 	// VITE_MODE controls which "face" of the app is served.
 	//   ADMIN  → only /admin/* routes are accessible; everything else

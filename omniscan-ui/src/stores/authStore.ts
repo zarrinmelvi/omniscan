@@ -9,6 +9,9 @@ export interface AuthUser {
 	id: number
 	name: string
 	email: string
+	first_name?: string | null
+	last_name?: string | null
+	username?: string | null
 }
 
 interface LoginResponse {
@@ -72,14 +75,28 @@ export const useAuthStore = defineStore('auth', {
 			return response
 		},
 
-		async register(name: string, email: string, password: string): Promise<RegisterResponse> {
+		async register(firstName: string, lastName: string, username: string, email: string, password: string): Promise<RegisterResponse> {
 			const response = await apiFetch<RegisterResponse>('/api/auth/register', {
 				method: 'POST',
-				body: { name, email, password },
+				body: { first_name: firstName, last_name: lastName, username, email, password },
 				skipAuth: true,
 			})
-
 			return response
+		},
+
+		async loginWithOAuthToken(token: string): Promise<void> {
+			// Clear any admin session (cross-session isolation, same as password login)
+			sessionStorage.removeItem('omniscan_admin_token')
+			sessionStorage.removeItem('omniscan_admin')
+			const { useAdminAuthStore } = await import('@/stores/adminAuthStore')
+			const adminAuthStore = useAdminAuthStore()
+			adminAuthStore.admin = null
+			adminAuthStore.token = null
+
+			localStorage.setItem('omniscan_token', token)
+			this.token = token
+			// Hydrate the user from /api/auth/me
+			await this.checkAuth()
 		},
 
 		logout(): void {

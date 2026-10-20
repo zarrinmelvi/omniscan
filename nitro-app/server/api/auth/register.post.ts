@@ -13,10 +13,23 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid request body.' })
 	}
 
-	const { name, email, password } = body as { name?: string; email?: string; password?: string }
+	const { first_name, last_name, username, email, password } = body as {
+		first_name?: string; last_name?: string; username?: string; email?: string; password?: string
+	}
 
-	if (!name || typeof name !== 'string' || !name.trim()) {
-		throw createError({ statusCode: 400, statusMessage: 'Name is required.' })
+	if (!first_name || typeof first_name !== 'string' || !first_name.trim()) {
+		throw createError({ statusCode: 400, statusMessage: 'First name is required.' })
+	}
+	if (!last_name || typeof last_name !== 'string' || !last_name.trim()) {
+		throw createError({ statusCode: 400, statusMessage: 'Last name is required.' })
+	}
+	if (!username || typeof username !== 'string' || !username.trim()) {
+		throw createError({ statusCode: 400, statusMessage: 'Username is required.' })
+	}
+	// Username: 3-20 chars, alphanumeric + underscore only
+	const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
+	if (!USERNAME_RE.test(username.trim())) {
+		throw createError({ statusCode: 400, statusMessage: 'Username must be 3-20 characters, letters, numbers, and underscores only.' })
 	}
 	if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email) || !isAllowedEmailDomain(email)) {
 		throw createError({ statusCode: 400, statusMessage: 'Only @gmail.com, @outlook.com, @hotmail.com, and @yahoo.com emails are permitted.' })
@@ -24,6 +37,9 @@ export default defineEventHandler(async (event) => {
 	if (!password || typeof password !== 'string' || password.length < 6) {
 		throw createError({ statusCode: 400, statusMessage: 'Password must be at least 6 characters.' })
 	}
+
+	const fullName = `${first_name.trim()} ${last_name.trim()}`
+	const normalizedUsername = username.trim()
 
 	try {
 		const existingUser = await prisma.user.findUnique({
@@ -79,12 +95,20 @@ export default defineEventHandler(async (event) => {
 			throw createError({ statusCode: 400, statusMessage: 'An account with this email already exists. Please sign in.' })
 		}
 
+		const existingUsername = await prisma.user.findUnique({
+			where: { username: normalizedUsername },
+			select: { id: true },
+		})
+		if (existingUsername) {
+			throw createError({ statusCode: 400, statusMessage: 'That username is already taken. Please choose another.' })
+		}
+
 		// Generate verification token and expiry before creating the user.
 		// If the email send fails we abort — no account is created (REQ-008).
 		const token = generateVerificationToken()
 		const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
-		const emailResult = await sendVerificationEmail(email, name.trim(), token)
+		const emailResult = await sendVerificationEmail(email, fullName, token)
 
 		if (!emailResult.success) {
 			console.error('Registration aborted — verification email failed:', emailResult.error)
@@ -99,7 +123,10 @@ export default defineEventHandler(async (event) => {
 		await prisma.$transaction(async (tx) => {
 			const user = await tx.user.create({
 				data: {
-					name: name.trim(),
+					name: fullName,
+					first_name: first_name.trim(),
+					last_name: last_name.trim(),
+					username: normalizedUsername,
 					email,
 					password: hashedPassword,
 					status: 'ACTIVE',

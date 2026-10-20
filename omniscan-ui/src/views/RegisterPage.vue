@@ -31,15 +31,41 @@
 
 						<form @submit.prevent="handleRegister">
 							<div class="form-group">
-								<label class="input-label">Full Name</label>
+								<label class="input-label">First Name</label>
 								<div class="custom-input-wrapper">
 									<input
-										v-model="name"
+										v-model="firstName"
 										type="text"
-										placeholder="Enter your name"
+										placeholder="Enter your first name"
 										class="custom-input"
-										:class="{ 'input-error': fieldErrors.name }"
-										@input="clearFieldError('name')" />
+										:class="{ 'input-error': fieldErrors.firstName }"
+										@input="clearFieldError('firstName')" />
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="input-label">Last Name</label>
+								<div class="custom-input-wrapper">
+									<input
+										v-model="lastName"
+										type="text"
+										placeholder="Enter your last name"
+										class="custom-input"
+										:class="{ 'input-error': fieldErrors.lastName }"
+										@input="clearFieldError('lastName')" />
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="input-label">Username</label>
+								<div class="custom-input-wrapper">
+									<input
+										v-model="username"
+										type="text"
+										placeholder="Choose a username"
+										class="custom-input"
+										:class="{ 'input-error': fieldErrors.username }"
+										@input="clearFieldError('username')" />
 								</div>
 							</div>
 
@@ -122,6 +148,17 @@
 								{{ isSubmitting ? 'Creating account...' : 'Continue' }}
 							</ion-button>
 						</form>
+
+						<div class="oauth-divider"><span>or</span></div>
+						<button type="button" class="google-btn" @click="handleGoogleSignIn">
+							<svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+								<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+								<path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+								<path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+								<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+							</svg>
+							Sign in with Google
+						</button>
 
 						<p class="switch-auth">
 							Already have an account?
@@ -322,11 +359,15 @@ import { useRouter, useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, checkmarkCircle, closeCircle } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
-import { apiFetch, ApiError } from '@/utils/api'
+import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+
+function handleGoogleSignIn(): void {
+	window.location.href = `${API_BASE_URL}/api/auth/google`
+}
 
 const PREF_MAX = 5
 const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)
@@ -343,7 +384,9 @@ watch(
 )
 
 // Step 1 — account creation
-const name = ref('')
+const firstName = ref('')
+const lastName = ref('')
+const username = ref('')
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
@@ -371,7 +414,9 @@ const isPasswordValid = computed(() => {
 
 // Per-field validation error flags
 const fieldErrors = reactive({
-	name: false,
+	firstName: false,
+	lastName: false,
+	username: false,
 	email: false,
 	password: false,
 	confirmPassword: false,
@@ -480,18 +525,29 @@ async function redirectIfAlreadyAuthenticated(): Promise<boolean> {
 
 async function handleRegister(): Promise<void> {
 	errorMessage.value = null
-	fieldErrors.name = false
+	fieldErrors.firstName = false
+	fieldErrors.lastName = false
+	fieldErrors.username = false
 	fieldErrors.email = false
 	fieldErrors.password = false
 	fieldErrors.confirmPassword = false
 
 	let hasEmptyField = false
-	if (!name.value.trim()) { fieldErrors.name = true; hasEmptyField = true }
+	if (!firstName.value.trim()) { fieldErrors.firstName = true; hasEmptyField = true }
+	if (!lastName.value.trim()) { fieldErrors.lastName = true; hasEmptyField = true }
+	if (!username.value.trim()) { fieldErrors.username = true; hasEmptyField = true }
 	if (!email.value.trim()) { fieldErrors.email = true; hasEmptyField = true }
 	if (!password.value) { fieldErrors.password = true; hasEmptyField = true }
 	if (!confirmPassword.value) { fieldErrors.confirmPassword = true; hasEmptyField = true }
 	if (hasEmptyField) {
 		errorMessage.value = 'Please fill in all required fields.'
+		return
+	}
+
+	const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
+	if (!USERNAME_RE.test(username.value.trim())) {
+		fieldErrors.username = true
+		errorMessage.value = 'Username must be 3-20 characters, letters, numbers, and underscores only.'
 		return
 	}
 
@@ -504,13 +560,6 @@ async function handleRegister(): Promise<void> {
 	if (!isPasswordValid.value) {
 		fieldErrors.password = true
 		errorMessage.value = 'Please ensure your password meets all safety criteria.'
-		return
-	}
-
-	if (name.value.trim() === password.value) {
-		fieldErrors.name = true
-		fieldErrors.password = true
-		errorMessage.value = 'Name and password cannot be identical.'
 		return
 	}
 
@@ -533,7 +582,7 @@ async function acceptTerms(): Promise<void> {
 
 	isSubmitting.value = true
 	try {
-		const response = await authStore.register(name.value.trim(), email.value, password.value)
+		const response = await authStore.register(firstName.value.trim(), lastName.value.trim(), username.value.trim(), email.value, password.value)
 
 		if (response.requiresVerification) {
 			router.push({ path: '/check-email', query: { email: email.value } })
@@ -897,6 +946,38 @@ onUnmounted(() => {
 	margin-bottom: 12px;
 	font-size: 0.85rem;
 }
+
+.oauth-divider {
+	display: flex;
+	align-items: center;
+	text-align: center;
+	margin: 20px 0;
+	color: #9ca3af;
+	font-size: 0.8rem;
+}
+.oauth-divider::before, .oauth-divider::after {
+	content: '';
+	flex: 1;
+	border-bottom: 1px solid #e5e7eb;
+}
+.oauth-divider span { padding: 0 12px; }
+.google-btn {
+	width: 100%;
+	height: 46px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	border: 1px solid #e5e7eb;
+	border-radius: 9999px;
+	background: #ffffff;
+	color: #374151;
+	font-size: 0.9rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.15s, border-color 0.15s;
+}
+.google-btn:hover { background: #f9fafb; border-color: #d1d5db; }
 
 .inline-error {
 	display: flex;

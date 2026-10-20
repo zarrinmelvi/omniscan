@@ -6,6 +6,9 @@ const MAX_AVATAR_BASE64_LENGTH = 7_000_000 // ~5MB raw image after base64 overhe
 
 interface ProfileUpdateBody {
 	name?: string
+	first_name?: string
+	last_name?: string
+	username?: string
 	halal_pref?: boolean
 	allergen_ids?: number[]
 	avatar_base64?: string | null
@@ -20,6 +23,18 @@ function isPositiveInteger(value: unknown): boolean {
 function validateBody(body: Record<string, unknown>): ProfileUpdateBody {
 	if (typeof body.name !== 'undefined' && typeof body.name !== 'string') {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid body field: "name" must be a string.' })
+	}
+
+	if (typeof body.first_name !== 'undefined' && typeof body.first_name !== 'string') {
+		throw createError({ statusCode: 400, statusMessage: 'Invalid body field: "first_name" must be a string.' })
+	}
+	if (typeof body.last_name !== 'undefined' && typeof body.last_name !== 'string') {
+		throw createError({ statusCode: 400, statusMessage: 'Invalid body field: "last_name" must be a string.' })
+	}
+	if (typeof body.username !== 'undefined') {
+		if (typeof body.username !== 'string' || !/^[a-zA-Z0-9_]{3,20}$/.test(body.username.trim())) {
+			throw createError({ statusCode: 400, statusMessage: 'Username must be 3-20 characters, letters, numbers, and underscores only.' })
+		}
 	}
 
 	if (typeof body.halal_pref !== 'undefined' && typeof body.halal_pref !== 'boolean') {
@@ -53,6 +68,9 @@ function validateBody(body: Record<string, unknown>): ProfileUpdateBody {
 
 	return {
 		name: body.name as string | undefined,
+		first_name: body.first_name as string | undefined,
+		last_name: body.last_name as string | undefined,
+		username: body.username as string | undefined,
 		halal_pref: body.halal_pref as boolean | undefined,
 		allergen_ids: (body.allergen_ids as number[] | undefined)?.map(Number),
 		avatar_base64: body.avatar_base64 as string | null | undefined,
@@ -64,7 +82,7 @@ export default eventHandler(async (event) => {
 	const authUser = requireAuth(event) // CHANGED — was manual event.context.user check
 
 	const rawBody = await readBody(event)
-	const { name, halal_pref, allergen_ids, avatar_base64, custom_preferences } = validateBody(rawBody)
+	const { name, first_name, last_name, username, halal_pref, allergen_ids, avatar_base64, custom_preferences } = validateBody(rawBody)
 	const id = authUser.id
 
 	try {
@@ -106,6 +124,13 @@ export default eventHandler(async (event) => {
 				where: { id },
 				data: {
 					...(typeof name !== 'undefined' && { name }),
+					...(typeof first_name !== 'undefined' && { first_name: first_name.trim() }),
+					...(typeof last_name !== 'undefined' && { last_name: last_name.trim() }),
+					...(typeof username !== 'undefined' && { username: username.trim() }),
+					// Recompute derived display name when either name part changes
+					...((typeof first_name !== 'undefined' || typeof last_name !== 'undefined') && {
+						name: `${(first_name ?? existingUser.first_name ?? '').trim()} ${(last_name ?? existingUser.last_name ?? '').trim()}`.trim() || existingUser.name,
+					}),
 					...(typeof avatar_base64 !== 'undefined' && { avatar_base64 }),
 					...(typeof allergen_ids !== 'undefined' && {
 						allergens: { set: allergen_ids.map((allergenId) => ({ id: allergenId })) },
@@ -126,6 +151,10 @@ export default eventHandler(async (event) => {
 		}
 	} catch (error: any) {
 		if (error.statusCode) throw error
+
+		if (error?.code === 'P2002' && Array.isArray(error?.meta?.target) && error.meta.target.includes('username')) {
+			throw createError({ statusCode: 400, statusMessage: 'That username is already taken. Please choose another.' })
+		}
 
 		throw createError({
 			statusCode: 500,

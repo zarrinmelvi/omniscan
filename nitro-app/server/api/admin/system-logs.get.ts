@@ -136,6 +136,36 @@ export default defineEventHandler(async (event) => {
 			message: l.message,
 		}))
 
+		// --- Event-driven audit log (DB-backed, not in-memory) ---
+		const auditEventsRaw = await prisma.auditEvent.findMany({
+			orderBy: { created_at: 'desc' },
+			take: 100,
+			select: {
+				id: true,
+				event_type: true,
+				entity: true,
+				entity_id: true,
+				triggered_by_user_id: true,
+				triggered_by_admin_id: true,
+				summary: true,
+				created_at: true,
+			},
+		}).catch(() => [])
+
+		const auditEvents = auditEventsRaw.map((e) => ({
+			id: e.id,
+			event_type: e.event_type,
+			entity: e.entity,
+			entity_id: e.entity_id,
+			triggered_by: e.triggered_by_admin_id != null
+				? `Admin #${e.triggered_by_admin_id}`
+				: e.triggered_by_user_id != null
+					? `User #${e.triggered_by_user_id}`
+					: 'System',
+			summary: e.summary,
+			created_at: e.created_at,
+		}))
+
 		const p95 = percentile(durations, 95)
 
 		return {
@@ -154,6 +184,7 @@ export default defineEventHandler(async (event) => {
 			api_requests: recentRequests,
 			prisma_queries: recentQueries,
 			raw_logs: recentLogs,
+			audit_events: auditEvents,
 		}
 	} catch (err: any) {
 		if (err?.statusCode) throw err

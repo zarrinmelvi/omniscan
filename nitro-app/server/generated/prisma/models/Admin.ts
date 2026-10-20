@@ -41,6 +41,9 @@ export type AdminMinAggregateOutputType = {
   email: string | null
   password: string | null
   role: string | null
+  created_at: Date | null
+  updated_at: Date | null
+  deleted_at: Date | null
 }
 
 export type AdminMaxAggregateOutputType = {
@@ -50,6 +53,9 @@ export type AdminMaxAggregateOutputType = {
   email: string | null
   password: string | null
   role: string | null
+  created_at: Date | null
+  updated_at: Date | null
+  deleted_at: Date | null
 }
 
 export type AdminCountAggregateOutputType = {
@@ -59,6 +65,9 @@ export type AdminCountAggregateOutputType = {
   email: number
   password: number
   role: number
+  created_at: number
+  updated_at: number
+  deleted_at: number
   _all: number
 }
 
@@ -78,6 +87,9 @@ export type AdminMinAggregateInputType = {
   email?: true
   password?: true
   role?: true
+  created_at?: true
+  updated_at?: true
+  deleted_at?: true
 }
 
 export type AdminMaxAggregateInputType = {
@@ -87,6 +99,9 @@ export type AdminMaxAggregateInputType = {
   email?: true
   password?: true
   role?: true
+  created_at?: true
+  updated_at?: true
+  deleted_at?: true
 }
 
 export type AdminCountAggregateInputType = {
@@ -96,6 +111,9 @@ export type AdminCountAggregateInputType = {
   email?: true
   password?: true
   role?: true
+  created_at?: true
+  updated_at?: true
+  deleted_at?: true
   _all?: true
 }
 
@@ -192,6 +210,9 @@ export type AdminGroupByOutputType = {
   email: string | null
   password: string
   role: string
+  created_at: Date
+  updated_at: Date
+  deleted_at: Date | null
   _count: AdminCountAggregateOutputType | null
   _avg: AdminAvgAggregateOutputType | null
   _sum: AdminSumAggregateOutputType | null
@@ -224,6 +245,9 @@ export type AdminWhereInput = {
   email?: Prisma.StringNullableFilter<"Admin"> | string | null
   password?: Prisma.StringFilter<"Admin"> | string
   role?: Prisma.StringFilter<"Admin"> | string
+  created_at?: Prisma.DateTimeFilter<"Admin"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"Admin"> | Date | string
+  deleted_at?: Prisma.DateTimeNullableFilter<"Admin"> | Date | string | null
   flagged_scan?: Prisma.FlaggedScanListRelationFilter
 }
 
@@ -234,6 +258,9 @@ export type AdminOrderByWithRelationInput = {
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   password?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   flagged_scan?: Prisma.FlaggedScanOrderByRelationAggregateInput
 }
 
@@ -247,6 +274,9 @@ export type AdminWhereUniqueInput = Prisma.AtLeast<{
   full_name?: Prisma.StringFilter<"Admin"> | string
   password?: Prisma.StringFilter<"Admin"> | string
   role?: Prisma.StringFilter<"Admin"> | string
+  created_at?: Prisma.DateTimeFilter<"Admin"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"Admin"> | Date | string
+  deleted_at?: Prisma.DateTimeNullableFilter<"Admin"> | Date | string | null
   flagged_scan?: Prisma.FlaggedScanListRelationFilter
 }, "id" | "username" | "email">
 
@@ -257,6 +287,9 @@ export type AdminOrderByWithAggregationInput = {
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   password?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AdminCountOrderByAggregateInput
   _avg?: Prisma.AdminAvgOrderByAggregateInput
   _max?: Prisma.AdminMaxOrderByAggregateInput
@@ -274,6 +307,9 @@ export type AdminScalarWhereWithAggregatesInput = {
   email?: Prisma.StringNullableWithAggregatesFilter<"Admin"> | string | null
   password?: Prisma.StringWithAggregatesFilter<"Admin"> | string
   role?: Prisma.StringWithAggregatesFilter<"Admin"> | string
+  created_at?: Prisma.DateTimeWithAggregatesFilter<"Admin"> | Date | string
+  updated_at?: Prisma.DateTimeWithAggregatesFilter<"Admin"> | Date | string
+  deleted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Admin"> | Date | string | null
 }
 
 export type AdminCreateInput = {
@@ -282,6 +318,9 @@ export type AdminCreateInput = {
   email?: string | null
   password: string
   role: string
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
   flagged_scan?: Prisma.FlaggedScanCreateNestedManyWithoutAdminInput
 }
 
@@ -292,6 +331,9 @@ export type AdminUncheckedCreateInput = {
   email?: string | null
   password: string
   role: string
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
   flagged_scan?: Prisma.FlaggedScanUncheckedCreateNestedManyWithoutAdminInput
 }
 
@@ -301,6 +343,9 @@ export type AdminUpdateInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   flagged_scan?: Prisma.FlaggedScanUpdateManyWithoutAdminNestedInput
 }
 
@@ -311,6 +356,9 @@ export type AdminUncheckedUpdateInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   flagged_scan?: Prisma.FlaggedScanUncheckedUpdateManyWithoutAdminNestedInput
 }
 
@@ -321,6 +369,9 @@ export type AdminCreateManyInput = {
   email?: string | null
   password: string
   role: string
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
 }
 
 export type AdminUpdateManyMutationInput = {
@@ -329,6 +380,9 @@ export type AdminUpdateManyMutationInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AdminUncheckedUpdateManyInput = {
@@ -338,6 +392,9 @@ export type AdminUncheckedUpdateManyInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AdminNullableScalarRelationFilter = {
@@ -352,6 +409,9 @@ export type AdminCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrder
 }
 
 export type AdminAvgOrderByAggregateInput = {
@@ -365,6 +425,9 @@ export type AdminMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrder
 }
 
 export type AdminMinOrderByAggregateInput = {
@@ -374,6 +437,9 @@ export type AdminMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrder
 }
 
 export type AdminSumOrderByAggregateInput = {
@@ -402,6 +468,9 @@ export type AdminCreateWithoutFlagged_scanInput = {
   email?: string | null
   password: string
   role: string
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
 }
 
 export type AdminUncheckedCreateWithoutFlagged_scanInput = {
@@ -411,6 +480,9 @@ export type AdminUncheckedCreateWithoutFlagged_scanInput = {
   email?: string | null
   password: string
   role: string
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
 }
 
 export type AdminCreateOrConnectWithoutFlagged_scanInput = {
@@ -435,6 +507,9 @@ export type AdminUpdateWithoutFlagged_scanInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AdminUncheckedUpdateWithoutFlagged_scanInput = {
@@ -444,6 +519,9 @@ export type AdminUncheckedUpdateWithoutFlagged_scanInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -484,6 +562,9 @@ export type AdminSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   email?: boolean
   password?: boolean
   role?: boolean
+  created_at?: boolean
+  updated_at?: boolean
+  deleted_at?: boolean
   flagged_scan?: boolean | Prisma.Admin$flagged_scanArgs<ExtArgs>
   _count?: boolean | Prisma.AdminCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["admin"]>
@@ -495,6 +576,9 @@ export type AdminSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   email?: boolean
   password?: boolean
   role?: boolean
+  created_at?: boolean
+  updated_at?: boolean
+  deleted_at?: boolean
 }, ExtArgs["result"]["admin"]>
 
 export type AdminSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -504,6 +588,9 @@ export type AdminSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   email?: boolean
   password?: boolean
   role?: boolean
+  created_at?: boolean
+  updated_at?: boolean
+  deleted_at?: boolean
 }, ExtArgs["result"]["admin"]>
 
 export type AdminSelectScalar = {
@@ -513,9 +600,12 @@ export type AdminSelectScalar = {
   email?: boolean
   password?: boolean
   role?: boolean
+  created_at?: boolean
+  updated_at?: boolean
+  deleted_at?: boolean
 }
 
-export type AdminOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "full_name" | "username" | "email" | "password" | "role", ExtArgs["result"]["admin"]>
+export type AdminOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "full_name" | "username" | "email" | "password" | "role" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["admin"]>
 export type AdminInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   flagged_scan?: boolean | Prisma.Admin$flagged_scanArgs<ExtArgs>
   _count?: boolean | Prisma.AdminCountOutputTypeDefaultArgs<ExtArgs>
@@ -535,6 +625,9 @@ export type $AdminPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     email: string | null
     password: string
     role: string
+    created_at: Date
+    updated_at: Date
+    deleted_at: Date | null
   }, ExtArgs["result"]["admin"]>
   composites: {}
 }
@@ -965,6 +1058,9 @@ export interface AdminFieldRefs {
   readonly email: Prisma.FieldRef<"Admin", 'String'>
   readonly password: Prisma.FieldRef<"Admin", 'String'>
   readonly role: Prisma.FieldRef<"Admin", 'String'>
+  readonly created_at: Prisma.FieldRef<"Admin", 'DateTime'>
+  readonly updated_at: Prisma.FieldRef<"Admin", 'DateTime'>
+  readonly deleted_at: Prisma.FieldRef<"Admin", 'DateTime'>
 }
     
 

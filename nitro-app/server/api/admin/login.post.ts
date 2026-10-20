@@ -2,6 +2,7 @@ import { defineEventHandler, readBody, createError } from 'h3'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { prisma } from '../../lib/prisma'
+import { logAuditEvent } from '../../lib/audit-logger'
 
 const JWT_SECRET = process.env.JWT_SECRET
 const TOKEN_EXPIRY = '7d'
@@ -50,6 +51,14 @@ export default defineEventHandler(async (event) => {
 				expiresIn: TOKEN_EXPIRY,
 			},
 		)
+
+		await logAuditEvent({
+			event_type: 'LOGIN',
+			entity: 'Admin',
+			entity_id: admin.id,
+			triggered_by_admin_id: admin.id,
+			summary: `Admin ${admin.username} logged in`,
+		})
 
 		return {
 			token,

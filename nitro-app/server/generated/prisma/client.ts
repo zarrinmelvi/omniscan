@@ -47,6 +47,11 @@ export { Prisma }
  */
 export type ActivityLog = Prisma.ActivityLogModel
 /**
+ * Model AuditEvent
+ * 
+ */
+export type AuditEvent = Prisma.AuditEventModel
+/**
  * Model User
  * 
  */

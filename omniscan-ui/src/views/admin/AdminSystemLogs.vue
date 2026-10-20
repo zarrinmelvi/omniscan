@@ -46,7 +46,7 @@
 			</div>
 
 			<!-- Database connection status -->
-			<div class="health-card health-card--clickable" role="button" tabindex="0" @click="activeTab = 'prisma-queries'" @keydown.enter="activeTab = 'prisma-queries'">
+			<div class="health-card health-card--clickable" role="button" tabindex="0" @click="activeTab = 'audit-log'" @keydown.enter="activeTab = 'audit-log'">
 				<div class="health-card-head">
 					<div class="health-icon" :class="dbHealth.class">
 						<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
@@ -124,22 +124,24 @@
 			</div>
 		</div>
 
-		<!-- PRISMA QUERIES TAB -->
-		<div v-if="activeTab === 'prisma-queries'" class="log-card">
-			<div class="log-header">Recent Prisma Queries ({{ data?.prisma_queries.length ?? 0 }})</div>
+		<!-- AUDIT LOG TAB (event-driven, DB-backed) -->
+		<div v-if="activeTab === 'audit-log'" class="log-card">
+			<div class="log-header">Audit Events — State Changes ({{ auditEvents.length }})</div>
 			<div class="log-scroll">
-				<table class="log-table">
-					<thead><tr><th>TIME</th><th>MODEL / TABLE</th><th>ACTION</th><th>DURATION</th></tr></thead>
-					<tbody>
-						<tr v-for="(q, i) in data?.prisma_queries ?? []" :key="i">
-							<td class="mono muted">{{ q.time }}</td>
-							<td class="mono">{{ q.model }}</td>
-							<td><span class="method-chip">{{ q.action }}</span></td>
-							<td class="mono" :class="latencyClass(q.durationMs)">{{ q.durationMs }}ms</td>
-						</tr>
-						<tr v-if="(data?.prisma_queries.length ?? 0) === 0"><td colspan="4" class="empty-row">No queries recorded yet.</td></tr>
-					</tbody>
-				</table>
+				<div v-if="auditEvents.length === 0" class="empty-note">
+					No audit events recorded yet. Events are logged when users scan, log in, or admins review flags.
+				</div>
+				<div v-else class="audit-cards">
+					<div v-for="evt in auditEvents" :key="evt.id" class="audit-card">
+						<div class="audit-card-top">
+							<span class="evt-chip" :class="eventTypeClass(evt.event_type)">{{ evt.event_type }}</span>
+							<span class="audit-entity">{{ evt.entity }}<template v-if="evt.entity_id">#{{ evt.entity_id }}</template></span>
+							<span class="audit-time mono muted">{{ formatAuditTime(evt.created_at) }}</span>
+						</div>
+						<div class="audit-summary">{{ evt.summary }}</div>
+						<div class="audit-trigger muted">Triggered by: {{ evt.triggered_by }}</div>
+					</div>
+				</div>
 			</div>
 		</div>
 
@@ -213,6 +215,16 @@ interface ApiRequestRow { ts: number; time: string; method: string; path: string
 interface QueryRow { ts: number; time: string; model: string; action: string; durationMs: number }
 interface LogRow { ts: number; time: string; level: 'info' | 'warn' | 'error'; source: string; message: string }
 
+interface AuditEventRow {
+	id: number
+	event_type: string
+	entity: string
+	entity_id: number | null
+	triggered_by: string
+	summary: string
+	created_at: string
+}
+
 interface SystemLogsResponse {
 	overview: Overview
 	latency_target_ms: number
@@ -221,6 +233,7 @@ interface SystemLogsResponse {
 	api_requests: ApiRequestRow[]
 	prisma_queries: QueryRow[]
 	raw_logs: LogRow[]
+	audit_events: AuditEventRow[]
 }
 
 interface FlagAuditRow {
@@ -239,7 +252,7 @@ const route = useRoute()
 const tabs = [
 	{ id: 'overview', label: 'Overview' },
 	{ id: 'api-latency', label: 'API Latency' },
-	{ id: 'prisma-queries', label: 'Prisma Queries' },
+	{ id: 'audit-log', label: 'Audit Log' },
 	{ id: 'flag-audit', label: 'Flag Audit' },
 ]
 
@@ -249,6 +262,7 @@ const errorMessage = ref<string | null>(null)
 const flagAuditRows = ref<FlagAuditRow[]>([])
 
 const overview = computed<Overview>(() => data.value?.overview ?? { avg_latency: 0, peak_latency: 0, p95_latency: 0, total_requests: 0, db_status: '—' })
+const auditEvents = computed<AuditEventRow[]>(() => data.value?.audit_events ?? [])
 const latencySeries = computed<SeriesPoint[]>(() => data.value?.latency_series ?? [])
 const latencyTarget = computed(() => data.value?.latency_target_ms ?? 300)
 const peakAlert = computed(() => overview.value.peak_latency > latencyTarget.value)
@@ -363,6 +377,23 @@ function formatFlagDate(iso: string): string {
 	return d.toLocaleDateString('en-CA') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 }
 
+function formatAuditTime(iso: string): string {
+	if (!iso) return '—'
+	const d = new Date(iso)
+	return d.toLocaleDateString('en-CA') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+}
+function eventTypeClass(type: string): string {
+	const t = type.toUpperCase()
+	if (t === 'LOGIN') return 'evt-login'
+	if (t === 'SCAN') return 'evt-scan'
+	if (t === 'FLAG') return 'evt-flag'
+	if (t === 'REVIEW') return 'evt-review'
+	if (t === 'DELETE') return 'evt-delete'
+	if (t === 'CREATE') return 'evt-create'
+	if (t === 'UPDATE') return 'evt-update'
+	return 'evt-other'
+}
+
 async function fetchFlagAudit(): Promise<void> {
 	try {
 		const res = await apiFetch<{ success: boolean; flagged_scans: any[] }>(
@@ -396,7 +427,7 @@ async function fetchLogs(): Promise<void> {
 }
 
 onMounted(() => {
-	const VALID_TABS = ['overview', 'api-latency', 'prisma-queries', 'flag-audit'] as const
+	const VALID_TABS = ['overview', 'api-latency', 'audit-log', 'flag-audit'] as const
 	const tabParam = route.query.tab
 	if (typeof tabParam === 'string' && (VALID_TABS as readonly string[]).includes(tabParam)) {
 		activeTab.value = tabParam
@@ -476,6 +507,24 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .chip-blue { background: #dbeafe; color: #2563eb; }
 .chip-yellow { background: #fef9c3; color: #a16207; }
 .chip-red { background: #fee2e2; color: #b91c1c; }
+
+/* Audit Log Tab */
+.audit-cards { display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; }
+.audit-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; background: #ffffff; }
+.audit-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.evt-chip { display: inline-block; padding: 2px 9px; border-radius: 5px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; }
+.evt-login  { background: #dbeafe; color: #2563eb; }
+.evt-scan   { background: #dcfce7; color: #15803d; }
+.evt-flag   { background: #fef9c3; color: #a16207; }
+.evt-review { background: #ede9fe; color: #7c3aed; }
+.evt-create { background: #dcfce7; color: #15803d; }
+.evt-update { background: #e0f2fe; color: #0369a1; }
+.evt-delete { background: #fee2e2; color: #b91c1c; }
+.evt-other  { background: #f1f5f9; color: #475569; }
+.audit-entity { font-size: 0.8rem; font-weight: 600; color: #475569; }
+.audit-time { font-size: 0.74rem; margin-left: auto; }
+.audit-summary { font-size: 0.88rem; color: #1e293b; line-height: 1.4; }
+.audit-trigger { font-size: 0.76rem; margin-top: 4px; }
 
 /* Flag Audit Tab */
 .flag-audit-table {

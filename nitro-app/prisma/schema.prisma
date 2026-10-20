@@ -30,6 +30,22 @@ model ActivityLog {
 	deleted_at DateTime?
 }
 
+model AuditEvent {
+	id Int @id @default(autoincrement())
+	event_type String   // 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'SCAN' | 'FLAG' | 'REVIEW'
+	entity String       // e.g. 'User', 'Product', 'FlaggedScan', 'Admin'
+	entity_id Int?
+	triggered_by_user_id Int?
+	triggered_by_admin_id Int?
+	summary String       // human-readable, e.g. "User #3 scanned Indomie Goreng"
+	metadata Json?
+
+	created_at DateTime @default(now())
+
+	@@index([created_at])
+	@@index([event_type])
+}
+
 model User { 
   id    Int     @id @default(autoincrement()) 
   name String 
@@ -215,6 +231,10 @@ model HalalLogo {
   catalog_product CatalogProduct[]
   product_links         ProductHalalLogo[]
   catalog_product_links CatalogProductHalalLogo[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  deleted_at DateTime?
 }
 
 
@@ -342,9 +362,9 @@ model CatalogIngredient {
 model CatalogProductIngredient {
 	id Int @id @default(autoincrement())
 
-	catalog_product CatalogProduct @relation(fields: [catalog_product_id], references: [id])
+	catalog_product CatalogProduct @relation(fields: [catalog_product_id], references: [id], onDelete: Cascade)
 	catalog_product_id Int
-	catalog_ingredient CatalogIngredient @relation(fields: [catalog_ingredient_id], references: [id])
+	catalog_ingredient CatalogIngredient @relation(fields: [catalog_ingredient_id], references: [id], onDelete: Cascade)
 	catalog_ingredient_id Int
 
 	created_at DateTime @default(now())
@@ -364,9 +384,9 @@ model CatalogProductIngredient {
 model ProductHalalLogo {
 	id Int @id @default(autoincrement())
 
-	product Product @relation(fields: [product_id], references: [id])
+	product Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
 	product_id Int
-	halal_logo HalalLogo @relation(fields: [halal_logo_id], references: [id])
+	halal_logo HalalLogo @relation(fields: [halal_logo_id], references: [id], onDelete: Cascade)
 	halal_logo_id Int
 
 	created_at DateTime @default(now())
@@ -379,9 +399,9 @@ model ProductHalalLogo {
 model CatalogProductHalalLogo {
 	id Int @id @default(autoincrement())
 
-	catalog_product CatalogProduct @relation(fields: [catalog_product_id], references: [id])
+	catalog_product CatalogProduct @relation(fields: [catalog_product_id], references: [id], onDelete: Cascade)
 	catalog_product_id Int
-	halal_logo HalalLogo @relation(fields: [halal_logo_id], references: [id])
+	halal_logo HalalLogo @relation(fields: [halal_logo_id], references: [id], onDelete: Cascade)
 	halal_logo_id Int
 
 	created_at DateTime @default(now())
@@ -399,6 +419,10 @@ model Admin {
 	password String
 	role String
 	flagged_scan FlaggedScan[] 
+
+	created_at DateTime @default(now())
+	updated_at DateTime @default(now()) @updatedAt
+	deleted_at DateTime?
 }
 
 // Generic key-value application settings store. Currently holds a single
@@ -412,4 +436,5 @@ model AppSetting {
 
 	created_at DateTime @default(now())
 	updated_at DateTime @updatedAt
+	deleted_at DateTime?
 }

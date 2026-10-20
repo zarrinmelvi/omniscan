@@ -42,6 +42,9 @@ export type HalalLogoMinAggregateOutputType = {
   source_url: string | null
   scraped_date: Date | null
   is_accredited: boolean | null
+  created_at: Date | null
+  updated_at: Date | null
+  deleted_at: Date | null
 }
 
 export type HalalLogoMaxAggregateOutputType = {
@@ -52,6 +55,9 @@ export type HalalLogoMaxAggregateOutputType = {
   source_url: string | null
   scraped_date: Date | null
   is_accredited: boolean | null
+  created_at: Date | null
+  updated_at: Date | null
+  deleted_at: Date | null
 }
 
 export type HalalLogoCountAggregateOutputType = {
@@ -62,6 +68,9 @@ export type HalalLogoCountAggregateOutputType = {
   source_url: number
   scraped_date: number
   is_accredited: number
+  created_at: number
+  updated_at: number
+  deleted_at: number
   _all: number
 }
 
@@ -82,6 +91,9 @@ export type HalalLogoMinAggregateInputType = {
   source_url?: true
   scraped_date?: true
   is_accredited?: true
+  created_at?: true
+  updated_at?: true
+  deleted_at?: true
 }
 
 export type HalalLogoMaxAggregateInputType = {
@@ -92,6 +104,9 @@ export type HalalLogoMaxAggregateInputType = {
   source_url?: true
   scraped_date?: true
   is_accredited?: true
+  created_at?: true
+  updated_at?: true
+  deleted_at?: true
 }
 
 export type HalalLogoCountAggregateInputType = {
@@ -102,6 +117,9 @@ export type HalalLogoCountAggregateInputType = {
   source_url?: true
   scraped_date?: true
   is_accredited?: true
+  created_at?: true
+  updated_at?: true
+  deleted_at?: true
   _all?: true
 }
 
@@ -199,6 +217,9 @@ export type HalalLogoGroupByOutputType = {
   source_url: string
   scraped_date: Date
   is_accredited: boolean
+  created_at: Date
+  updated_at: Date
+  deleted_at: Date | null
   _count: HalalLogoCountAggregateOutputType | null
   _avg: HalalLogoAvgAggregateOutputType | null
   _sum: HalalLogoSumAggregateOutputType | null
@@ -232,6 +253,9 @@ export type HalalLogoWhereInput = {
   source_url?: Prisma.StringFilter<"HalalLogo"> | string
   scraped_date?: Prisma.DateTimeFilter<"HalalLogo"> | Date | string
   is_accredited?: Prisma.BoolFilter<"HalalLogo"> | boolean
+  created_at?: Prisma.DateTimeFilter<"HalalLogo"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"HalalLogo"> | Date | string
+  deleted_at?: Prisma.DateTimeNullableFilter<"HalalLogo"> | Date | string | null
   product?: Prisma.ProductListRelationFilter
   catalog_product?: Prisma.CatalogProductListRelationFilter
   product_links?: Prisma.ProductHalalLogoListRelationFilter
@@ -246,6 +270,9 @@ export type HalalLogoOrderByWithRelationInput = {
   source_url?: Prisma.SortOrder
   scraped_date?: Prisma.SortOrder
   is_accredited?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   product?: Prisma.ProductOrderByRelationAggregateInput
   catalog_product?: Prisma.CatalogProductOrderByRelationAggregateInput
   product_links?: Prisma.ProductHalalLogoOrderByRelationAggregateInput
@@ -263,6 +290,9 @@ export type HalalLogoWhereUniqueInput = Prisma.AtLeast<{
   source_url?: Prisma.StringFilter<"HalalLogo"> | string
   scraped_date?: Prisma.DateTimeFilter<"HalalLogo"> | Date | string
   is_accredited?: Prisma.BoolFilter<"HalalLogo"> | boolean
+  created_at?: Prisma.DateTimeFilter<"HalalLogo"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"HalalLogo"> | Date | string
+  deleted_at?: Prisma.DateTimeNullableFilter<"HalalLogo"> | Date | string | null
   product?: Prisma.ProductListRelationFilter
   catalog_product?: Prisma.CatalogProductListRelationFilter
   product_links?: Prisma.ProductHalalLogoListRelationFilter
@@ -277,6 +307,9 @@ export type HalalLogoOrderByWithAggregationInput = {
   source_url?: Prisma.SortOrder
   scraped_date?: Prisma.SortOrder
   is_accredited?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.HalalLogoCountOrderByAggregateInput
   _avg?: Prisma.HalalLogoAvgOrderByAggregateInput
   _max?: Prisma.HalalLogoMaxOrderByAggregateInput
@@ -295,6 +328,9 @@ export type HalalLogoScalarWhereWithAggregatesInput = {
   source_url?: Prisma.StringWithAggregatesFilter<"HalalLogo"> | string
   scraped_date?: Prisma.DateTimeWithAggregatesFilter<"HalalLogo"> | Date | string
   is_accredited?: Prisma.BoolWithAggregatesFilter<"HalalLogo"> | boolean
+  created_at?: Prisma.DateTimeWithAggregatesFilter<"HalalLogo"> | Date | string
+  updated_at?: Prisma.DateTimeWithAggregatesFilter<"HalalLogo"> | Date | string
+  deleted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"HalalLogo"> | Date | string | null
 }
 
 export type HalalLogoCreateInput = {
@@ -304,6 +340,9 @@ export type HalalLogoCreateInput = {
   source_url: string
   scraped_date: Date | string
   is_accredited?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
   product?: Prisma.ProductCreateNestedManyWithoutHalal_logoInput
   catalog_product?: Prisma.CatalogProductCreateNestedManyWithoutHalal_logoInput
   product_links?: Prisma.ProductHalalLogoCreateNestedManyWithoutHalal_logoInput
@@ -318,6 +357,9 @@ export type HalalLogoUncheckedCreateInput = {
   source_url: string
   scraped_date: Date | string
   is_accredited?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
   product?: Prisma.ProductUncheckedCreateNestedManyWithoutHalal_logoInput
   catalog_product?: Prisma.CatalogProductUncheckedCreateNestedManyWithoutHalal_logoInput
   product_links?: Prisma.ProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
@@ -331,6 +373,9 @@ export type HalalLogoUpdateInput = {
   source_url?: Prisma.StringFieldUpdateOperationsInput | string
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   product?: Prisma.ProductUpdateManyWithoutHalal_logoNestedInput
   catalog_product?: Prisma.CatalogProductUpdateManyWithoutHalal_logoNestedInput
   product_links?: Prisma.ProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
@@ -345,6 +390,9 @@ export type HalalLogoUncheckedUpdateInput = {
   source_url?: Prisma.StringFieldUpdateOperationsInput | string
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   product?: Prisma.ProductUncheckedUpdateManyWithoutHalal_logoNestedInput
   catalog_product?: Prisma.CatalogProductUncheckedUpdateManyWithoutHalal_logoNestedInput
   product_links?: Prisma.ProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
@@ -359,6 +407,9 @@ export type HalalLogoCreateManyInput = {
   source_url: string
   scraped_date: Date | string
   is_accredited?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
 }
 
 export type HalalLogoUpdateManyMutationInput = {
@@ -368,6 +419,9 @@ export type HalalLogoUpdateManyMutationInput = {
   source_url?: Prisma.StringFieldUpdateOperationsInput | string
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type HalalLogoUncheckedUpdateManyInput = {
@@ -378,6 +432,9 @@ export type HalalLogoUncheckedUpdateManyInput = {
   source_url?: Prisma.StringFieldUpdateOperationsInput | string
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type HalalLogoNullableScalarRelationFilter = {
@@ -393,6 +450,9 @@ export type HalalLogoCountOrderByAggregateInput = {
   source_url?: Prisma.SortOrder
   scraped_date?: Prisma.SortOrder
   is_accredited?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrder
 }
 
 export type HalalLogoAvgOrderByAggregateInput = {
@@ -407,6 +467,9 @@ export type HalalLogoMaxOrderByAggregateInput = {
   source_url?: Prisma.SortOrder
   scraped_date?: Prisma.SortOrder
   is_accredited?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrder
 }
 
 export type HalalLogoMinOrderByAggregateInput = {
@@ -417,6 +480,9 @@ export type HalalLogoMinOrderByAggregateInput = {
   source_url?: Prisma.SortOrder
   scraped_date?: Prisma.SortOrder
   is_accredited?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrder
 }
 
 export type HalalLogoSumOrderByAggregateInput = {
@@ -495,6 +561,9 @@ export type HalalLogoCreateWithoutProductInput = {
   source_url: string
   scraped_date: Date | string
   is_accredited?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
   catalog_product?: Prisma.CatalogProductCreateNestedManyWithoutHalal_logoInput
   product_links?: Prisma.ProductHalalLogoCreateNestedManyWithoutHalal_logoInput
   catalog_product_links?: Prisma.CatalogProductHalalLogoCreateNestedManyWithoutHalal_logoInput
@@ -508,6 +577,9 @@ export type HalalLogoUncheckedCreateWithoutProductInput = {
   source_url: string
   scraped_date: Date | string
   is_accredited?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
   catalog_product?: Prisma.CatalogProductUncheckedCreateNestedManyWithoutHalal_logoInput
   product_links?: Prisma.ProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
   catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
@@ -536,6 +608,9 @@ export type HalalLogoUpdateWithoutProductInput = {
   source_url?: Prisma.StringFieldUpdateOperationsInput | string
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   catalog_product?: Prisma.CatalogProductUpdateManyWithoutHalal_logoNestedInput
   product_links?: Prisma.ProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
   catalog_product_links?: Prisma.CatalogProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
@@ -549,6 +624,9 @@ export type HalalLogoUncheckedUpdateWithoutProductInput = {
   source_url?: Prisma.StringFieldUpdateOperationsInput | string
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   catalog_product?: Prisma.CatalogProductUncheckedUpdateManyWithoutHalal_logoNestedInput
   product_links?: Prisma.ProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
   catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
@@ -561,6 +639,9 @@ export type HalalLogoCreateWithoutCatalog_productInput = {
   source_url: string
   scraped_date: Date | string
   is_accredited?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
   product?: Prisma.ProductCreateNestedManyWithoutHalal_logoInput
   product_links?: Prisma.ProductHalalLogoCreateNestedManyWithoutHalal_logoInput
   catalog_product_links?: Prisma.CatalogProductHalalLogoCreateNestedManyWithoutHalal_logoInput
@@ -574,6 +655,9 @@ export type HalalLogoUncheckedCreateWithoutCatalog_productInput = {
   source_url: string
   scraped_date: Date | string
   is_accredited?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
   product?: Prisma.ProductUncheckedCreateNestedManyWithoutHalal_logoInput
   product_links?: Prisma.ProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
   catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
@@ -602,6 +686,9 @@ export type HalalLogoUpdateWithoutCatalog_productInput = {
   source_url?: Prisma.StringFieldUpdateOperationsInput | string
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   product?: Prisma.ProductUpdateManyWithoutHalal_logoNestedInput
   product_links?: Prisma.ProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
   catalog_product_links?: Prisma.CatalogProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
@@ -615,6 +702,9 @@ export type HalalLogoUncheckedUpdateWithoutCatalog_productInput = {
   source_url?: Prisma.StringFieldUpdateOperationsInput | string
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   product?: Prisma.ProductUncheckedUpdateManyWithoutHalal_logoNestedInput
   product_links?: Prisma.ProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
   catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
@@ -627,6 +717,9 @@ export type HalalLogoCreateWithoutProduct_linksInput = {
   source_url: string
   scraped_date: Date | string
   is_accredited?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
   product?: Prisma.ProductCreateNestedManyWithoutHalal_logoInput
   catalog_product?: Prisma.CatalogProductCreateNestedManyWithoutHalal_logoInput
   catalog_product_links?: Prisma.CatalogProductHalalLogoCreateNestedManyWithoutHalal_logoInput
@@ -640,6 +733,9 @@ export type HalalLogoUncheckedCreateWithoutProduct_linksInput = {
   source_url: string
   scraped_date: Date | string
   is_accredited?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
   product?: Prisma.ProductUncheckedCreateNestedManyWithoutHalal_logoInput
   catalog_product?: Prisma.CatalogProductUncheckedCreateNestedManyWithoutHalal_logoInput
   catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
@@ -668,6 +764,9 @@ export type HalalLogoUpdateWithoutProduct_linksInput = {
   source_url?: Prisma.StringFieldUpdateOperationsInput | string
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   product?: Prisma.ProductUpdateManyWithoutHalal_logoNestedInput
   catalog_product?: Prisma.CatalogProductUpdateManyWithoutHalal_logoNestedInput
   catalog_product_links?: Prisma.CatalogProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
@@ -681,6 +780,9 @@ export type HalalLogoUncheckedUpdateWithoutProduct_linksInput = {
   source_url?: Prisma.StringFieldUpdateOperationsInput | string
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   product?: Prisma.ProductUncheckedUpdateManyWithoutHalal_logoNestedInput
   catalog_product?: Prisma.CatalogProductUncheckedUpdateManyWithoutHalal_logoNestedInput
   catalog_product_links?: Prisma.CatalogProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
@@ -693,6 +795,9 @@ export type HalalLogoCreateWithoutCatalog_product_linksInput = {
   source_url: string
   scraped_date: Date | string
   is_accredited?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
   product?: Prisma.ProductCreateNestedManyWithoutHalal_logoInput
   catalog_product?: Prisma.CatalogProductCreateNestedManyWithoutHalal_logoInput
   product_links?: Prisma.ProductHalalLogoCreateNestedManyWithoutHalal_logoInput
@@ -706,6 +811,9 @@ export type HalalLogoUncheckedCreateWithoutCatalog_product_linksInput = {
   source_url: string
   scraped_date: Date | string
   is_accredited?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
   product?: Prisma.ProductUncheckedCreateNestedManyWithoutHalal_logoInput
   catalog_product?: Prisma.CatalogProductUncheckedCreateNestedManyWithoutHalal_logoInput
   product_links?: Prisma.ProductHalalLogoUncheckedCreateNestedManyWithoutHalal_logoInput
@@ -734,6 +842,9 @@ export type HalalLogoUpdateWithoutCatalog_product_linksInput = {
   source_url?: Prisma.StringFieldUpdateOperationsInput | string
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   product?: Prisma.ProductUpdateManyWithoutHalal_logoNestedInput
   catalog_product?: Prisma.CatalogProductUpdateManyWithoutHalal_logoNestedInput
   product_links?: Prisma.ProductHalalLogoUpdateManyWithoutHalal_logoNestedInput
@@ -747,6 +858,9 @@ export type HalalLogoUncheckedUpdateWithoutCatalog_product_linksInput = {
   source_url?: Prisma.StringFieldUpdateOperationsInput | string
   scraped_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_accredited?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   product?: Prisma.ProductUncheckedUpdateManyWithoutHalal_logoNestedInput
   catalog_product?: Prisma.CatalogProductUncheckedUpdateManyWithoutHalal_logoNestedInput
   product_links?: Prisma.ProductHalalLogoUncheckedUpdateManyWithoutHalal_logoNestedInput
@@ -818,6 +932,9 @@ export type HalalLogoSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   source_url?: boolean
   scraped_date?: boolean
   is_accredited?: boolean
+  created_at?: boolean
+  updated_at?: boolean
+  deleted_at?: boolean
   product?: boolean | Prisma.HalalLogo$productArgs<ExtArgs>
   catalog_product?: boolean | Prisma.HalalLogo$catalog_productArgs<ExtArgs>
   product_links?: boolean | Prisma.HalalLogo$product_linksArgs<ExtArgs>
@@ -833,6 +950,9 @@ export type HalalLogoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   source_url?: boolean
   scraped_date?: boolean
   is_accredited?: boolean
+  created_at?: boolean
+  updated_at?: boolean
+  deleted_at?: boolean
 }, ExtArgs["result"]["halalLogo"]>
 
 export type HalalLogoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -843,6 +963,9 @@ export type HalalLogoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   source_url?: boolean
   scraped_date?: boolean
   is_accredited?: boolean
+  created_at?: boolean
+  updated_at?: boolean
+  deleted_at?: boolean
 }, ExtArgs["result"]["halalLogo"]>
 
 export type HalalLogoSelectScalar = {
@@ -853,9 +976,12 @@ export type HalalLogoSelectScalar = {
   source_url?: boolean
   scraped_date?: boolean
   is_accredited?: boolean
+  created_at?: boolean
+  updated_at?: boolean
+  deleted_at?: boolean
 }
 
-export type HalalLogoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "certifier" | "full_name" | "image_path" | "source_url" | "scraped_date" | "is_accredited", ExtArgs["result"]["halalLogo"]>
+export type HalalLogoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "certifier" | "full_name" | "image_path" | "source_url" | "scraped_date" | "is_accredited" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["halalLogo"]>
 export type HalalLogoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.HalalLogo$productArgs<ExtArgs>
   catalog_product?: boolean | Prisma.HalalLogo$catalog_productArgs<ExtArgs>
@@ -882,6 +1008,9 @@ export type $HalalLogoPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     source_url: string
     scraped_date: Date
     is_accredited: boolean
+    created_at: Date
+    updated_at: Date
+    deleted_at: Date | null
   }, ExtArgs["result"]["halalLogo"]>
   composites: {}
 }
@@ -1316,6 +1445,9 @@ export interface HalalLogoFieldRefs {
   readonly source_url: Prisma.FieldRef<"HalalLogo", 'String'>
   readonly scraped_date: Prisma.FieldRef<"HalalLogo", 'DateTime'>
   readonly is_accredited: Prisma.FieldRef<"HalalLogo", 'Boolean'>
+  readonly created_at: Prisma.FieldRef<"HalalLogo", 'DateTime'>
+  readonly updated_at: Prisma.FieldRef<"HalalLogo", 'DateTime'>
+  readonly deleted_at: Prisma.FieldRef<"HalalLogo", 'DateTime'>
 }
     
 

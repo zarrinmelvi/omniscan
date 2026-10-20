@@ -10,6 +10,7 @@ import { findAlternativeProducts } from '../../lib/alternative-matching'
 import { normalizeToDateStringOrNull } from '../../lib/date-parse'
 import { getAdminSettings } from '../../lib/admin-settings'
 import { sendNewFlagNotification } from '../../utils/email'
+import { logAuditEvent } from '../../lib/audit-logger'
 
 // AI_OCR_CONFIDENCE_THRESHOLD is hardcoded per REQ-EPIC2 — must not be read from AdminSettings for backend enforcement
 const AI_OCR_CONFIDENCE_THRESHOLD = 0.90
@@ -471,6 +472,15 @@ export default defineEventHandler(async (event) => {
 			},
 		})
 
+		await logAuditEvent({
+			event_type: 'SCAN',
+			entity: 'Scan',
+			entity_id: scan.id,
+			triggered_by_user_id: authUser.id,
+			summary: `User #${authUser.id} scanned ${product.product_name} (verdict: ${verdict})`,
+			metadata: { product_id: product.id, verdict, confidence: Number(scan.ai_confidence_score) },
+		})
+
 		// Only log to Recent Activities if a valid product name was extracted (skip filename fallbacks)
 		const extractedName = extraction.product_name?.trim()
 		const isValidProductName = extractedName && extractedName.toLowerCase() !== imageField.filename.toLowerCase()
@@ -532,6 +542,14 @@ export default defineEventHandler(async (event) => {
 				.catch((err) => {
 					console.error('Failed to create FlaggedScan record:', err)
 				})
+
+			await logAuditEvent({
+				event_type: 'FLAG',
+				entity: 'FlaggedScan',
+				triggered_by_user_id: authUser.id,
+				summary: `Scan of ${product.product_name} auto-flagged for review`,
+				metadata: { scan_id: scan.id, flag_reason: flagReasonParts.join(' | ') },
+			})
 
 			// Fire-and-forget admin notification (gated by the emailOnNewFlag
 			// setting inside sendNewFlagNotification). Non-blocking: the scan

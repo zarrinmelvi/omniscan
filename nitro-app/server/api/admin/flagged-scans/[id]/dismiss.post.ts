@@ -1,6 +1,7 @@
 import { defineEventHandler, createError, getRouterParam, readBody } from 'h3'
 import { prisma } from '../../../../lib/prisma'
 import { requireAdminAuth } from '../../../../utils/requireAdminAuth'
+import { logAuditEvent } from '../../../../lib/audit-logger'
 
 export default defineEventHandler(async (event) => {
 	const admin = requireAdminAuth(event)
@@ -22,6 +23,14 @@ export default defineEventHandler(async (event) => {
 				admin_correction: body?.admin_correction ?? '',
 				admin_id: admin.id,
 			},
+		})
+
+		await logAuditEvent({
+			event_type: 'REVIEW',
+			entity: 'FlaggedScan',
+			entity_id: flaggedScanId,
+			triggered_by_admin_id: admin.id,
+			summary: `Admin ${admin.username} dismissed flagged scan #${flaggedScanId}`,
 		})
 
 		return { success: true, flagged_scan: { id: updated.id, status: updated.status } }

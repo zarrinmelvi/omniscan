@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   ActivityLog: 'ActivityLog',
+  AuditEvent: 'AuditEvent',
   User: 'User',
   DietaryProfile: 'DietaryProfile',
   Notification: 'Notification',
@@ -104,6 +105,21 @@ export const ActivityLogScalarFieldEnum = {
 } as const
 
 export type ActivityLogScalarFieldEnum = (typeof ActivityLogScalarFieldEnum)[keyof typeof ActivityLogScalarFieldEnum]
+
+
+export const AuditEventScalarFieldEnum = {
+  id: 'id',
+  event_type: 'event_type',
+  entity: 'entity',
+  entity_id: 'entity_id',
+  triggered_by_user_id: 'triggered_by_user_id',
+  triggered_by_admin_id: 'triggered_by_admin_id',
+  summary: 'summary',
+  metadata: 'metadata',
+  created_at: 'created_at'
+} as const
+
+export type AuditEventScalarFieldEnum = (typeof AuditEventScalarFieldEnum)[keyof typeof AuditEventScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -254,7 +270,10 @@ export const HalalLogoScalarFieldEnum = {
   image_path: 'image_path',
   source_url: 'source_url',
   scraped_date: 'scraped_date',
-  is_accredited: 'is_accredited'
+  is_accredited: 'is_accredited',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  deleted_at: 'deleted_at'
 } as const
 
 export type HalalLogoScalarFieldEnum = (typeof HalalLogoScalarFieldEnum)[keyof typeof HalalLogoScalarFieldEnum]
@@ -387,7 +406,10 @@ export const AdminScalarFieldEnum = {
   username: 'username',
   email: 'email',
   password: 'password',
-  role: 'role'
+  role: 'role',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  deleted_at: 'deleted_at'
 } as const
 
 export type AdminScalarFieldEnum = (typeof AdminScalarFieldEnum)[keyof typeof AdminScalarFieldEnum]
@@ -398,7 +420,8 @@ export const AppSettingScalarFieldEnum = {
   key: 'key',
   value: 'value',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  deleted_at: 'deleted_at'
 } as const
 
 export type AppSettingScalarFieldEnum = (typeof AppSettingScalarFieldEnum)[keyof typeof AppSettingScalarFieldEnum]
@@ -412,19 +435,19 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
 export const NullableJsonNullValueInput = {
   DbNull: DbNull,
   JsonNull: JsonNull
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

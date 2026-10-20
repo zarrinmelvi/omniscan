@@ -39,6 +39,7 @@ export type AppSettingMinAggregateOutputType = {
   key: string | null
   created_at: Date | null
   updated_at: Date | null
+  deleted_at: Date | null
 }
 
 export type AppSettingMaxAggregateOutputType = {
@@ -46,6 +47,7 @@ export type AppSettingMaxAggregateOutputType = {
   key: string | null
   created_at: Date | null
   updated_at: Date | null
+  deleted_at: Date | null
 }
 
 export type AppSettingCountAggregateOutputType = {
@@ -54,6 +56,7 @@ export type AppSettingCountAggregateOutputType = {
   value: number
   created_at: number
   updated_at: number
+  deleted_at: number
   _all: number
 }
 
@@ -71,6 +74,7 @@ export type AppSettingMinAggregateInputType = {
   key?: true
   created_at?: true
   updated_at?: true
+  deleted_at?: true
 }
 
 export type AppSettingMaxAggregateInputType = {
@@ -78,6 +82,7 @@ export type AppSettingMaxAggregateInputType = {
   key?: true
   created_at?: true
   updated_at?: true
+  deleted_at?: true
 }
 
 export type AppSettingCountAggregateInputType = {
@@ -86,6 +91,7 @@ export type AppSettingCountAggregateInputType = {
   value?: true
   created_at?: true
   updated_at?: true
+  deleted_at?: true
   _all?: true
 }
 
@@ -181,6 +187,7 @@ export type AppSettingGroupByOutputType = {
   value: runtime.JsonValue
   created_at: Date
   updated_at: Date
+  deleted_at: Date | null
   _count: AppSettingCountAggregateOutputType | null
   _avg: AppSettingAvgAggregateOutputType | null
   _sum: AppSettingSumAggregateOutputType | null
@@ -212,6 +219,7 @@ export type AppSettingWhereInput = {
   value?: Prisma.JsonFilter<"AppSetting">
   created_at?: Prisma.DateTimeFilter<"AppSetting"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"AppSetting"> | Date | string
+  deleted_at?: Prisma.DateTimeNullableFilter<"AppSetting"> | Date | string | null
 }
 
 export type AppSettingOrderByWithRelationInput = {
@@ -220,6 +228,7 @@ export type AppSettingOrderByWithRelationInput = {
   value?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrderInput | Prisma.SortOrder
 }
 
 export type AppSettingWhereUniqueInput = Prisma.AtLeast<{
@@ -231,6 +240,7 @@ export type AppSettingWhereUniqueInput = Prisma.AtLeast<{
   value?: Prisma.JsonFilter<"AppSetting">
   created_at?: Prisma.DateTimeFilter<"AppSetting"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"AppSetting"> | Date | string
+  deleted_at?: Prisma.DateTimeNullableFilter<"AppSetting"> | Date | string | null
 }, "id" | "key">
 
 export type AppSettingOrderByWithAggregationInput = {
@@ -239,6 +249,7 @@ export type AppSettingOrderByWithAggregationInput = {
   value?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AppSettingCountOrderByAggregateInput
   _avg?: Prisma.AppSettingAvgOrderByAggregateInput
   _max?: Prisma.AppSettingMaxOrderByAggregateInput
@@ -255,6 +266,7 @@ export type AppSettingScalarWhereWithAggregatesInput = {
   value?: Prisma.JsonWithAggregatesFilter<"AppSetting">
   created_at?: Prisma.DateTimeWithAggregatesFilter<"AppSetting"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"AppSetting"> | Date | string
+  deleted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AppSetting"> | Date | string | null
 }
 
 export type AppSettingCreateInput = {
@@ -262,6 +274,7 @@ export type AppSettingCreateInput = {
   value: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
   updated_at?: Date | string
+  deleted_at?: Date | string | null
 }
 
 export type AppSettingUncheckedCreateInput = {
@@ -270,6 +283,7 @@ export type AppSettingUncheckedCreateInput = {
   value: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
   updated_at?: Date | string
+  deleted_at?: Date | string | null
 }
 
 export type AppSettingUpdateInput = {
@@ -277,6 +291,7 @@ export type AppSettingUpdateInput = {
   value?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AppSettingUncheckedUpdateInput = {
@@ -285,6 +300,7 @@ export type AppSettingUncheckedUpdateInput = {
   value?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AppSettingCreateManyInput = {
@@ -293,6 +309,7 @@ export type AppSettingCreateManyInput = {
   value: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
   updated_at?: Date | string
+  deleted_at?: Date | string | null
 }
 
 export type AppSettingUpdateManyMutationInput = {
@@ -300,6 +317,7 @@ export type AppSettingUpdateManyMutationInput = {
   value?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AppSettingUncheckedUpdateManyInput = {
@@ -308,6 +326,7 @@ export type AppSettingUncheckedUpdateManyInput = {
   value?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AppSettingCountOrderByAggregateInput = {
@@ -316,6 +335,7 @@ export type AppSettingCountOrderByAggregateInput = {
   value?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrder
 }
 
 export type AppSettingAvgOrderByAggregateInput = {
@@ -327,6 +347,7 @@ export type AppSettingMaxOrderByAggregateInput = {
   key?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrder
 }
 
 export type AppSettingMinOrderByAggregateInput = {
@@ -334,6 +355,7 @@ export type AppSettingMinOrderByAggregateInput = {
   key?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  deleted_at?: Prisma.SortOrder
 }
 
 export type AppSettingSumOrderByAggregateInput = {
@@ -348,6 +370,7 @@ export type AppSettingSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   value?: boolean
   created_at?: boolean
   updated_at?: boolean
+  deleted_at?: boolean
 }, ExtArgs["result"]["appSetting"]>
 
 export type AppSettingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -356,6 +379,7 @@ export type AppSettingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   value?: boolean
   created_at?: boolean
   updated_at?: boolean
+  deleted_at?: boolean
 }, ExtArgs["result"]["appSetting"]>
 
 export type AppSettingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -364,6 +388,7 @@ export type AppSettingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   value?: boolean
   created_at?: boolean
   updated_at?: boolean
+  deleted_at?: boolean
 }, ExtArgs["result"]["appSetting"]>
 
 export type AppSettingSelectScalar = {
@@ -372,9 +397,10 @@ export type AppSettingSelectScalar = {
   value?: boolean
   created_at?: boolean
   updated_at?: boolean
+  deleted_at?: boolean
 }
 
-export type AppSettingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "key" | "value" | "created_at" | "updated_at", ExtArgs["result"]["appSetting"]>
+export type AppSettingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "key" | "value" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["appSetting"]>
 
 export type $AppSettingPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AppSetting"
@@ -385,6 +411,7 @@ export type $AppSettingPayload<ExtArgs extends runtime.Types.Extensions.Internal
     value: runtime.JsonValue
     created_at: Date
     updated_at: Date
+    deleted_at: Date | null
   }, ExtArgs["result"]["appSetting"]>
   composites: {}
 }
@@ -813,6 +840,7 @@ export interface AppSettingFieldRefs {
   readonly value: Prisma.FieldRef<"AppSetting", 'Json'>
   readonly created_at: Prisma.FieldRef<"AppSetting", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"AppSetting", 'DateTime'>
+  readonly deleted_at: Prisma.FieldRef<"AppSetting", 'DateTime'>
 }
     
 

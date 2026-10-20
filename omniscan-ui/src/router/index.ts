@@ -234,7 +234,10 @@ router.beforeEach(async (to, from, next) => {
 	// forgot-password, reset-password) — authenticated users may legitimately
 	// land on those mid-flow.
 	const authOnlyPaths = ['/', '/login', '/register']
-	if (authOnlyPaths.includes(to.path) && authStore.isAuthenticated) {
+	// Exception: an authenticated, just-verified user is sent to
+	// /register?step=2 to complete allergen setup — do NOT bounce them away.
+	const isSetupStep = to.path === '/register' && to.query.step === '2'
+	if (authOnlyPaths.includes(to.path) && authStore.isAuthenticated && !isSetupStep) {
 		return next('/tabs/home')
 	}
 	if (to.path === '/admin/login' && adminAuthStore.isAuthenticated) {

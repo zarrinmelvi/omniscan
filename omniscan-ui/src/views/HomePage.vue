@@ -42,8 +42,8 @@
 					<h2 class="section-title">Expiring Soon</h2>
 				</div>
 
-				<div v-if="isLoading" class="state-block">
-					<ion-spinner name="crescent" />
+				<div v-if="isLoading" class="skeleton-carousel">
+					<SkeletonCard v-for="n in 3" :key="n" variant="pantry" class="skeleton-carousel__card" />
 				</div>
 
 				<div v-else-if="expiringItems.length === 0" class="empty-note">Nothing expiring in the next few days.</div>
@@ -90,8 +90,8 @@
 					<h2 class="section-title">Recommended for You</h2>
 				</div>
 
-				<div v-if="isLoading" class="state-block">
-					<ion-spinner name="crescent" />
+				<div v-if="isLoading" class="recipe-grid">
+					<SkeletonCard v-for="n in 3" :key="n" variant="pantry" />
 				</div>
 
 				<div v-else-if="recommendedRecipes.length === 0" class="placeholder-card">
@@ -120,8 +120,8 @@
 					<h2 class="section-title">Recent Activities</h2>
 				</div>
 
-				<div v-if="isLoading" class="state-block">
-					<ion-spinner name="crescent" />
+				<div v-if="isLoading" class="activity-list">
+					<SkeletonCard v-for="n in 3" :key="n" variant="row" />
 				</div>
 
 				<div v-else-if="activitiesLoadError" class="inline-error">
@@ -241,6 +241,7 @@ import {
 import { apiFetch, ApiError } from '@/utils/api'
 import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
 import AppHeader from '@/components/AppHeader.vue'
+import SkeletonCard from '@/components/SkeletonCard.vue'
 
 const router = useRouter()
 
@@ -799,6 +800,15 @@ onIonViewWillEnter(() => {
 	display: flex;
 	justify-content: center;
 	padding: 24px 0;
+}
+.skeleton-carousel {
+	display: flex;
+	gap: 12px;
+	overflow: hidden;
+	padding: 8px 4px;
+}
+.skeleton-carousel__card {
+	flex: 0 0 140px;
 }
 .empty-note {
 	color: #8e8e93;

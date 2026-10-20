@@ -145,7 +145,8 @@
 								type="submit"
 								class="submit-button"
 								:disabled="isSubmitting || !isPasswordValid || password !== confirmPassword">
-								{{ isSubmitting ? 'Creating account...' : 'Continue' }}
+								<ion-spinner v-if="isSubmitting" name="crescent" class="btn-spinner" />
+								<span v-else>Continue</span>
 							</ion-button>
 						</form>
 
@@ -216,7 +217,8 @@
 						<div v-if="setupError" class="form-error">{{ setupError }}</div>
 
 						<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs" @click="completeSetup">
-							{{ isSavingPrefs ? 'Saving...' : 'Complete Setup' }}
+							<ion-spinner v-if="isSavingPrefs" name="crescent" class="btn-spinner" />
+							<span v-else>Complete Setup</span>
 						</ion-button>
 
 						<button type="button" class="skip-link" :disabled="isSavingPrefs" @click="skipForNow">Skip for now</button>
@@ -926,6 +928,11 @@ onUnmounted(() => {
 
 .submit-button[disabled] {
 	opacity: 0.6;
+}
+
+.btn-spinner {
+	width: 20px;
+	height: 20px;
 }
 
 .switch-auth {

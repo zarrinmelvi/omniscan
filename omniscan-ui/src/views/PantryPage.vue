@@ -117,8 +117,8 @@
 			<div class="pantry-wrap">
 				<!-- ACTIVE VIEW GRID -->
 				<template v-if="view === 'active'">
-					<div v-if="isLoading" class="state-block">
-						<ion-spinner name="crescent" />
+					<div v-if="isLoading" class="card-grid">
+						<SkeletonCard v-for="n in 6" :key="n" variant="pantry" />
 					</div>
 
 					<div v-else-if="loadError" class="state-block">
@@ -194,8 +194,8 @@
 
 				<!-- ARCHIVED VIEW LIST -->
 				<template v-else>
-					<div v-if="isLoading" class="state-block">
-						<ion-spinner name="crescent" />
+					<div v-if="isLoading" class="archived-list">
+						<SkeletonCard v-for="n in 6" :key="n" variant="row" />
 					</div>
 
 					<div v-else-if="loadError" class="state-block">
@@ -289,6 +289,7 @@ import {
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 import AppHeader from '@/components/AppHeader.vue'
+import SkeletonCard from '@/components/SkeletonCard.vue'
 
 interface Product {
 	id: number

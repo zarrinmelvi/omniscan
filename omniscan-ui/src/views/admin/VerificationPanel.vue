@@ -133,7 +133,9 @@
 				</span>
 			</div>
 
-			<p v-if="isLoading" class="state-message">Loading Halal verification queue…</p>
+			<div v-if="isLoading" class="skeleton-stack">
+				<SkeletonCard v-for="n in 6" :key="n" variant="row" />
+			</div>
 			<p v-else-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 			<p v-else-if="filteredRows.length === 0" class="empty-note">No Halal compliance flags match the selected criteria.</p>
 
@@ -397,6 +399,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
+import SkeletonCard from '@/components/SkeletonCard.vue'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -919,6 +922,9 @@ tbody tr { cursor: pointer; }
 .legend-divider {
 	color: #cbd5e1;
 }
+
+/* ── Skeleton loading ────────────────────────────────────────────────────── */
+.skeleton-stack { display: flex; flex-direction: column; gap: 12px; padding: 8px 0; }
 
 /* ── State messages ──────────────────────────────────────────────────────── */
 .state-message, .empty-note { padding: 40px; text-align: center; color: #64748b; font-size: 0.9rem; }

@@ -72,7 +72,8 @@
 					</div>
 
 					<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
-						{{ isSubmitting ? 'Signing in...' : 'Sign In' }}
+						<ion-spinner v-if="isSubmitting" name="crescent" class="btn-spinner" />
+						<span v-else>Sign In</span>
 					</ion-button>
 				</form>
 

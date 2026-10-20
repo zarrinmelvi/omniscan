@@ -2295,6 +2295,7 @@ export const PantryItemScalarFieldEnum = {
   storage_location: 'storage_location',
   quantity: 'quantity',
   portion_unit: 'portion_unit',
+  category: 'category',
   added_date: 'added_date',
   is_archived: 'is_archived',
   saved_alternatives: 'saved_alternatives',

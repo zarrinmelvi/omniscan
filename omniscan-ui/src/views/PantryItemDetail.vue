@@ -47,6 +47,11 @@
 					</div>
 				</div>
 
+				<!-- Category Badge -->
+				<div v-if="item.category && item.category !== 'Uncategorized'" class="category-badge-row">
+					<span class="category-badge">{{ item.category }}</span>
+				</div>
+
 				<!-- Navigation Tabs -->
 				<div class="tab-row">
 					<button type="button" class="tab-btn" :class="{ 'tab-btn--active': activeTab === 'overview' }" @click="activeTab = 'overview'">
@@ -223,9 +228,15 @@
 							step="any"
 							class="edit-qty-input" />
 						<select v-model="editForm.unit" class="edit-unit-select">
-							<option v-for="u in ['pcs', 'g', 'kg', 'ml', 'L', 'pack']" :key="u" :value="u">{{ u }}</option>
+							<option v-for="u in ['pcs', 'bottles', 'cans', 'packs', 'boxes', 'g', 'kg', 'ml', 'L']" :key="u" :value="u">{{ u }}</option>
 						</select>
 					</div>
+
+					<!-- Category -->
+					<label class="field-label-brown">Category</label>
+					<select v-model="editForm.category" class="edit-unit-select" style="width:100%">
+						<option v-for="c in categoryOptions" :key="c" :value="c">{{ c }}</option>
+					</select>
 
 					<!-- Expiration Date -->
 					<label class="field-label-brown">Expiration Date</label>
@@ -306,6 +317,7 @@ interface PantryItemDetailDto {
 	quantity: number
 	portion_unit: string
 	storage_location: string
+	category: string | null
 	expiration_date: string | null
 	best_before_date: string | null
 	is_archived: boolean
@@ -347,9 +359,12 @@ const editForm = reactive({
   storage_location: '',
   quantity: 1,
   unit: '',
+  category: 'Uncategorized',
   expiration_date: '',
   best_before_date: '',
 })
+
+const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
 
 const matchedUserAllergens = computed(() => item.value?.matched_user_allergens ?? [])
 
@@ -467,6 +482,7 @@ function openEditModal(): void {
   editForm.storage_location = item.value.storage_location
   editForm.quantity = item.value.quantity
   editForm.unit = item.value.portion_unit
+  editForm.category = item.value.category ?? 'Uncategorized'
   editForm.expiration_date = item.value.expiration_date
     ? item.value.expiration_date.split('T')[0]
     : ''
@@ -488,6 +504,7 @@ async function saveEdit(): Promise<void> {
         storage_location: editForm.storage_location,
         quantity: editForm.quantity,
         unit: editForm.unit,
+        category: editForm.category,
         expiration_date: editForm.expiration_date || undefined,
         best_before_date: editForm.best_before_date || undefined,
       },
@@ -630,6 +647,20 @@ onIonViewWillEnter(fetchItem)
 .status-banner--success {
 	background: #dcfce7;
 	color: #166534;
+}
+
+.category-badge-row {
+	margin-bottom: 16px;
+}
+.category-badge {
+	display: inline-block;
+	padding: 3px 12px;
+	background: #ecfdf5;
+	color: #047857;
+	border: 1px solid #a7f3d0;
+	border-radius: 9999px;
+	font-size: 0.75rem;
+	font-weight: 600;
 }
 
 .tab-row {

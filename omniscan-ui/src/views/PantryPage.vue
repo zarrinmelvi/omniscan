@@ -47,6 +47,18 @@
 					</button>
 				</div>
 
+				<div class="pill-row pill-row--scroll">
+					<button
+						v-for="cat in categoryOptions"
+						:key="cat"
+						type="button"
+						class="pill"
+						:class="{ 'pill--active': categoryFilter === cat }"
+						@click="categoryFilter = cat">
+						{{ cat }}
+					</button>
+				</div>
+
 				<div class="scanned-stat-row">
 					<span class="scanned-stat-row__label">Total Items Scanned</span>
 					<span class="scanned-stat-row__value">{{ totalItemsScanned }}</span>
@@ -162,6 +174,7 @@
 									<span class="location-text">{{ item.storage_location }}</span>
 									<span class="quantity-badge">{{ formatQuantity(item) }}</span>
 								</div>
+								<span v-if="item.category && item.category !== 'Uncategorized'" class="category-badge">{{ item.category }}</span>
 							</div>
 						</div>
 					</div>
@@ -276,6 +289,7 @@ interface PantryItemDto {
 	quantity: number
 	portion_unit: string
 	storage_location: string
+	category: string | null
 	expiration_date: string | null
 	best_before_date: string | null
 	is_archived: boolean
@@ -300,6 +314,8 @@ const totalItemsScanned = ref(0)
 const view = ref<ViewMode>('active')
 const locationOptions: LocationFilter[] = ['All', 'Fridge', 'Freezer', 'Cupboard']
 const locationFilter = ref<LocationFilter>('All')
+const categoryOptions = ['All', 'Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized'] as const
+const categoryFilter = ref<string>('All')
 const sortOption = ref<SortOption>('expiring_soonest')
 const searchQuery = ref('')
 
@@ -343,6 +359,10 @@ const filteredActiveItems = computed(() => {
 
 	if (locationFilter.value !== 'All') {
 		result = result.filter((item) => item.storage_location === locationFilter.value)
+	}
+
+	if (categoryFilter.value !== 'All') {
+		result = result.filter((item) => (item.category ?? 'Uncategorized') === categoryFilter.value)
 	}
 
 	if (expiringOnly.value) {
@@ -732,6 +752,28 @@ onIonViewWillEnter(() => {
 	border-color: #00a651;
 	color: #00a651;
 	background: #ffffff;
+	font-weight: 600;
+}
+
+.pill-row--scroll {
+	overflow-x: auto;
+	flex-wrap: nowrap;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: none;
+}
+.pill-row--scroll::-webkit-scrollbar {
+	display: none;
+}
+
+.category-badge {
+	display: inline-block;
+	margin-top: 6px;
+	padding: 2px 10px;
+	background: #ecfdf5;
+	color: #047857;
+	border: 1px solid #a7f3d0;
+	border-radius: 9999px;
+	font-size: 0.72rem;
 	font-weight: 600;
 }
 

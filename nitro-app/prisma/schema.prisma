@@ -271,6 +271,10 @@ model PantryItem {
 	storage_location String
 	quantity Decimal
 	portion_unit String
+	// Epic 8: user-assigned food category (see PANTRY_CATEGORIES in
+	// server/lib/pantry-taxonomy.ts). Nullable for legacy rows; defaults to
+	// 'Uncategorized' at the API layer when omitted.
+	category String?
 	added_date DateTime
 	is_archived Boolean @default(false)
 	saved_alternatives Json?
@@ -287,6 +291,8 @@ model PantryItem {
 	created_at DateTime @default(now())
   	updated_at DateTime @updatedAt
   	deleted_at DateTime?
+
+	@@index([category])
 }
 
 model Scan {

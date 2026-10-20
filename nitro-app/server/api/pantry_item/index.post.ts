@@ -4,6 +4,7 @@ import { requireAuth } from '../../utils/requireAuth'
 import { matchIngredientsToPantry, extractPantryKeywords, type RawIngredient } from '../../lib/recipe-matching'
 import { buildCanonicalKey, findCanonicalProduct } from '../../lib/product-dedup'
 import { assertPantryQuotaAvailable } from '../../lib/quota'
+import { isValidPantryUnit, isValidPantryCategory, inferCategory } from '../../lib/pantry-taxonomy'
 
 interface CreatePantryItemBody {
 	product_id?: number
@@ -16,6 +17,7 @@ interface CreatePantryItemBody {
 	storage_location?: string
 	quantity?: number
 	unit?: string
+	category?: string
 	saved_alternatives?: { name: string; descriptor: string; tags: string[] }[]
 }
 
@@ -55,7 +57,7 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid request body.' })
 	}
 
-	const { product_name, image_base64, ingredient_text, simplified_ingredients, expiration_date, best_before_date, storage_location, quantity, unit } = body
+	const { product_name, image_base64, ingredient_text, simplified_ingredients, expiration_date, best_before_date, storage_location, quantity, unit, category } = body
 
 	if (body.product_id === undefined) {
 		const startOfToday = new Date()
@@ -111,8 +113,11 @@ export default defineEventHandler(async (event) => {
 	if (quantity === undefined || typeof quantity !== 'number' || quantity <= 0) {
 		throw createError({ statusCode: 400, statusMessage: 'quantity must be a positive number.' })
 	}
-	if (!unit || typeof unit !== 'string') {
-		throw createError({ statusCode: 400, statusMessage: 'unit is required.' })
+	if (!unit || !isValidPantryUnit(unit)) {
+		throw createError({ statusCode: 400, statusMessage: 'unit must be one of: pcs, bottles, cans, packs, boxes, g, kg, ml, L.' })
+	}
+	if (category !== undefined && category !== null && !isValidPantryCategory(category)) {
+		throw createError({ statusCode: 400, statusMessage: 'Invalid category.' })
 	}
 
 	try {
@@ -156,6 +161,10 @@ export default defineEventHandler(async (event) => {
 			product = created
 		}
 
+		const resolvedCategory = (category && isValidPantryCategory(category))
+			? category
+			: inferCategory(product.product_name)
+
 		const newItem = await prisma.pantryItem.create({
 			data: {
 				product_id: product.id,
@@ -164,6 +173,7 @@ export default defineEventHandler(async (event) => {
 				best_before_date: parsedBestBeforeDate,
 				quantity,
 				portion_unit: unit,
+				category: resolvedCategory,
 				storage_location: storage_location?.trim() || 'Unspecified',
 				added_date: new Date(),
 				is_archived: false,

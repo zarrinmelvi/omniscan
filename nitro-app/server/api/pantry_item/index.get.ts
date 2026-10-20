@@ -27,6 +27,7 @@ export default defineEventHandler(async (event) => {
 		id: item.id,
 		quantity: Number(item.quantity),
 		portion_unit: item.portion_unit,
+		category: item.category,
 		storage_location: item.storage_location,
 		// Both dates are now optional — only one is guaranteed to exist
 		expiration_date: item.expiration_date ? item.expiration_date.toISOString() : null,

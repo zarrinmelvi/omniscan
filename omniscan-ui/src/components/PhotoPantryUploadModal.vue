@@ -199,6 +199,11 @@
 						</select>
 					</div>
 
+					<label class="field-label-brown">Category</label>
+					<select class="unit-select" v-model="form.category" :disabled="isSubmitting" style="width:100%">
+						<option v-for="opt in categoryOptions" :key="opt" :value="opt">{{ opt }}</option>
+					</select>
+
 					<ion-button expand="block" type="submit" class="primary-button" :disabled="!isFormValid || isSubmitting">
 						<ion-spinner v-if="isSubmitting" name="crescent" slot="start" />
 						<ion-icon v-else :icon="addOutline" slot="start" />
@@ -272,7 +277,8 @@ const nonFoodDetected = ref(false)
 const nonFoodMessage = ref('')
 
 const storageLocations = ['Fridge', 'Freezer', 'Cupboard'] as const
-const unitOptions = ['pcs', 'g', 'kg', 'ml', 'L']
+const unitOptions = ['pcs', 'bottles', 'cans', 'packs', 'boxes', 'g', 'kg', 'ml', 'L']
+const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
 
 const form = reactive({
 	productName: '',
@@ -281,6 +287,7 @@ const form = reactive({
 	storageLocation: 'Cupboard' as (typeof storageLocations)[number],
 	quantity: 1,
 	unit: 'pcs',
+	category: 'Uncategorized' as string,
 	ingredientsText: '',
 	simplifiedIngredientsText: '',
 })
@@ -343,6 +350,7 @@ function resetAll(): void {
 	form.storageLocation = 'Cupboard'
 	form.quantity = 1
 	form.unit = 'pcs'
+	form.category = 'Uncategorized'
 	form.ingredientsText = ''
 	form.simplifiedIngredientsText = ''
 }
@@ -423,8 +431,8 @@ async function goToStep2(): Promise<void> {
 		form.simplifiedIngredientsText = result.simplified_ingredients || ''
 		matchedUserAllergens.value = result.matched_user_allergens ?? []
 
-		const UNIT_OPTIONS = ['pcs', 'g', 'kg', 'ml', 'L']
-		const unitMap: Record<string, string> = { pc: 'pcs', piece: 'pcs', pieces: 'pcs', pcs: 'pcs', liter: 'L', litre: 'L', liters: 'L', litres: 'L', gram: 'g', grams: 'g', kilogram: 'kg', kilograms: 'kg', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml' }
+		const UNIT_OPTIONS = ['pcs', 'bottles', 'cans', 'packs', 'boxes', 'g', 'kg', 'ml', 'L']
+		const unitMap: Record<string, string> = { pc: 'pcs', piece: 'pcs', pieces: 'pcs', pcs: 'pcs', bottle: 'bottles', bottles: 'bottles', can: 'cans', cans: 'cans', pack: 'packs', packs: 'packs', box: 'boxes', boxes: 'boxes', liter: 'L', litre: 'L', liters: 'L', litres: 'L', gram: 'g', grams: 'g', kilogram: 'kg', kilograms: 'kg', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml' }
 		if (typeof result.net_quantity === 'number' && result.net_quantity > 0) {
 			form.quantity = result.net_quantity
 		}
@@ -525,6 +533,7 @@ async function handleSubmit(): Promise<void> {
 				storage_location: form.storageLocation,
 				quantity: form.quantity,
 				unit: form.unit,
+				category: form.category,
 			},
 		})
 

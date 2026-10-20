@@ -122,6 +122,11 @@
 						</select>
 					</div>
 
+					<label class="field-label">Category</label>
+					<select class="category-select" v-model="category" :disabled="submitting">
+						<option v-for="opt in categoryOptions" :key="opt" :value="opt">{{ opt }}</option>
+					</select>
+
 					<label class="field-label">Storage Location</label>
 					<div class="storage-row">
 						<button
@@ -322,12 +327,14 @@ watch(
 	},
 )
 
-const unitOptions = ['pc', 'pack', 'g', 'kg', 'ml', 'L']
+const unitOptions = ['pcs', 'bottles', 'cans', 'packs', 'boxes', 'g', 'kg', 'ml', 'L']
 const storageOptions = ['Fridge', 'Freezer', 'Cupboard']
+const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
 
 const quantity = ref(1)
 const unit = ref('L')
 const storageLocation = ref('Fridge')
+const category = ref('Uncategorized')
 const expirationDate = ref('')
 const bestBeforeDate = ref('')
 const submitting = ref(false)
@@ -384,10 +391,12 @@ function resetPantryForm() {
 	quantity.value = typeof detectedQty === 'number' && detectedQty > 0 ? detectedQty : 1
 
 	const detectedUnit = product.value?.net_unit_detected
-	const UNIT_OPTIONS = ['pc', 'pack', 'g', 'kg', 'ml', 'L']
-	const unitMap: Record<string, string> = { pcs: 'pc', piece: 'pc', pieces: 'pc', liter: 'L', litre: 'L', liters: 'L', litres: 'L', gram: 'g', grams: 'g', kilogram: 'kg', kilograms: 'kg', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml', ounce: 'oz', ounces: 'oz', 'fl oz': 'ml' }
+	const UNIT_OPTIONS = ['pcs', 'bottles', 'cans', 'packs', 'boxes', 'g', 'kg', 'ml', 'L']
+	const unitMap: Record<string, string> = { pc: 'pcs', piece: 'pcs', pieces: 'pcs', pcs: 'pcs', bottle: 'bottles', bottles: 'bottles', can: 'cans', cans: 'cans', pack: 'packs', packs: 'packs', box: 'boxes', boxes: 'boxes', liter: 'L', litre: 'L', liters: 'L', litres: 'L', gram: 'g', grams: 'g', kilogram: 'kg', kilograms: 'kg', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml', ounce: 'oz', ounces: 'oz', 'fl oz': 'ml' }
 	const normalizedUnit = typeof detectedUnit === 'string' ? (unitMap[detectedUnit] ?? detectedUnit) : null
 	unit.value = normalizedUnit && UNIT_OPTIONS.includes(normalizedUnit) ? normalizedUnit : 'pcs'
+
+	category.value = 'Uncategorized'
 
 	storageLocation.value = 'Fridge'
 	const detected = normalizeDetectedDate(product.value?.expiration_date_detected)
@@ -471,6 +480,7 @@ async function submitAddToPantry() {
 				quantity: quantity.value,
 				unit: unit.value,
 				storage_location: storageLocation.value,
+				category: category.value,
 				expiration_date: expirationDate.value || undefined,
 				best_before_date: bestBeforeDate.value || undefined,
 				saved_alternatives: displayAlternatives.value,
@@ -893,6 +903,19 @@ function forceDismiss() {
 
 .unit-select {
 	flex: 1;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	padding: 10px 12px;
+	font-size: 0.95rem;
+	color: #3b5bfd;
+	font-weight: 500;
+	background-color: #ffffff !important;
+	color-scheme: light;
+}
+
+.category-select {
+	width: 100%;
+	margin-bottom: 14px;
 	border: 1px solid #e5e7eb;
 	border-radius: 10px;
 	padding: 10px 12px;

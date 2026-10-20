@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, getRouterParam, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
+import { isValidPantryUnit, isValidPantryCategory } from '../../lib/pantry-taxonomy'
 
 interface UpdatePantryItemBody {
 	quantity?: number
@@ -8,6 +9,7 @@ interface UpdatePantryItemBody {
 	best_before_date?: string
 	storage_location?: string
 	unit?: string
+	category?: string
 	is_archived?: boolean
 	is_auto_archived?: boolean // Optional explicit flag for cron/automated jobs
 }
@@ -28,9 +30,9 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid request body.' })
 	}
 
-	const { quantity, expiration_date, best_before_date, storage_location, unit, is_archived, is_auto_archived } = body
+	const { quantity, expiration_date, best_before_date, storage_location, unit, category, is_archived, is_auto_archived } = body
 
-	if (quantity === undefined && expiration_date === undefined && best_before_date === undefined && storage_location === undefined && unit === undefined && is_archived === undefined) {
+	if (quantity === undefined && expiration_date === undefined && best_before_date === undefined && storage_location === undefined && unit === undefined && is_archived === undefined && category === undefined) {
 		throw createError({
 			statusCode: 400,
 			statusMessage: 'At least one of quantity, expiration_date, or is_archived must be provided.',
@@ -43,6 +45,13 @@ export default defineEventHandler(async (event) => {
 
 	if (is_archived !== undefined && typeof is_archived !== 'boolean') {
 		throw createError({ statusCode: 400, statusMessage: 'is_archived must be a boolean.' })
+	}
+
+	if (unit !== undefined && !isValidPantryUnit(unit)) {
+		throw createError({ statusCode: 400, statusMessage: 'unit must be one of: pcs, bottles, cans, packs, boxes, g, kg, ml, L.' })
+	}
+	if (category !== undefined && !isValidPantryCategory(category)) {
+		throw createError({ statusCode: 400, statusMessage: 'Invalid category.' })
 	}
 
 	if (storage_location !== undefined && typeof storage_location !== 'string') {
@@ -106,6 +115,7 @@ export default defineEventHandler(async (event) => {
 				...(parsedBestBeforeDate !== undefined && { best_before_date: parsedBestBeforeDate }),
 				...(storage_location !== undefined && { storage_location: storage_location.trim() }),
 				...(unit !== undefined && { portion_unit: unit }),
+				...(category !== undefined && { category }),
 				...(is_archived !== undefined && { is_archived }),
 				...(is_archived === false && { deleted_at: null }),
 			},
@@ -142,6 +152,7 @@ export default defineEventHandler(async (event) => {
 				id: updatedItem.id,
 				quantity: Number(updatedItem.quantity),
 				portion_unit: updatedItem.portion_unit,
+				category: updatedItem.category,
 				storage_location: updatedItem.storage_location,
 				expiration_date: updatedItem.expiration_date ? updatedItem.expiration_date.toISOString() : null,
 				best_before_date: updatedItem.best_before_date ? updatedItem.best_before_date.toISOString() : null,

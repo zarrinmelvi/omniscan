@@ -5,6 +5,9 @@
 		</slot>
 		<div class="app-header__actions">
 			<slot name="actions" />
+			<button type="button" class="app-header__theme" @click="toggleDarkMode" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+				<ion-icon :icon="isDark ? sunnyOutline : moonOutline" />
+			</button>
 			<button type="button" class="app-header__bell" @click="goToNotifications" aria-label="Notifications">
 				<ion-icon :icon="notificationsOutline" />
 				<span v-if="unreadNotifCount > 0" class="app-header__notif-badge">
@@ -19,11 +22,24 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { IonIcon } from '@ionic/vue'
-import { notificationsOutline } from 'ionicons/icons'
+import { notificationsOutline, moonOutline, sunnyOutline } from 'ionicons/icons'
 import { apiFetch } from '@/utils/api'
 
 const router = useRouter()
 const unreadNotifCount = ref(0)
+
+const DARK_MODE_KEY = 'omniscan_dark_mode'
+const isDark = ref(false)
+
+function applyDarkMode(enabled: boolean): void {
+	document.documentElement.classList.toggle('ion-palette-dark', enabled)
+	localStorage.setItem(DARK_MODE_KEY, String(enabled))
+}
+
+function toggleDarkMode(): void {
+	isDark.value = !isDark.value
+	applyDarkMode(isDark.value)
+}
 
 async function fetchUnreadNotifs(): Promise<void> {
 	try {
@@ -41,7 +57,10 @@ function goToNotifications(): void {
 // Expose a refresh method so parent pages can refresh the badge after actions.
 defineExpose({ fetchUnreadNotifs })
 
-onMounted(fetchUnreadNotifs)
+onMounted(() => {
+	fetchUnreadNotifs()
+	isDark.value = localStorage.getItem(DARK_MODE_KEY) === 'true'
+})
 </script>
 
 <style scoped>
@@ -65,6 +84,23 @@ onMounted(fetchUnreadNotifs)
 	align-items: center;
 	gap: 10px;
 	margin-left: auto;
+}
+.app-header__theme {
+	width: 38px;
+	height: 38px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	border-radius: 50%;
+	background: #f1f5f9;
+	color: #334155;
+	font-size: 1.15rem;
+	cursor: pointer;
+}
+.dark .app-header__theme {
+	background: #334155;
+	color: #fbbf24;
 }
 .app-header__bell {
 	position: relative;

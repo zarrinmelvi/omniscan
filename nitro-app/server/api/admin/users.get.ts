@@ -12,20 +12,15 @@ const INACTIVE_AFTER_DAYS = 30
 const ARCHIVE_AFTER_DAYS = 180
 const DELETE_AFTER_DAYS = 187
 
+const MS_PER_DAY = 1000 * 60 * 60 * 24
+
 type LifecycleStatus = 'Active' | 'Inactive' | 'Archived'
 
 function daysBetween(from: Date, to: Date): number {
 	const ms = to.getTime() - from.getTime()
-	return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)))
+	return Math.max(0, Math.floor(ms / MS_PER_DAY))
 }
 
-/**
- * Derives the lifecycle status purely from last-active recency, so the admin
- * view always reflects the automated policy rather than a possibly-stale
- * stored status. An explicitly stored 'archived' status is always honoured
- * (an admin/cron may have archived early), but recency can still promote a
- * row to Archived even if the stored status lags behind.
- */
 function deriveStatus(storedStatus: string, inactiveDays: number): LifecycleStatus {
 	const stored = (storedStatus || '').toLowerCase()
 	if (stored === 'archived') return 'Archived'
@@ -34,7 +29,6 @@ function deriveStatus(storedStatus: string, inactiveDays: number): LifecycleStat
 	return 'Active'
 }
 
-/** Human-readable "inactive for" label, e.g. "3d", "1mo 14d", "6mo 10d". */
 function formatInactiveFor(days: number): string | null {
 	if (days <= 0) return null
 	if (days < 30) return `${days}d`
@@ -43,26 +37,44 @@ function formatInactiveFor(days: number): string | null {
 	return remDays > 0 ? `${months}mo ${remDays}d` : `${months}mo`
 }
 
+// Masks the local part of an email so admins never see full addresses:
+//   "sei@gmail.com" -> "se•••@gmail.com"; malformed (no "@") -> original.
+function maskEmail(email: string): string {
+	if (!email || !email.includes('@')) return email || ''
+	const [local, domain] = email.split('@')
+	const keep = local.slice(0, 2)
+	return `${keep}•••@${domain}`
+}
+
 export default defineEventHandler(async (event) => {
 	requireAdminAuth(event)
 
 	try {
 		const now = new Date()
 
-		const users = await prisma.user.findMany({
-			where: { deleted_at: null },
-			orderBy: { created_at: 'asc' },
-			select: {
-				id: true,
-				name: true,
-				email: true,
-				status: true,
-				last_active: true,
-				created_at: true,
-				avatar_base64: true,
-				_count: { select: { scan: true } },
-			},
-		})
+		const [users, deletedCount] = await Promise.all([
+			prisma.user.findMany({
+				where: { deleted_at: null },
+				orderBy: { created_at: 'asc' },
+				select: {
+					id: true,
+					name: true,
+					username: true,
+					email: true,
+					status: true,
+					last_active: true,
+					created_at: true,
+					avatar_base64: true,
+					_count: {
+						select: {
+							scan: true,
+							pantry_item: { where: { is_archived: false, deleted_at: null } },
+						},
+					},
+				},
+			}),
+			prisma.user.count({ where: { deleted_at: { not: null } } }),
+		])
 
 		const rows = users.map((u) => {
 			const lastActive = u.last_active ?? u.created_at
@@ -70,10 +82,26 @@ export default defineEventHandler(async (event) => {
 			const status = deriveStatus(u.status, inactiveDays)
 			const deletionDue = status === 'Archived' && inactiveDays >= DELETE_AFTER_DAYS
 
+			const archivesInDays =
+				status === 'Archived' ? null : Math.max(0, ARCHIVE_AFTER_DAYS - inactiveDays)
+
+			const archivedOn =
+				status === 'Archived'
+					? new Date(lastActive.getTime() + ARCHIVE_AFTER_DAYS * MS_PER_DAY).toISOString()
+					: null
+			const deletesOn =
+				status === 'Archived'
+					? new Date(lastActive.getTime() + DELETE_AFTER_DAYS * MS_PER_DAY).toISOString()
+					: null
+			const deletesInDays =
+				status === 'Archived' ? Math.max(0, DELETE_AFTER_DAYS - inactiveDays) : null
+
 			return {
 				id: u.id,
 				name: u.name,
+				username: u.username ?? null,
 				email: u.email,
+				email_masked: maskEmail(u.email),
 				avatar_base64: u.avatar_base64 ?? null,
 				created_at: u.created_at,
 				last_active: lastActive,
@@ -82,6 +110,11 @@ export default defineEventHandler(async (event) => {
 				status,
 				deletion_due: deletionDue,
 				scan_count: u._count.scan,
+				pantry_item_count: u._count.pantry_item,
+				archives_in_days: archivesInDays,
+				archived_on: archivedOn,
+				deletes_on: deletesOn,
+				deletes_in_days: deletesInDays,
 			}
 		})
 
@@ -90,6 +123,7 @@ export default defineEventHandler(async (event) => {
 			active: rows.filter((r) => r.status === 'Active').length,
 			inactive: rows.filter((r) => r.status === 'Inactive').length,
 			archived: rows.filter((r) => r.status === 'Archived').length,
+			deleted: deletedCount,
 		}
 
 		return { success: true, users: rows, stats }

@@ -1798,3 +1798,14 @@ html.ion-palette-dark .pantry-bar { background: var(--dm-bg-subtle) !important; 
 html.ion-palette-dark .table-foot-note { background: var(--dm-bg-subtle) !important; border-top-color: var(--dm-border) !important; }
 html.ion-palette-dark .email-preview-box { background: var(--dm-bg-subtle) !important; border-color: var(--dm-border) !important; }
 html.ion-palette-dark .limit-chip { background: #450a0a !important; color: #fca5a5 !important; }
+
+/* === Admin · Products tab (Feature B) === */
+html.ion-palette-dark .dup-banner { background: #431407 !important; border-color: #78350f !important; color: #fed7aa !important; }
+html.ion-palette-dark .filter-chip { background: var(--dm-bg-card) !important; border-color: var(--dm-border) !important; color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .filter-chip--active { background: #422006 !important; border-color: #a16207 !important; color: #fde68a !important; }
+html.ion-palette-dark .product-thumb { background: var(--dm-bg-subtle) !important; border-color: var(--dm-border) !important; }
+html.ion-palette-dark .product-name { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .halal-pill--none { background: var(--dm-bg-chip) !important; color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .btn-view-sm { background: var(--dm-bg-chip) !important; border-color: var(--dm-border) !important; color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .btn-merge { background: var(--dm-bg-card) !important; border-color: var(--dm-border) !important; color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .btn-merge--active { background: #008744 !important; border-color: #008744 !important; color: #fff !important; }

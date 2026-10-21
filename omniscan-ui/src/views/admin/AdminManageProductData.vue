@@ -27,10 +27,15 @@
 				Ingredient Mappings
 				<span v-if="ingredientMappings.length > 0" class="tab-count-badge">{{ ingredientMappings.length }}</span>
 			</button>
+			<button class="tab-button" :class="{ active: activeTab === 'products' }" @click="switchTab('products')">
+				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+				Products
+				<span v-if="productTabBadge > 0" class="tab-count-badge">{{ productTabBadge }}</span>
+			</button>
 		</div>
 
 		<div class="content-card">
-			<div class="controls-bar">
+			<div v-if="activeTab !== 'products'" class="controls-bar">
 				<span class="section-title">{{ getTabTitle }}</span>
 				<div class="action-controls">
 					<div class="search-box">
@@ -229,7 +234,105 @@
 				</div>
 			</template>
 
-			<div class="card-footer-notice">
+			<!-- 4. PRODUCTS -->
+			<template v-else-if="activeTab === 'products'">
+				<div v-if="productDuplicatesCount > 0" class="dup-banner">
+					<strong>{{ productDuplicatesCount }} possible duplicates.</strong> Merging combines scan history into one record and points every Consumer to it.
+				</div>
+
+				<div class="products-controls">
+					<div class="search-box">
+						<svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<circle cx="11" cy="11" r="8"></circle>
+							<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+						</svg>
+						<input v-model="productSearch" type="text" placeholder="Search by name or brand" />
+					</div>
+					<select v-model="productSort" class="ingredient-filter-select">
+						<option value="name_asc">Name A–Z</option>
+						<option value="name_desc">Name Z–A</option>
+						<option value="scans">Most scans</option>
+						<option value="newest">Newest</option>
+					</select>
+					<button class="filter-chip" :class="{ 'filter-chip--active': productFilter === 'all' }" @click="productFilter = 'all'">All</button>
+					<button class="filter-chip" :class="{ 'filter-chip--active': productFilter === 'duplicates' }" @click="productFilter = 'duplicates'">Possible duplicates · {{ productDuplicatesCount }}</button>
+					<button class="filter-chip" :class="{ 'filter-chip--active': productFilter === 'unverified' }" @click="productFilter = 'unverified'">Unverified Halal logo · {{ productUnverifiedCount }}</button>
+				</div>
+
+				<p v-if="productLoading" class="state-message">Loading…</p>
+				<p v-else-if="productError" class="error-message">{{ productError }}</p>
+				<p v-else-if="productList.length === 0" class="empty-note">No products found.</p>
+				<div v-else class="table-wrap">
+					<table class="data-table products-table">
+						<thead>
+							<tr>
+								<th>PRODUCT</th>
+								<th>BRAND</th>
+								<th>SCANS</th>
+								<th>HALAL STATUS</th>
+								<th>ALLERGENS DETECTED</th>
+								<th>UPDATED</th>
+								<th class="col-actions">ACTIONS</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="p in productList" :key="p.id">
+								<td>
+									<div class="product-cell">
+										<div class="product-thumb">
+											<img v-if="p.thumb" :src="p.thumb" :alt="p.product_name" @error="(e) => ((e.target as HTMLImageElement).style.display = 'none')" />
+											<span v-else>📦</span>
+										</div>
+										<div class="product-name-wrap">
+											<span class="product-name">{{ p.product_name }}</span>
+											<span v-if="p.possible_duplicate" class="dup-chip">Possible duplicate</span>
+										</div>
+									</div>
+								</td>
+								<td>{{ p.brand_name }}</td>
+								<td class="scan-count-cell">{{ p.scan_count }}</td>
+								<td><span class="halal-pill" :class="'halal-pill--' + p.halal_status.kind">{{ p.halal_status.label }}</span></td>
+								<td>
+									<template v-if="p.allergens_detected.length > 0">
+										<span v-for="a in p.allergens_detected" :key="a" class="allergen-tag">{{ a }}</span>
+									</template>
+									<span v-else class="muted-dash">—</span>
+								</td>
+								<td class="cell-updated">{{ formatDate(p.updated_at) }}</td>
+								<td class="col-actions">
+									<button class="btn-view-sm" @click="viewProduct(p)">View</button>
+									<button class="btn-merge" :class="{ 'btn-merge--active': p.possible_duplicate }" :disabled="!p.possible_duplicate" @click="openMerge(p)">Merge</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div v-if="!productLoading && !productError && productList.length > 0" class="pagination-bar">
+					<span class="pagination-count">{{ productRangeLabel }}</span>
+					<div class="pagination-controls">
+						<button class="page-nav" :disabled="productPage === 1" @click="productPage > 1 && (productPage -= 1)" aria-label="Previous page">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+						</button>
+						<template v-for="(item, idx) in productPageItems" :key="idx">
+							<button
+								v-if="item !== '...'"
+								class="page-num"
+								:class="{ active: item === productPage }"
+								@click="productPage = item as number"
+							>{{ item }}</button>
+							<span v-else class="page-ellipsis">…</span>
+						</template>
+						<button class="page-nav" :disabled="productPage === productTotalPages" @click="productPage < productTotalPages && (productPage += 1)" aria-label="Next page">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+						</button>
+					</div>
+				</div>
+				<div class="card-footer-notice">
+					One record per unique product. When User 2 scans an item User 1 already scanned, the scan attaches to the existing record.
+				</div>
+			</template>
+
+			<div v-if="activeTab !== 'products'" class="card-footer-notice">
 				All changes are persisted to the OmniScan knowledge base and reflected across the Verification Panel and scan pipeline.
 			</div>
 		</div>
@@ -363,6 +466,79 @@
 			@cancel="cancelDelete"
 			@confirm="confirmDelete"
 		/>
+
+		<!-- ══════════════════ MERGE CONFIRMATION MODAL ══════════════════ -->
+		<Teleport to="body">
+			<div v-if="mergeTarget" class="modal-overlay" @click.self="cancelMerge">
+				<div class="modal" role="dialog" aria-modal="true">
+					<div class="modal-header">
+						<h2 class="modal-title">Merge this duplicate?</h2>
+						<button class="modal-close" @click="cancelMerge" aria-label="Close">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<line x1="18" y1="6" x2="6" y2="18"></line>
+								<line x1="6" y1="6" x2="18" y2="18"></line>
+							</svg>
+						</button>
+					</div>
+					<div class="modal-body">
+						<p class="merge-copy">Merging combines all scan history into one record and points every Consumer to it. The duplicate record is removed. This is recorded in System Logs.</p>
+						<p v-if="mergeError" class="modal-error">{{ mergeError }}</p>
+					</div>
+					<div class="modal-footer">
+						<button class="btn-modal-cancel" :disabled="merging" @click="cancelMerge">Cancel</button>
+						<button class="btn-modal-save" :disabled="merging" @click="confirmMerge">{{ merging ? 'Merging…' : 'Confirm merge' }}</button>
+					</div>
+				</div>
+			</div>
+		</Teleport>
+
+		<!-- ══════════════════ PRODUCT VIEW MODAL ══════════════════ -->
+		<Teleport to="body">
+			<div v-if="viewProductTarget" class="modal-overlay" @click.self="viewProductTarget = null">
+				<div class="modal" role="dialog" aria-modal="true">
+					<div class="modal-header">
+						<h2 class="modal-title">{{ viewProductTarget.product_name }}</h2>
+						<button class="modal-close" @click="viewProductTarget = null" aria-label="Close">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<line x1="18" y1="6" x2="6" y2="18"></line>
+								<line x1="6" y1="6" x2="18" y2="18"></line>
+							</svg>
+						</button>
+					</div>
+					<div class="modal-body">
+						<div class="field">
+							<span class="field-label">Brand</span>
+							<span>{{ viewProductTarget.brand_name || '—' }}</span>
+						</div>
+						<div class="field">
+							<span class="field-label">Halal status</span>
+							<span class="halal-pill" :class="'halal-pill--' + viewProductTarget.halal_status.kind">{{ viewProductTarget.halal_status.label }}</span>
+						</div>
+						<div class="field">
+							<span class="field-label">Allergens detected</span>
+							<div>
+								<template v-if="viewProductTarget.allergens_detected.length > 0">
+									<span v-for="a in viewProductTarget.allergens_detected" :key="a" class="allergen-tag">{{ a }}</span>
+								</template>
+								<span v-else class="muted-dash">—</span>
+							</div>
+						</div>
+						<div class="field">
+							<span class="field-label">Scan count</span>
+							<span>{{ viewProductTarget.scan_count }}</span>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button class="btn-modal-cancel" @click="viewProductTarget = null">Close</button>
+					</div>
+				</div>
+			</div>
+		</Teleport>
+
+		<!-- ══════════════════ PRODUCT TOAST ══════════════════ -->
+		<Teleport to="body">
+			<div v-if="productToast.visible" class="product-toast">{{ productToast.message }}</div>
+		</Teleport>
 	</div>
 </template>
 
@@ -372,7 +548,32 @@ import { apiFetch, ApiError } from '@/utils/api'
 import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal.vue'
 
-type TabType = 'allergen' | 'halal' | 'ingredient'
+type TabType = 'allergen' | 'halal' | 'ingredient' | 'products'
+
+interface ProductRow {
+	id: number
+	brand_name: string
+	product_name: string
+	thumb: string | null
+	scan_count: number
+	halal_status: { label: string; kind: 'certified' | 'unverified' | 'none' }
+	allergens_detected: string[]
+	possible_duplicate: boolean
+	canonical_key: string | null
+	canonical_product_id: number | null
+	updated_at: string
+}
+
+interface ProductsResponse {
+	success: boolean
+	products: ProductRow[]
+	total_filtered: number
+	total: number
+	duplicates_count: number
+	unverified_count: number
+	page: number
+	limit: number
+}
 
 interface AllergenMapping {
 	id: number
@@ -419,6 +620,27 @@ const errorMessage = ref<string | null>(null)
 const allergens = ref<AllergenRow[]>([])
 const halalLogos = ref<CertifierRow[]>([])
 const ingredientMappings = ref<MappingRow[]>([])
+
+// ─── Products tab state ───────────────────────────────────────────────────────
+const PRODUCT_PAGE_SIZE = 10
+const productList = ref<ProductRow[]>([])
+const productTotal = ref(0)        // total after search (filter-chip "All" count)
+const productTotalFiltered = ref(0) // total after search + active filter (for pagination)
+const productTabBadge = ref(0)      // grand total for the tab badge
+const productDuplicatesCount = ref(0)
+const productUnverifiedCount = ref(0)
+const productLoading = ref(false)
+const productError = ref<string | null>(null)
+const productSearch = ref('')
+const productSort = ref<'name_asc' | 'name_desc' | 'scans' | 'newest'>('name_asc')
+const productFilter = ref<'all' | 'duplicates' | 'unverified'>('all')
+const productPage = ref(1)
+const mergeTarget = ref<ProductRow | null>(null)
+const merging = ref(false)
+const mergeError = ref<string | null>(null)
+const viewProductTarget = ref<ProductRow | null>(null)
+const productToast = ref<{ visible: boolean; message: string }>({ visible: false, message: '' })
+let productToastTimer: ReturnType<typeof setTimeout> | null = null
 
 // ─── Modal state ──────────────────────────────────────────────────────────────
 const modalOpen = ref(false)
@@ -489,8 +711,141 @@ function aliasesChanged(): boolean {
 const getTabTitle = computed(() => {
 	if (activeTab.value === 'halal') return 'Maintain halal certifier library'
 	if (activeTab.value === 'ingredient') return 'Refine ingredient → allergen mappings'
+	if (activeTab.value === 'products') return 'Manage product records'
 	return 'Update allergen dictionary'
 })
+
+// ─── Products: pagination + fetching ──────────────────────────────────────────
+const productTotalPages = computed(() =>
+	Math.max(1, Math.ceil(productTotalFiltered.value / PRODUCT_PAGE_SIZE)),
+)
+
+const productRangeLabel = computed(() => {
+	const total = productTotalFiltered.value
+	if (total === 0) return 'No records'
+	const start = (productPage.value - 1) * PRODUCT_PAGE_SIZE + 1
+	const end = Math.min(productPage.value * PRODUCT_PAGE_SIZE, total)
+	return `Showing ${start}–${end} of ${total}`
+})
+
+const productPageItems = computed<(number | '...')[]>(() => {
+	const total = productTotalPages.value
+	const current = productPage.value
+	const MAX = 10
+	if (total <= MAX) {
+		return Array.from({ length: total }, (_, i) => i + 1)
+	}
+	const items: (number | '...')[] = []
+	const SIBLINGS = 2
+	const left = Math.max(2, current - SIBLINGS)
+	const right = Math.min(total - 1, current + SIBLINGS)
+	items.push(1)
+	if (left > 2) items.push('...')
+	for (let p = left; p <= right; p++) items.push(p)
+	if (right < total - 1) items.push('...')
+	items.push(total)
+	return items
+})
+
+async function fetchProducts(): Promise<void> {
+	productLoading.value = true
+	productError.value = null
+	try {
+		const params = new URLSearchParams({
+			search: productSearch.value,
+			filter: productFilter.value,
+			sort: productSort.value,
+			page: String(productPage.value),
+			limit: String(PRODUCT_PAGE_SIZE),
+		})
+		const data = await apiFetch<ProductsResponse>(`/api/admin/products?${params.toString()}`, { isAdmin: true })
+		productList.value = data.products ?? []
+		productTotal.value = data.total ?? 0
+		productTotalFiltered.value = data.total_filtered ?? 0
+		productTabBadge.value = data.total ?? 0
+		productDuplicatesCount.value = data.duplicates_count ?? 0
+		productUnverifiedCount.value = data.unverified_count ?? 0
+	} catch (err) {
+		productError.value = err instanceof ApiError ? err.message : 'Failed to fetch products.'
+	} finally {
+		productLoading.value = false
+	}
+}
+
+function showProductToast(message: string): void {
+	productToast.value = { visible: true, message }
+	if (productToastTimer) clearTimeout(productToastTimer)
+	productToastTimer = setTimeout(() => {
+		productToast.value = { visible: false, message: '' }
+	}, 3000)
+}
+
+function viewProduct(p: ProductRow): void {
+	viewProductTarget.value = p
+}
+
+function openMerge(p: ProductRow): void {
+	if (!p.possible_duplicate) return
+	mergeError.value = null
+	mergeTarget.value = p
+}
+
+function cancelMerge(): void {
+	if (merging.value) return
+	mergeTarget.value = null
+	mergeError.value = null
+}
+
+async function confirmMerge(): Promise<void> {
+	const clicked = mergeTarget.value
+	if (!clicked) return
+	// Resolve primary/duplicate. Prefer the explicit canonical pointer; else pick
+	// the oldest (lowest id) product sharing the same canonical_key from the loaded
+	// list. Never merge a record into itself.
+	let primaryId: number
+	let duplicateId: number = clicked.id
+
+	if (clicked.canonical_product_id != null && clicked.canonical_product_id !== clicked.id) {
+		primaryId = clicked.canonical_product_id
+	} else {
+		const group = productList.value
+			.filter((p) => clicked.canonical_key != null && p.canonical_key === clicked.canonical_key)
+			.sort((a, b) => a.id - b.id)
+		if (group.length < 2) {
+			mergeError.value = 'Could not resolve a duplicate pair for this product.'
+			return
+		}
+		primaryId = group[0].id
+		if (clicked.id === primaryId) {
+			// The clicked row IS the canonical/oldest — merge the next one into it.
+			duplicateId = group[1].id
+		} else {
+			duplicateId = clicked.id
+		}
+	}
+
+	if (primaryId === duplicateId) {
+		mergeError.value = 'Cannot merge a record into itself.'
+		return
+	}
+
+	merging.value = true
+	mergeError.value = null
+	try {
+		await apiFetch('/api/admin/products/merge', {
+			method: 'POST',
+			body: { primary_id: primaryId, duplicate_id: duplicateId },
+			isAdmin: true,
+		})
+		mergeTarget.value = null
+		showProductToast('Merged. Scan history combined.')
+		await fetchProducts()
+	} catch (err) {
+		mergeError.value = err instanceof ApiError ? err.message : 'Failed to merge. Please try again.'
+	} finally {
+		merging.value = false
+	}
+}
 
 const tabSingular = computed(() => {
 	if (activeTab.value === 'halal') return 'Certifier'
@@ -660,11 +1015,31 @@ function switchTab(tab: TabType): void {
 	searchQuery.value = ''
 	ingredientAllergenFilter.value = 'all'
 	allergenPage.value = 1
+	if (tab === 'products') {
+		productSearch.value = ''
+		productFilter.value = 'all'
+		productPage.value = 1
+		fetchProducts()
+		return
+	}
 	fetchTabContent(tab)
 }
 
+// Reset to page 1 and refetch when products search/sort/filter changes.
+watch([productSearch, productSort, productFilter], () => {
+	if (activeTab.value !== 'products') return
+	productPage.value = 1
+	fetchProducts()
+})
+watch(productPage, () => {
+	if (activeTab.value !== 'products') return
+	fetchProducts()
+})
+
 // ─── Modal open/close ─────────────────────────────────────────────────────────
 function openCreateModal(): void {
+	// Products tab uses its own controls — never the shared create modal.
+	if (activeTab.value === 'products') return
 	modalMode.value = 'create'
 	editingId.value = null
 	modalError.value = null
@@ -746,6 +1121,7 @@ async function saveModal(): Promise<void> {
 			allergen: '/api/allergen',
 			halal: '/api/halal_logo',
 			ingredient: '/api/ingredient_mapping',
+			products: '',
 		}
 		const endpoint = endpointMap[activeTab.value]
 		const payload: Record<string, any> = { ...form.value }
@@ -813,6 +1189,7 @@ async function confirmDelete(): Promise<void> {
 		allergen: '/api/allergen',
 		halal: '/api/halal_logo',
 		ingredient: '/api/ingredient_mapping',
+		products: '',
 	}
 	deleting.value = true
 	try {
@@ -1090,4 +1467,31 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 .btn-modal-save { background: #008744; color: #fff; border: none; padding: 8px 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.12s; }
 .btn-modal-save:hover:not(:disabled) { background: #00753a; }
 .btn-modal-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ─── Products tab ─────────────────────────────────────────────────────────── */
+.dup-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin:16px 24px;font-size:0.84rem;color:#92400e;}
+.products-controls{display:flex;align-items:center;gap:12px;padding:0 24px 16px;flex-wrap:wrap;}
+.filter-chip{border:1px solid #e2e8f0;background:#fff;border-radius:9999px;padding:6px 14px;font-size:0.8rem;font-weight:600;color:#64748b;cursor:pointer;}
+.filter-chip--active{background:#fef9c3;border-color:#fde047;color:#854d0e;}
+.product-cell{display:flex;align-items:center;gap:12px;}
+.product-thumb{width:40px;height:40px;border-radius:8px;background:#f1f5f9;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+.product-thumb img{width:100%;height:100%;object-fit:cover;}
+.product-name-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.product-name{font-weight:600;color:#0f172a;}
+.dup-chip{font-size:0.68rem;font-weight:700;background:#fef9c3;color:#854d0e;border-radius:9999px;padding:2px 8px;}
+.halal-pill{display:inline-block;padding:3px 10px;border-radius:9999px;font-size:0.74rem;font-weight:600;}
+.halal-pill--certified{background:#dcfce7;color:#15803d;}
+.halal-pill--unverified{background:#fef9c3;color:#a16207;}
+.halal-pill--none{background:#f1f5f9;color:#64748b;}
+.allergen-tag{display:inline-block;background:#fff1f2;color:#be123c;border-radius:9999px;padding:2px 8px;font-size:0.72rem;font-weight:600;margin:1px 3px 1px 0;}
+.muted-dash{color:#94a3b8;}
+.scan-count-cell{font-weight:600;color:#334155;}
+.btn-view-sm{border:1px solid #e2e8f0;background:#fff;border-radius:8px;padding:5px 14px;font-size:0.8rem;font-weight:600;color:#334155;cursor:pointer;margin-right:6px;}
+.btn-view-sm:hover{background:#f8fafc;}
+.btn-merge{border:1px solid #e2e8f0;background:#fff;border-radius:8px;padding:5px 14px;font-size:0.8rem;font-weight:600;color:#94a3b8;cursor:not-allowed;}
+.btn-merge--active{background:#008744;border-color:#008744;color:#fff;cursor:pointer;}
+.btn-merge--active:hover{background:#00753a;}
+.products-table th, .products-table td { white-space: nowrap; }
+.merge-copy{margin:0;font-size:0.88rem;color:#334155;line-height:1.5;}
+.product-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 24px;border-radius:9999px;font-size:0.875rem;font-weight:500;z-index:10000;box-shadow:0 8px 30px rgba(0,0,0,0.2);}
 </style>

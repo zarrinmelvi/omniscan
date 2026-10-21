@@ -1,9 +1,6 @@
 <template>
 	<div class="vp-root">
 
-		<!-- ── Breadcrumb sample data note ─────────────────────────── -->
-		<div class="vp-sample-note">Sample data</div>
-
 		<!-- ── Page Header ────────────────────────────────────────── -->
 		<div class="vp-header">
 			<h1 class="vp-title">Exceptions queue</h1>
@@ -109,9 +106,6 @@
 										</div>
 										<div class="logo-stats">
 											Seen on <strong>{{ card.scanCount }} scans</strong> · <strong>{{ card.productCount }} products</strong> · <strong>{{ card.consumerCount }} Consumers</strong>
-										</div>
-										<div class="logo-ai-match">
-											AI closest match: <strong>{{ card.aiMatch }}</strong>
 										</div>
 										<div class="logo-examples">
 											Example products: {{ card.examples.join(', ') }}
@@ -256,13 +250,31 @@ interface FlaggedScanRaw {
 	image_base64_back: string | null
 }
 
+interface ServerCard {
+	id: number
+	title: string
+	scanCount: number
+	productCount: number
+	consumerCount: number
+	examples: string[]
+	thumb: string | null
+	rawIds: number[]
+}
+
+interface QueueMetricsRaw {
+	auto_resolved_pct: number
+	needs_decision: number
+	needs_decision_scans: number
+	awaiting_rescan: number
+	resolved_this_week: number
+}
+
 interface QueueCard {
 	id: number
 	title: string
 	scanCount: number
 	productCount: number
 	consumerCount: number
-	aiMatch: string
 	examples: string[]
 	thumb: string | null
 	type: 'unmatched' | 'duplicate' | 'training'
@@ -278,6 +290,12 @@ const adminName = computed(() => adminStore.admin?.full_name ?? 'Admin')
 const rawScans = ref<FlaggedScanRaw[]>([])
 const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
+
+// Server-provided queue data (the single source of truth now)
+const metrics = ref<QueueMetricsRaw | null>(null)
+const unmatchedCardsData = ref<ServerCard[]>([])
+const duplicateCardsData = ref<ServerCard[]>([])
+const trainingCardsData = ref<ServerCard[]>([])
 
 type TabType = 'unmatched' | 'duplicates' | 'training'
 const activeTab = ref<TabType>('unmatched')
@@ -296,134 +314,50 @@ const resolvedIds = ref<Set<number>>(new Set())
 
 // ── Queue metrics ────────────────────────────────────────────────────────
 const queueMetrics = computed(() => {
-	const total = rawScans.value.length
-	const pending = rawScans.value.filter((s) => s.status === 'pending').length
-	const awaiting = rawScans.value.filter((s) => s.status === 'awaiting_rescan').length
-	const resolved = rawScans.value.filter((s) => ['approved', 'dismissed', 'verified'].includes(s.status)).length
-	// Auto-resolved = scans that never reached admin (this is a display metric; derive from resolved rate)
-	const autoResolvedPct = total > 0 ? Math.max(90, Math.round(((total - pending - awaiting) / total) * 100)) : 94
+	const m = metrics.value
+	const visibleUnmatched = unmatchedCards.value
+	const needsDecisionScans = m?.needs_decision_scans ?? visibleUnmatched.reduce((sum, c) => sum + c.scanCount, 0)
 	return {
-		autoResolved: autoResolvedPct,
-		needsDecision: unmatchedCards.value.filter((c) => !resolvedIds.value.has(c.id)).length,
-		needsDecisionScans: unmatchedCards.value.filter((c) => !resolvedIds.value.has(c.id)).reduce((sum, c) => sum + c.scanCount, 0),
-		awaitingRescan: awaiting || 41,
-		resolvedThisWeek: resolved || 13,
+		autoResolved: m?.auto_resolved_pct ?? 0,
+		needsDecision: visibleUnmatched.length,
+		needsDecisionScans,
+		awaitingRescan: m?.awaiting_rescan ?? 0,
+		resolvedThisWeek: m?.resolved_this_week ?? 0,
 	}
 })
 
-// ── Build logo cards from raw flagged scans ──────────────────────────────
-// Group halal-type pending scans into "unrecognized logo" cards
-const unmatchedCards = computed<QueueCard[]>(() => {
-	const pending = rawScans.value.filter(
-		(s) => s.halal_flag_type === 'halal' && s.status === 'pending' && !resolvedIds.value.has(s.id)
-	)
-	if (pending.length === 0) {
-		// Fallback sample cards when no real data exists
-		return [
-			{
-				id: 1001, title: 'Unrecognized Halal logo #1', scanCount: 14, productCount: 9, consumerCount: 11,
-				aiMatch: 'no registry entry above 90% (best: 62%)',
-				examples: ['555 Tuna Afritada', 'Dutch Mill Delight', '[Product name]'],
-				thumb: null, type: 'unmatched', rawIds: [],
-			},
-			{
-				id: 1002, title: 'Unrecognized Halal logo #2', scanCount: 6, productCount: 4, consumerCount: 5,
-				aiMatch: 'no registry entry above 90% (best: 48%)',
-				examples: ['[Product name]'],
-				thumb: null, type: 'unmatched', rawIds: [],
-			},
-			{
-				id: 1003, title: 'Unrecognized Halal logo #3', scanCount: 3, productCount: 3, consumerCount: 3,
-				aiMatch: 'no registry entry above 90% (best: 41%)',
-				examples: ['[Product name]'],
-				thumb: null, type: 'unmatched', rawIds: [],
-			},
-		]
+// ── Queue cards sourced from the server, filtered by optimistic removals ──
+function mapServerCard(c: ServerCard, type: QueueCard['type']): QueueCard {
+	return {
+		id: c.id,
+		title: c.title,
+		scanCount: c.scanCount,
+		productCount: c.productCount,
+		consumerCount: c.consumerCount,
+		examples: c.examples,
+		thumb: c.thumb,
+		type,
+		rawIds: c.rawIds,
 	}
-	// Group by product name as a proxy for "distinct logo"
-	const groups: Record<string, FlaggedScanRaw[]> = {}
-	for (const s of pending) {
-		const key = s.product_name || `flag-${s.id}`
-		if (!groups[key]) groups[key] = []
-		groups[key].push(s)
-	}
-	return Object.entries(groups).slice(0, 6).map(([key, scans], i) => {
-		const first = scans[0]
-		return {
-			id: first.id,
-			title: `Unrecognized Halal logo #${i + 1}`,
-			scanCount: scans.length,
-			productCount: new Set(scans.map((s) => s.product_name)).size,
-			consumerCount: Math.max(1, Math.round(scans.length * 0.75)),
-			aiMatch: 'no registry entry above 90% (best: 62%)',
-			examples: [...new Set(scans.map((s) => s.product_name))].slice(0, 3),
-			thumb: first.image_base64
-				? (first.image_base64.startsWith('data:') ? first.image_base64 : `data:image/jpeg;base64,${first.image_base64}`)
-				: null,
-			type: 'unmatched' as const,
-			rawIds: scans.map((s) => s.id),
-		}
-	})
-})
+}
 
-const duplicateCards = computed<QueueCard[]>(() => {
-	// Possible duplicates: scans where product_name appears multiple times across different flags
-	const seen = new Map<string, FlaggedScanRaw[]>()
-	for (const s of rawScans.value.filter((s) => s.status === 'pending' && !resolvedIds.value.has(s.id))) {
-		const key = (s.product_name || '').toLowerCase().trim()
-		if (key) {
-			if (!seen.has(key)) seen.set(key, [])
-			seen.get(key)!.push(s)
-		}
-	}
-	const dups = [...seen.entries()].filter(([, scans]) => scans.length >= 2).slice(0, 3)
-	if (dups.length === 0) {
-		return [
-			{ id: 2001, title: 'Possible duplicate logo #1', scanCount: 4, productCount: 2, consumerCount: 3, aiMatch: 'Similar to JAKIM logo (78%)', examples: ['[Product name]'], thumb: null, type: 'duplicate', rawIds: [] },
-			{ id: 2002, title: 'Possible duplicate logo #2', scanCount: 2, productCount: 1, consumerCount: 2, aiMatch: 'Similar to MUIS logo (71%)', examples: ['[Product name]'], thumb: null, type: 'duplicate', rawIds: [] },
-		]
-	}
-	return dups.map(([, scans], i) => {
-		const first = scans[0]
-		return {
-			id: first.id + 2000,
-			title: `Possible duplicate logo #${i + 1}`,
-			scanCount: scans.length,
-			productCount: new Set(scans.map((s) => s.product_name)).size,
-			consumerCount: Math.max(1, Math.round(scans.length * 0.7)),
-			aiMatch: 'Similar to known certifier (>70%)',
-			examples: [...new Set(scans.map((s) => s.product_name))].slice(0, 2),
-			thumb: first.image_base64 ? (first.image_base64.startsWith('data:') ? first.image_base64 : `data:image/jpeg;base64,${first.image_base64}`) : null,
-			type: 'duplicate' as const,
-			rawIds: scans.map((s) => s.id),
-		}
-	})
-})
+const unmatchedCards = computed<QueueCard[]>(() =>
+	unmatchedCardsData.value
+		.filter((c) => !resolvedIds.value.has(c.id))
+		.map((c) => mapServerCard(c, 'unmatched'))
+)
 
-const trainingCards = computed<QueueCard[]>(() => {
-	const corrections = rawScans.value.filter(
-		(s) => s.admin_correction != null && s.admin_correction !== '' && !resolvedIds.value.has(s.id)
-	).slice(0, 3)
-	if (corrections.length === 0) {
-		return [
-			{ id: 3001, title: 'Training correction #1', scanCount: 2, productCount: 1, consumerCount: 2, aiMatch: 'Label mismatch detected', examples: ['[Product name]'], thumb: null, type: 'training', rawIds: [] },
-			{ id: 3002, title: 'Training correction #2', scanCount: 1, productCount: 1, consumerCount: 1, aiMatch: 'OCR error on ingredient list', examples: ['[Product name]'], thumb: null, type: 'training', rawIds: [] },
-			{ id: 3003, title: 'Training correction #3', scanCount: 3, productCount: 2, consumerCount: 2, aiMatch: 'Ingredient mapping error', examples: ['[Product name]'], thumb: null, type: 'training', rawIds: [] },
-		]
-	}
-	return corrections.map((s, i) => ({
-		id: s.id + 3000,
-		title: `Training correction #${i + 1}`,
-		scanCount: 1,
-		productCount: 1,
-		consumerCount: 1,
-		aiMatch: s.clean_flag_reason.slice(0, 60),
-		examples: [s.product_name],
-		thumb: s.image_base64 ? (s.image_base64.startsWith('data:') ? s.image_base64 : `data:image/jpeg;base64,${s.image_base64}`) : null,
-		type: 'training' as const,
-		rawIds: [s.id],
-	}))
-})
+const duplicateCards = computed<QueueCard[]>(() =>
+	duplicateCardsData.value
+		.filter((c) => !resolvedIds.value.has(c.id))
+		.map((c) => mapServerCard(c, 'duplicate'))
+)
+
+const trainingCards = computed<QueueCard[]>(() =>
+	trainingCardsData.value
+		.filter((c) => !resolvedIds.value.has(c.id))
+		.map((c) => mapServerCard(c, 'training'))
+)
 
 const activeTabCards = computed<QueueCard[]>(() => {
 	if (activeTab.value === 'unmatched') return unmatchedCards.value
@@ -466,11 +400,6 @@ function confirmAddCertifier(): void {
 	resolvedIds.value = new Set([...resolvedIds.value, card.id])
 	expandedId.value = null
 	showToast(`Certifier added. ${card.productCount} products updated.`)
-	// Dispatch audit log via API (fire-and-forget, non-blocking)
-	apiFetch('/api/admin/flagged-scans', {
-		method: 'GET',
-		isAdmin: true,
-	}).catch(() => {})
 }
 
 function confirmNotHalal(): void {
@@ -492,15 +421,33 @@ function confirmRescan(): void {
 }
 
 // ── API ──────────────────────────────────────────────────────────────────
-async function fetchFlaggedScans(): Promise<void> {
+async function fetchQueue(): Promise<void> {
 	isLoading.value = true
 	errorMessage.value = null
 	try {
-		const data = await apiFetch<{ flagged_scans: FlaggedScanRaw[] }>(
-			'/api/admin/flagged-scans?type=all',
-			{ method: 'GET', isAdmin: true }
-		)
-		rawScans.value = data.flagged_scans
+		// Primary source of truth: the live verification queue endpoint.
+		const data = await apiFetch<{
+			metrics: QueueMetricsRaw
+			unmatched: ServerCard[]
+			duplicates: ServerCard[]
+			training: ServerCard[]
+		}>('/api/admin/verification-queue', { method: 'GET', isAdmin: true })
+		metrics.value = data.metrics
+		unmatchedCardsData.value = data.unmatched
+		duplicateCardsData.value = data.duplicates
+		trainingCardsData.value = data.training
+
+		// The awaiting-rescan read-only modal list isn't part of the queue
+		// endpoint payload, so fetch flagged scans for that list only.
+		try {
+			const flags = await apiFetch<{ flagged_scans: FlaggedScanRaw[] }>(
+				'/api/admin/flagged-scans?type=all',
+				{ method: 'GET', isAdmin: true }
+			)
+			rawScans.value = flags.flagged_scans
+		} catch {
+			rawScans.value = []
+		}
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load queue.'
 	} finally {
@@ -510,7 +457,7 @@ async function fetchFlaggedScans(): Promise<void> {
 
 // ── URL query params → tab/card deep-link ───────────────────────────────
 onMounted(async () => {
-	await fetchFlaggedScans()
+	await fetchQueue()
 
 	const tabParam = route.query.tab as string | undefined
 	if (tabParam === 'needs-decision') activeTab.value = 'unmatched'
@@ -545,11 +492,6 @@ watch(() => route.query, (q) => {
 	background: #fafafa;
 	min-height: 100vh;
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-.vp-sample-note {
-	font-size: 0.72rem;
-	color: #9ca3af;
-	margin-bottom: 4px;
 }
 .vp-header { margin-bottom: 20px; }
 .vp-title {
@@ -738,11 +680,6 @@ watch(() => route.query, (q) => {
 .logo-stats {
 	font-size: 0.82rem;
 	color: #374151;
-	margin-bottom: 4px;
-}
-.logo-ai-match {
-	font-size: 0.78rem;
-	color: #6b7280;
 	margin-bottom: 4px;
 }
 .logo-examples {

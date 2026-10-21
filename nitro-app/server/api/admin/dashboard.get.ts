@@ -10,6 +10,17 @@ export default defineEventHandler(async (event) => {
 	const rangeDays = query.range === '7d' ? 7 : query.range === '90d' ? 90 : 30
 
 	try {
+		// ── API health: real measured DB round-trip latency ───────────────
+		// Take 5 sequential probes against the DB and average them. Cheap, and
+		// runs regardless of the requested range.
+		const latencySeries: number[] = []
+		for (let i = 0; i < 5; i++) {
+			const t0 = Date.now()
+			await prisma.$queryRaw`SELECT 1`
+			latencySeries.push(Date.now() - t0)
+		}
+		const apiLatencyMs = Math.round(latencySeries.reduce((a, b) => a + b, 0) / latencySeries.length)
+
 		const now = new Date()
 		const rangeStart = new Date(now)
 		rangeStart.setDate(rangeStart.getDate() - rangeDays)
@@ -183,9 +194,6 @@ export default defineEventHandler(async (event) => {
 			status: f.status === 'awaiting_rescan' ? 'Awaiting rescan' : 'Pending',
 		}))
 
-		// ── API health (derived from DB round-trip time) ──────────────────
-		const apiLatencyMs = 142 // static representative value — real latency would require instrumentation
-
 		return {
 			success: true,
 			stats: {
@@ -203,7 +211,7 @@ export default defineEventHandler(async (event) => {
 					scans: sparkScans,
 					flags: sparkFlags,
 					consumers: sparkConsumers,
-					api_health: [145, 138, 152, 141, 147, 143, 142], // static representative
+					api_health: latencySeries,
 				},
 			},
 			scan_verdicts: {

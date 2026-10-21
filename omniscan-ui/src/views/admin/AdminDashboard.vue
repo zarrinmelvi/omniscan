@@ -7,7 +7,7 @@
 				<p class="dash-sub">
 					<span v-if="!isLoading" class="dash-flag-count">{{ stats?.pending_flags ?? 0 }} items</span>
 					<span v-else class="sk-inline"></span>
-					need your review. Showing sample data.
+					need your review.
 				</p>
 			</div>
 			<div class="range-pills">
@@ -95,6 +95,7 @@
 						<div class="sk-bar-fill shimmer"></div>
 					</div>
 				</div>
+				<div v-else-if="allergenDist.length === 0" class="chart-empty">No allergen data yet.</div>
 				<div v-else class="allergen-bars">
 					<div v-for="item in allergenDist" :key="item.name" class="bar-row" @click="goToAllergen(item.name)" style="cursor:pointer">
 						<span class="bar-label">{{ formatAllergenName(item.name) }}</span>
@@ -117,6 +118,7 @@
 				<div v-if="isLoading" class="sk-donut-wrap">
 					<div class="sk-donut shimmer"></div>
 				</div>
+				<div v-else-if="(scanVerdicts?.total ?? 0) === 0" class="chart-empty">No scans yet.</div>
 				<div v-else class="donut-wrap">
 					<svg class="donut-svg" viewBox="0 0 120 120">
 						<circle cx="60" cy="60" r="46" fill="none" stroke-width="18" class="donut-track"/>
@@ -156,6 +158,7 @@
 					</div>
 				</div>
 				<div v-if="isLoading" class="sk-chart-area shimmer"></div>
+				<div v-else-if="scansOverTime.length === 0" class="chart-empty">No scans in this range yet.</div>
 				<div v-else class="area-chart-wrap">
 					<svg class="area-svg" :viewBox="`0 0 ${AREA_W} ${AREA_H}`" preserveAspectRatio="none">
 						<defs>
@@ -184,6 +187,7 @@
 					</div>
 				</div>
 				<div v-if="isLoading" class="sk-chart-area shimmer"></div>
+				<div v-else-if="confDistribution.length === 0" class="chart-empty">No scans in this range yet.</div>
 				<div v-else class="hist-wrap">
 					<svg class="hist-svg" :viewBox="`0 0 ${HIST_W} ${HIST_H}`" preserveAspectRatio="none">
 						<g v-for="(bar, i) in histBars" :key="bar.label">
@@ -332,11 +336,7 @@ async function loadDashboard(): Promise<void> {
 		scanVerdicts.value = data.scan_verdicts
 		scansOverTime.value = data.scans_over_time
 		confDistribution.value = data.ai_confidence_distribution
-		allergenDist.value = data.allergen_distribution.length > 0 ? data.allergen_distribution : [
-			{ name: 'Peanuts', count: 58 }, { name: 'Shellfish', count: 51 }, { name: 'Milk', count: 44 },
-			{ name: 'Eggs', count: 39 }, { name: 'Soy', count: 31 }, { name: 'Wheat', count: 27 },
-			{ name: 'Fish', count: 19 }, { name: 'Tree nuts', count: 16 },
-		]
+		allergenDist.value = data.allergen_distribution
 		recentFlaggedItems.value = data.recent_flagged_items
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load dashboard.'
@@ -443,10 +443,7 @@ const axisLabels = computed(() => {
 const HIST_W = 280, HIST_H = 140
 
 const histBars = computed(() => {
-	const data = confDistribution.value.length > 0 ? confDistribution.value : [
-		{ label: '<50', count: 4 }, { label: '50–70', count: 8 }, { label: '70–80', count: 14 },
-		{ label: '80–90', count: 22 }, { label: '90–95', count: 31 }, { label: '95+', count: 38 },
-	]
+	const data = confDistribution.value
 	const maxCount = Math.max(...data.map((d) => d.count), 1)
 	const n = data.length
 	const barW = (HIST_W / n) * 0.65
@@ -784,6 +781,7 @@ const thresholdX = computed(() => {
 .flag-reason { color: #6b7280; }
 .flag-scans { color: #374151; font-weight: 500; text-align: center; }
 .empty-note { color: #9ca3af; font-size: 0.875rem; text-align: center; padding: 24px; }
+.chart-empty { padding: 40px 12px; text-align: center; color: #9ca3af; font-size: 0.85rem; }
 
 /* Verdict badges */
 .verdict-badge {

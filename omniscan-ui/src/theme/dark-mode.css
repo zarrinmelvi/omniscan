@@ -1763,6 +1763,8 @@ html.ion-palette-dark .modal-box-title { color: var(--dm-text-primary) !importan
 html.ion-palette-dark .modal-box-body { color: var(--dm-text-secondary) !important; }
 html.ion-palette-dark .modal-box-sub { color: var(--dm-text-secondary) !important; }
 html.ion-palette-dark .dialog-textarea { background: var(--dm-bg-input) !important; border-color: var(--dm-border) !important; color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .dialog-input { background: var(--dm-bg-input) !important; border-color: var(--dm-border) !important; color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .dialog-label { color: var(--dm-text-secondary) !important; }
 html.ion-palette-dark .awaiting-row { border-bottom-color: var(--dm-border) !important; }
 html.ion-palette-dark .awaiting-product { color: var(--dm-text-primary) !important; }
 html.ion-palette-dark .breadcrumb-home { color: var(--dm-text-primary) !important; }

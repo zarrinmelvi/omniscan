@@ -178,10 +178,23 @@
 			<div v-if="addDialog.open" class="modal-overlay" @click.self="addDialog.open = false">
 				<div class="modal-box">
 					<div class="modal-box-title">Add this logo to the registry?</div>
-					<p class="modal-box-body">{{ addDialog.card?.productCount }} products will update automatically and {{ addDialog.card?.consumerCount }} Consumers will be notified of the new verdict. This is recorded in System Logs.</p>
+					<p class="modal-box-body">Name this certifier so the AI can recognize it on future scans. {{ addDialog.card?.productCount }} products will update automatically and {{ addDialog.card?.consumerCount }} Consumers will be notified. This is recorded in System Logs.</p>
+					<div class="dialog-field">
+						<label class="dialog-label">Certifier code</label>
+						<input class="dialog-input" v-model="addDialog.certifier" placeholder="e.g. JAKIM" />
+					</div>
+					<div class="dialog-field">
+						<label class="dialog-label">Full name</label>
+						<input class="dialog-input" v-model="addDialog.full_name" placeholder="e.g. Jabatan Kemajuan Islam Malaysia" />
+					</div>
+					<div class="dialog-field">
+						<label class="dialog-label">Official source URL</label>
+						<input class="dialog-input" v-model="addDialog.source_url" placeholder="https://…" />
+					</div>
+					<p class="dialog-error" v-if="addDialog.error">{{ addDialog.error }}</p>
 					<div class="modal-box-actions">
-						<button class="btn-modal-secondary" @click="addDialog.open = false">Cancel</button>
-						<button class="btn-modal-primary" @click="confirmAddCertifier">Confirm and add</button>
+						<button class="btn-modal-secondary" :disabled="addDialog.saving" @click="addDialog.open = false">Cancel</button>
+						<button class="btn-modal-primary" :disabled="addDialog.saving || !addDialog.certifier.trim()" @click="confirmAddCertifier">{{ addDialog.saving ? 'Adding…' : 'Confirm and add' }}</button>
 					</div>
 				</div>
 			</div>
@@ -303,7 +316,7 @@ const expandedId = ref<number | null>(null)
 
 const showAwaitingRescan = ref(false)
 
-const addDialog = ref<{ open: boolean; card: QueueCard | null }>({ open: false, card: null })
+const addDialog = ref<{ open: boolean; card: QueueCard | null; certifier: string; full_name: string; source_url: string; saving: boolean; error: string | null }>({ open: false, card: null, certifier: '', full_name: '', source_url: '', saving: false, error: null })
 const notHalalDialog = ref<{ open: boolean; card: QueueCard | null; reason: string }>({ open: false, card: null, reason: '' })
 const rescanDialog = ref<{ open: boolean; card: QueueCard | null }>({ open: false, card: null })
 
@@ -376,7 +389,7 @@ function expandCard(id: number, _idx: number): void {
 
 // ── Dialog actions ───────────────────────────────────────────────────────
 function openAddDialog(card: QueueCard): void {
-	addDialog.value = { open: true, card }
+	addDialog.value = { open: true, card, certifier: '', full_name: '', source_url: '', saving: false, error: null }
 }
 
 function openNotHalalDialog(card: QueueCard): void {
@@ -392,14 +405,37 @@ function showToast(msg: string): void {
 	setTimeout(() => { toast.value.visible = false }, 3500)
 }
 
-function confirmAddCertifier(): void {
+async function confirmAddCertifier(): Promise<void> {
 	const card = addDialog.value.card
 	if (!card) return
-	addDialog.value.open = false
-	// Remove card from queue
-	resolvedIds.value = new Set([...resolvedIds.value, card.id])
-	expandedId.value = null
-	showToast(`Certifier added. ${card.productCount} products updated.`)
+	const certifier = addDialog.value.certifier.trim()
+	const fullName = addDialog.value.full_name.trim()
+	const sourceUrl = addDialog.value.source_url.trim()
+	if (!certifier) { addDialog.value.error = 'Certifier code is required.'; return }
+	addDialog.value.saving = true
+	addDialog.value.error = null
+	try {
+		await apiFetch('/api/halal_logo', {
+			method: 'POST',
+			isAdmin: true,
+			body: {
+				certifier,
+				full_name: fullName,
+				source_url: sourceUrl,
+				...(sourceUrl ? { direct_logo_url: sourceUrl } : {}),
+			},
+		})
+		addDialog.value.open = false
+		// Remove the resolved card from the queue (optimistic) and refresh real data.
+		resolvedIds.value = new Set([...resolvedIds.value, card.id])
+		expandedId.value = null
+		showToast(`Certifier "${certifier}" added. ${card.productCount} products will update.`)
+		await fetchQueue()
+	} catch (err) {
+		addDialog.value.error = err instanceof ApiError ? err.message : 'Failed to add certifier. It may already exist.'
+	} finally {
+		addDialog.value.saving = false
+	}
 }
 
 function confirmNotHalal(): void {
@@ -848,6 +884,32 @@ watch(() => route.query, (q) => {
 	margin-bottom: 16px;
 	box-sizing: border-box;
 	font-family: inherit;
+}
+.dialog-input {
+	width: 100%;
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	padding: 10px 12px;
+	font-size: 0.875rem;
+	color: #111827;
+	box-sizing: border-box;
+	font-family: inherit;
+}
+.dialog-field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-bottom: 12px;
+}
+.dialog-label {
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: #374151;
+}
+.dialog-error {
+	color: #dc2626;
+	font-size: 0.78rem;
+	margin: 4px 0 0;
 }
 .modal-box-actions {
 	display: flex;

@@ -1809,3 +1809,24 @@ html.ion-palette-dark .halal-pill--none { background: var(--dm-bg-chip) !importa
 html.ion-palette-dark .btn-view-sm { background: var(--dm-bg-chip) !important; border-color: var(--dm-border) !important; color: var(--dm-text-primary) !important; }
 html.ion-palette-dark .btn-merge { background: var(--dm-bg-card) !important; border-color: var(--dm-border) !important; color: var(--dm-text-secondary) !important; }
 html.ion-palette-dark .btn-merge--active { background: #008744 !important; border-color: #008744 !important; color: #fff !important; }
+
+/* === Admin · Halal Logo Library lifecycle (Feature C) === */
+html.ion-palette-dark .halal-header-card { background: var(--dm-bg-subtle) !important; border-color: var(--dm-border) !important; }
+html.ion-palette-dark .halal-header-title { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .halal-header-desc { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .overdue-banner { background: #431407 !important; border-color: #78350f !important; color: #fed7aa !important; }
+html.ion-palette-dark .overdue-banner-btn { background: #b45309 !important; color: #fff !important; }
+html.ion-palette-dark .certifier-card--highlight { box-shadow: 0 0 0 2px #16a34a !important; border-color: #16a34a !important; }
+html.ion-palette-dark .country-tag { background: #312e81 !important; color: #c7d2fe !important; }
+html.ion-palette-dark .check-chip--ok { background: rgba(16, 185, 129, 0.15) !important; color: #4ade80 !important; }
+html.ion-palette-dark .check-chip--overdue { background: rgba(220, 38, 38, 0.18) !important; color: #fca5a5 !important; }
+html.ion-palette-dark .check-chip--pending { background: rgba(251, 191, 36, 0.15) !important; color: #fbbf24 !important; }
+html.ion-palette-dark .certifier-matched { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .rescrape-error { background: #431212 !important; border-color: #7f1d1d !important; color: #fca5a5 !important; }
+html.ion-palette-dark .rescrape-retry { color: #fca5a5 !important; }
+html.ion-palette-dark .rescrape-error-hint { color: #fed7aa !important; }
+html.ion-palette-dark .compare-tile-label { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .compare-tile-sub, html.ion-palette-dark .compare-note { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .compare-img-wrap { background: var(--dm-bg-subtle) !important; border-color: var(--dm-border) !important; }
+html.ion-palette-dark .status-badge.status-inactive { background: var(--dm-bg-chip) !important; color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .cert-btn-reactivate { background: rgba(16, 185, 129, 0.12) !important; border-color: #15803d !important; color: #4ade80 !important; }

@@ -6,7 +6,16 @@ export default defineEventHandler(async (event) => {
 	requireAdminAuth(event)
 
 	const body = (await readBody(event).catch(() => null)) as
-		| { id?: number; certifier?: string; full_name?: string; image_path?: string; source_url?: string; is_accredited?: boolean }
+		| {
+				id?: number
+				certifier?: string
+				full_name?: string
+				image_path?: string
+				source_url?: string
+				is_accredited?: boolean
+				is_active?: boolean
+				country?: string
+		  }
 		| null
 
 	if (!body?.id || Number.isNaN(Number(body.id))) {
@@ -22,6 +31,8 @@ export default defineEventHandler(async (event) => {
 				...(body.image_path !== undefined ? { image_path: body.image_path.trim() } : {}),
 				...(body.source_url !== undefined ? { source_url: body.source_url.trim() } : {}),
 				...(body.is_accredited !== undefined ? { is_accredited: body.is_accredited } : {}),
+				...(body.is_active !== undefined ? { is_active: body.is_active } : {}),
+				...(body.country !== undefined ? { country: body.country.trim() || null } : {}),
 			},
 		})
 		return { success: true, halalLogo }

@@ -254,6 +254,14 @@ model HalalLogo {
 
   is_accredited   Boolean  @default(false)
 
+  // Feature C — Halal Logo Library lifecycle. All additive/nullable so they
+  // are safe to apply to existing rows without a backfill.
+  last_checked_at       DateTime?
+  is_active             Boolean  @default(true)
+  country               String?
+  logo_base64           String?
+  pending_logo_base64   String?
+
   product         Product[]
   catalog_product CatalogProduct[]
   product_links         ProductHalalLogo[]

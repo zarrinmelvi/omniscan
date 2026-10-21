@@ -2281,6 +2281,11 @@ export const HalalLogoScalarFieldEnum = {
   source_url: 'source_url',
   scraped_date: 'scraped_date',
   is_accredited: 'is_accredited',
+  last_checked_at: 'last_checked_at',
+  is_active: 'is_active',
+  country: 'country',
+  logo_base64: 'logo_base64',
+  pending_logo_base64: 'pending_logo_base64',
   created_at: 'created_at',
   updated_at: 'updated_at',
   deleted_at: 'deleted_at'

@@ -131,9 +131,45 @@
 
 			<!-- 2. HALAL LOGO LIBRARY (card grid) -->
 			<template v-else-if="activeTab === 'halal'">
+				<!-- Header card -->
+				<div class="halal-header-card">
+					<div class="halal-header-text">
+						<h3 class="halal-header-title">Maintain halal certifier library</h3>
+						<p class="halal-header-desc">
+							Logos come from each certifier's official source. Check each one a month. The AI matches
+							scans against this library; certifiers are never assigned to products by hand.
+						</p>
+					</div>
+				</div>
+
+				<!-- Overdue banner -->
+				<div v-if="overdueLogos.length > 0 || pendingLogos.length > 0" class="overdue-banner">
+					<span v-if="overdueLogos.length > 0">
+						Monthly check due. {{ overdueLogos.length }}
+						{{ overdueLogos.length === 1 ? 'certifier hasn\'t' : 'certifiers haven\'t' }}
+						been checked in over 30 days: {{ overdueLogos.map((l) => l.certifier).join(', ') }}.
+					</span>
+					<span v-if="pendingLogos.length > 0" class="overdue-banner-pending">
+						Also, {{ pendingLogos.map((l) => l.certifier).join(', ') }}
+						{{ pendingLogos.length === 1 ? 'has' : 'have' }} a new logo waiting for your decision.
+					</span>
+					<button v-if="overdueLogos.length > 0" class="overdue-banner-btn" @click="goToFirstOverdue">
+						Go to first overdue
+					</button>
+				</div>
+
 				<p v-if="filteredHalalLogos.length === 0" class="empty-note">No certifier records found.</p>
 				<div v-else class="certifier-grid">
-					<div v-for="logo in filteredHalalLogos" :key="logo.id" class="certifier-card">
+					<div
+						v-for="logo in filteredHalalLogos"
+						:key="logo.id"
+						:ref="(el) => setCardRef(logo.id, el)"
+						class="certifier-card"
+						:class="{
+							'certifier-card--inactive': !logo.is_active,
+							'certifier-card--highlight': highlightedId === logo.id,
+						}"
+					>
 						<div class="certifier-card-top">
 							<div class="certifier-logo">
 								<img
@@ -145,11 +181,30 @@
 								/>
 								<span v-else class="certifier-logo-fallback">☪</span>
 							</div>
-							<span class="status-badge status-active">Active</span>
+							<span class="status-badge" :class="logo.is_active ? 'status-active' : 'status-inactive'">
+								{{ logo.is_active ? 'Active' : 'Inactive' }}
+							</span>
 						</div>
 						<div class="certifier-body">
-							<h3 class="certifier-name">{{ logo.certifier }}</h3>
+							<h3 class="certifier-name">
+								{{ logo.certifier }}
+								<span v-if="logo.country" class="country-tag">{{ logo.country }}</span>
+							</h3>
 							<p class="certifier-fullname">{{ logo.full_name }}</p>
+
+							<!-- Status chip -->
+							<div class="certifier-status-line">
+								<span v-if="logo.has_pending" class="check-chip check-chip--pending">New logo found · decide</span>
+								<span v-else-if="logo.overdue" class="check-chip check-chip--overdue">
+									Overdue · {{ logo.days_since_checked != null ? logo.days_since_checked + ' days' : 'never' }}
+								</span>
+								<span v-else class="check-chip check-chip--ok">
+									Checked {{ formatCheckedDate(logo.last_checked_at) }}
+								</span>
+							</div>
+
+							<p class="certifier-matched">Matched in {{ logo.matched_scans_30d }} scans (30 days)</p>
+
 							<a v-if="logo.source_url" :href="logo.source_url" target="_blank" rel="noopener" class="certifier-source">
 								<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 									<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -158,10 +213,44 @@
 								</svg>
 								Official source
 							</a>
+
+							<!-- Re-scrape failure note -->
+							<p v-if="rescrapeError[logo.id]" class="rescrape-error">
+								{{ rescrapeError[logo.id] }}
+								<button class="rescrape-retry" @click="rescrape(logo)">Try again</button>
+								<span class="rescrape-error-hint">Use Edit to fix the direct link.</span>
+							</p>
 						</div>
+
+						<!-- Actions: depend on state -->
 						<div class="certifier-actions">
-							<button class="cert-btn cert-btn-edit" @click="openEditModal(logo)">Edit</button>
-							<button class="cert-btn cert-btn-delete" @click="removeItem(logo.id)">Delete</button>
+							<template v-if="!logo.is_active">
+								<button class="cert-btn cert-btn-reactivate" @click="reactivate(logo)">Reactivate</button>
+							</template>
+							<template v-else-if="logo.has_pending">
+								<button class="cert-btn cert-btn-primary" @click="openCompare(logo)">Compare logos</button>
+								<button class="cert-btn cert-btn-edit" @click="markChecked(logo)">Mark as checked</button>
+								<button class="cert-btn cert-btn-edit" @click="openEditModal(logo)">Edit</button>
+								<button class="cert-btn cert-btn-danger" @click="confirmDeactivate(logo)">Deactivate</button>
+							</template>
+							<template v-else>
+								<button
+									class="cert-btn cert-btn-edit"
+									:disabled="rescrapingId === logo.id"
+									@click="rescrape(logo)"
+								>
+									{{ rescrapingId === logo.id ? 'Downloading…' : 'Re-scrape' }}
+								</button>
+								<button class="cert-btn cert-btn-edit" :disabled="rescrapingId === logo.id" @click="markChecked(logo)">
+									Mark as checked
+								</button>
+								<button class="cert-btn cert-btn-edit" :disabled="rescrapingId === logo.id" @click="openEditModal(logo)">
+									Edit
+								</button>
+								<button class="cert-btn cert-btn-danger" :disabled="rescrapingId === logo.id" @click="confirmDeactivate(logo)">
+									Deactivate
+								</button>
+							</template>
 						</div>
 					</div>
 				</div>
@@ -405,13 +494,21 @@
 								<input v-model="form.full_name" type="text" class="field-input" placeholder="e.g. Jabatan Kemajuan Islam Malaysia" />
 							</label>
 							<label class="field">
-								<span class="field-label">Logo image path</span>
-								<input v-model="form.image_path" type="text" class="field-input" placeholder="e.g. reference-logos/jakim.svg" />
+								<span class="field-label">Country</span>
+								<input v-model="form.country" type="text" class="field-input" placeholder="e.g. Malaysia" />
 							</label>
 							<label class="field">
 								<span class="field-label">Official source URL</span>
 								<input v-model="form.source_url" type="text" class="field-input" placeholder="https://…" />
 							</label>
+							<label class="field">
+								<span class="field-label">Direct logo image link (https://…)</span>
+								<input v-model="form.direct_logo_url" type="text" class="field-input" placeholder="https://…/logo.png" />
+								<span class="field-hint">
+									Re-scrape downloads the image from this direct link. The last-checked date updates automatically.
+								</span>
+							</label>
+							<input v-model="form.image_path" type="hidden" />
 						</template>
 
 						<!-- Ingredient mapping form -->
@@ -539,6 +636,87 @@
 		<Teleport to="body">
 			<div v-if="productToast.visible" class="product-toast">{{ productToast.message }}</div>
 		</Teleport>
+
+		<!-- ══════════════════ COMPARE LOGOS DIALOG ══════════════════ -->
+		<Teleport to="body">
+			<div v-if="compareDialog.open && compareDialog.logo" class="modal-overlay" @click.self="compareDialog.open = false">
+				<div class="modal" role="dialog" aria-modal="true">
+					<div class="modal-header">
+						<h2 class="modal-title">Compare {{ compareDialog.logo.certifier }} logos</h2>
+						<button class="modal-close" @click="compareDialog.open = false" aria-label="Close">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<line x1="18" y1="6" x2="6" y2="18"></line>
+								<line x1="6" y1="6" x2="18" y2="18"></line>
+							</svg>
+						</button>
+					</div>
+					<div class="modal-body">
+						<div class="compare-grid">
+							<div class="compare-tile">
+								<span class="compare-tile-label">Current</span>
+								<div class="compare-img-wrap">
+									<img v-if="compareDialog.logo.logo_src" :src="compareDialog.logo.logo_src" class="compare-img" alt="Current logo" />
+									<span v-else class="certifier-logo-fallback">☪</span>
+								</div>
+								<span class="compare-tile-sub">Saved {{ formatCheckedDate(compareDialog.logo.last_checked_at) }}</span>
+							</div>
+							<div class="compare-tile">
+								<span class="compare-tile-label">New logo</span>
+								<div class="compare-img-wrap">
+									<img v-if="compareDialog.logo.pending_logo_src" :src="compareDialog.logo.pending_logo_src" class="compare-img" alt="New logo" />
+									<span v-else class="certifier-logo-fallback">☪</span>
+								</div>
+								<span class="compare-tile-sub">Downloaded today</span>
+							</div>
+						</div>
+						<p class="compare-note">
+							Re-scrape always ends here. The system doesn't guess whether the logo changed; you compare
+							the two images.
+						</p>
+					</div>
+					<div class="modal-footer">
+						<button class="btn-modal-cancel" :disabled="resolving" @click="resolveCompare('keep')">Keep current</button>
+						<button class="btn-modal-save cert-btn-primary-solid" :disabled="resolving" @click="resolveCompare('use_new')">
+							Use new logo
+						</button>
+					</div>
+				</div>
+			</div>
+		</Teleport>
+
+		<!-- ══════════════════ DEACTIVATE CONFIRMATION ══════════════════ -->
+		<Teleport to="body">
+			<div v-if="deactivateDialog.open && deactivateDialog.logo" class="modal-overlay" @click.self="deactivateDialog.open = false">
+				<div class="modal" role="dialog" aria-modal="true">
+					<div class="modal-header">
+						<h2 class="modal-title">Deactivate {{ deactivateDialog.logo.certifier }}?</h2>
+						<button class="modal-close" @click="deactivateDialog.open = false" aria-label="Close">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<line x1="18" y1="6" x2="6" y2="18"></line>
+								<line x1="6" y1="6" x2="18" y2="18"></line>
+							</svg>
+						</button>
+					</div>
+					<div class="modal-body">
+						<p class="merge-copy">
+							The AI stops matching its logo. {{ deactivateDialog.logo.matched_scans_30d }} scans in the last
+							30 days used it, and those products will show as 'Unverified logo.' You can reactivate any time.
+						</p>
+					</div>
+					<div class="modal-footer">
+						<button class="btn-modal-cancel" :disabled="deactivating" @click="deactivateDialog.open = false">Cancel</button>
+						<button class="btn-modal-save cert-btn-danger-solid" :disabled="deactivating" @click="doDeactivate">
+							{{ deactivating ? 'Deactivating…' : 'Deactivate' }}
+						</button>
+					</div>
+				</div>
+			</div>
+		</Teleport>
+
+		<!-- ══════════════════ HALAL TOAST ══════════════════ -->
+		<Teleport to="body">
+			<div v-if="halalToast.visible" class="product-toast">{{ halalToast.message }}</div>
+		</Teleport>
 	</div>
 </template>
 
@@ -600,6 +778,14 @@ interface CertifierRow {
 	source_url: string
 	is_accredited: boolean
 	logo_src: string | null
+	country: string | null
+	is_active: boolean
+	last_checked_at: string | null
+	days_since_checked: number | null
+	overdue: boolean
+	matched_scans_30d: number
+	has_pending: boolean
+	pending_logo_src: string | null
 }
 
 interface MappingRow {
@@ -641,6 +827,23 @@ const mergeError = ref<string | null>(null)
 const viewProductTarget = ref<ProductRow | null>(null)
 const productToast = ref<{ visible: boolean; message: string }>({ visible: false, message: '' })
 let productToastTimer: ReturnType<typeof setTimeout> | null = null
+
+// ─── Halal lifecycle state (Feature C) ──────────────────────────────────────
+const rescrapingId = ref<number | null>(null)
+const rescrapeError = ref<Record<number, string>>({})
+const highlightedId = ref<number | null>(null)
+const compareDialog = ref<{ open: boolean; logo: CertifierRow | null }>({ open: false, logo: null })
+const deactivateDialog = ref<{ open: boolean; logo: CertifierRow | null }>({ open: false, logo: null })
+const halalToast = ref<{ visible: boolean; message: string }>({ visible: false, message: '' })
+const resolving = ref(false)
+const deactivating = ref(false)
+let halalToastTimer: ReturnType<typeof setTimeout> | null = null
+let highlightTimer: ReturnType<typeof setTimeout> | null = null
+const cardRefs = ref<Record<number, HTMLElement | null>>({})
+
+function setCardRef(id: number, el: unknown): void {
+	cardRefs.value[id] = (el as HTMLElement) ?? null
+}
 
 // ─── Modal state ──────────────────────────────────────────────────────────────
 const modalOpen = ref(false)
@@ -778,6 +981,146 @@ function showProductToast(message: string): void {
 	productToastTimer = setTimeout(() => {
 		productToast.value = { visible: false, message: '' }
 	}, 3000)
+}
+
+// ─── Halal lifecycle actions (Feature C) ────────────────────────────────────
+function showHalalToast(message: string): void {
+	halalToast.value = { visible: true, message }
+	if (halalToastTimer) clearTimeout(halalToastTimer)
+	halalToastTimer = setTimeout(() => {
+		halalToast.value = { visible: false, message: '' }
+	}, 3000)
+}
+
+/** Date like "Oct 2", or "Never checked" when null. */
+function formatCheckedDate(iso: string | null): string {
+	if (!iso) return 'Never checked'
+	const d = new Date(iso)
+	if (Number.isNaN(d.getTime())) return 'Never checked'
+	return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+async function rescrape(logo: CertifierRow): Promise<void> {
+	rescrapingId.value = logo.id
+	delete rescrapeError.value[logo.id]
+	try {
+		const res = await apiFetch<{ success: boolean; error?: string; current?: string; pending?: string }>(
+			'/api/halal_logo/rescrape',
+			{ method: 'POST', body: { id: logo.id }, isAdmin: true }
+		)
+		if (!res.success) {
+			rescrapeError.value = {
+				...rescrapeError.value,
+				[logo.id]: 'Couldn\'t download the logo. The link may have changed or the site may be down.',
+			}
+			return
+		}
+		await fetchHalalLogos()
+		// Open the compare dialog automatically on the refreshed row.
+		const refreshed = halalLogos.value.find((l) => l.id === logo.id)
+		if (refreshed) openCompare(refreshed)
+	} catch {
+		rescrapeError.value = {
+			...rescrapeError.value,
+			[logo.id]: 'Couldn\'t download the logo. The link may have changed or the site may be down.',
+		}
+	} finally {
+		rescrapingId.value = null
+	}
+}
+
+function openCompare(logo: CertifierRow): void {
+	compareDialog.value = { open: true, logo }
+}
+
+async function resolveCompare(decision: 'keep' | 'use_new'): Promise<void> {
+	const logo = compareDialog.value.logo
+	if (!logo) return
+	resolving.value = true
+	try {
+		await apiFetch('/api/halal_logo/resolve-rescrape', {
+			method: 'POST',
+			body: { id: logo.id, decision },
+			isAdmin: true,
+		})
+		compareDialog.value = { open: false, logo: null }
+		showHalalToast(
+			decision === 'use_new'
+				? `Logo updated. ${logo.certifier} marked as checked.`
+				: `Keep current: ${logo.certifier} marked as checked. Logo unchanged.`
+		)
+		await fetchHalalLogos()
+	} catch (err) {
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to resolve re-scrape.'
+	} finally {
+		resolving.value = false
+	}
+}
+
+async function markChecked(logo: CertifierRow): Promise<void> {
+	try {
+		await apiFetch('/api/halal_logo/mark-checked', {
+			method: 'POST',
+			body: { id: logo.id },
+			isAdmin: true,
+		})
+		showHalalToast(`${logo.certifier} marked as checked.`)
+		await fetchHalalLogos()
+	} catch (err) {
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to mark as checked.'
+	}
+}
+
+function confirmDeactivate(logo: CertifierRow): void {
+	deactivateDialog.value = { open: true, logo }
+}
+
+async function doDeactivate(): Promise<void> {
+	const logo = deactivateDialog.value.logo
+	if (!logo) return
+	deactivating.value = true
+	try {
+		await apiFetch('/api/halal_logo', {
+			method: 'PUT',
+			body: { id: logo.id, is_active: false },
+			isAdmin: true,
+		})
+		deactivateDialog.value = { open: false, logo: null }
+		showHalalToast(`${logo.certifier} deactivated.`)
+		await fetchHalalLogos()
+	} catch (err) {
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to deactivate certifier.'
+	} finally {
+		deactivating.value = false
+	}
+}
+
+async function reactivate(logo: CertifierRow): Promise<void> {
+	try {
+		await apiFetch('/api/halal_logo', {
+			method: 'PUT',
+			body: { id: logo.id, is_active: true },
+			isAdmin: true,
+		})
+		showHalalToast(`${logo.certifier} reactivated.`)
+		await fetchHalalLogos()
+	} catch (err) {
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to reactivate certifier.'
+	}
+}
+
+function goToFirstOverdue(): void {
+	const first = overdueLogos.value[0]
+	if (!first) return
+	const el = cardRefs.value[first.id]
+	if (el && typeof el.scrollIntoView === 'function') {
+		el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+	}
+	highlightedId.value = first.id
+	if (highlightTimer) clearTimeout(highlightTimer)
+	highlightTimer = setTimeout(() => {
+		highlightedId.value = null
+	}, 2500)
 }
 
 function viewProduct(p: ProductRow): void {
@@ -936,6 +1279,11 @@ const filteredHalalLogos = computed(() => {
 	return halalLogos.value.filter((c) => c.certifier.toLowerCase().includes(q) || c.full_name.toLowerCase().includes(q))
 })
 
+// Overdue / pending certifiers power the amber reminder banner. Only active
+// certifiers can be "overdue" — deactivated ones aren't matched by the AI.
+const overdueLogos = computed(() => halalLogos.value.filter((l) => l.is_active && l.overdue))
+const pendingLogos = computed(() => halalLogos.value.filter((l) => l.has_pending))
+
 const filteredIngredients = computed(() => {
 	const q = searchQuery.value.trim().toLowerCase()
 	return ingredientMappings.value.filter((m) => {
@@ -1049,7 +1397,15 @@ function openCreateModal(): void {
 		aliasOriginal.value = []
 		aliasInput.value = ''
 	} else if (activeTab.value === 'halal') {
-		form.value = { certifier: '', full_name: '', image_path: '', source_url: '', is_accredited: false }
+		form.value = {
+			certifier: '',
+			full_name: '',
+			image_path: '',
+			source_url: '',
+			is_accredited: false,
+			country: '',
+			direct_logo_url: '',
+		}
 	} else {
 		form.value = { scientific_term: '', simplified_term: '', allergen_id: undefined }
 	}
@@ -1073,7 +1429,15 @@ function openEditModal(item: any): void {
 		aliasOriginal.value = [...loaded]
 		aliasInput.value = ''
 	} else if (activeTab.value === 'halal') {
-		form.value = { certifier: item.certifier, full_name: item.full_name, image_path: item.image_path, source_url: item.source_url, is_accredited: item.is_accredited }
+		form.value = {
+			certifier: item.certifier,
+			full_name: item.full_name,
+			image_path: item.image_path,
+			source_url: item.source_url,
+			is_accredited: item.is_accredited,
+			country: item.country ?? '',
+			direct_logo_url: '',
+		}
 	} else {
 		form.value = { scientific_term: item.scientific_term, simplified_term: item.simplified_term, allergen_id: item.allergen_id }
 	}
@@ -1287,6 +1651,44 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 .cert-btn-review:hover { background: #dcfce7; }
 .cert-btn-delete { background: #fff; border-color: #fecaca; color: #dc2626; }
 .cert-btn-delete:hover { background: #fef2f2; }
+.cert-btn-primary { background: #008744; border-color: #008744; color: #fff; }
+.cert-btn-primary:hover { background: #00733a; }
+.cert-btn-danger { background: #fff; border-color: #fecaca; color: #dc2626; }
+.cert-btn-danger:hover { background: #fef2f2; }
+.cert-btn-reactivate { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
+.cert-btn-reactivate:hover { background: #dcfce7; }
+.cert-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Feature C — halal lifecycle */
+.halal-header-card { margin: 8px 24px 4px; padding: 16px 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; }
+.halal-header-title { font-size: 0.98rem; font-weight: 700; margin: 0 0 4px; color: #0f172a; }
+.halal-header-desc { margin: 0; font-size: 0.82rem; color: #64748b; line-height: 1.5; }
+.overdue-banner { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin: 12px 24px; font-size: 0.84rem; color: #92400e; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.overdue-banner-pending { flex-basis: 100%; }
+.overdue-banner-btn { margin-left: auto; background: #d97706; border: none; color: #fff; border-radius: 7px; padding: 6px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+.overdue-banner-btn:hover { background: #b45309; }
+.certifier-card--inactive { opacity: 0.65; filter: grayscale(0.4); }
+.certifier-card--highlight { box-shadow: 0 0 0 2px #16a34a; border-color: #16a34a; }
+.status-badge.status-inactive { background: #f1f5f9; color: #64748b; }
+.country-tag { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 9999px; background: #eef2ff; color: #4338ca; font-size: 0.66rem; font-weight: 700; vertical-align: middle; }
+.certifier-status-line { margin: 8px 0 6px; }
+.check-chip { display: inline-block; padding: 3px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; }
+.check-chip--ok { background: #dcfce7; color: #15803d; }
+.check-chip--overdue { background: #fee2e2; color: #b91c1c; }
+.check-chip--pending { background: #fef3c7; color: #92400e; }
+.certifier-matched { font-size: 0.78rem; color: #64748b; margin: 0 0 6px; }
+.rescrape-error { margin: 8px 0 0; font-size: 0.76rem; color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 8px 10px; line-height: 1.5; }
+.rescrape-retry { background: none; border: none; color: #b91c1c; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 0; margin: 0 6px; font-size: 0.76rem; }
+.rescrape-error-hint { color: #92400e; }
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.compare-tile { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.compare-tile-label { font-size: 0.78rem; font-weight: 700; color: #334155; }
+.compare-tile-sub { font-size: 0.72rem; color: #64748b; }
+.compare-img-wrap { width: 100%; height: 140px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+.compare-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.compare-note { margin: 14px 0 0; font-size: 0.78rem; color: #64748b; line-height: 1.5; }
+.cert-btn-primary-solid { background: #008744 !important; border-color: #008744 !important; color: #fff !important; }
+.cert-btn-danger-solid { background: #dc2626 !important; border-color: #dc2626 !important; color: #fff !important; }
 
 /* Tab count badge */
 .tab-count-badge {

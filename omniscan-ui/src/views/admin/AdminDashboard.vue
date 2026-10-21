@@ -32,7 +32,7 @@
 			</template>
 			<template v-else>
 				<!-- Total Scans -->
-				<div class="metric-card">
+				<div class="metric-card" @click="router.push('/admin/productsdata?sort=newest')">
 					<div class="metric-label">Total scans</div>
 					<div class="metric-value">{{ stats?.total_scans ?? 0 }}</div>
 					<div class="metric-footer">
@@ -43,7 +43,7 @@
 					</div>
 				</div>
 				<!-- Pending Flags -->
-				<div class="metric-card">
+				<div class="metric-card" @click="router.push('/admin/verification?tab=needs-decision')">
 					<div class="metric-label">Pending flags</div>
 					<div class="metric-value">{{ stats?.pending_flags ?? 0 }}</div>
 					<div class="metric-footer">
@@ -54,7 +54,7 @@
 					</div>
 				</div>
 				<!-- Active Consumers -->
-				<div class="metric-card">
+				<div class="metric-card" @click="router.push('/admin/usersprofile')">
 					<div class="metric-label">Active Consumers</div>
 					<div class="metric-value">{{ stats?.active_consumers ?? 0 }}</div>
 					<div class="metric-footer">
@@ -65,7 +65,7 @@
 					</div>
 				</div>
 				<!-- API Health -->
-				<div class="metric-card">
+				<div class="metric-card" @click="router.push('/admin/systemlogs?filter=api')">
 					<div class="metric-label">API health</div>
 					<div class="metric-value">{{ stats?.api_latency_ms ?? 142 }} <span class="metric-unit">ms</span></div>
 					<div class="metric-footer">
@@ -96,7 +96,7 @@
 					</div>
 				</div>
 				<div v-else class="allergen-bars">
-					<div v-for="item in allergenDist" :key="item.name" class="bar-row">
+					<div v-for="item in allergenDist" :key="item.name" class="bar-row" @click="goToAllergen(item.name)" style="cursor:pointer">
 						<span class="bar-label">{{ formatAllergenName(item.name) }}</span>
 						<div class="bar-track">
 							<div class="bar-fill" :style="{ width: barWidth(item.count) + '%' }"></div>
@@ -192,6 +192,8 @@
 								:width="bar.w" :height="bar.barH"
 								:fill="bar.aboveThreshold ? '#05c450' : '#2d6a4f'"
 								rx="3"
+								@click="bar.aboveThreshold ? null : goToTrainingCorrections()"
+								style="cursor: pointer"
 							/>
 						</g>
 						<!-- 90% threshold dashed line -->
@@ -240,7 +242,7 @@
 							v-for="item in recentFlaggedItems"
 							:key="item.id"
 							class="flag-row"
-							@click="goToVerification">
+							@click="goToFlaggedItem(item.id)">
 							<td class="flag-product">{{ item.product_name }}</td>
 							<td class="flag-reason">{{ item.flag_reason }}</td>
 							<td>
@@ -350,6 +352,9 @@ function setRange(r: '7d' | '30d' | '90d'): void {
 
 function goToVerification(): void { router.push('/admin/verification') }
 function filterByVerdict(verdict: string): void { router.push(`/admin/verification?verdict=${verdict}`) }
+function goToAllergen(name: string): void { router.push('/admin/productsdata?allergen=' + encodeURIComponent(name)) }
+function goToTrainingCorrections(): void { router.push('/admin/verification?tab=training-corrections') }
+function goToFlaggedItem(id: number): void { router.push('/admin/verification?card=' + id) }
 
 onMounted(loadDashboard)
 
@@ -546,7 +551,10 @@ const thresholdX = computed(() => {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
+	cursor: pointer;
+	transition: box-shadow 0.15s;
 }
+.metric-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 .metric-label {
 	font-size: 0.78rem;
 	color: #9ca3af;

@@ -1728,3 +1728,42 @@ html.ion-palette-dark .shimmer {
 	background: linear-gradient(90deg, #334155 25%, #475569 37%, #334155 63%) !important;
 	background-size: 400% 100% !important;
 }
+
+/* == Verification Panel (Exceptions Queue) — dark mode == */
+html.ion-palette-dark .vp-root { background: var(--dm-bg-page) !important; }
+html.ion-palette-dark .vp-title { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .vp-subtitle { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .vp-sample-note { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .qm-card { background: var(--dm-bg-card) !important; border-color: var(--dm-border) !important; }
+html.ion-palette-dark .qm-label { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .qm-value--neutral { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .qm-sub { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .tab-btn { border-color: var(--dm-border) !important; color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .logo-card { background: var(--dm-bg-card) !important; border-color: var(--dm-border) !important; }
+html.ion-palette-dark .logo-card--expanded { border-color: #05c450 !important; }
+html.ion-palette-dark .logo-thumb { background: var(--dm-bg-subtle) !important; border-color: var(--dm-border) !important; }
+html.ion-palette-dark .logo-card-title { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .logo-card-meta { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .btn-review { background: var(--dm-bg-chip) !important; border-color: var(--dm-border) !important; color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .logo-thumb-lg { background: var(--dm-bg-subtle) !important; border-color: var(--dm-border) !important; }
+html.ion-palette-dark .logo-crop-placeholder { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .logo-stats { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .logo-ai-match { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .logo-examples { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .btn-outline { border-color: var(--dm-border) !important; color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .impact-banner { background: #052e16 !important; border-color: #166534 !important; color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .info-card { background: var(--dm-bg-card) !important; border-color: var(--dm-border) !important; }
+html.ion-palette-dark .info-card-title { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .info-steps li { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .privacy-card { background: var(--dm-bg-subtle) !important; border-color: var(--dm-border) !important; }
+html.ion-palette-dark .privacy-title { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .privacy-body { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .modal-box { background: var(--dm-bg-card) !important; }
+html.ion-palette-dark .modal-box-title { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .modal-box-body { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .modal-box-sub { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .dialog-textarea { background: var(--dm-bg-input) !important; border-color: var(--dm-border) !important; color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .awaiting-row { border-bottom-color: var(--dm-border) !important; }
+html.ion-palette-dark .awaiting-product { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .breadcrumb-home { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .breadcrumb-home:hover { color: #4ade80 !important; }

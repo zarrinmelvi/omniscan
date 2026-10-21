@@ -93,7 +93,9 @@
 			<!-- Persistent Top Breadcrumb & Session Header -->
 			<header class="top-bar">
 				<div class="breadcrumb">
-					<span>OmniScan</span> <span class="breadcrumb-slash">/</span> <span>{{ currentPageTitle }}</span>
+					<router-link to="/admin/dashboard" class="breadcrumb-home">OmniScan</router-link>
+					<span class="breadcrumb-slash">/</span>
+					<span>{{ currentPageTitle }}</span>
 				</div>
 				<div class="user-session">
 					<span class="session-time">{{ formattedSessionTime }}</span>
@@ -393,6 +395,16 @@ onUnmounted(() => {
 .breadcrumb-slash {
 	margin: 0 4px;
 	color: #94a3b8;
+}
+.breadcrumb-home {
+	color: #334155;
+	text-decoration: none;
+	font-weight: 500;
+	transition: color 0.15s;
+}
+.breadcrumb-home:hover {
+	color: #008744;
+	text-decoration: underline;
 }
 
 .user-session {

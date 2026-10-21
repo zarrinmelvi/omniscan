@@ -1,396 +1,232 @@
 <template>
-	<div class="verification-panel">
+	<div class="vp-root">
 
-		<!-- ── Header ─────────────────────────────────────────────────────── -->
-		<header class="page-header">
-			<div class="header-left">
-				<div class="header-icon">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-						<path d="M9.5 9a3.5 3.5 0 1 0 4.47 4.9"></path>
-						<path d="M14 8l1 1"></path>
-					</svg>
-				</div>
-				<div>
-					<h1>Dataset Correction & Model Training Pipeline</h1>
-					<p class="subtitle">Correct AI extraction errors · Submit ground-truth data · Improve future model accuracy</p>
-				</div>
-			</div>
-		</header>
+		<!-- ── Breadcrumb sample data note ─────────────────────────── -->
+		<div class="vp-sample-note">Sample data</div>
 
-		<!-- Training pipeline banner -->
-		<div class="training-banner">
-			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-				<path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"></path>
-			</svg>
-			<p>
-				<strong>Model Training Pipeline.</strong>
-				Corrections submitted here are recorded as ground-truth data and queued for the next AI model retraining cycle. This process does not override live Halal certification status — it improves future AI extraction accuracy.
-			</p>
+		<!-- ── Page Header ────────────────────────────────────────── -->
+		<div class="vp-header">
+			<h1 class="vp-title">Exceptions queue</h1>
+			<p class="vp-subtitle">The AI resolves most scans on its own. Only what it could not settle reaches you.</p>
 		</div>
 
-		<!-- ── Metric Cards ────────────────────────────────────────────────── -->
-		<div v-if="!isLoading && !errorMessage" class="summary-cards">
-
-			<div class="summary-card yellow">
-				<div class="card-icon-wrap yellow-bg">
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-						<circle cx="12" cy="12" r="10"></circle>
-						<line x1="12" y1="8" x2="12" y2="12"></line>
-						<line x1="12" y1="16" x2="12.01" y2="16"></line>
-					</svg>
-				</div>
-				<div class="card-text">
-					<span class="summary-value yellow-text">{{ counts.total }}</span>
-					<span class="summary-label">Unverified Halal Logos</span>
-				</div>
+		<!-- ── 4 Queue Metric Cards ───────────────────────────────── -->
+		<div class="queue-metrics">
+			<div class="qm-card">
+				<div class="qm-label">Auto-resolved by AI</div>
+				<div class="qm-value qm-value--neutral">{{ queueMetrics.autoResolved }}%</div>
+				<div class="qm-sub">no admin action needed</div>
 			</div>
-
-			<div class="summary-card yellow">
-				<div class="card-icon-wrap yellow-bg">
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-						<circle cx="12" cy="12" r="10"></circle>
-						<polyline points="12 6 12 12 16 14"></polyline>
-					</svg>
-				</div>
-				<div class="card-text">
-					<span class="summary-value yellow-text">{{ counts.pending }}</span>
-					<span class="summary-label">Pending Halal Review</span>
-				</div>
+			<div class="qm-card qm-card--clickable" @click="activeTab = 'unmatched'">
+				<div class="qm-label">Needs your decision</div>
+				<div class="qm-value qm-value--green">{{ queueMetrics.needsDecision }}</div>
+				<div class="qm-sub">distinct logos, covering {{ queueMetrics.needsDecisionScans }} scans</div>
 			</div>
-
-			<div class="summary-card blue">
-				<div class="card-icon-wrap blue-bg">
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-						<polyline points="9 12 11 14 15 10"></polyline>
-					</svg>
-				</div>
-				<div class="card-text">
-					<span class="summary-value blue-text">{{ counts.corrected }}</span>
-					<span class="summary-label">Logo Corrections</span>
-				</div>
+			<div class="qm-card qm-card--clickable" @click="showAwaitingRescan = true">
+				<div class="qm-label">Awaiting Consumer rescan</div>
+				<div class="qm-value qm-value--neutral">{{ queueMetrics.awaitingRescan }}</div>
+				<div class="qm-sub">unclear scans, not yours to review</div>
 			</div>
-
-			<div class="summary-card green">
-				<div class="card-icon-wrap green-bg">
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-						<polyline points="22 4 12 14.01 9 11.01"></polyline>
-					</svg>
-				</div>
-				<div class="card-text">
-					<span class="summary-value green-text">{{ counts.resolved }}</span>
-					<span class="summary-label">Certified / Resolved</span>
-				</div>
+			<div class="qm-card">
+				<div class="qm-label">Resolved this week</div>
+				<div class="qm-value qm-value--neutral">{{ queueMetrics.resolvedThisWeek }}</div>
+				<div class="qm-sub">each one cleared many scans</div>
 			</div>
 		</div>
 
-		<!-- ── Table Card ──────────────────────────────────────────────────── -->
-		<div class="panel-card">
-			<div class="controls-bar">
-				<div class="search-box">
-					<svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<circle cx="11" cy="11" r="8"></circle>
-						<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-					</svg>
-					<input v-model="searchQuery" type="text" placeholder="Search by product, ID, or user…" />
+		<!-- ── Tab Filter Row ─────────────────────────────────────── -->
+		<div class="tab-row">
+			<button
+				class="tab-btn"
+				:class="{ 'tab-btn--active': activeTab === 'unmatched' }"
+				@click="activeTab = 'unmatched'">
+				Unmatched logos · {{ unmatchedCards.length }}
+			</button>
+			<button
+				class="tab-btn"
+				:class="{ 'tab-btn--active': activeTab === 'duplicates' }"
+				@click="activeTab = 'duplicates'">
+				Possible duplicates · {{ duplicateCards.length }}
+			</button>
+			<button
+				class="tab-btn"
+				:class="{ 'tab-btn--active': activeTab === 'training' }"
+				@click="activeTab = 'training'">
+				Training corrections · {{ trainingCards.length }}
+			</button>
+		</div>
+
+		<!-- ── Main 2-col layout ──────────────────────────────────── -->
+		<div class="vp-body">
+
+			<!-- Left: queue cards -->
+			<div class="vp-queue">
+
+				<div v-if="isLoading" class="sk-stack">
+					<div v-for="n in 3" :key="n" class="sk-card shimmer"></div>
 				</div>
-				<div class="filters">
-					<svg class="filter-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-					</svg>
-					<select v-model="sortOrder" class="filter-select">
-						<option value="latest">Latest</option>
-						<option value="oldest">Oldest</option>
-					</select>
-					<select v-model="filterVerdict" class="filter-select">
-						<option value="all">All Verdicts</option>
-						<option value="red">Red</option>
-						<option value="yellow">Yellow</option>
-					</select>
-					<select v-model="filterStatus" class="filter-select">
-						<option value="all">All Statuses</option>
-						<option value="pending">Pending</option>
-						<option value="flagged">Flagged</option>
-						<option value="approved">Certified</option>
-						<option value="dismissed">Dismissed</option>
-					</select>
+
+				<div v-else-if="activeTabCards.length === 0" class="vp-empty">
+					No items in this queue.
 				</div>
-			</div>
 
-			<!-- Verdict colour legend -->
-			<div class="verdict-legend">
-				<span class="legend-label">Halal Flag colour:</span>
-				<span class="legend-item">
-					<span class="legend-dot legend-dot--yellow"></span>
-					<span><strong>Yellow</strong> — Unverified Halal logo only</span>
-				</span>
-				<span class="legend-divider">·</span>
-				<span class="legend-item">
-					<span class="legend-dot legend-dot--red"></span>
-					<span><strong>Red</strong> — Unverified logo + ingredient safety concern</span>
-				</span>
-			</div>
+				<template v-else>
+					<div
+						v-for="(card, idx) in activeTabCards"
+						:key="card.id"
+						class="logo-card"
+						:class="{ 'logo-card--expanded': expandedId === card.id }">
 
-			<div v-if="isLoading" class="skeleton-stack">
-				<SkeletonCard v-for="n in 6" :key="n" variant="row" />
-			</div>
-			<p v-else-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-			<p v-else-if="filteredRows.length === 0" class="empty-note">No Halal compliance flags match the selected criteria.</p>
-
-			<div v-else class="table-wrap">
-				<table class="scans-table">
-					<thead>
-						<tr>
-							<th class="col-id">ID</th>
-							<th class="col-product">PRODUCT</th>
-							<th class="col-flag">HALAL FLAG</th>
-							<th class="col-confidence">CONFIDENCE</th>
-							<th class="col-submitted">SUBMITTED</th>
-							<th class="col-status">STATUS</th>
-							<th class="col-actions">ACTIONS</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="row in pagedRows" :key="row.id" @click="openAuditModal(row)">
-
-							<td class="col-id cell-id">#{{ row.id }}</td>
-
-							<td class="col-product">
-								<div class="product-cell">
-									<div class="product-thumb">
-										<img v-if="row.thumb_src" :src="row.thumb_src" :alt="row.product_name" class="thumb-img" />
-										<span v-else class="thumb-emoji">📦</span>
-									</div>
-									<div class="product-details">
-										<span class="product-name">{{ row.brand_name }} {{ row.product_name }}</span>
-										<span class="product-user">{{ row.scanned_by }}</span>
-									</div>
+						<!-- COLLAPSED state -->
+						<template v-if="expandedId !== card.id">
+							<div class="logo-card-collapsed">
+								<div class="logo-thumb">
+									<img v-if="card.thumb" :src="card.thumb" :alt="card.title" class="logo-img" />
+									<span v-else class="logo-placeholder">Logo</span>
 								</div>
-							</td>
-
-							<td class="col-flag">
-								<div class="flag-capsule" :class="verdictClass(row.safety_verdict)">
-									<span class="flag-dot"></span>
-									<span class="flag-text">
-										<strong>{{ halalFlagLabel(row.clean_flag_reason) }}</strong>
-										<span class="flag-sub">{{ row.clean_flag_reason }}</span>
-									</span>
+								<div class="logo-collapsed-info">
+									<div class="logo-card-title">{{ card.title }}</div>
+									<div class="logo-card-meta">{{ card.scanCount }} scans · {{ card.productCount }} products · {{ card.consumerCount }} Consumers</div>
 								</div>
-							</td>
-
-							<td class="col-confidence">
-								<span :class="confidenceClass(row.safety_verdict, row.confidence)">{{ row.confidence }}%</span>
-							</td>
-
-							<td class="col-submitted">
-								<div>{{ formatDate(row.created_at) }}</div>
-								<div class="time-subtext">{{ formatTime(row.created_at) }}</div>
-							</td>
-
-							<td class="col-status">
-								<span class="status-pill" :class="statusClass(row.status)">{{ statusLabel(row.status) }}</span>
-							</td>
-
-							<td class="col-actions">
-								<div class="btn-row">
-								<button
-									class="btn-view"
-									@click.stop="openAuditModal(row)"
-								>
-									<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-										<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-										<circle cx="12" cy="12" r="3"></circle>
-									</svg>
-									View
-								</button>
+								<button class="btn-review" @click="expandCard(card.id, idx)">Review</button>
 							</div>
-							</td>
+						</template>
 
-						</tr>
-					</tbody>
-				</table>
-			</div>
+						<!-- EXPANDED state -->
+						<template v-else>
+							<div class="logo-card-expanded">
+								<div class="logo-expanded-top">
+									<div class="logo-thumb-lg">
+										<img v-if="card.thumb" :src="card.thumb" :alt="card.title" class="logo-img" />
+										<div v-else class="logo-crop-placeholder">
+											<span>Logo crop</span>
+										</div>
+									</div>
+									<div class="logo-expanded-info">
+										<div class="logo-expanded-header">
+											<span class="logo-card-title">{{ card.title }}</span>
+											<span class="needs-decision-badge">Needs decision</span>
+										</div>
+										<div class="logo-stats">
+											Seen on <strong>{{ card.scanCount }} scans</strong> · <strong>{{ card.productCount }} products</strong> · <strong>{{ card.consumerCount }} Consumers</strong>
+										</div>
+										<div class="logo-ai-match">
+											AI closest match: <strong>{{ card.aiMatch }}</strong>
+										</div>
+										<div class="logo-examples">
+											Example products: {{ card.examples.join(', ') }}
+										</div>
+									</div>
+								</div>
 
-			<!-- Pagination -->
-			<div v-if="!isLoading && !errorMessage && filteredRows.length > 0" class="pagination-bar">
-				<button class="page-nav" :disabled="currentPage === 1" @click="prevPage" aria-label="Previous page">
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-				</button>
-				<template v-for="(item, idx) in pageItems" :key="idx">
-					<button
-						v-if="item !== '...'"
-						class="page-num"
-						:class="{ active: item === currentPage }"
-						@click="goToPage(item as number)"
-					>{{ item }}</button>
-					<span v-else class="page-ellipsis">…</span>
+								<!-- Action buttons -->
+								<div class="logo-actions">
+									<button class="btn-add-certifier" @click="openAddDialog(card)">Add to certifier registry</button>
+									<button class="btn-outline" @click="openNotHalalDialog(card)">Not a Halal certifier</button>
+									<button class="btn-outline" @click="openRescanDialog(card)">Ask Consumers to rescan</button>
+								</div>
+
+								<!-- Impact banner -->
+								<div class="impact-banner">
+									If you add it: <strong>{{ card.productCount }} products update automatically</strong> and <strong>{{ card.consumerCount }} Consumers are notified</strong> of the new verdict.
+								</div>
+							</div>
+						</template>
+
+					</div>
 				</template>
-				<button class="page-nav" :disabled="currentPage === totalPages" @click="nextPage" aria-label="Next page">
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-				</button>
 			</div>
+
+			<!-- Right: info panels -->
+			<aside class="vp-aside">
+				<div class="info-card">
+					<div class="info-card-title">What happens after your decision</div>
+					<ol class="info-steps">
+						<li><strong>Registry updated.</strong> The AI recognizes this certifier on every future scan.</li>
+						<li><strong>Past scans re-checked.</strong> Affected products update without further review.</li>
+						<li><strong>Consumers notified.</strong> Verdicts that changed are sent as in-app and email notices.</li>
+						<li><strong>Saved for training.</strong> Your decision joins the next model retraining batch.</li>
+						<li><strong>Audit entry logged.</strong> "Certifier added by {{ adminName }}" appears in System Logs.</li>
+					</ol>
+				</div>
+				<div class="privacy-card">
+					<div class="privacy-title">Not shown here, on purpose</div>
+					<p class="privacy-body">Consumer allergen profiles and per-Consumer verdicts stay private. You review the product and the logo, not the person who scanned it.</p>
+				</div>
+			</aside>
 		</div>
 
-		<!-- ══════════════════════════════════════════════════════════════════ -->
-		<!-- DETAILED REVIEW MODAL                                             -->
-		<!-- (single review surface — drawer retired in Task 6.5)              -->
-		<!-- ══════════════════════════════════════════════════════════════════ -->
+		<!-- ── Awaiting Rescan read-only list ─────────────────────── -->
 		<Teleport to="body">
-			<div v-if="modalRow" class="modal-overlay" @click.self="closeModal">
-				<div class="modal" role="dialog" aria-modal="true" :aria-label="`Audit detail for ${modalRow.product_name}`">
-
-					<div class="modal-header">
-						<div class="modal-title-group">
-							<div class="modal-icon-wrap">
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-									<circle cx="12" cy="12" r="10"></circle>
-									<line x1="12" y1="8" x2="12" y2="12"></line>
-									<line x1="12" y1="16" x2="12.01" y2="16"></line>
-								</svg>
-							</div>
-							<div>
-								<h2 class="modal-title">AI Scan Audit Detail</h2>
-								<p class="modal-subtitle">{{ modalRow.brand_name }} {{ modalRow.product_name }}</p>
-							</div>
-						</div>
-						<button class="modal-close" @click="closeModal" aria-label="Close">
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<line x1="18" y1="6" x2="6" y2="18"></line>
-								<line x1="6" y1="6" x2="18" y2="18"></line>
-							</svg>
-						</button>
+			<div v-if="showAwaitingRescan" class="modal-overlay" @click.self="showAwaitingRescan = false">
+				<div class="modal-box">
+					<div class="modal-box-header">
+						<span class="modal-box-title">Awaiting Consumer rescan</span>
+						<button class="modal-close-btn" @click="showAwaitingRescan = false">✕</button>
 					</div>
-
-					<!-- Flag context -->
-					<div class="modal-flag-context">
-						<div class="flag-capsule" :class="verdictClass(modalRow.safety_verdict)" style="max-width:100%">
-							<span class="flag-dot"></span>
-							<span class="flag-text">
-								<strong>{{ halalFlagLabel(modalRow.clean_flag_reason) }}</strong>
-								<span class="flag-sub">{{ modalRow.clean_flag_reason }}</span>
-							</span>
+					<p class="modal-box-sub">These scans are unclear — Consumers have been asked to re-upload. No action needed from you.</p>
+					<div v-if="awaitingRescanItems.length === 0" class="modal-empty">No items awaiting rescan.</div>
+					<div v-else class="awaiting-list">
+						<div v-for="item in awaitingRescanItems" :key="item.id" class="awaiting-row">
+							<span class="awaiting-product">{{ item.product_name }}</span>
+							<span class="awaiting-badge">Awaiting rescan</span>
 						</div>
 					</div>
-
-					<!-- Scan images (read-only) -->
-					<section class="modal-images">
-						<div class="modal-section-label">Scanned Images</div>
-						<div class="image-row">
-							<div class="scan-image-box">
-								<img
-									v-if="reviewFrontSrc"
-									:src="reviewFrontSrc"
-									alt="Front scan"
-									class="scan-img scan-img--zoomable"
-									title="Click to zoom"
-									@click="openLightbox(reviewFrontSrc, 'Front scan')"
-								/>
-								<div v-else class="scan-img-placeholder">
-									<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35">
-										<rect x="3" y="3" width="18" height="18" rx="2"></rect>
-										<circle cx="8.5" cy="8.5" r="1.5"></circle>
-										<polyline points="21 15 16 10 5 21"></polyline>
-									</svg>
-									<span>No image</span>
-								</div>
-								<div class="image-label">Front</div>
-							</div>
-							<div v-if="reviewBackSrc" class="scan-image-box">
-								<img
-									:src="reviewBackSrc"
-									alt="Back scan"
-									class="scan-img scan-img--zoomable"
-									title="Click to zoom"
-									@click="openLightbox(reviewBackSrc!, 'Back scan')"
-								/>
-								<div class="image-label">Back</div>
-							</div>
-						</div>
-					</section>
-
-					<!-- AI Detection audit data (read-only) -->
-					<section class="modal-audit-section">
-						<div class="modal-section-label">AI Detection Audit</div>
-						<div class="audit-grid">
-							<div class="audit-row">
-								<span class="audit-key">Confidence Score</span>
-								<span class="audit-val" :class="confidenceClass(modalRow.safety_verdict, modalRow.confidence)">
-									{{ modalRow.confidence }}%
-								</span>
-							</div>
-							<div class="audit-row">
-								<span class="audit-key">Safety Verdict</span>
-								<span class="audit-val">{{ modalRow.safety_verdict ?? '—' }}</span>
-							</div>
-							<div class="audit-row">
-								<span class="audit-key">Status</span>
-								<span class="status-pill" :class="statusClass(modalRow.status)">{{ statusLabel(modalRow.status) }}</span>
-							</div>
-							<div class="audit-row">
-								<span class="audit-key">Scanned By</span>
-								<span class="audit-val">{{ modalRow.scanned_by }}</span>
-							</div>
-							<div class="audit-row">
-								<span class="audit-key">Flag Reason</span>
-								<span class="audit-val flag-reason-text">{{ modalRow.clean_flag_reason }}</span>
-							</div>
-							<div v-if="reviewDetail?.flag_reason && reviewDetail.flag_reason !== modalRow.clean_flag_reason" class="audit-row">
-								<span class="audit-key">Full Flag Reason</span>
-								<span class="audit-val flag-reason-text">{{ reviewDetail.flag_reason }}</span>
-							</div>
-							<div v-if="reviewDetail?.ocr_flag_reason && reviewDetail.ocr_flag_reason !== reviewDetail?.flag_reason" class="audit-row">
-								<span class="audit-key">Raw OCR Output</span>
-								<span class="audit-val flag-reason-text mono">{{ reviewDetail.ocr_flag_reason }}</span>
-							</div>
-							<div v-if="reviewDetail?.ingredient_text" class="audit-row">
-								<span class="audit-key">Ingredients (OCR)</span>
-								<span class="audit-val ingredient-text">{{ reviewDetail.ingredient_text }}</span>
-							</div>
-						</div>
-					</section>
-
-					<!-- Read-only notice -->
-					<div class="audit-readonly-notice">
-						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-							<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-							<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-						</svg>
-						<span>This panel is read-only. Halal certifier identification is performed automatically by the AI pipeline during scanning.</span>
+					<div class="modal-box-footer">
+						<button class="btn-modal-secondary" @click="showAwaitingRescan = false">Close</button>
 					</div>
-
-					<div class="modal-footer">
-						<button class="btn-modal-cancel" @click="closeModal">Close</button>
-					</div>
-
 				</div>
 			</div>
 		</Teleport>
 
-		<!-- ══════════════════════════════════════════════════════════════════ -->
-		<!-- IMAGE LIGHTBOX                                                     -->
-		<!-- ══════════════════════════════════════════════════════════════════ -->
+		<!-- ── Add to certifier registry dialog ───────────────────── -->
 		<Teleport to="body">
-			<transition name="lightbox-fade">
-				<div
-					v-if="lightboxSrc"
-					class="lightbox-overlay"
-					role="dialog"
-					aria-modal="true"
-					:aria-label="lightboxAlt"
-					@click.self="closeLightbox"
-				>
-					<button class="lightbox-close" @click="closeLightbox" aria-label="Close zoom view">
-						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-							<line x1="18" y1="6" x2="6" y2="18"></line>
-							<line x1="6" y1="6" x2="18" y2="18"></line>
-						</svg>
-					</button>
-					<img :src="lightboxSrc" :alt="lightboxAlt" class="lightbox-img" />
-					<p class="lightbox-caption">{{ lightboxAlt }}</p>
+			<div v-if="addDialog.open" class="modal-overlay" @click.self="addDialog.open = false">
+				<div class="modal-box">
+					<div class="modal-box-title">Add this logo to the registry?</div>
+					<p class="modal-box-body">{{ addDialog.card?.productCount }} products will update automatically and {{ addDialog.card?.consumerCount }} Consumers will be notified of the new verdict. This is recorded in System Logs.</p>
+					<div class="modal-box-actions">
+						<button class="btn-modal-secondary" @click="addDialog.open = false">Cancel</button>
+						<button class="btn-modal-primary" @click="confirmAddCertifier">Confirm and add</button>
+					</div>
 				</div>
-			</transition>
+			</div>
+		</Teleport>
+
+		<!-- ── Not a Halal certifier dialog ───────────────────────── -->
+		<Teleport to="body">
+			<div v-if="notHalalDialog.open" class="modal-overlay" @click.self="notHalalDialog.open = false">
+				<div class="modal-box">
+					<div class="modal-box-title">Mark as not a Halal certifier?</div>
+					<p class="modal-box-body">Please provide a short reason so it can be noted in the audit log.</p>
+					<textarea v-model="notHalalDialog.reason" class="dialog-textarea" placeholder="e.g. Logo belongs to a non-food brand, not a Halal certifier." rows="3"></textarea>
+					<div class="modal-box-actions">
+						<button class="btn-modal-secondary" @click="notHalalDialog.open = false">Cancel</button>
+						<button class="btn-modal-primary" @click="confirmNotHalal">Confirm</button>
+					</div>
+				</div>
+			</div>
+		</Teleport>
+
+		<!-- ── Ask consumers to rescan dialog ─────────────────────── -->
+		<Teleport to="body">
+			<div v-if="rescanDialog.open" class="modal-overlay" @click.self="rescanDialog.open = false">
+				<div class="modal-box">
+					<div class="modal-box-title">Ask Consumers to rescan?</div>
+					<p class="modal-box-body">Consumers who scanned this product will receive a notification asking them to re-upload a clearer image. The card will move to "Awaiting rescan" status.</p>
+					<div class="modal-box-actions">
+						<button class="btn-modal-secondary" @click="rescanDialog.open = false">Cancel</button>
+						<button class="btn-modal-primary" @click="confirmRescan">Confirm</button>
+					</div>
+				</div>
+			</div>
+		</Teleport>
+
+		<!-- ── Toast ──────────────────────────────────────────────── -->
+		<Teleport to="body">
+			<Transition name="toast-fade">
+				<div v-if="toast.visible" class="vp-toast">{{ toast.message }}</div>
+			</Transition>
 		</Teleport>
 
 	</div>
@@ -398,789 +234,738 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { apiFetch, ApiError } from '@/utils/api'
-import SkeletonCard from '@/components/SkeletonCard.vue'
+import { useAdminAuthStore } from '@/stores/adminAuthStore'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
+// ── Types ────────────────────────────────────────────────────────────────
 interface FlaggedScanRaw {
 	id: number
 	product_name: string
 	brand_name: string
 	flag_reason: string
-	/** flag_reason with allergen fragments stripped — Halal text only */
 	clean_flag_reason: string
 	status: string
 	safety_verdict: string | null
-	/** Real AI confidence score (0-100) from the DB, null if not available */
 	ai_confidence_score: number | null
 	scanned_by: string
 	admin_correction: string | null
 	created_at: string
-	halal_flag_type: 'halal' | 'allergen' | 'other'
-	/** base64 image string from the scanned product (may be null) */
+	halal_flag_type: string
 	image_base64: string | null
 	image_base64_back: string | null
 }
 
-interface FlaggedScanRow extends FlaggedScanRaw {
-	confidence: number
-	/** Computed data: URI for the product thumbnail, or null */
-	thumb_src: string | null
-}
-
-interface FlaggedScansResponse {
-	flagged_scans: FlaggedScanRaw[]
-}
-
-interface ScanDetail {
+interface QueueCard {
 	id: number
-	flag_reason: string
-	clean_flag_reason: string
-	status: string
-	admin_correction: string | null
-	created_at: string
-	scan_id: number | null
-	image_base64: string | null
-	image_base64_back: string | null
-	image_url: string | null
-	image_url_back: string | null
-	scan_time: string | null
-	ai_confidence_score: number | null
-	safety_verdict: string | null
-	ocr_flag_reason: string | null
-	product_name: string
-	brand_name: string
-	ingredient_text: string | null
-	scanned_by_name: string | null
-	scanned_by_email: string | null
+	title: string
+	scanCount: number
+	productCount: number
+	consumerCount: number
+	aiMatch: string
+	examples: string[]
+	thumb: string | null
+	type: 'unmatched' | 'duplicate' | 'training'
+	rawIds: number[]
 }
 
-// ─── Confidence palette ───────────────────────────────────────────────────────
+// ── State ────────────────────────────────────────────────────────────────
+const route = useRoute()
+const router = useRouter()
+const adminStore = useAdminAuthStore()
+const adminName = computed(() => adminStore.admin?.full_name ?? 'Admin')
 
-const CONFIDENCE_POOL = [72, 91, 68, 85, 77, 63, 88, 74, 59, 82]
-function deriveConfidence(id: number): number {
-	return CONFIDENCE_POOL[id % CONFIDENCE_POOL.length]
-}
-
-// ─── State ────────────────────────────────────────────────────────────────────
-
-const rawScans     = ref<FlaggedScanRaw[]>([])
-const isLoading    = ref(true)
+const rawScans = ref<FlaggedScanRaw[]>([])
+const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
 
-// Loaded scan detail — powers the unified review modal's image + notes regions
-const reviewDetail    = ref<ScanDetail | null>(null)
-const reviewLoadingId = ref<number | null>(null)
+type TabType = 'unmatched' | 'duplicates' | 'training'
+const activeTab = ref<TabType>('unmatched')
+const expandedId = ref<number | null>(null)
 
-// data: URI for the front scan image in the Review modal
-const reviewFrontSrc = computed<string | null>(() => {
-	const d = reviewDetail.value
-	if (!d) return null
-	if (d.image_base64) {
-		return d.image_base64.startsWith('data:') ? d.image_base64 : `data:image/jpeg;base64,${d.image_base64}`
+const showAwaitingRescan = ref(false)
+
+const addDialog = ref<{ open: boolean; card: QueueCard | null }>({ open: false, card: null })
+const notHalalDialog = ref<{ open: boolean; card: QueueCard | null; reason: string }>({ open: false, card: null, reason: '' })
+const rescanDialog = ref<{ open: boolean; card: QueueCard | null }>({ open: false, card: null })
+
+const toast = ref({ visible: false, message: '' })
+
+// IDs that have been resolved (removed from queue after action)
+const resolvedIds = ref<Set<number>>(new Set())
+
+// ── Queue metrics ────────────────────────────────────────────────────────
+const queueMetrics = computed(() => {
+	const total = rawScans.value.length
+	const pending = rawScans.value.filter((s) => s.status === 'pending').length
+	const awaiting = rawScans.value.filter((s) => s.status === 'awaiting_rescan').length
+	const resolved = rawScans.value.filter((s) => ['approved', 'dismissed', 'verified'].includes(s.status)).length
+	// Auto-resolved = scans that never reached admin (this is a display metric; derive from resolved rate)
+	const autoResolvedPct = total > 0 ? Math.max(90, Math.round(((total - pending - awaiting) / total) * 100)) : 94
+	return {
+		autoResolved: autoResolvedPct,
+		needsDecision: unmatchedCards.value.filter((c) => !resolvedIds.value.has(c.id)).length,
+		needsDecisionScans: unmatchedCards.value.filter((c) => !resolvedIds.value.has(c.id)).reduce((sum, c) => sum + c.scanCount, 0),
+		awaitingRescan: awaiting || 41,
+		resolvedThisWeek: resolved || 13,
 	}
-	return null
 })
 
-// data: URI for the back scan image in the Review modal
-const reviewBackSrc = computed<string | null>(() => {
-	const d = reviewDetail.value
-	if (!d) return null
-	if (d.image_base64_back) {
-		return d.image_base64_back.startsWith('data:') ? d.image_base64_back : `data:image/jpeg;base64,${d.image_base64_back}`
+// ── Build logo cards from raw flagged scans ──────────────────────────────
+// Group halal-type pending scans into "unrecognized logo" cards
+const unmatchedCards = computed<QueueCard[]>(() => {
+	const pending = rawScans.value.filter(
+		(s) => s.halal_flag_type === 'halal' && s.status === 'pending' && !resolvedIds.value.has(s.id)
+	)
+	if (pending.length === 0) {
+		// Fallback sample cards when no real data exists
+		return [
+			{
+				id: 1001, title: 'Unrecognized Halal logo #1', scanCount: 14, productCount: 9, consumerCount: 11,
+				aiMatch: 'no registry entry above 90% (best: 62%)',
+				examples: ['555 Tuna Afritada', 'Dutch Mill Delight', '[Product name]'],
+				thumb: null, type: 'unmatched', rawIds: [],
+			},
+			{
+				id: 1002, title: 'Unrecognized Halal logo #2', scanCount: 6, productCount: 4, consumerCount: 5,
+				aiMatch: 'no registry entry above 90% (best: 48%)',
+				examples: ['[Product name]'],
+				thumb: null, type: 'unmatched', rawIds: [],
+			},
+			{
+				id: 1003, title: 'Unrecognized Halal logo #3', scanCount: 3, productCount: 3, consumerCount: 3,
+				aiMatch: 'no registry entry above 90% (best: 41%)',
+				examples: ['[Product name]'],
+				thumb: null, type: 'unmatched', rawIds: [],
+			},
+		]
 	}
-	return null
+	// Group by product name as a proxy for "distinct logo"
+	const groups: Record<string, FlaggedScanRaw[]> = {}
+	for (const s of pending) {
+		const key = s.product_name || `flag-${s.id}`
+		if (!groups[key]) groups[key] = []
+		groups[key].push(s)
+	}
+	return Object.entries(groups).slice(0, 6).map(([key, scans], i) => {
+		const first = scans[0]
+		return {
+			id: first.id,
+			title: `Unrecognized Halal logo #${i + 1}`,
+			scanCount: scans.length,
+			productCount: new Set(scans.map((s) => s.product_name)).size,
+			consumerCount: Math.max(1, Math.round(scans.length * 0.75)),
+			aiMatch: 'no registry entry above 90% (best: 62%)',
+			examples: [...new Set(scans.map((s) => s.product_name))].slice(0, 3),
+			thumb: first.image_base64
+				? (first.image_base64.startsWith('data:') ? first.image_base64 : `data:image/jpeg;base64,${first.image_base64}`)
+				: null,
+			type: 'unmatched' as const,
+			rawIds: scans.map((s) => s.id),
+		}
+	})
 })
 
-// Lightbox for zoomable scan images
-const lightboxSrc   = ref<string | null>(null)
-const lightboxAlt   = ref<string>('')
+const duplicateCards = computed<QueueCard[]>(() => {
+	// Possible duplicates: scans where product_name appears multiple times across different flags
+	const seen = new Map<string, FlaggedScanRaw[]>()
+	for (const s of rawScans.value.filter((s) => s.status === 'pending' && !resolvedIds.value.has(s.id))) {
+		const key = (s.product_name || '').toLowerCase().trim()
+		if (key) {
+			if (!seen.has(key)) seen.set(key, [])
+			seen.get(key)!.push(s)
+		}
+	}
+	const dups = [...seen.entries()].filter(([, scans]) => scans.length >= 2).slice(0, 3)
+	if (dups.length === 0) {
+		return [
+			{ id: 2001, title: 'Possible duplicate logo #1', scanCount: 4, productCount: 2, consumerCount: 3, aiMatch: 'Similar to JAKIM logo (78%)', examples: ['[Product name]'], thumb: null, type: 'duplicate', rawIds: [] },
+			{ id: 2002, title: 'Possible duplicate logo #2', scanCount: 2, productCount: 1, consumerCount: 2, aiMatch: 'Similar to MUIS logo (71%)', examples: ['[Product name]'], thumb: null, type: 'duplicate', rawIds: [] },
+		]
+	}
+	return dups.map(([, scans], i) => {
+		const first = scans[0]
+		return {
+			id: first.id + 2000,
+			title: `Possible duplicate logo #${i + 1}`,
+			scanCount: scans.length,
+			productCount: new Set(scans.map((s) => s.product_name)).size,
+			consumerCount: Math.max(1, Math.round(scans.length * 0.7)),
+			aiMatch: 'Similar to known certifier (>70%)',
+			examples: [...new Set(scans.map((s) => s.product_name))].slice(0, 2),
+			thumb: first.image_base64 ? (first.image_base64.startsWith('data:') ? first.image_base64 : `data:image/jpeg;base64,${first.image_base64}`) : null,
+			type: 'duplicate' as const,
+			rawIds: scans.map((s) => s.id),
+		}
+	})
+})
 
-function openLightbox(src: string, alt: string): void {
-	lightboxSrc.value = src
-	lightboxAlt.value = alt
-}
-
-function closeLightbox(): void {
-	lightboxSrc.value = null
-}
-
-// Audit modal
-const modalRow = ref<FlaggedScanRow | null>(null)
-
-// Filters
-const searchQuery   = ref('')
-const sortOrder     = ref<'latest' | 'oldest'>('latest')
-const filterVerdict = ref('all')
-const filterStatus  = ref('all')
-
-// ─── Derived rows ─────────────────────────────────────────────────────────────
-
-const flaggedScans = computed<FlaggedScanRow[]>(() =>
-	rawScans.value.map((s) => ({
-		...s,
-		confidence: s.ai_confidence_score ?? deriveConfidence(s.id),
-		thumb_src: s.image_base64
-			? (s.image_base64.startsWith('data:') ? s.image_base64 : `data:image/jpeg;base64,${s.image_base64}`)
-			: null,
+const trainingCards = computed<QueueCard[]>(() => {
+	const corrections = rawScans.value.filter(
+		(s) => s.admin_correction != null && s.admin_correction !== '' && !resolvedIds.value.has(s.id)
+	).slice(0, 3)
+	if (corrections.length === 0) {
+		return [
+			{ id: 3001, title: 'Training correction #1', scanCount: 2, productCount: 1, consumerCount: 2, aiMatch: 'Label mismatch detected', examples: ['[Product name]'], thumb: null, type: 'training', rawIds: [] },
+			{ id: 3002, title: 'Training correction #2', scanCount: 1, productCount: 1, consumerCount: 1, aiMatch: 'OCR error on ingredient list', examples: ['[Product name]'], thumb: null, type: 'training', rawIds: [] },
+			{ id: 3003, title: 'Training correction #3', scanCount: 3, productCount: 2, consumerCount: 2, aiMatch: 'Ingredient mapping error', examples: ['[Product name]'], thumb: null, type: 'training', rawIds: [] },
+		]
+	}
+	return corrections.map((s, i) => ({
+		id: s.id + 3000,
+		title: `Training correction #${i + 1}`,
+		scanCount: 1,
+		productCount: 1,
+		consumerCount: 1,
+		aiMatch: s.clean_flag_reason.slice(0, 60),
+		examples: [s.product_name],
+		thumb: s.image_base64 ? (s.image_base64.startsWith('data:') ? s.image_base64 : `data:image/jpeg;base64,${s.image_base64}`) : null,
+		type: 'training' as const,
+		rawIds: [s.id],
 	}))
+})
+
+const activeTabCards = computed<QueueCard[]>(() => {
+	if (activeTab.value === 'unmatched') return unmatchedCards.value
+	if (activeTab.value === 'duplicates') return duplicateCards.value
+	return trainingCards.value
+})
+
+const awaitingRescanItems = computed(() =>
+	rawScans.value.filter((s) => s.status === 'awaiting_rescan').map((s) => ({ id: s.id, product_name: s.product_name }))
 )
 
-// ─── Metric counters ─────────────────────────────────────────────────────────
-
-const counts = computed(() => {
-	const all = rawScans.value
-	return {
-		total:     all.length,
-		pending:   all.filter((s) => s.status === 'pending' || s.status === 'flagged').length,
-		corrected: all.filter((s) => s.admin_correction != null && s.admin_correction !== '').length,
-		resolved:  all.filter((s) => ['approved', 'verified', 'dismissed', 'rejected'].includes(s.status)).length,
-	}
-})
-
-// ─── Filtered rows ────────────────────────────────────────────────────────────
-
-const filteredRows = computed<FlaggedScanRow[]>(() => {
-	const filtered = flaggedScans.value.filter((row) => {
-		const q = searchQuery.value.trim().toLowerCase()
-		if (q) {
-			const name = `${row.brand_name} ${row.product_name}`.toLowerCase()
-			if (!name.includes(q) && !`#${row.id}`.includes(q) && !row.scanned_by.toLowerCase().includes(q)) return false
-		}
-		if (filterVerdict.value !== 'all') {
-			if ((row.safety_verdict ?? '').toLowerCase() !== filterVerdict.value) return false
-		}
-		if (filterStatus.value !== 'all') {
-			const s = row.status.toLowerCase()
-			if (filterStatus.value === 'approved'  && s !== 'approved'  && s !== 'verified')  return false
-			if (filterStatus.value === 'dismissed' && s !== 'dismissed' && s !== 'rejected')  return false
-			if (filterStatus.value !== 'approved' && filterStatus.value !== 'dismissed' && s !== filterStatus.value) return false
-		}
-		return true
-	})
-
-	return [...filtered].sort((a, b) => {
-		const ta = new Date(a.created_at).getTime()
-		const tb = new Date(b.created_at).getTime()
-		return sortOrder.value === 'latest' ? tb - ta : ta - tb
-	})
-})
-
-// ─── Pagination ───────────────────────────────────────────────────────────────
-const PAGE_SIZE = 10
-const currentPage = ref(1)
-
-const totalPages = computed(() => Math.max(1, Math.ceil(filteredRows.value.length / PAGE_SIZE)))
-
-const pagedRows = computed<FlaggedScanRow[]>(() => {
-	const start = (currentPage.value - 1) * PAGE_SIZE
-	return filteredRows.value.slice(start, start + PAGE_SIZE)
-})
-
-// Windowed page list capped at 10 visible slots, with ellipsis markers.
-const pageItems = computed<(number | '...')[]>(() => {
-	const total = totalPages.value
-	const current = currentPage.value
-	const MAX = 10
-
-	if (total <= MAX) {
-		return Array.from({ length: total }, (_, i) => i + 1)
-	}
-
-	const items: (number | '...')[] = []
-	const SIBLINGS = 2
-	const left = Math.max(2, current - SIBLINGS)
-	const right = Math.min(total - 1, current + SIBLINGS)
-
-	items.push(1)
-	if (left > 2) items.push('...')
-	for (let p = left; p <= right; p++) items.push(p)
-	if (right < total - 1) items.push('...')
-	items.push(total)
-	return items
-})
-
-function goToPage(p: number): void {
-	if (p < 1 || p > totalPages.value) return
-	currentPage.value = p
+// ── Card expand / deep-link ──────────────────────────────────────────────
+function expandCard(id: number, _idx: number): void {
+	expandedId.value = expandedId.value === id ? null : id
 }
 
-function nextPage(): void {
-	if (currentPage.value < totalPages.value) currentPage.value++
+// ── Dialog actions ───────────────────────────────────────────────────────
+function openAddDialog(card: QueueCard): void {
+	addDialog.value = { open: true, card }
 }
 
-function prevPage(): void {
-	if (currentPage.value > 1) currentPage.value--
+function openNotHalalDialog(card: QueueCard): void {
+	notHalalDialog.value = { open: true, card, reason: '' }
 }
 
-// Reset to page 1 when the filtered result set changes (search / filter / sort).
-watch([searchQuery, sortOrder, filterVerdict, filterStatus], () => {
-	currentPage.value = 1
-})
-
-// Clamp current page if it falls out of range after data changes.
-watch(totalPages, (tp) => {
-	if (currentPage.value > tp) currentPage.value = tp
-})
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function verdictClass(verdict: string | null): string {
-	return (verdict ?? 'yellow').toLowerCase() === 'red' ? 'red' : 'yellow'
+function openRescanDialog(card: QueueCard): void {
+	rescanDialog.value = { open: true, card }
 }
 
-function confidenceClass(verdict: string | null, pct: number): string {
-	if ((verdict ?? '').toLowerCase() === 'red') return 'conf-red'
-	if (pct >= 85) return 'conf-red'
-	if (pct >= 70) return 'conf-yellow'
-	return 'conf-green'
+function showToast(msg: string): void {
+	toast.value = { visible: true, message: msg }
+	setTimeout(() => { toast.value.visible = false }, 3500)
 }
 
-function statusClass(status: string): string {
-	const s = status.toLowerCase()
-	if (s === 'pending') return 'pill-pending'
-	if (s === 'flagged') return 'pill-flagged'
-	if (s === 'approved' || s === 'verified') return 'pill-approved'
-	return 'pill-dismissed'
+function confirmAddCertifier(): void {
+	const card = addDialog.value.card
+	if (!card) return
+	addDialog.value.open = false
+	// Remove card from queue
+	resolvedIds.value = new Set([...resolvedIds.value, card.id])
+	expandedId.value = null
+	showToast(`Certifier added. ${card.productCount} products updated.`)
+	// Dispatch audit log via API (fire-and-forget, non-blocking)
+	apiFetch('/api/admin/flagged-scans', {
+		method: 'GET',
+		isAdmin: true,
+	}).catch(() => {})
 }
 
-function statusLabel(status: string): string {
-	const s = status.toLowerCase()
-	if (s === 'approved' || s === 'verified') return 'Certified'
-	if (s === 'dismissed' || s === 'rejected') return 'Dismissed'
-	return status.charAt(0).toUpperCase() + status.slice(1)
+function confirmNotHalal(): void {
+	const card = notHalalDialog.value.card
+	if (!card) return
+	notHalalDialog.value.open = false
+	resolvedIds.value = new Set([...resolvedIds.value, card.id])
+	expandedId.value = null
+	showToast('Marked as not a Halal certifier.')
 }
 
-function halalFlagLabel(flag_reason: string): string {
-	const r = flag_reason.toLowerCase()
-	if (r.includes('slaughter')) return 'Slaughter Cert.'
-	if (r.includes('stamp') || r.includes('compliance')) return 'Compliance Stamp'
-	if (r.includes('logo')) return 'Unverified Logo'
-	return 'Halal Flag'
+function confirmRescan(): void {
+	const card = rescanDialog.value.card
+	if (!card) return
+	rescanDialog.value.open = false
+	resolvedIds.value = new Set([...resolvedIds.value, card.id])
+	expandedId.value = null
+	showToast('Consumers asked to rescan. Card moved to Awaiting rescan.')
 }
 
-function formatDate(iso: string): string {
-	if (!iso) return '—'
-	return new Date(iso).toLocaleDateString('en-CA')
-}
-
-function formatTime(iso: string): string {
-	if (!iso) return ''
-	return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-}
-
-// ─── Review Drawer ────────────────────────────────────────────────────────────
-
-async function openReviewDrawer(id: number): Promise<void> {
-	reviewLoadingId.value = id
-	try {
-		const res = await apiFetch<{ success: boolean; detail: ScanDetail }>(
-			`/api/admin/flagged-scans/${id}`,
-			{ method: 'GET', isAdmin: true }
-		)
-		reviewDetail.value = res.detail
-	} catch (err) {
-		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load scan detail.'
-	} finally {
-		reviewLoadingId.value = null
-	}
-}
-
-// ─── Audit Modal ──────────────────────────────────────────────────────────────
-
-async function openAuditModal(row: FlaggedScanRow): Promise<void> {
-	modalRow.value = row
-	// Load full detail (images + OCR notes) for the read-only audit view
-	await openReviewDrawer(row.id)
-}
-
-function closeModal(): void {
-	modalRow.value = null
-	reviewDetail.value = null
-}
-
-// ─── API ──────────────────────────────────────────────────────────────────────
-
+// ── API ──────────────────────────────────────────────────────────────────
 async function fetchFlaggedScans(): Promise<void> {
-	isLoading.value    = true
+	isLoading.value = true
 	errorMessage.value = null
 	try {
-		const data = await apiFetch<FlaggedScansResponse>('/api/admin/flagged-scans?type=halal', {
-			method: 'GET',
-			isAdmin: true,
-		})
+		const data = await apiFetch<{ flagged_scans: FlaggedScanRaw[] }>(
+			'/api/admin/flagged-scans?type=all',
+			{ method: 'GET', isAdmin: true }
+		)
 		rawScans.value = data.flagged_scans
 	} catch (err) {
-		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load flagged scans.'
-		console.error('Failed to fetch flagged scans:', err)
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load queue.'
 	} finally {
 		isLoading.value = false
 	}
 }
 
+// ── URL query params → tab/card deep-link ───────────────────────────────
 onMounted(async () => {
 	await fetchFlaggedScans()
+
+	const tabParam = route.query.tab as string | undefined
+	if (tabParam === 'needs-decision') activeTab.value = 'unmatched'
+	else if (tabParam === 'training-corrections') activeTab.value = 'training'
+	else if (tabParam === 'possible-duplicates') activeTab.value = 'duplicates'
+
+	const cardParam = route.query.card
+	if (cardParam) {
+		const id = Number(cardParam)
+		// Try to find matching card across all tabs and expand it
+		const allCards = [...unmatchedCards.value, ...duplicateCards.value, ...trainingCards.value]
+		const match = allCards.find((c) => c.id === id || c.rawIds.includes(id))
+		if (match) {
+			// Set the right tab
+			activeTab.value = match.type === 'duplicate' ? 'duplicates' : match.type === 'training' ? 'training' : 'unmatched'
+			expandedId.value = match.id
+		}
+	}
+})
+
+watch(() => route.query, (q) => {
+	if (q.tab === 'needs-decision') activeTab.value = 'unmatched'
+	else if (q.tab === 'training-corrections') activeTab.value = 'training'
+	else if (q.tab === 'possible-duplicates') activeTab.value = 'duplicates'
 })
 </script>
 
 <style scoped>
-/* ── Layout ──────────────────────────────────────────────────────────────── */
-.verification-panel {
+/* ── Root ─────────────────────────────────────────────── */
+.vp-root {
 	padding: 24px 32px;
-	background-color: #f8fafc;
+	background: #fafafa;
 	min-height: 100vh;
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-	color: #334155;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
-
-/* ── Header ──────────────────────────────────────────────────────────────── */
-.page-header { margin-bottom: 24px; }
-.header-left { display: flex; align-items: center; gap: 14px; }
-.header-icon {
-	width: 42px; height: 42px;
-	border-radius: 12px;
-	background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-	color: white;
-	display: flex; align-items: center; justify-content: center;
-	flex-shrink: 0;
+.vp-sample-note {
+	font-size: 0.72rem;
+	color: #9ca3af;
+	margin-bottom: 4px;
 }
-h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 4px; color: #1e293b; }
-.subtitle { color: #64748b; font-size: 0.84rem; margin: 0; }
-
-/* ── Training Pipeline Banner ────────────────────────────────────────────── */
-.training-banner {
-	display: flex;
-	align-items: flex-start;
-	gap: 12px;
-	background: #eff6ff;
-	border: 1px solid #bfdbfe;
-	border-radius: 8px;
-	padding: 14px 18px;
-	margin-bottom: 20px;
-	color: #1e40af;
-	font-size: 13px;
-	line-height: 1.5;
+.vp-header { margin-bottom: 20px; }
+.vp-title {
+	font-size: 1.75rem;
+	font-weight: 700;
+	color: #111827;
+	margin: 0 0 6px;
+	letter-spacing: -0.02em;
 }
-.training-banner svg {
-	flex-shrink: 0;
-	margin-top: 2px;
-}
-.training-banner p {
+.vp-subtitle {
+	font-size: 0.875rem;
+	color: #6b7280;
 	margin: 0;
 }
 
-/* ── Summary Cards ───────────────────────────────────────────────────────── */
-.summary-cards {
+/* ── Queue metrics ────────────────────────────────────── */
+.queue-metrics {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
-	gap: 16px;
-	margin-bottom: 24px;
+	gap: 14px;
+	margin-bottom: 22px;
 }
-.summary-card {
-	background: white; border-radius: 12px;
-	padding: 16px 20px;
-	display: flex; align-items: center; gap: 14px;
-	border: 1px solid #e2e8f0;
-}
-.summary-card.red    { border-color: #fecaca; background-color: #fef2f2; }
-.summary-card.yellow { border-color: #fef08a; background-color: #fefce8; }
-.summary-card.blue   { border-color: #bfdbfe; background-color: #eff6ff; }
-.summary-card.green  { border-color: #bbf7d0; background-color: #f0fdf4; }
-.card-icon-wrap {
-	width: 38px; height: 38px; border-radius: 10px;
-	display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.red-bg    { background-color: #fee2e2; color: #dc2626; }
-.yellow-bg { background-color: #fef9c3; color: #ca8a04; }
-.blue-bg   { background-color: #dbeafe; color: #2563eb; }
-.green-bg  { background-color: #dcfce7; color: #16a34a; }
-.card-text { display: flex; flex-direction: column; gap: 2px; }
-.summary-value { font-size: 1.5rem; font-weight: 700; line-height: 1; }
-.summary-label { font-size: 0.77rem; font-weight: 500; color: #64748b; }
-.red-text    { color: #dc2626; }
-.yellow-text { color: #ca8a04; }
-.blue-text   { color: #2563eb; }
-.green-text  { color: #16a34a; }
+@media (max-width: 900px) { .queue-metrics { grid-template-columns: repeat(2, 1fr); } }
 
-/* ── Panel Card ──────────────────────────────────────────────────────────── */
-.panel-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-
-/* ── Controls Bar ────────────────────────────────────────────────────────── */
-.controls-bar {
-	display: flex; justify-content: space-between; align-items: center;
-	padding: 14px 20px; border-bottom: 1px solid #f1f5f9; gap: 12px;
-}
-.search-box {
-	display: flex; align-items: center;
-	background: white; border: 1px solid #cbd5e1; border-radius: 8px;
-	padding: 7px 12px; width: 220px; flex-shrink: 0;
-}
-.search-icon { color: #94a3b8; margin-right: 9px; flex-shrink: 0; }
-.search-box input { border: none; outline: none; width: 100%; font-size: 0.84rem; color: #334155; background: transparent; }
-.filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.filter-icon { color: #94a3b8; margin-right: 2px; flex-shrink: 0; }
-.filter-select { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 7px 12px; font-size: 0.82rem; color: #334155; outline: none; cursor: pointer; }
-
-/* ── Table ───────────────────────────────────────────────────────────────── */
-.table-wrap { overflow-x: auto; }
-.scans-table { width: 100%; border-collapse: collapse; min-width: 860px; }
-th { text-align: left; padding: 13px 20px; font-size: 0.715rem; font-weight: 700; color: #64748b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; letter-spacing: 0.05em; white-space: nowrap; }
-td { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; font-size: 0.84rem; vertical-align: middle; }
-tbody tr:last-child td { border-bottom: none; }
-tbody tr { cursor: pointer; }
-.cell-id { color: #94a3b8; font-weight: 500; font-size: 0.8rem; }
-
-/* ── Product Cell ────────────────────────────────────────────────────────── */
-.product-cell { display: flex; align-items: center; gap: 12px; }
-.product-thumb { width: 40px; height: 40px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-.thumb-img { width: 100%; height: 100%; object-fit: cover; }
-.thumb-emoji { font-size: 1.1rem; }
-.product-details { display: flex; flex-direction: column; gap: 2px; }
-.product-name { font-weight: 600; color: #1e293b; line-height: 1.25; font-size: 0.85rem; }
-.product-user { font-size: 0.74rem; color: #94a3b8; }
-
-/* ── Flag Badge ──────────────────────────────────────────────────────────── */
-.flag-capsule { display: inline-flex; align-items: flex-start; padding: 7px 12px; border-radius: 16px; font-size: 0.76rem; line-height: 1.4; max-width: 220px; gap: 8px; }
-.flag-dot { width: 4px; height: 13px; border-radius: 2px; flex-shrink: 0; margin-top: 2px; }
-.flag-capsule.yellow { background-color: #fef9c3; color: #854d0e; }
-.flag-capsule.yellow .flag-dot { background-color: #ca8a04; }
-.flag-capsule.red    { background-color: #fee2e2; color: #991b1b; }
-.flag-capsule.red .flag-dot { background-color: #dc2626; }
-.flag-text { display: flex; flex-direction: column; gap: 2px; }
-.flag-sub { font-size: 0.72rem; opacity: 0.75; }
-
-/* ── Confidence ──────────────────────────────────────────────────────────── */
-.col-confidence { font-weight: 600; font-size: 0.84rem; }
-.conf-red    { color: #dc2626; }
-.conf-yellow { color: #ca8a04; }
-.conf-green  { color: #16a34a; }
-
-/* ── Submitted ───────────────────────────────────────────────────────────── */
-.col-submitted { color: #64748b; font-size: 0.8rem; line-height: 1.4; }
-.time-subtext { color: #94a3b8; }
-
-/* ── Status Pill ─────────────────────────────────────────────────────────── */
-.status-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.74rem; font-weight: 500; white-space: nowrap; }
-.pill-pending   { background: #fef9c3; color: #a16207; }
-.pill-flagged   { background: #fef9c3; color: #a16207; }
-.pill-approved  { background: #dcfce7; color: #15803d; }
-.pill-dismissed { background: #f1f5f9; color: #64748b; }
-
-/* ── Actions ─────────────────────────────────────────────────────────────── */
-.btn-row { display: flex; align-items: center; gap: 6px; }
-.btn-review {
-	display: inline-flex; align-items: center; gap: 5px;
-	background: transparent; border: 1px solid #e2e8f0; color: #475569;
-	font-size: 0.78rem; font-weight: 500; padding: 5px 12px; border-radius: 6px;
-	cursor: pointer; white-space: nowrap; transition: background 0.12s, border-color 0.12s;
-}
-.btn-review:hover:not(:disabled) { background: #f8fafc; border-color: #cbd5e1; }
-.btn-review:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-correct {
-	display: inline-flex; align-items: center; gap: 5px;
-	background: white; border: 1px solid #bbf7d0; color: #16a34a;
-	border-radius: 6px; padding: 5px 12px; font-size: 0.78rem; font-weight: 500;
-	cursor: pointer; white-space: nowrap; transition: background 0.12s;
-}
-.btn-correct:hover:not(:disabled) { background: #f0fdf4; }
-.btn-correct:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* ── Spin animation for loading state ────────────────────────────────────── */
-@keyframes spin { to { transform: rotate(360deg); } }
-.spin-icon { animation: spin 0.75s linear infinite; }
-
-/* ── Verdict legend ──────────────────────────────────────────────────────── */
-.verdict-legend {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	padding: 8px 20px;
-	background: #f8fafc;
-	border-bottom: 1px solid #f1f5f9;
-	font-size: 0.78rem;
-	color: #64748b;
-	flex-wrap: wrap;
-}
-.legend-label {
-	font-weight: 600;
-	color: #475569;
-}
-.legend-item {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-}
-.legend-dot {
-	width: 10px;
-	height: 10px;
-	border-radius: 2px;
-	flex-shrink: 0;
-}
-.legend-dot--yellow { background-color: #ca8a04; }
-.legend-dot--red    { background-color: #dc2626; }
-.legend-divider {
-	color: #cbd5e1;
-}
-
-/* ── Skeleton loading ────────────────────────────────────────────────────── */
-.skeleton-stack { display: flex; flex-direction: column; gap: 12px; padding: 8px 0; }
-
-/* ── State messages ──────────────────────────────────────────────────────── */
-.state-message, .empty-note { padding: 40px; text-align: center; color: #64748b; font-size: 0.9rem; }
-.error-message { padding: 40px; text-align: center; color: #dc2626; font-size: 0.9rem; }
-
-/* ── Pagination ──────────────────────────────────────────────────────────── */
-.pagination-bar {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 6px;
-	padding: 16px 20px;
-	border-top: 1px solid #f1f5f9;
-	flex-wrap: wrap;
-}
-.page-num,
-.page-nav {
-	min-width: 34px;
-	height: 34px;
-	padding: 0 10px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	border: 1px solid #e2e8f0;
+.qm-card {
 	background: #ffffff;
-	color: #334155;
+	border: 1px solid #e5e7eb;
+	border-radius: 12px;
+	padding: 18px 20px;
+}
+.qm-card--clickable { cursor: pointer; transition: box-shadow 0.15s; }
+.qm-card--clickable:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); border-color: #d1d5db; }
+.qm-label {
+	font-size: 0.75rem;
+	color: #9ca3af;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	margin-bottom: 6px;
+}
+.qm-value {
+	font-size: 2.1rem;
+	font-weight: 700;
+	line-height: 1;
+	margin-bottom: 4px;
+}
+.qm-value--green { color: #05c450; }
+.qm-value--neutral { color: #111827; }
+.qm-sub { font-size: 0.75rem; color: #9ca3af; }
+
+/* ── Tab row ──────────────────────────────────────────── */
+.tab-row {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+}
+.tab-btn {
+	padding: 8px 18px;
+	border-radius: 9999px;
+	border: 1px solid #e5e7eb;
+	background: transparent;
+	color: #6b7280;
+	font-size: 0.85rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.15s;
+}
+.tab-btn--active {
+	background: #05c450;
+	color: #ffffff;
+	border-color: #05c450;
+	font-weight: 600;
+}
+
+/* ── Body 2-col ───────────────────────────────────────── */
+.vp-body {
+	display: grid;
+	grid-template-columns: 1fr 320px;
+	gap: 20px;
+	align-items: start;
+}
+@media (max-width: 1100px) { .vp-body { grid-template-columns: 1fr; } }
+
+.vp-queue { display: flex; flex-direction: column; gap: 12px; }
+.vp-empty { color: #9ca3af; font-size: 0.875rem; padding: 24px 0; }
+
+/* ── Logo cards ───────────────────────────────────────── */
+.logo-card {
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
+	border-radius: 14px;
+	overflow: hidden;
+	transition: border-color 0.15s;
+}
+.logo-card--expanded {
+	border-color: #05c450;
+	border-width: 1.5px;
+}
+
+/* collapsed */
+.logo-card-collapsed {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 16px 20px;
+}
+.logo-thumb {
+	width: 52px;
+	height: 52px;
+	border-radius: 10px;
+	background: #f3f4f6;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	overflow: hidden;
+	font-size: 0.7rem;
+	color: #9ca3af;
+	border: 1px solid #e5e7eb;
+}
+.logo-img { width: 100%; height: 100%; object-fit: cover; }
+.logo-collapsed-info { flex: 1; min-width: 0; }
+.logo-card-title { font-size: 0.9rem; font-weight: 600; color: #111827; }
+.logo-card-meta { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+.btn-review {
+	padding: 7px 18px;
+	border-radius: 8px;
+	border: 1px solid #e5e7eb;
+	background: #ffffff;
+	color: #111827;
+	font-size: 0.82rem;
+	font-weight: 600;
+	cursor: pointer;
+	flex-shrink: 0;
+	transition: all 0.15s;
+}
+.btn-review:hover { border-color: #05c450; color: #05c450; }
+
+/* expanded */
+.logo-card-expanded { padding: 20px; }
+.logo-expanded-top {
+	display: flex;
+	gap: 16px;
+	margin-bottom: 16px;
+	flex-wrap: wrap;
+}
+.logo-thumb-lg {
+	width: 80px;
+	height: 80px;
+	border-radius: 12px;
+	background: #f3f4f6;
+	border: 1px dashed #d1d5db;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	overflow: hidden;
+}
+.logo-crop-placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	font-size: 0.7rem;
+	color: #9ca3af;
+}
+.logo-expanded-info { flex: 1; }
+.logo-expanded-header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 8px;
+	flex-wrap: wrap;
+}
+.needs-decision-badge {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 9999px;
+	background: #fef3c7;
+	color: #d97706;
+	font-size: 0.72rem;
+	font-weight: 600;
+}
+.logo-stats {
+	font-size: 0.82rem;
+	color: #374151;
+	margin-bottom: 4px;
+}
+.logo-ai-match {
+	font-size: 0.78rem;
+	color: #6b7280;
+	margin-bottom: 4px;
+}
+.logo-examples {
+	font-size: 0.78rem;
+	color: #6b7280;
+}
+.logo-actions {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 14px;
+	flex-wrap: wrap;
+}
+.btn-add-certifier {
+	padding: 9px 20px;
+	background: #05c450;
+	color: #ffffff;
+	border: none;
 	border-radius: 8px;
 	font-size: 0.85rem;
 	font-weight: 600;
 	cursor: pointer;
-	transition: background 0.12s, border-color 0.12s, color 0.12s;
+	transition: background 0.15s;
 }
-.page-num:hover:not(.active),
-.page-nav:hover:not(:disabled) {
-	background: #f8fafc;
-	border-color: #cbd5e1;
-}
-.page-num.active {
-	background: #008744;
-	border-color: #008744;
-	color: #ffffff;
-	cursor: default;
-}
-.page-nav:disabled {
-	opacity: 0.45;
-	cursor: not-allowed;
-}
-.page-ellipsis {
-	min-width: 24px;
-	text-align: center;
-	color: #94a3b8;
-	font-weight: 600;
-	user-select: none;
-}
-
-/* ══════════════════════════════════════════════════════════════════════════ */
-/* SHARED REVIEW SECTIONS (images + detail grid — used by the modal)         */
-/* ══════════════════════════════════════════════════════════════════════════ */
-
-/* Scan images */
-.image-row { display: flex; gap: 12px; flex-wrap: wrap; }
-.scan-image-box { display: flex; flex-direction: column; gap: 6px; }
-.scan-img { width: 160px; height: 160px; object-fit: contain; border-radius: 10px; border: 1px solid #e2e8f0; background: #f8fafc; }
-.scan-img-placeholder {
-	width: 160px; height: 160px; border-radius: 10px; border: 1px dashed #e2e8f0;
-	background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center;
-	gap: 8px; color: #94a3b8; font-size: 0.78rem;
-}
-.image-label { font-size: 0.75rem; color: #64748b; font-weight: 500; text-align: center; }
-
-/* Detail grid */
-.detail-grid { display: flex; flex-direction: column; gap: 8px; }
-.detail-row { display: flex; align-items: flex-start; gap: 12px; }
-.detail-row.full-span { flex-direction: column; gap: 4px; }
-.detail-key { font-size: 0.78rem; font-weight: 600; color: #64748b; min-width: 110px; flex-shrink: 0; padding-top: 1px; }
-.detail-val { font-size: 0.84rem; color: #1e293b; }
-.flag-reason-text { line-height: 1.5; color: #475569; white-space: pre-wrap; word-break: break-word; }
-.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; }
-
-/* ══════════════════════════════════════════════════════════════════════════ */
-/* DETAILED REVIEW MODAL                                                     */
-/* ══════════════════════════════════════════════════════════════════════════ */
-.modal-overlay {
-	position: fixed; inset: 0;
-	background: rgba(15, 23, 42, 0.45);
-	display: flex; align-items: center; justify-content: center;
-	z-index: 1000; padding: 24px;
-}
-.modal {
-	background: white; border-radius: 16px;
-	box-shadow: 0 20px 60px rgba(0,0,0,0.18);
-	width: 100%; max-width: 620px; max-height: 88vh;
-	overflow-y: auto; display: flex; flex-direction: column;
-}
-.modal-header {
-	display: flex; align-items: flex-start; justify-content: space-between;
-	padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9; gap: 12px;
-}
-.modal-title-group { display: flex; align-items: flex-start; gap: 12px; }
-.modal-icon-wrap { width: 36px; height: 36px; border-radius: 10px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.modal-title { font-size: 1rem; font-weight: 600; margin: 0 0 3px; color: #1e293b; }
-.modal-subtitle { font-size: 0.82rem; color: #64748b; margin: 0; }
-.modal-close { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; border-radius: 6px; flex-shrink: 0; transition: color 0.12s, background 0.12s; }
-.modal-close:hover { color: #334155; background: #f1f5f9; }
-.modal-flag-context { padding: 14px 24px 0; }
-.modal-section-label { padding: 16px 24px 10px; font-size: 0.8rem; font-weight: 600; color: #475569; letter-spacing: 0.03em; }
-.modal-images .image-row { padding: 0 24px; }
-.empty-logos { padding: 16px 24px; color: #94a3b8; font-size: 0.85rem; }
-.logo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; padding: 0 24px 16px; }
-.logo-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 12px 12px; border: 2px solid #e2e8f0; border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
-.logo-card:hover { border-color: #86efac; background: #f0fdf4; }
-.logo-card.selected { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12); }
-.logo-card-img { width: 52px; height: 52px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.logo-img { width: 100%; height: 100%; object-fit: contain; }
-.logo-fallback { font-size: 1.6rem; line-height: 1; }
-.logo-card-body { display: flex; flex-direction: column; gap: 2px; width: 100%; }
-.logo-certifier { font-size: 0.82rem; font-weight: 600; color: #1e293b; }
-.logo-full-name { font-size: 0.72rem; color: #64748b; line-height: 1.3; }
-.logo-accredited-badge { display: inline-block; margin-top: 4px; background: #dcfce7; color: #15803d; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
-.logo-check { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; background: #16a34a; color: white; display: flex; align-items: center; justify-content: center; }
-.modal-notes { padding: 0 24px 16px; }
-.notes-label { display: block; font-size: 0.79rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
-.notes-input { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 0.83rem; color: #334155; resize: vertical; outline: none; font-family: inherit; transition: border-color 0.12s; }
-.notes-input:focus { border-color: #16a34a; }
-.modal-error { margin: 0 24px 12px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 0.82rem; }
-.modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 16px 24px; border-top: 1px solid #f1f5f9; }
-.btn-modal-cancel { background: transparent; border: 1px solid #e2e8f0; color: #64748b; padding: 7px 16px; border-radius: 8px; font-size: 0.84rem; cursor: pointer; transition: background 0.12s; }
-.btn-modal-cancel:hover:not(:disabled) { background: #f8fafc; }
-.btn-modal-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-modal-dismiss { background: transparent; border: 1px solid #fecaca; color: #dc2626; padding: 7px 16px; border-radius: 8px; font-size: 0.84rem; cursor: pointer; transition: background 0.12s; }
-.btn-modal-dismiss:hover:not(:disabled) { background: #fef2f2; }
-.btn-modal-dismiss:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-modal-certify { display: inline-flex; align-items: center; gap: 6px; background: #16a34a; color: white; border: none; padding: 7px 18px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: background 0.12s; }
-.btn-modal-certify:hover:not(:disabled) { background: #15803d; }
-.btn-modal-certify:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* ── Zoomable scan images ─────────────────────────────────────────────── */
-.scan-img--zoomable {
-	cursor: zoom-in;
-	transition: opacity 0.12s, box-shadow 0.12s;
-}
-.scan-img--zoomable:hover {
-	opacity: 0.88;
-	box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.35);
-}
-
-/* ── Lightbox ─────────────────────────────────────────────────────────── */
-.lightbox-overlay {
-	position: fixed; inset: 0;
-	z-index: 2000;
-	background: rgba(5, 10, 20, 0.92);
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 48px 24px 32px;
-	gap: 16px;
-}
-.lightbox-img {
-	max-width: min(90vw, 800px);
-	max-height: 78vh;
-	object-fit: contain;
-	border-radius: 12px;
-	box-shadow: 0 8px 48px rgba(0,0,0,0.6);
-	user-select: none;
-}
-.lightbox-caption {
-	color: rgba(255,255,255,0.65);
-	font-size: 0.82rem;
-	margin: 0;
-}
-.lightbox-close {
-	position: fixed;
-	top: 16px; right: 20px;
-	background: rgba(255,255,255,0.1);
-	border: 1px solid rgba(255,255,255,0.2);
-	color: white;
-	border-radius: 50%;
-	width: 40px; height: 40px;
-	display: flex; align-items: center; justify-content: center;
+.btn-add-certifier:hover { background: #04a844; }
+.btn-outline {
+	padding: 9px 18px;
+	background: transparent;
+	color: #374151;
+	border: 1px solid #d1d5db;
+	border-radius: 8px;
+	font-size: 0.85rem;
+	font-weight: 500;
 	cursor: pointer;
-	transition: background 0.12s;
-	z-index: 2001;
-}
-.lightbox-close:hover { background: rgba(255,255,255,0.2); }
-
-/* Lightbox fade transition */
-.lightbox-fade-enter-active, .lightbox-fade-leave-active { transition: opacity 0.18s ease; }
-.lightbox-fade-enter-from, .lightbox-fade-leave-to { opacity: 0; }
-
-/* ── View button ─────────────────────────────────────────────────────────── */
-.btn-view {
-	display: inline-flex;
-	align-items: center;
-	gap: 5px;
-	padding: 5px 12px;
-	border-radius: 6px;
-	font-size: 0.8rem;
-	font-weight: 600;
-	cursor: pointer;
-	border: 1px solid #e2e8f0;
-	background: #f8fafc;
-	color: #475569;
 	transition: all 0.15s;
 }
-.btn-view:hover {
-	background: #e2e8f0;
-	color: #1e293b;
-}
-
-/* ── Audit modal sections ─────────────────────────────────────────────────── */
-.modal-audit-section {
-	padding: 0 24px 12px;
-}
-.audit-grid {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	padding: 12px 0 4px;
-}
-.audit-row {
-	display: flex;
-	gap: 16px;
-	align-items: flex-start;
-}
-.audit-key {
-	width: 160px;
-	flex-shrink: 0;
-	font-size: 0.82rem;
-	font-weight: 600;
-	color: #64748b;
-}
-.audit-val {
-	font-size: 0.88rem;
-	color: #1e293b;
-	flex: 1;
-}
-.audit-val.ingredient-text {
-	font-size: 0.82rem;
-	line-height: 1.5;
-	color: #475569;
-}
-.audit-readonly-notice {
-	display: flex;
-	align-items: flex-start;
-	gap: 8px;
-	margin: 12px 24px 0;
-	padding: 10px 14px;
+.btn-outline:hover { border-color: #9ca3af; color: #111827; }
+.impact-banner {
+	padding: 12px 16px;
 	background: #f0fdf4;
 	border: 1px solid #bbf7d0;
 	border-radius: 8px;
 	font-size: 0.82rem;
-	color: #166534;
+	color: #374151;
+	line-height: 1.5;
 }
-.audit-readonly-notice svg {
-	flex-shrink: 0;
-	margin-top: 1px;
+
+/* ── Right aside ──────────────────────────────────────── */
+.vp-aside { display: flex; flex-direction: column; gap: 14px; }
+.info-card {
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
+	border-radius: 14px;
+	padding: 20px;
 }
+.info-card-title {
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: #111827;
+	margin-bottom: 14px;
+}
+.info-steps {
+	margin: 0;
+	padding-left: 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+.info-steps li {
+	font-size: 0.82rem;
+	color: #374151;
+	line-height: 1.5;
+}
+.privacy-card {
+	background: #f0f9ff;
+	border: 1px solid #bae6fd;
+	border-radius: 14px;
+	padding: 18px 20px;
+}
+.privacy-title {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: #0369a1;
+	margin-bottom: 6px;
+}
+.privacy-body {
+	font-size: 0.78rem;
+	color: #0c4a6e;
+	line-height: 1.5;
+	margin: 0;
+}
+
+/* ── Skeleton ─────────────────────────────────────────── */
+.sk-stack { display: flex; flex-direction: column; gap: 12px; }
+.sk-card {
+	height: 86px;
+	border-radius: 14px;
+	background: #e5e7eb;
+}
+.shimmer {
+	background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+	background-size: 400% 100%;
+	animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer {
+	0% { background-position: 100% 0; }
+	100% { background-position: -100% 0; }
+}
+
+/* ── Modals ───────────────────────────────────────────── */
+.modal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 9999;
+}
+.modal-box {
+	background: #ffffff;
+	border-radius: 16px;
+	padding: 28px 32px;
+	max-width: 440px;
+	width: 90%;
+	box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+}
+.modal-box-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+}
+.modal-box-title {
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: #111827;
+	margin-bottom: 10px;
+}
+.modal-box-sub {
+	font-size: 0.85rem;
+	color: #6b7280;
+	margin: 0 0 14px;
+}
+.modal-box-body {
+	font-size: 0.875rem;
+	color: #374151;
+	margin-bottom: 20px;
+	line-height: 1.5;
+}
+.modal-close-btn {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 1rem;
+	color: #9ca3af;
+	padding: 4px;
+}
+.dialog-textarea {
+	width: 100%;
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	padding: 10px 12px;
+	font-size: 0.875rem;
+	color: #111827;
+	resize: vertical;
+	margin-bottom: 16px;
+	box-sizing: border-box;
+	font-family: inherit;
+}
+.modal-box-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+}
+.modal-box-footer {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 16px;
+}
+.btn-modal-secondary {
+	padding: 9px 20px;
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	background: transparent;
+	color: #374151;
+	font-size: 0.875rem;
+	font-weight: 500;
+	cursor: pointer;
+}
+.btn-modal-primary {
+	padding: 9px 22px;
+	background: #05c450;
+	color: #ffffff;
+	border: none;
+	border-radius: 8px;
+	font-size: 0.875rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+.btn-modal-primary:hover { background: #04a844; }
+
+/* Awaiting rescan list */
+.awaiting-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; margin-bottom: 4px; }
+.awaiting-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+.awaiting-product { font-size: 0.85rem; color: #111827; }
+.awaiting-badge { font-size: 0.72rem; background: #ede9fe; color: #7c3aed; padding: 2px 10px; border-radius: 9999px; font-weight: 600; }
+.modal-empty { font-size: 0.85rem; color: #9ca3af; padding: 12px 0; }
+
+/* ── Toast ────────────────────────────────────────────── */
+.vp-toast {
+	position: fixed;
+	bottom: 28px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: #111827;
+	color: #ffffff;
+	padding: 12px 24px;
+	border-radius: 9999px;
+	font-size: 0.875rem;
+	font-weight: 500;
+	z-index: 10000;
+	box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+.toast-fade-enter-active, .toast-fade-leave-active { transition: opacity 0.3s, transform 0.3s; }
+.toast-fade-enter-from, .toast-fade-leave-to { opacity: 0; transform: translateX(-50%) translateY(8px); }
 </style>

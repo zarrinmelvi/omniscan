@@ -1833,3 +1833,47 @@ html.ion-palette-dark .cert-btn-reactivate { background: rgba(16, 185, 129, 0.12
 
 /* Admin dashboard / verification empty-state note */
 html.ion-palette-dark .chart-empty { color: var(--dm-text-secondary) !important; }
+
+/* === Feature E — Ingredient Mappings: unmapped-terms + test box === */
+html.ion-palette-dark .unmapped-card {
+  background: var(--dm-bg-card) !important;
+  border-color: #78350f !important;
+}
+html.ion-palette-dark .ingredient-test-card {
+  background: var(--dm-bg-card) !important;
+  border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .unmapped-title,
+html.ion-palette-dark .ingredient-test-title {
+  color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .unmapped-note,
+html.ion-palette-dark .unmapped-count,
+html.ion-palette-dark .unmapped-sub,
+html.ion-palette-dark .unmapped-empty,
+html.ion-palette-dark .ai-suggests,
+html.ion-palette-dark .test-flags-label,
+html.ion-palette-dark .test-hint,
+html.ion-palette-dark .test-empty {
+  color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .unmapped-row {
+  border-top-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .unmapped-term {
+  color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .ingredient-test-input {
+  background: var(--dm-bg-input) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .btn-ignore {
+  background: var(--dm-bg-chip) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .flag-result-chip {
+  background: #450a0a !important;
+  color: #fca5a5 !important;
+}

@@ -120,7 +120,7 @@
 				<div class="gs-field">
 					<label class="gs-label" for="gs-email-input">Email</label>
 					<input id="gs-email-input" v-model="editEmail" class="gs-input" type="email" autocomplete="email" />
-					<span class="gs-hint">Used for sign-in and notifications.</span>
+					<span class="gs-hint">Used for notifications. Sign-in uses your username and password.</span>
 					<button type="button" class="gs-btn gs-btn--primary gs-btn--email-save" @click="saveProfile">Save email</button>
 				</div>
 			</section>

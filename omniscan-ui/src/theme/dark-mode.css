@@ -1892,3 +1892,207 @@ html.ion-palette-dark .gs-sent-row { background: #052e16 !important; border-colo
 html.ion-palette-dark .gs-input { background: var(--dm-bg-input) !important; border-color: var(--dm-border) !important; color: var(--dm-text-primary) !important; }
 html.ion-palette-dark .gs-btn--outline { background: var(--dm-bg-chip) !important; border-color: var(--dm-border) !important; color: var(--dm-text-primary) !important; }
 html.ion-palette-dark .gs-btn--danger { background: var(--dm-bg-card) !important; }
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/* SYSTEM LOGS REDESIGN — NEW CLASS DARK MODE OVERRIDES                  */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+/* --- Overview tab cards --- */
+html.ion-palette-dark .ov-card {
+	background: var(--dm-bg-card) !important;
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .ov-status {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .ov-card-label {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .ov-card-sub {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .ov-recent {
+	background: var(--dm-bg-card) !important;
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .ov-recent-head {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .ov-change-row {
+	border-top-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .ov-change-text {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .ov-change-sub {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .ov-tab-link {
+	color: #4ade80 !important;
+}
+html.ion-palette-dark .ov-evt-icon.ov-evt-accounts     { background: #1e3a5f !important; color: #93c5fd !important; }
+html.ion-palette-dark .ov-evt-icon.ov-evt-product-data { background: #052e16 !important; color: #86efac !important; }
+html.ion-palette-dark .ov-evt-icon.ov-evt-halal-registry { background: #2d1b69 !important; color: #c4b5fd !important; }
+html.ion-palette-dark .ov-evt-icon.ov-evt-settings     { background: var(--dm-bg-chip) !important; color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .ov-evt-icon.ov-evt-other        { background: var(--dm-bg-chip) !important; color: var(--dm-text-secondary) !important; }
+
+/* --- API Latency tab --- */
+html.ion-palette-dark .when-slows-card {
+	background: var(--dm-bg-card) !important;
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .wsc-title {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .wsc-sub {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .wsc-after {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .wsc-steps li {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .tier-desc {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .slow-only-btn {
+	background: var(--dm-bg-input) !important;
+	border-color: var(--dm-border) !important;
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .slow-only-btn--active {
+	background: #008744 !important;
+	border-color: #008744 !important;
+	color: #ffffff !important;
+}
+html.ion-palette-dark .log-header-row {
+	border-bottom-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .log-header-text {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .lat-details-link {
+	color: #4ade80 !important;
+}
+
+/* --- Audit Log tab --- */
+html.ion-palette-dark .al-chip {
+	background: var(--dm-bg-chip) !important;
+	border-color: var(--dm-border) !important;
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .al-chip:hover {
+	border-color: #4ade80 !important;
+	color: #4ade80 !important;
+}
+html.ion-palette-dark .al-chip--active {
+	background: #008744 !important;
+	color: #ffffff !important;
+	border-color: #008744 !important;
+}
+html.ion-palette-dark .al-search {
+	background: var(--dm-bg-input) !important;
+	border-color: var(--dm-border) !important;
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .al-search::placeholder {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .al-search:focus {
+	border-color: #4ade80 !important;
+}
+html.ion-palette-dark .al-days-select {
+	background: var(--dm-bg-input) !important;
+	border-color: var(--dm-border) !important;
+	color: var(--dm-text-primary) !important;
+	color-scheme: dark;
+}
+html.ion-palette-dark .al-group-head {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .al-event-row {
+	border-bottom-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .al-evt-text {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .al-evt-sub {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .al-footer {
+	color: var(--dm-text-secondary) !important;
+	border-top-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .al-empty p {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .al-show-more-btn {
+	background: var(--dm-bg-card) !important;
+	border-color: #008744 !important;
+	color: #4ade80 !important;
+}
+html.ion-palette-dark .al-details-link {
+	color: #4ade80 !important;
+}
+html.ion-palette-dark .al-evt-icon.al-evt-accounts      { background: #1e3a5f !important; color: #93c5fd !important; }
+html.ion-palette-dark .al-evt-icon.al-evt-product-data  { background: #052e16 !important; color: #86efac !important; }
+html.ion-palette-dark .al-evt-icon.al-evt-halal-registry { background: #2d1b69 !important; color: #c4b5fd !important; }
+html.ion-palette-dark .al-evt-icon.al-evt-settings      { background: var(--dm-bg-chip) !important; color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .al-evt-icon.al-evt-other         { background: var(--dm-bg-chip) !important; color: var(--dm-text-secondary) !important; }
+
+/* --- Flag Audit tab --- */
+html.ion-palette-dark .fa-profile-section,
+html.ion-palette-dark .fa-flag-section {
+	background: var(--dm-bg-card) !important;
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .fa-section-title {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .fa-section-sub {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .fa-bar-track {
+	background: var(--dm-bg-subtle) !important;
+}
+html.ion-palette-dark .fa-allergen-name,
+html.ion-palette-dark .fa-bar-count {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .fa-bar-pct {
+	color: var(--dm-text-secondary) !important;
+	opacity: 0.7;
+}
+html.ion-palette-dark .fa-flag-row {
+	border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .fa-flag-row:hover,
+html.ion-palette-dark .fa-flag-row--expanded {
+	border-color: #4ade80 !important;
+}
+html.ion-palette-dark .fa-flag-count {
+	color: var(--dm-text-primary) !important;
+}
+html.ion-palette-dark .fa-flag-date {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .fa-expand-arrow {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .fa-expanded {
+	background: var(--dm-bg-subtle) !important;
+	border-top-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .fa-expanded-title {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .fa-expanded-empty {
+	color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .fa-product-link {
+	color: #4ade80 !important;
+}
+html.ion-palette-dark .fa-product-count {
+	color: var(--dm-text-secondary) !important;
+}

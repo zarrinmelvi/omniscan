@@ -55,7 +55,6 @@
 
 					<div class="gs-sent-row">
 						<span class="gs-sent-email">{{ notifyEmail }}</span>
-						<button type="button" class="gs-sent-change" @click="focusEmail">Change</button>
 					</div>
 
 					<div class="gs-toggle-row">
@@ -115,28 +114,15 @@
 				<h2 class="gs-section-head">Account</h2>
 
 				<div class="gs-avatar">{{ initials }}</div>
-				<div class="gs-acct-name">{{ editName || adminAuthStore.admin?.full_name || 'Admin' }}</div>
+				<div class="gs-acct-name">{{ adminAuthStore.admin?.full_name || 'Admin' }}</div>
 				<div class="gs-acct-sub">Admin · Signed in today at {{ signInTime }}</div>
-
-				<div class="gs-field">
-					<label class="gs-label" for="gs-name-input">Display name</label>
-					<input id="gs-name-input" v-model="editName" class="gs-input" type="text" autocomplete="name" />
-				</div>
 
 				<div class="gs-field">
 					<label class="gs-label" for="gs-email-input">Email</label>
 					<input id="gs-email-input" v-model="editEmail" class="gs-input" type="email" autocomplete="email" />
 					<span class="gs-hint">Used for sign-in and notifications.</span>
+					<button type="button" class="gs-btn gs-btn--primary gs-btn--email-save" @click="saveProfile">Save email</button>
 				</div>
-
-				<div class="gs-btn-row">
-					<button type="button" class="gs-btn gs-btn--outline" @click="showToast('Change password is coming soon.')">
-						Change password
-					</button>
-					<button type="button" class="gs-btn gs-btn--primary" @click="saveProfile">Save name</button>
-				</div>
-
-				<button type="button" class="gs-btn gs-btn--danger" @click="signOut">Sign out</button>
 			</section>
 		</div>
 
@@ -146,7 +132,6 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { apiFetch, ApiError } from '@/utils/api'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
 
@@ -159,7 +144,6 @@ function applyDarkMode(enabled: boolean): void {
 }
 
 const adminAuthStore = useAdminAuthStore()
-const router = useRouter()
 
 // The snapshot of "now" used for the "Signed in today at …" line. Computed once
 // at setup so the time stays stable for the lifetime of the page visit.
@@ -181,14 +165,13 @@ const form = reactive({
 })
 
 // Editable admin profile fields (separate from the auto-saving preferences).
-const editName = ref(adminAuthStore.admin?.full_name ?? '')
 const editEmail = ref(adminAuthStore.admin?.email ?? '')
 
 const notifyEmail = computed(() => adminAuthStore.admin?.email ?? 'omniscan.official@gmail.com')
 
 // Avatar initials: first letter of up to the first two words of the name.
 const initials = computed(() => {
-	const name = (editName.value || adminAuthStore.admin?.full_name || '').trim()
+	const name = (adminAuthStore.admin?.full_name || '').trim()
 	if (!name) return 'A'
 	const parts = name.split(/\s+/).filter(Boolean)
 	const letters = parts.map((p) => p[0]?.toUpperCase() ?? '').join('')
@@ -232,7 +215,6 @@ async function fetchSettings(): Promise<void> {
 	}
 
 	// Reflect the signed-in admin's profile in the editable fields after load.
-	editName.value = adminAuthStore.admin?.full_name ?? ''
 	editEmail.value = adminAuthStore.admin?.email ?? ''
 }
 
@@ -276,13 +258,12 @@ async function saveProfile(): Promise<void> {
 			'/api/admin/profile',
 			{
 				method: 'PUT',
-				body: { full_name: editName.value.trim(), email: editEmail.value.trim() },
+				body: { email: editEmail.value.trim() },
 				isAdmin: true,
 			},
 		)
 		// Keep the in-memory admin in sync so the sidebar/header reflect the change.
 		if (adminAuthStore.admin) {
-			adminAuthStore.admin.full_name = res.admin.full_name
 			adminAuthStore.admin.email = res.admin.email
 		}
 		// Mirror into the sessionStorage admin record so a refresh keeps the new
@@ -291,26 +272,16 @@ async function saveProfile(): Promise<void> {
 		if (stored) {
 			try {
 				const parsed = JSON.parse(stored) as { full_name?: string; email?: string | null }
-				parsed.full_name = res.admin.full_name
 				parsed.email = res.admin.email
 				sessionStorage.setItem('omniscan_admin', JSON.stringify(parsed))
 			} catch {
 				/* ignore malformed session record */
 			}
 		}
-		showToast('Profile updated.')
+		showToast('Email saved.')
 	} catch (err) {
 		showToast(err instanceof ApiError ? err.message : 'Failed to update profile.')
 	}
-}
-
-function focusEmail(): void {
-	document.getElementById('gs-email-input')?.focus()
-}
-
-function signOut(): void {
-	adminAuthStore.logout()
-	router.push('/admin/login')
 }
 
 onMounted(() => {
@@ -482,16 +453,6 @@ onMounted(() => {
 	flex: 1;
 }
 
-.gs-sent-change {
-	background: none;
-	border: none;
-	color: #16a34a;
-	font-weight: 600;
-	cursor: pointer;
-	text-decoration: underline;
-	font-size: 0.82rem;
-}
-
 /* Toggle rows */
 .gs-toggle-row {
 	display: flex;
@@ -639,12 +600,6 @@ input:checked + .slider:before {
 }
 
 /* Buttons */
-.gs-btn-row {
-	display: flex;
-	gap: 10px;
-	margin-bottom: 16px;
-}
-
 .gs-btn {
 	border-radius: 8px;
 	padding: 9px 20px;
@@ -667,6 +622,11 @@ input:checked + .slider:before {
 
 .gs-btn--primary:hover {
 	background: #00753a;
+}
+
+.gs-btn--email-save {
+	margin-top: 8px;
+	align-self: flex-start;
 }
 
 .gs-btn--danger {

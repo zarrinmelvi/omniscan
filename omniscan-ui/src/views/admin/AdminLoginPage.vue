@@ -17,11 +17,6 @@
 			<div class="card-header">SECURE ADMIN ACCESS</div>
 
 			<div class="card-body">
-				<!-- Session-expired banner (amber) -->
-				<div v-if="sessionExpired && !errorMessage" class="banner banner--session">
-					Your session ended. Sign in again to continue.
-				</div>
-
 				<!-- Wrong credentials banner (red) -->
 				<div v-if="errorMessage" class="banner banner--error">
 					{{ errorMessage }}
@@ -104,14 +99,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
-import { ApiError } from '@/utils/api'
 import { useDarkMode } from '@/composables/useDarkMode'
 
 const router = useRouter()
-const route  = useRoute()
 const adminAuthStore = useAdminAuthStore()
 
 const username    = ref('')
@@ -119,9 +112,6 @@ const password    = ref('')
 const showPassword = ref(false)
 const errorMessage = ref<string | null>(null)
 const isSubmitting = ref(false)
-
-// Show amber session-expired banner when redirected with ?reason=session_expired
-const sessionExpired = computed(() => route.query.reason === 'session_expired')
 
 const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
@@ -142,7 +132,57 @@ async function handleLogin(): Promise<void> {
 </script>
 
 <style scoped>
-/* ── Page shell — always dark ─────────────────────── */
+/* ── CSS variables — light mode (default) ─────────── */
+.admin-login {
+	--login-bg: #f0f4f0;
+	--login-grid-color: rgba(0, 0, 0, 0.06);
+	--login-card-bg: #ffffff;
+	--login-card-border: #e2e8f0;
+	--login-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+	--login-card-header-bg: #f8fafc;
+	--login-card-header-color: #9ca3af;
+	--login-card-header-border: #e2e8f0;
+	--login-title-color: #4b5563;
+	--login-title-strong-color: #111827;
+	--login-subtitle-color: #6b7280;
+	--login-label-color: #374151;
+	--login-input-bg: #ffffff;
+	--login-input-border: #d1d5db;
+	--login-input-color: #111827;
+	--login-input-placeholder: #9ca3af;
+	--login-footer-note-color: #9ca3af;
+	--login-footer-color: #9ca3af;
+	--login-toggle-bg: #f1f5f9;
+	--login-toggle-border: #e2e8f0;
+	--login-toggle-color: #374151;
+}
+
+/* ── CSS variables — dark mode override ───────────── */
+:global(html.ion-palette-dark) .admin-login {
+	--login-bg: #0f1a0f;
+	--login-grid-color: rgba(255, 255, 255, 0.04);
+	--login-card-bg: #1a2a1a;
+	--login-card-border: rgba(255, 255, 255, 0.08);
+	--login-card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+	--login-card-header-bg: rgba(255, 255, 255, 0.04);
+	--login-card-header-color: #6b7280;
+	--login-card-header-border: rgba(255, 255, 255, 0.06);
+	--login-title-color: #d1d5db;
+	--login-title-strong-color: #ffffff;
+	--login-subtitle-color: #9ca3af;
+	--login-label-color: #d1d5db;
+	--login-input-bg: rgba(255, 255, 255, 0.06);
+	--login-input-border: rgba(255, 255, 255, 0.12);
+	--login-input-color: #f9fafb;
+	--login-input-placeholder: #6b7280;
+	--login-footer-note-color: #4b5563;
+	--login-footer-color: #374151;
+	--login-toggle-bg: rgba(255, 255, 255, 0.07);
+	--login-toggle-border: rgba(255, 255, 255, 0.12);
+	--login-toggle-color: #9ca3af;
+}
+
+/* ── Page shell ───────────────────────────────────── */
 .admin-login {
 	min-height: 100vh;
 	display: flex;
@@ -151,10 +191,10 @@ async function handleLogin(): Promise<void> {
 	justify-content: center;
 	padding: 40px 20px;
 	box-sizing: border-box;
-	background-color: #0f1a0f;
+	background-color: var(--login-bg);
 	background-image:
-		linear-gradient(to right,  rgba(255,255,255,0.04) 1px, transparent 1px),
-		linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+		linear-gradient(to right,  var(--login-grid-color) 1px, transparent 1px),
+		linear-gradient(to bottom, var(--login-grid-color) 1px, transparent 1px);
 	background-size: 32px 32px;
 	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -184,36 +224,39 @@ h1 {
 	font-size: 1.5rem;
 	font-weight: 400;
 	margin: 0 0 6px;
-	color: #d1d5db;
+	color: var(--login-title-color);
 }
-h1 strong { font-weight: 700; color: #ffffff; }
+h1 strong {
+	font-weight: 700;
+	color: var(--login-title-strong-color);
+}
 
 .subtitle {
 	font-size: 0.875rem;
-	color: #9ca3af;
+	color: var(--login-subtitle-color);
 	margin: 0;
 }
 
 /* ── Card ─────────────────────────────────────────── */
 .login-card {
-	background: #1a2a1a;
+	background: var(--login-card-bg);
 	border-radius: 16px;
-	border: 1px solid rgba(255, 255, 255, 0.08);
-	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+	border: 1px solid var(--login-card-border);
+	box-shadow: var(--login-card-shadow);
 	width: 100%;
 	max-width: 360px;
 	overflow: hidden;
 }
 
 .card-header {
-	background: rgba(255, 255, 255, 0.04);
-	border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+	background: var(--login-card-header-bg);
+	border-bottom: 1px solid var(--login-card-header-border);
 	padding: 12px 20px;
 	text-align: center;
 	font-size: 0.68rem;
 	font-weight: 700;
 	letter-spacing: 0.1em;
-	color: #6b7280;
+	color: var(--login-card-header-color);
 }
 
 .card-body { padding: 24px 28px 20px; }
@@ -227,14 +270,14 @@ h1 strong { font-weight: 700; color: #ffffff; }
 	margin-bottom: 16px;
 }
 .banner--error {
-	background: #450a0a;
-	border: 1px solid #7f1d1d;
-	color: #fca5a5;
+	background: #fef2f2;
+	border: 1px solid #fca5a5;
+	color: #dc2626;
 }
-.banner--session {
-	background: #422006;
-	border: 1px solid #78350f;
-	color: #fed7aa;
+:global(html.ion-palette-dark) .admin-login .banner--error {
+	background: #450a0a;
+	border-color: #7f1d1d;
+	color: #fca5a5;
 }
 
 /* ── Form ─────────────────────────────────────────── */
@@ -250,25 +293,25 @@ label {
 	gap: 6px;
 	font-size: 0.82rem;
 	font-weight: 600;
-	color: #d1d5db;
+	color: var(--login-label-color);
 }
 
 input {
 	width: 100%;
 	padding: 10px 14px;
-	border: 1px solid rgba(255, 255, 255, 0.12);
+	border: 1px solid var(--login-input-border);
 	border-radius: 8px;
 	box-sizing: border-box;
 	font-size: 0.9rem;
-	color: #f9fafb;
-	background: rgba(255, 255, 255, 0.06);
+	color: var(--login-input-color);
+	background: var(--login-input-bg);
 	outline: none;
 	transition: border-color 0.15s, background 0.15s;
 }
-input::placeholder { color: #6b7280; }
+input::placeholder { color: var(--login-input-placeholder); }
 input:focus {
 	border-color: #16a34a;
-	background: rgba(255, 255, 255, 0.09);
+	background: var(--login-input-bg);
 }
 input.input-error { border-color: #dc2626 !important; }
 
@@ -286,7 +329,7 @@ input.input-error { border-color: #dc2626 !important; }
 	background: none;
 	border: none;
 	padding: 4px;
-	color: #6b7280;
+	color: var(--login-input-placeholder);
 	cursor: pointer;
 	display: flex;
 	align-items: center;
@@ -294,7 +337,7 @@ input.input-error { border-color: #dc2626 !important; }
 	border-radius: 4px;
 	transition: color 0.15s;
 }
-.pw-toggle:hover { color: #9ca3af; }
+.pw-toggle:hover { color: var(--login-label-color); }
 
 /* ── Submit button ────────────────────────────────── */
 .btn-submit {
@@ -317,14 +360,14 @@ input.input-error { border-color: #dc2626 !important; }
 .footer-note {
 	margin: 20px 0 0;
 	font-size: 0.72rem;
-	color: #4b5563;
+	color: var(--login-footer-note-color);
 	text-align: center;
 }
 
 .page-footer {
 	margin-top: 28px;
 	font-size: 0.78rem;
-	color: #374151;
+	color: var(--login-footer-color);
 	text-align: center;
 }
 
@@ -338,16 +381,17 @@ input.input-error { border-color: #dc2626 !important; }
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border: 1px solid rgba(255, 255, 255, 0.12);
+	border: 1px solid var(--login-toggle-border);
 	border-radius: 8px;
-	background: rgba(255, 255, 255, 0.07);
-	color: #9ca3af;
+	background: var(--login-toggle-bg);
+	color: var(--login-toggle-color);
 	cursor: pointer;
 	transition: background 0.15s, color 0.15s;
 	z-index: 100;
 }
 .theme-toggle-btn:hover {
-	background: rgba(255, 255, 255, 0.13);
-	color: #e5e7eb;
+	background: var(--login-toggle-bg);
+	filter: brightness(0.92);
+	color: var(--login-title-strong-color);
 }
 </style>

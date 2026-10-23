@@ -104,10 +104,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
 import { ApiError } from '@/utils/api'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const router = useRouter()
 const route  = useRoute()
@@ -122,22 +123,7 @@ const isSubmitting = ref(false)
 // Show amber session-expired banner when redirected with ?reason=session_expired
 const sessionExpired = computed(() => route.query.reason === 'session_expired')
 
-const DARK_MODE_KEY = 'omniscan_dark_mode'
-const isDark = ref(false)
-
-function applyDarkMode(enabled: boolean): void {
-	document.documentElement.classList.toggle('ion-palette-dark', enabled)
-	localStorage.setItem(DARK_MODE_KEY, String(enabled))
-	isDark.value = enabled
-}
-
-function toggleDarkMode(): void {
-	applyDarkMode(!isDark.value)
-}
-
-onMounted(() => {
-	isDark.value = localStorage.getItem(DARK_MODE_KEY) === 'true'
-})
+const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 async function handleLogin(): Promise<void> {
 	isSubmitting.value  = true

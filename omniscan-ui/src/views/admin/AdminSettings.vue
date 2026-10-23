@@ -131,14 +131,9 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
+import { useDarkMode } from '@/composables/useDarkMode'
 
-const DARK_MODE_KEY = 'omniscan_dark_mode'
-
-/** Apply (or remove) the global dark theme class and persist to localStorage. */
-function applyDarkMode(enabled: boolean): void {
-	document.documentElement.classList.toggle('ion-palette-dark', enabled)
-	localStorage.setItem(DARK_MODE_KEY, enabled ? 'true' : 'false')
-}
+const { isDark: globalIsDark, set: setDarkMode } = useDarkMode()
 
 const adminAuthStore = useAdminAuthStore()
 
@@ -154,7 +149,7 @@ const signInTime = new Date().toLocaleTimeString('en-US', {
 // live via its own watcher below; every field auto-saves (debounced) to the
 // shared /api/admin/settings endpoint.
 const form = reactive({
-	darkMode: false,
+	darkMode: globalIsDark.value,
 	emailOnSystemError: true,
 	dailySummaryReport: true,
 	monthlyLogoReminder: true,
@@ -187,9 +182,9 @@ function showToast(message: string): void {
 }
 
 async function fetchSettings(): Promise<void> {
-	// localStorage is the source of truth for the live theme; a stale/absent
-	// backend value must never downgrade it.
-	const localDarkMode = localStorage.getItem(DARK_MODE_KEY) === 'true'
+	// The singleton composable is the source of truth for the live theme; a
+	// stale/absent backend value must never downgrade it.
+	const localDarkMode = globalIsDark.value
 
 	try {
 		const data = await apiFetch<Record<string, unknown>>('/api/admin/settings', {
@@ -201,9 +196,8 @@ async function fetchSettings(): Promise<void> {
 		if (typeof data.emailOnSystemError === 'boolean') form.emailOnSystemError = data.emailOnSystemError
 		if (typeof data.dailySummaryReport === 'boolean') form.dailySummaryReport = data.dailySummaryReport
 		if (typeof data.monthlyLogoReminder === 'boolean') form.monthlyLogoReminder = data.monthlyLogoReminder
-		// localStorage wins over the backend for the live theme.
+		// The composable wins over the backend for the live theme.
 		form.darkMode = localDarkMode
-		applyDarkMode(form.darkMode)
 	} catch (err) {
 		// Endpoint absent or unreachable — keep local default state.
 		console.warn('Could not load remote settings, using default state:', err)
@@ -244,8 +238,15 @@ watch(
 // immediately (persistence to the backend still happens via the auto-save).
 watch(
 	() => form.darkMode,
-	(enabled) => applyDarkMode(enabled),
+	(enabled) => setDarkMode(enabled),
 )
+
+// Sync the header button → Settings toggle direction: when the header button
+// changes globalIsDark, reflect it back into the form so the segmented control
+// stays in sync.
+watch(globalIsDark, (val) => {
+	form.darkMode = val
+})
 
 async function saveProfile(): Promise<void> {
 	try {
@@ -280,9 +281,8 @@ async function saveProfile(): Promise<void> {
 }
 
 onMounted(() => {
-	// Seed the toggle from the already-applied localStorage preference so the
-	// switch reflects reality before the backend settings load.
-	form.darkMode = localStorage.getItem(DARK_MODE_KEY) === 'true'
+	// Seed the toggle from the singleton composable before the backend settings load.
+	form.darkMode = globalIsDark.value
 	fetchSettings().then(() => {
 		isLoaded.value = true
 		// Cancel any auto-save that may have been scheduled while seeding the

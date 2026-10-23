@@ -134,10 +134,13 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
 import ConfirmLogoutModal from '@/components/admin/ConfirmLogoutModal.vue'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const adminAuthStore = useAdminAuthStore()
 const router = useRouter()
 const route = useRoute()
+
+const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 const showLogoutConfirm = ref(false)
 const isOffline = ref(!navigator.onLine)
@@ -169,19 +172,6 @@ const initials = computed(() => {
 	)
 })
 
-const DARK_MODE_KEY = 'omniscan_dark_mode'
-const isDark = ref(false)
-
-function applyDarkMode(enabled: boolean): void {
-	document.documentElement.classList.toggle('ion-palette-dark', enabled)
-	localStorage.setItem(DARK_MODE_KEY, String(enabled))
-	isDark.value = enabled
-}
-
-function toggleDarkMode(): void {
-	applyDarkMode(!isDark.value)
-}
-
 function confirmLogout(): void {
 	showLogoutConfirm.value = false
 	adminAuthStore.logout()
@@ -193,7 +183,6 @@ function cancelLogout(): void {
 }
 
 onMounted(() => {
-	isDark.value = localStorage.getItem(DARK_MODE_KEY) === 'true'
 	window.addEventListener('online', handleOnline)
 	window.addEventListener('offline', handleOffline)
 })

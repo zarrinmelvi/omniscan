@@ -168,6 +168,8 @@ export default defineEventHandler(async (event) => {
 
 		const p95 = percentile(durations, 95)
 
+		const lastAudit = auditEventsRaw[0] ?? null
+
 		return {
 			success: true,
 			generated_at: new Date(now).toISOString(),
@@ -185,6 +187,9 @@ export default defineEventHandler(async (event) => {
 			prisma_queries: recentQueries,
 			raw_logs: recentLogs,
 			audit_events: auditEvents,
+			last_audit_event: lastAudit
+				? { summary: lastAudit.summary, created_at: lastAudit.created_at }
+				: null,
 		}
 	} catch (err: any) {
 		if (err?.statusCode) throw err

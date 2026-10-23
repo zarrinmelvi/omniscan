@@ -147,14 +147,32 @@
 					</div>
 				</div>
 				<template v-else>
-				<!-- Header card -->
+				<!-- Header card — title/desc left, search+add right (matches mockup) -->
 				<div class="halal-header-card">
-					<div class="halal-header-text">
-						<h3 class="halal-header-title">Maintain halal certifier library</h3>
-						<p class="halal-header-desc">
-							Logos come from each certifier's official source. Check each one a month. The AI matches
-							scans against this library; certifiers are never assigned to products by hand.
-						</p>
+					<div class="halal-header-inner">
+						<div class="halal-header-text">
+							<h3 class="halal-header-title">Maintain halal certifier library</h3>
+							<p class="halal-header-desc">
+								Logos come from each certifier's official source. Check each one a month. The AI matches
+								scans against this library; certifiers are never assigned to products by hand.
+							</p>
+						</div>
+						<div class="halal-header-actions">
+							<div class="search-box">
+								<svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<circle cx="11" cy="11" r="8"></circle>
+									<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+								</svg>
+								<input v-model="searchQuery" type="text" placeholder="Search..." />
+							</div>
+							<button class="btn-add" @click="openCreateModal">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+									<line x1="12" y1="5" x2="12" y2="19"></line>
+									<line x1="5" y1="12" x2="19" y2="12"></line>
+								</svg>
+								Add certifier
+							</button>
+						</div>
 					</div>
 				</div>
 
@@ -871,6 +889,11 @@ const productSort = ref<'name_asc' | 'name_desc' | 'newest'>('name_asc')
 const productAllergenFilter = ref<string>('all')
 
 const productAllergenOptions = computed(() => {
+	// Use the full allergen dictionary (same source as Ingredient Mappings),
+	// falling back to names detected in the current page if not yet loaded.
+	if (allergens.value.length > 0) {
+		return [...allergens.value].sort((a, b) => a.name.localeCompare(b.name)).map(a => a.name)
+	}
 	const names = new Set<string>()
 	for (const p of productList.value) {
 		for (const a of p.allergens_detected) names.add(a)
@@ -1456,6 +1479,10 @@ function switchTab(tab: TabType): void {
 		productSearch.value = ''
 		productPage.value = 1
 		fetchProducts()
+		// Ensure allergen list is loaded for the filter dropdown
+		if (allergens.value.length === 0) {
+			fetchAllergens()
+		}
 		return
 	}
 	fetchTabContent(tab)
@@ -1846,6 +1873,22 @@ td {
 	background: #f8fafc;
 	border: 1px solid #e2e8f0;
 	border-radius: 12px;
+}
+.halal-header-inner {
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
+	flex-wrap: wrap;
+}
+.halal-header-text {
+	flex: 1;
+	min-width: 240px;
+}
+.halal-header-actions {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	flex-shrink: 0;
 }
 .halal-header-title { font-size: 0.98rem; font-weight: 700; margin: 0 0 4px; color: #0f172a; }
 .halal-header-desc { margin: 0; font-size: 0.82rem; color: #64748b; line-height: 1.5; }

@@ -102,9 +102,24 @@
 					<span class="breadcrumb-slash">/</span>
 					<span>{{ currentPageTitle }}</span>
 				</div>
-				<div class="user-session">
-					<span class="session-time">{{ formattedSessionTime }}</span>
-				</div>
+				<button type="button" class="theme-toggle-btn" @click="toggleDarkMode" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+					<!-- Moon icon (shown in light mode — click to go dark) -->
+					<svg v-if="!isDark" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+					</svg>
+					<!-- Sun icon (shown in dark mode — click to go light) -->
+					<svg v-else viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="12" cy="12" r="5"></circle>
+						<line x1="12" y1="1" x2="12" y2="3"></line>
+						<line x1="12" y1="21" x2="12" y2="23"></line>
+						<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+						<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+						<line x1="1" y1="12" x2="3" y2="12"></line>
+						<line x1="21" y1="12" x2="23" y2="12"></line>
+						<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+						<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+					</svg>
+				</button>
 			</header>
 
 			<div class="page-body">
@@ -142,29 +157,6 @@ const currentPageTitle = computed(() => {
 	return 'Dashboard'
 })
 
-// Real-time tracking of admin's local session time and location timezone
-const now = ref(new Date())
-let timeInterval: ReturnType<typeof setInterval> | null = null
-
-const formattedSessionTime = computed(() => {
-	const dateStr = now.value.toLocaleDateString('en-US', {
-		weekday: 'long',
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric',
-	})
-
-	const timeStr = now.value.toLocaleTimeString('en-US', {
-		hour: '2-digit',
-		minute: '2-digit',
-		hour12: false,
-	})
-
-	const timeZoneName = Intl.DateTimeFormat().resolvedOptions().timeZone
-
-	return `${dateStr} - Session: ${timeStr} (${timeZoneName})`
-})
-
 const initials = computed(() => {
 	const name = adminAuthStore.admin?.full_name ?? 'Zarrin Melvi Delos Santos'
 	return (
@@ -177,6 +169,19 @@ const initials = computed(() => {
 	)
 })
 
+const DARK_MODE_KEY = 'omniscan_dark_mode'
+const isDark = ref(false)
+
+function applyDarkMode(enabled: boolean): void {
+	document.documentElement.classList.toggle('ion-palette-dark', enabled)
+	localStorage.setItem(DARK_MODE_KEY, String(enabled))
+	isDark.value = enabled
+}
+
+function toggleDarkMode(): void {
+	applyDarkMode(!isDark.value)
+}
+
 function confirmLogout(): void {
 	showLogoutConfirm.value = false
 	adminAuthStore.logout()
@@ -188,15 +193,12 @@ function cancelLogout(): void {
 }
 
 onMounted(() => {
-	timeInterval = setInterval(() => {
-		now.value = new Date()
-	}, 1000)
+	isDark.value = localStorage.getItem(DARK_MODE_KEY) === 'true'
 	window.addEventListener('online', handleOnline)
 	window.addEventListener('offline', handleOffline)
 })
 
 onUnmounted(() => {
-	if (timeInterval) clearInterval(timeInterval)
 	window.removeEventListener('online', handleOnline)
 	window.removeEventListener('offline', handleOffline)
 })
@@ -419,14 +421,23 @@ onUnmounted(() => {
 	text-decoration: underline;
 }
 
-.user-session {
+.theme-toggle-btn {
+	width: 36px;
+	height: 36px;
 	display: flex;
 	align-items: center;
+	justify-content: center;
+	border: none;
+	border-radius: 8px;
+	background: #f1f5f9;
+	color: #334155;
+	cursor: pointer;
+	transition: background 0.15s, color 0.15s;
+	flex-shrink: 0;
 }
-
-.session-time {
-	font-size: 0.82rem;
-	color: #64748b;
+.theme-toggle-btn:hover {
+	background: #e2e8f0;
+	color: #0f172a;
 }
 
 .page-body {

@@ -2119,3 +2119,6 @@ html.ion-palette-dark .filter-chip:focus-visible,
 html.ion-palette-dark .al-chip:focus-visible,
 html.ion-palette-dark .page-nav:focus-visible,
 html.ion-palette-dark .page-num:focus-visible { outline: 2px solid #4ade80 !important; outline-offset: 2px !important; }
+
+html.ion-palette-dark .theme-toggle-btn { background: #334155 !important; color: #fbbf24 !important; }
+html.ion-palette-dark .theme-toggle-btn:hover { background: #475569 !important; }

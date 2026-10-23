@@ -13,29 +13,31 @@
 					<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
 				</svg>
 				Allergen Dictionary
+				<span class="tab-count-badge">{{ allergens.length }}</span>
 			</button>
 			<button class="tab-button" :class="{ active: activeTab === 'halal' }" @click="switchTab('halal')">
 				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
 				</svg>
 				Halal Logo Library
+				<span class="tab-count-badge">{{ halalLogos.length }}</span>
 			</button>
 			<button class="tab-button" :class="{ active: activeTab === 'ingredient' }" @click="switchTab('ingredient')">
 				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
 				</svg>
 				Ingredient Mappings
-				<span v-if="ingredientMappings.length > 0" class="tab-count-badge">{{ ingredientMappings.length }}</span>
+				<span class="tab-count-badge">{{ ingredientMappings.length }}</span>
 			</button>
 			<button class="tab-button" :class="{ active: activeTab === 'products' }" @click="switchTab('products')">
 				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
 				Products
-				<span v-if="productTabBadge > 0" class="tab-count-badge">{{ productTabBadge }}</span>
+				<span class="tab-count-badge">{{ productTabBadge }}</span>
 			</button>
 		</div>
 
 		<div class="content-card">
-			<div v-if="activeTab !== 'products' && activeTab !== 'ingredient'" class="controls-bar">
+			<div v-if="activeTab === 'allergen'" class="controls-bar">
 				<span class="section-title">{{ getTabTitle }}</span>
 				<div class="action-controls">
 					<div class="search-box">
@@ -279,6 +281,10 @@
 						<svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
 						<input v-model="searchQuery" type="text" placeholder="Search mappings..." />
 					</div>
+					<select v-model="ingredientAllergenFilter" class="allergen-dropdown-select">
+						<option value="all">All Allergens</option>
+						<option v-for="a in sortedAllergens" :key="a.id" :value="a.name">{{ a.name }}</option>
+					</select>
 					<span class="ingredient-count-label" style="margin-left:auto">
 						Showing {{ filteredIngredients.length }} of {{ ingredientMappings.length }} mappings
 					</span>
@@ -286,17 +292,6 @@
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 						Add Mapping
 					</button>
-				</div>
-
-				<!-- Allergen filter + count bar -->
-				<div class="ingredient-filter-bar">
-					<div class="ingredient-filter-left">
-						<label class="filter-label">Filter by allergen:</label>
-						<select v-model="ingredientAllergenFilter" class="allergen-dropdown-select">
-							<option value="all">All Allergens</option>
-							<option v-for="a in sortedAllergens" :key="a.id" :value="a.name">{{ a.name }}</option>
-						</select>
-					</div>
 				</div>
 
 				<p v-if="pagedGroupedIngredients.length === 0" class="empty-note">No ingredient mapping records found.</p>
@@ -1680,35 +1675,115 @@ onMounted(() => {
 
 <style scoped>
 .manage-product-data {
+	--space-1: 4px;
+	--space-2: 8px;
+	--space-3: 12px;
+	--space-4: 16px;
+	--space-5: 24px;
+	--space-6: 32px;
+	--control-h: 40px;
 	padding: 8px 4px 32px 4px;
 	background-color: #f8fafc;
 	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 	color: #334155;
 }
-.page-header { margin-bottom: 24px; }
-h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 4px; color: #0f172a; }
-.subtitle { color: #64748b; font-size: 0.88rem; margin: 0; }
+.page-header { margin-bottom: 0; }
+h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 var(--space-2); color: #0f172a; }
+.subtitle { color: #64748b; font-size: 0.88rem; margin: 0 0 var(--space-5); }
 
-.tabs-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-.tab-button { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; color: #334155; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+.tabs-bar { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-5); flex-wrap: wrap; }
+.tab-button {
+	height: var(--control-h);
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: 0 var(--space-4);
+	border-radius: 12px;
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	color: #334155;
+	font-size: 0.88rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+	white-space: nowrap;
+}
 .tab-button:hover { background: #f1f5f9; color: #0f172a; }
 .tab-button.active { background: #008744; color: #fff; border-color: #008744; }
 .tab-icon { flex-shrink: 0; }
 
-.content-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow: hidden; }
-.controls-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid #f1f5f9; }
-.section-title { font-size: 0.92rem; color: #64748b; font-weight: 500; }
-.action-controls { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-end; }
-.search-box { display: flex; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 14px; width: 260px; }
-.search-icon { color: #94a3b8; margin-right: 8px; flex-shrink: 0; }
-.search-box input { border: none; outline: none; width: 100%; font-size: 0.88rem; color: #1e293b; background: transparent; }
-.btn-add { display: inline-flex; align-items: center; gap: 6px; background: #008744; color: #fff; border: none; border-radius: 10px; padding: 9px 18px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s ease; }
+.content-card {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 16px;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+	overflow: hidden;
+}
+.controls-bar {
+	display: flex;
+	align-items: center;
+	padding: var(--space-4) var(--space-5);
+	gap: var(--space-3);
+	border-bottom: 1px solid #f1f5f9;
+}
+.section-title { font-size: 0.92rem; color: #64748b; font-weight: 500; flex-shrink: 0; }
+.action-controls { display: flex; align-items: center; gap: var(--space-3); flex: 1; justify-content: flex-end; }
+.search-box {
+	height: var(--control-h);
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: 0 var(--space-3);
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	min-width: 200px;
+	flex: 1;
+	max-width: 320px;
+}
+.search-icon { color: #94a3b8; flex-shrink: 0; }
+.search-box input { border: none; outline: none; flex: 1; font-size: 0.88rem; color: #1e293b; background: transparent; height: 100%; }
+.btn-add {
+	height: var(--control-h);
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	background: #008744;
+	color: #fff;
+	border: none;
+	border-radius: 10px;
+	padding: 0 var(--space-4);
+	font-size: 0.88rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
 .btn-add:hover { background: #00753a; }
 
 .table-wrap { overflow-x: auto; }
 .data-table { width: 100%; border-collapse: collapse; min-width: 820px; }
-th { text-align: left; padding: 14px 24px; font-size: 0.73rem; font-weight: 700; color: #64748b; background: #fff; border-bottom: 1px solid #f1f5f9; letter-spacing: 0.05em; white-space: nowrap; }
-td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; vertical-align: middle; }
+th {
+	text-align: left;
+	padding: var(--space-3) var(--space-5);
+	font-size: 0.73rem;
+	font-weight: 700;
+	color: #64748b;
+	background: #fff;
+	border-bottom: 1px solid #f1f5f9;
+	letter-spacing: 0.05em;
+	white-space: nowrap;
+}
+td {
+	padding: var(--space-3) var(--space-5);
+	border-bottom: 1px solid #f8fafc;
+	font-size: 0.88rem;
+	vertical-align: middle;
+}
+.data-table tbody tr { height: 56px; }
+.products-table tbody tr { height: 64px; }
 .cell-id { color: #94a3b8; font-weight: 600; font-size: 0.82rem; }
 .cell-allergen { font-weight: 600; color: #0f172a; }
 .cell-aliases { color: #64748b; max-width: 260px; line-height: 1.35; }
@@ -1765,10 +1840,28 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 .cert-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
 /* Feature C — halal lifecycle */
-.halal-header-card { margin: 8px 24px 4px; padding: 16px 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; }
+.halal-header-card {
+	margin: var(--space-5) var(--space-5) var(--space-4);
+	padding: var(--space-4) 18px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+}
 .halal-header-title { font-size: 0.98rem; font-weight: 700; margin: 0 0 4px; color: #0f172a; }
 .halal-header-desc { margin: 0; font-size: 0.82rem; color: #64748b; line-height: 1.5; }
-.overdue-banner { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin: 12px 24px; font-size: 0.84rem; color: #92400e; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.overdue-banner {
+	background: #fffbeb;
+	border: 1px solid #fde68a;
+	border-radius: 8px;
+	padding: var(--space-3) var(--space-4);
+	margin: 0 var(--space-5) var(--space-4);
+	font-size: 0.84rem;
+	color: #92400e;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-2);
+}
 .overdue-banner-pending { flex-basis: 100%; }
 .overdue-banner-btn { margin-left: auto; background: #d97706; border: none; color: #fff; border-radius: 7px; padding: 6px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
 .overdue-banner-btn:hover { background: #b45309; }
@@ -1802,86 +1895,57 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 	justify-content: center;
 	min-width: 20px;
 	height: 18px;
-	padding: 0 6px;
-	background: rgba(255,255,255,0.25);
-	border-radius: 10px;
+	padding: 0 5px;
+	background: rgba(0,0,0,0.08);
+	border-radius: 9999px;
 	font-size: 0.68rem;
 	font-weight: 700;
-	margin-left: 4px;
+	line-height: 1;
+	flex-shrink: 0;
 }
 .tab-button.active .tab-count-badge {
-	background: rgba(255,255,255,0.3);
-	color: #ffffff;
+	background: rgba(255,255,255,0.25);
+	color: #fff;
 }
 
-/* Ingredient Mappings filter bar */
-.ingredient-filter-bar {
+/* Ingredient Mappings controls row */
+.ingredient-controls-row {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	padding: 0 24px 12px;
-	border-bottom: 1px solid #f1f5f9;
-	gap: 12px;
+	gap: var(--space-3);
+	padding: var(--space-4) var(--space-5);
 	flex-wrap: wrap;
+	border-bottom: 1px solid #f1f5f9;
 }
-.ingredient-filter-left {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-}
-.filter-label {
-	font-size: 0.82rem;
-	font-weight: 600;
-	color: #475569;
-	white-space: nowrap;
-}
-.ingredient-filter-select {
-	background: #ffffff;
+.allergen-dropdown-select {
+	height: var(--control-h);
+	padding: 0 var(--space-3);
 	border: 1px solid #e2e8f0;
 	border-radius: 8px;
-	padding: 6px 12px;
-	font-size: 0.82rem;
+	font-size: 0.88rem;
 	color: #334155;
-	outline: none;
+	background: #fff;
 	cursor: pointer;
+	min-width: 160px;
 }
-.ingredient-count-label {
-	font-size: 0.78rem;
-	color: #94a3b8;
-	white-space: nowrap;
-}
-.ingredient-controls-row { display:flex; align-items:center; gap:12px; padding:14px 24px 8px; flex-wrap:wrap; }
-.allergen-dropdown-select { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 14px; font-size: 0.88rem; color: #334155; background: #fff; cursor: pointer; min-width: 180px; }
+.ingredient-count-label { font-size: 0.78rem; color: #94a3b8; white-space: nowrap; margin-left: auto; }
 
 /* Allergen group header */
 .allergen-group-header {
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	padding: 14px 24px 0;
-	margin-top: 14px;
+	padding: var(--space-3) var(--space-5);
 	background: #f8fafc;
 	border-top: 1px solid #f1f5f9;
 }
-.allergen-group-header:first-child {
-	border-top: none;
-	margin-top: 0;
-}
-.group-count {
-	font-size: 0.74rem;
-	color: #94a3b8;
-	font-weight: 500;
-}
-.ingredient-group-table {
-	margin-bottom: 4px;
-}
+.allergen-group-header:first-child { border-top: none; }
+.group-count { font-size: 0.74rem; color: #94a3b8; font-weight: 500; }
 .ingredient-group-table td {
-	padding: 11px 24px;
+	padding: var(--space-3) var(--space-5);
 }
-.ingredient-group-table th {
-	padding: 8px 24px 12px;
-	background: #f8fafc;
-}
+.ingredient-group-table th { padding: var(--space-3) var(--space-5) var(--space-3); background: #f8fafc; }
+.ingredient-group-table { margin-bottom: var(--space-2); }
 
 /* Pagination (Allergen Dictionary) */
 .pagination-bar {
@@ -1979,9 +2043,25 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 
 /* ─── Products tab ─────────────────────────────────────────────────────────── */
 .dup-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin:16px 24px;font-size:0.84rem;color:#92400e;}
-.products-controls{display:flex;align-items:center;gap:12px;padding:14px 24px 12px;flex-wrap:wrap;}
-.ctrl-select{border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:0.88rem;color:#334155;background:#fff;cursor:pointer;}
-.ctrl-count{font-size:0.82rem;color:#94a3b8;margin-left:auto;white-space:nowrap;}
+.products-controls {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	padding: var(--space-4) var(--space-5);
+	flex-wrap: wrap;
+	border-bottom: 1px solid #f1f5f9;
+}
+.ctrl-select {
+	height: var(--control-h);
+	padding: 0 var(--space-3);
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	font-size: 0.88rem;
+	color: #334155;
+	background: #fff;
+	cursor: pointer;
+}
+.ctrl-count { font-size: 0.82rem; color: #94a3b8; margin-left: auto; white-space: nowrap; }
 .product-cell{display:flex;align-items:center;gap:12px;}
 .product-thumb{width:40px;height:40px;border-radius:8px;background:#f1f5f9;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
 .product-thumb img{width:100%;height:100%;object-fit:cover;}
@@ -2044,4 +2124,11 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 .tab-button:focus-visible { outline: 2px solid #008744; outline-offset: 2px; }
 .filter-chip:focus-visible { outline: 2px solid #008744; outline-offset: 2px; }
 .filter-chip:hover { background: #f0fdf4; border-color: #16a34a; color: #15803d; }
+
+@media (max-width: 1100px) {
+	.products-controls { flex-wrap: wrap; }
+	.products-controls .search-box { flex: 1 1 200px; }
+	.ingredient-controls-row { flex-wrap: wrap; }
+	.ingredient-controls-row .search-box { flex: 1 1 200px; }
+}
 </style>

@@ -32,11 +32,11 @@
 			</template>
 			<template v-else>
 				<!-- Total Scans -->
-				<div class="metric-card" @click="router.push('/admin/productsdata?sort=newest')">
+				<div class="metric-card" @click="router.push('/admin/systemlogs?tab=api-latency')">
 					<div class="metric-label">Total scans</div>
 					<div class="metric-value">{{ stats?.total_scans ?? 0 }}</div>
 					<div class="metric-footer">
-						<span class="trend trend--up">▲ {{ stats?.trends?.total_scans_pct ?? 12 }}% vs prior</span>
+						<span class="trend trend--up">▲ {{ stats?.trends?.total_scans_pct ?? 0 }}% vs prior</span>
 						<svg class="sparkline" viewBox="0 0 60 24" preserveAspectRatio="none">
 							<polyline :points="sparklinePoints(stats?.sparklines?.scans ?? [])" fill="none" stroke="#05c450" stroke-width="1.5"/>
 						</svg>
@@ -47,7 +47,7 @@
 					<div class="metric-label">Pending flags</div>
 					<div class="metric-value">{{ stats?.pending_flags ?? 0 }}</div>
 					<div class="metric-footer">
-						<span class="trend trend--up">▲ {{ stats?.trends?.pending_flags_pct ?? 8 }}% vs prior</span>
+						<span class="trend trend--up">▲ {{ stats?.trends?.pending_flags_pct ?? 0 }}% vs prior</span>
 						<svg class="sparkline" viewBox="0 0 60 24" preserveAspectRatio="none">
 							<polyline :points="sparklinePoints(stats?.sparklines?.flags ?? [])" fill="none" stroke="#f97316" stroke-width="1.5"/>
 						</svg>
@@ -58,7 +58,7 @@
 					<div class="metric-label">Active Consumers</div>
 					<div class="metric-value">{{ stats?.active_consumers ?? 0 }}</div>
 					<div class="metric-footer">
-						<span class="trend trend--up">▲ {{ stats?.trends?.active_consumers_pct ?? 5 }}% vs prior</span>
+						<span class="trend trend--up">▲ {{ stats?.trends?.active_consumers_pct ?? 0 }}% vs prior</span>
 						<svg class="sparkline" viewBox="0 0 60 24" preserveAspectRatio="none">
 							<polyline :points="sparklinePoints(stats?.sparklines?.consumers ?? [])" fill="none" stroke="#05c450" stroke-width="1.5"/>
 						</svg>
@@ -67,7 +67,7 @@
 				<!-- API Health -->
 				<div class="metric-card" @click="router.push('/admin/systemlogs?filter=api')">
 					<div class="metric-label">API health</div>
-					<div class="metric-value">{{ stats?.api_latency_ms ?? 142 }} <span class="metric-unit">ms</span></div>
+					<div class="metric-value">{{ stats?.api_latency_ms ?? 0 }} <span class="metric-unit">ms</span></div>
 					<div class="metric-footer">
 						<span class="health-pill">Healthy</span>
 						<svg class="sparkline" viewBox="0 0 60 24" preserveAspectRatio="none">
@@ -87,7 +87,7 @@
 						<div class="chart-title">Allergens listed by Consumers</div>
 						<div class="chart-sub">Aggregate counts · max 5 per profile</div>
 					</div>
-					<router-link to="/admin/users" class="view-all-link">View all</router-link>
+					<router-link to="/admin/usersprofile" class="view-all-link">View all</router-link>
 				</div>
 				<div v-if="isLoading" class="sk-bars">
 					<div v-for="n in 8" :key="n" class="sk-bar-row">
@@ -384,7 +384,7 @@ const DONUT_R = 46
 const DONUT_CIRC = 2 * Math.PI * DONUT_R
 
 const donutSegments = computed(() => {
-	const v = scanVerdicts.value ?? { Green: 62, Yellow: 21, Red: 17, total: 100 }
+	const v = scanVerdicts.value ?? { Green: 0, Yellow: 0, Red: 0, total: 0 }
 	const total = v.total || 1
 	const segs = [
 		{ verdict: 'Green', color: '#05c450', count: v.Green },
@@ -444,6 +444,7 @@ const HIST_W = 280, HIST_H = 140
 
 const histBars = computed(() => {
 	const data = confDistribution.value
+	if (data.length === 0) return []
 	const maxCount = Math.max(...data.map((d) => d.count), 1)
 	const n = data.length
 	const barW = (HIST_W / n) * 0.65

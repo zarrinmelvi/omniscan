@@ -35,7 +35,7 @@
 		</div>
 
 		<div class="content-card">
-			<div v-if="activeTab !== 'products'" class="controls-bar">
+			<div v-if="activeTab !== 'products' && activeTab !== 'ingredient'" class="controls-bar">
 				<span class="section-title">{{ getTabTitle }}</span>
 				<div class="action-controls">
 					<div class="search-box">
@@ -50,7 +50,7 @@
 							<line x1="12" y1="5" x2="12" y2="19"></line>
 							<line x1="5" y1="12" x2="19" y2="12"></line>
 						</svg>
-						Add New
+						{{ activeTab === 'allergen' ? 'Add Allergen' : 'Add New' }}
 					</button>
 				</div>
 			</div>
@@ -332,24 +332,35 @@
 					</div>
 				</div>
 
+				<!-- Ingredient search / action row -->
+				<div class="ingredient-controls-row">
+					<div class="search-box">
+						<svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+						<input v-model="searchQuery" type="text" placeholder="Search mappings..." />
+					</div>
+					<span class="ingredient-count-label" style="margin-left:auto">
+						Showing {{ filteredIngredients.length }} of {{ ingredientMappings.length }} mappings
+					</span>
+					<button class="btn-add" @click="openCreateModal">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+						Add Mapping
+					</button>
+				</div>
+
 				<!-- Allergen filter + count bar -->
 				<div class="ingredient-filter-bar">
 					<div class="ingredient-filter-left">
 						<label class="filter-label">Filter by allergen:</label>
-						<select v-model="ingredientAllergenFilter" class="ingredient-filter-select">
+						<select v-model="ingredientAllergenFilter" class="allergen-dropdown-select">
 							<option value="all">All Allergens</option>
 							<option v-for="a in sortedAllergens" :key="a.id" :value="a.name">{{ a.name }}</option>
 						</select>
 					</div>
-					<span class="ingredient-count-label">
-						Showing {{ filteredIngredients.length }} of {{ ingredientMappings.length }} mappings
-						<span v-if="ingredientAllergenFilter !== 'all'"> — {{ ingredientAllergenFilter }}</span>
-					</span>
 				</div>
 
-				<p v-if="groupedIngredients.length === 0" class="empty-note">No ingredient mapping records found.</p>
+				<p v-if="pagedGroupedIngredients.length === 0" class="empty-note">No ingredient mapping records found.</p>
 				<div v-else class="table-wrap">
-					<template v-for="group in groupedIngredients" :key="group.allergen">
+					<template v-for="group in pagedGroupedIngredients" :key="group.allergen">
 						<!-- Group header row -->
 						<div class="allergen-group-header">
 							<span class="allergen-chip">{{ group.allergen }}</span>
@@ -395,13 +406,22 @@
 						</table>
 					</template>
 				</div>
+				<div v-if="ingredientTotalPages > 1" class="pagination-bar">
+					<span class="pagination-count">Showing {{ (ingredientPage - 1) * ingredientPageSize + 1 }}–{{ Math.min(ingredientPage * ingredientPageSize, filteredIngredients.length) }} of {{ filteredIngredients.length }}</span>
+					<div class="pagination-controls">
+						<button class="page-nav" :disabled="ingredientPage === 1" @click="ingredientPage > 1 && ingredientPage--" aria-label="Previous">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+						</button>
+						<span class="pagination-count">{{ ingredientPage }} / {{ ingredientTotalPages }}</span>
+						<button class="page-nav" :disabled="ingredientPage === ingredientTotalPages" @click="ingredientPage < ingredientTotalPages && ingredientPage++" aria-label="Next">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+						</button>
+					</div>
+				</div>
 			</template>
 
 			<!-- 4. PRODUCTS -->
 			<template v-else-if="activeTab === 'products'">
-				<div v-if="productDuplicatesCount > 0" class="dup-banner">
-					<strong>{{ productDuplicatesCount }} possible duplicates.</strong> Merging combines scan history into one record and points every Consumer to it.
-				</div>
 
 				<div class="products-controls">
 					<div class="search-box">
@@ -414,17 +434,15 @@
 					<select v-model="productSort" class="ingredient-filter-select">
 						<option value="name_asc">Name A–Z</option>
 						<option value="name_desc">Name Z–A</option>
-						<option value="scans">Most scans</option>
 						<option value="newest">Newest</option>
 					</select>
-					<button class="filter-chip" :class="{ 'filter-chip--active': productFilter === 'all' }" @click="productFilter = 'all'">All</button>
-					<button class="filter-chip" :class="{ 'filter-chip--active': productFilter === 'duplicates' }" @click="productFilter = 'duplicates'">Possible duplicates · {{ productDuplicatesCount }}</button>
-					<button class="filter-chip" :class="{ 'filter-chip--active': productFilter === 'unverified' }" @click="productFilter = 'unverified'">Unverified Halal logo · {{ productUnverifiedCount }}</button>
+					<button class="filter-chip" :class="{ 'filter-chip--active': productAllergenFilter === 'all' }" @click="setProductAllergenFilter('all')">All allergens</button>
+					<button v-for="allergen in productAllergenOptions" :key="allergen" class="filter-chip" :class="{ 'filter-chip--active': productAllergenFilter === allergen }" @click="setProductAllergenFilter(allergen)">{{ allergen }}</button>
 				</div>
 
 				<div v-if="productLoading" class="table-wrap">
 					<table class="data-table products-table">
-						<thead><tr><th>PRODUCT</th><th>BRAND</th><th>SCANS</th><th>HALAL STATUS</th><th>ALLERGENS DETECTED</th><th>UPDATED</th><th>ACTIONS</th></tr></thead>
+						<thead><tr><th>PRODUCT</th><th>BRAND</th><th>SCANS</th><th>HALAL STATUS</th><th>ALLERGENS DETECTED</th><th>UPDATED</th></tr></thead>
 						<tbody>
 							<tr v-for="n in 6" :key="n" class="products-sk-row">
 								<td><div class="sk-cell shimmer" style="width:70%;height:14px"></div></td>
@@ -433,13 +451,12 @@
 								<td><div class="sk-cell shimmer" style="width:90px;height:20px;border-radius:9999px"></div></td>
 								<td><div class="sk-cell shimmer" style="width:80%;height:12px"></div></td>
 								<td><div class="sk-cell shimmer" style="width:50px;height:12px"></div></td>
-								<td><div class="sk-cell shimmer" style="width:80px;height:12px"></div></td>
 							</tr>
 						</tbody>
 					</table>
 				</div>
 				<p v-else-if="productError" class="error-message">{{ productError }}</p>
-				<div v-else-if="productList.length === 0" class="prod-empty-state">
+				<div v-else-if="filteredProductList.length === 0" class="prod-empty-state">
 					<svg class="prod-empty-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
 						<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
 					</svg>
@@ -458,11 +475,10 @@
 								<th>HALAL STATUS</th>
 								<th>ALLERGENS DETECTED</th>
 								<th>UPDATED</th>
-								<th class="col-actions">ACTIONS</th>
 							</tr>
 						</thead>
 						<tbody>
-							<tr v-for="p in productList" :key="p.id">
+							<tr v-for="p in filteredProductList" :key="p.id" @click="viewProduct(p)" style="cursor:pointer">
 								<td>
 									<div class="product-cell">
 										<div class="product-thumb">
@@ -485,15 +501,11 @@
 									<span v-else class="muted-dash">—</span>
 								</td>
 								<td class="cell-updated">{{ formatDate(p.updated_at) }}</td>
-								<td class="col-actions">
-									<button class="btn-view-sm" @click="viewProduct(p)">View</button>
-									<button class="btn-merge" :class="{ 'btn-merge--active': p.possible_duplicate }" :disabled="!p.possible_duplicate" @click="openMerge(p)">Merge</button>
-								</td>
 							</tr>
 						</tbody>
 					</table>
 				</div>
-				<div v-if="!productLoading && !productError && productList.length > 0" class="pagination-bar">
+				<div v-if="!productLoading && !productError && filteredProductList.length > 0" class="pagination-bar">
 					<span class="pagination-count">{{ productRangeLabel }}</span>
 					<div class="pagination-controls">
 						<button class="page-nav" :disabled="productPage === 1" @click="productPage > 1 && (productPage -= 1)" aria-label="Previous page">
@@ -934,8 +946,27 @@ const productUnverifiedCount = ref(0)
 const productLoading = ref(false)
 const productError = ref<string | null>(null)
 const productSearch = ref('')
-const productSort = ref<'name_asc' | 'name_desc' | 'scans' | 'newest'>('name_asc')
-const productFilter = ref<'all' | 'duplicates' | 'unverified'>('all')
+const productSort = ref<'name_asc' | 'name_desc' | 'newest'>('name_asc')
+const productAllergenFilter = ref<string>('all')
+
+function setProductAllergenFilter(val: string): void {
+	productAllergenFilter.value = val
+	productPage.value = 1
+	fetchProducts()
+}
+
+const productAllergenOptions = computed(() => {
+	const names = new Set<string>()
+	for (const p of productList.value) {
+		for (const a of p.allergens_detected) names.add(a)
+	}
+	return [...names].sort()
+})
+
+const filteredProductList = computed(() => {
+	if (productAllergenFilter.value === 'all') return productList.value
+	return productList.value.filter(p => p.allergens_detected.includes(productAllergenFilter.value))
+})
 const productPage = ref(1)
 const mergeTarget = ref<ProductRow | null>(null)
 const merging = ref(false)
@@ -1082,7 +1113,6 @@ async function fetchProducts(): Promise<void> {
 	try {
 		const params = new URLSearchParams({
 			search: productSearch.value,
-			filter: productFilter.value,
 			sort: productSort.value,
 			page: String(productPage.value),
 			limit: String(PRODUCT_PAGE_SIZE),
@@ -1434,6 +1464,31 @@ const groupedIngredients = computed(() => {
 		.map(([allergen, items]) => ({ allergen, items }))
 })
 
+// ─── Ingredient Mappings pagination ─────────────────────────────────────────
+const INGREDIENT_PAGE_SIZE = 20
+const ingredientPageSize = INGREDIENT_PAGE_SIZE // expose as non-const for template
+const ingredientPage = ref(1)
+
+const pagedIngredients = computed(() => {
+	const start = (ingredientPage.value - 1) * INGREDIENT_PAGE_SIZE
+	return filteredIngredients.value.slice(start, start + INGREDIENT_PAGE_SIZE)
+})
+
+const ingredientTotalPages = computed(() => Math.max(1, Math.ceil(filteredIngredients.value.length / INGREDIENT_PAGE_SIZE)))
+
+const pagedGroupedIngredients = computed(() => {
+	const groups: Record<string, typeof pagedIngredients.value> = {}
+	for (const ing of pagedIngredients.value) {
+		if (!groups[ing.allergen_name]) groups[ing.allergen_name] = []
+		groups[ing.allergen_name].push(ing)
+	}
+	return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b)).map(([allergen, items]) => ({ allergen, items }))
+})
+
+watch([searchQuery, ingredientAllergenFilter], () => {
+	ingredientPage.value = 1
+})
+
 function formatDate(iso?: string): string {
 	if (!iso) return '—'
 	const d = new Date(iso)
@@ -1557,7 +1612,6 @@ function switchTab(tab: TabType): void {
 	allergenPage.value = 1
 	if (tab === 'products') {
 		productSearch.value = ''
-		productFilter.value = 'all'
 		productPage.value = 1
 		fetchProducts()
 		return
@@ -1565,8 +1619,8 @@ function switchTab(tab: TabType): void {
 	fetchTabContent(tab)
 }
 
-// Reset to page 1 and refetch when products search/sort/filter changes.
-watch([productSearch, productSort, productFilter], () => {
+// Reset to page 1 and refetch when products search/sort changes.
+watch([productSearch, productSort], () => {
 	if (activeTab.value !== 'products') return
 	productPage.value = 1
 	fetchProducts()
@@ -1797,8 +1851,8 @@ h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 4px; color: #0f172a; }
 .content-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow: hidden; }
 .controls-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; gap: 12px; flex-wrap: wrap; }
 .section-title { font-size: 0.92rem; color: #64748b; font-weight: 500; }
-.action-controls { display: flex; align-items: center; gap: 12px; }
-.search-box { display: flex; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 14px; width: 220px; }
+.action-controls { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-end; }
+.search-box { display: flex; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 14px; width: 260px; }
 .search-icon { color: #94a3b8; margin-right: 8px; flex-shrink: 0; }
 .search-box input { border: none; outline: none; width: 100%; font-size: 0.88rem; color: #1e293b; background: transparent; }
 .btn-add { display: inline-flex; align-items: center; gap: 6px; background: #008744; color: #fff; border: none; border-radius: 10px; padding: 9px 18px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s ease; }
@@ -1949,6 +2003,8 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 	color: #94a3b8;
 	white-space: nowrap;
 }
+.ingredient-controls-row { display:flex; align-items:center; gap:12px; padding:16px 24px 8px; flex-wrap:wrap; }
+.allergen-dropdown-select { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 14px; font-size: 0.88rem; color: #334155; background: #fff; cursor: pointer; min-width: 180px; }
 
 /* Allergen group header */
 .allergen-group-header {
@@ -2098,6 +2154,7 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 .btn-merge--active{background:#008744;border-color:#008744;color:#fff;cursor:pointer;}
 .btn-merge--active:hover{background:#00753a;}
 .products-table th, .products-table td { white-space: nowrap; }
+.products-table tbody tr:hover { background: #f8fafc; }
 .merge-copy{margin:0;font-size:0.88rem;color:#334155;line-height:1.5;}
 .product-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 24px;border-radius:9999px;font-size:0.875rem;font-weight:500;z-index:10000;box-shadow:0 8px 30px rgba(0,0,0,0.2);}
 

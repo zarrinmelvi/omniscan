@@ -80,11 +80,31 @@
 		</div>
 
 		<footer class="page-footer">© 2026 OmniScan · All rights reserved</footer>
+
+	<!-- Theme toggle — fixed top-right, affects global ion-palette-dark class -->
+	<button type="button" class="theme-toggle-btn" @click="toggleDarkMode" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+		<!-- Moon icon (shown in light mode — click to go dark) -->
+		<svg v-if="!isDark" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+		</svg>
+		<!-- Sun icon (shown in dark mode — click to go light) -->
+		<svg v-else viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<circle cx="12" cy="12" r="5"></circle>
+			<line x1="12" y1="1" x2="12" y2="3"></line>
+			<line x1="12" y1="21" x2="12" y2="23"></line>
+			<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+			<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+			<line x1="1" y1="12" x2="3" y2="12"></line>
+			<line x1="21" y1="12" x2="23" y2="12"></line>
+			<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+			<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+		</svg>
+	</button>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
 import { ApiError } from '@/utils/api'
@@ -101,6 +121,23 @@ const isSubmitting = ref(false)
 
 // Show amber session-expired banner when redirected with ?reason=session_expired
 const sessionExpired = computed(() => route.query.reason === 'session_expired')
+
+const DARK_MODE_KEY = 'omniscan_dark_mode'
+const isDark = ref(false)
+
+function applyDarkMode(enabled: boolean): void {
+	document.documentElement.classList.toggle('ion-palette-dark', enabled)
+	localStorage.setItem(DARK_MODE_KEY, String(enabled))
+	isDark.value = enabled
+}
+
+function toggleDarkMode(): void {
+	applyDarkMode(!isDark.value)
+}
+
+onMounted(() => {
+	isDark.value = localStorage.getItem(DARK_MODE_KEY) === 'true'
+})
 
 async function handleLogin(): Promise<void> {
 	isSubmitting.value  = true
@@ -303,5 +340,28 @@ input.input-error { border-color: #dc2626 !important; }
 	font-size: 0.78rem;
 	color: #374151;
 	text-align: center;
+}
+
+/* ── Theme toggle — fixed top-right ──────────────── */
+.theme-toggle-btn {
+	position: fixed;
+	top: 16px;
+	right: 16px;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.07);
+	color: #9ca3af;
+	cursor: pointer;
+	transition: background 0.15s, color 0.15s;
+	z-index: 100;
+}
+.theme-toggle-btn:hover {
+	background: rgba(255, 255, 255, 0.13);
+	color: #e5e7eb;
 }
 </style>

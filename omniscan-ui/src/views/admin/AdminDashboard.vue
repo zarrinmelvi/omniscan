@@ -206,7 +206,7 @@
 							:x2="thresholdX" :y2="HIST_H - 28"
 							stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 3"
 						/>
-						<text :x="thresholdX + 3" y="12" class="threshold-label">90% threshold</text>
+						<text :x="thresholdX" y="10" class="threshold-label" text-anchor="middle">90%</text>
 					</svg>
 					<div class="hist-axis">
 						<span v-for="bar in histBars" :key="bar.label">{{ bar.label }}</span>
@@ -353,7 +353,7 @@ function setRange(r: '7d' | '30d' | '90d'): void {
 function goToVerification(): void { router.push('/admin/verification') }
 function filterByVerdict(verdict: string): void { router.push(`/admin/verification?verdict=${verdict}`) }
 function goToAllergen(name: string): void { router.push('/admin/productsdata?allergen=' + encodeURIComponent(name)) }
-function goToTrainingCorrections(): void { router.push('/admin/verification?tab=training-corrections') }
+function goToTrainingCorrections(): void { router.push('/admin/verification') }
 function goToFlaggedItem(id: number): void { router.push('/admin/verification?card=' + id) }
 
 onMounted(loadDashboard)
@@ -440,17 +440,17 @@ const axisLabels = computed(() => {
 })
 
 // ── Histogram ─────────────────────────────────────────────────────────────
-const HIST_W = 280, HIST_H = 140
+const HIST_W = 320, HIST_H = 160
 
 const histBars = computed(() => {
 	const data = confDistribution.value
 	if (data.length === 0) return []
 	const maxCount = Math.max(...data.map((d) => d.count), 1)
 	const n = data.length
-	const barW = (HIST_W / n) * 0.65
-	const gap = (HIST_W / n) * 0.35
+	const barW = (HIST_W / n) * 0.70
+	const gap = (HIST_W / n) * 0.30
 	return data.map((d, i) => {
-		const barH = (d.count / maxCount) * (HIST_H - 32)
+		const barH = Math.max(4, (d.count / maxCount) * (HIST_H - 32))
 		const x = i * (HIST_W / n) + gap / 2
 		const y = HIST_H - 28 - barH
 		// threshold is at the 80–90 / 90–95 boundary (index 4 = '90–95' bucket start)
@@ -526,9 +526,14 @@ const thresholdX = computed(() => {
 	transition: all 0.15s;
 }
 .range-pill--active {
-	background: #111827;
+	background: #008744;
 	color: #ffffff;
-	border-color: #111827;
+	border-color: #008744;
+}
+.range-pill:hover:not(.range-pill--active) {
+	background: rgba(0, 135, 68, 0.08);
+	border-color: #008744;
+	color: #008744;
 }
 
 /* ── 4-card metric grid ───────────────────────────────── */
@@ -732,7 +737,7 @@ const thresholdX = computed(() => {
 	overflow: visible;
 }
 .threshold-label {
-	font-size: 7px;
+	font-size: 8px;
 	fill: #ef4444;
 	font-weight: 600;
 }

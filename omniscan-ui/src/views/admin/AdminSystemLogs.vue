@@ -75,7 +75,6 @@
 			<div class="ov-recent">
 				<div class="ov-recent-head-row">
 					<span class="ov-recent-head">Recent changes</span>
-					<button class="ov-tab-link" @click="switchTab('api-latency')">Open Audit Log</button>
 				</div>
 				<div v-if="recentAuditEvents.length === 0" class="empty-note">
 					No changes recorded yet.
@@ -127,7 +126,7 @@
 								:y2="goalLineY"
 								class="goal-line"
 							/>
-							<text :x="752" :y="goalLineY + 4" class="goal-label" font-size="10" fill="#ef4444">Goal 300 ms</text>
+							<text x="730" :y="goalLineY - 4" class="goal-label" font-size="10" fill="#ef4444" text-anchor="end">Goal 300ms</text>
 
 							<!-- Slow period highlight -->
 							<rect
@@ -1116,8 +1115,8 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .chart-header h2 { font-size: 0.95rem; font-weight: 600; margin: 0; color: #1e293b; }
 .chart-subtitle { font-size: 0.8rem; color: #94a3b8; }
-.chart-container { position: relative; width: 100%; }
-.lat-chart { width: 100%; height: 200px; overflow: visible; }
+.chart-container { position: relative; width: 100%; overflow: hidden; }
+.lat-chart { width: 100%; height: 200px; overflow: hidden; }
 .grid-line { stroke: #f1f5f9; stroke-width: 1; }
 .axis-label { font-size: 11px; fill: #94a3b8; }
 .goal-line { stroke: #ef4444; stroke-dasharray: 4 3; stroke-width: 1.5; }
@@ -1185,6 +1184,7 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 	gap: 10px;
 	padding: 0 0 16px;
 	margin-bottom: 20px;
+	width: 100%;
 }
 .al-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .al-chip {

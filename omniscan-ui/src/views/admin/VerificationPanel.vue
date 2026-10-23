@@ -524,7 +524,7 @@ watch(() => route.query, (q) => {
 	line-height: 1;
 	margin-bottom: 4px;
 }
-.qm-value--green { color: #05c450; }
+.qm-value--green { color: #008744; }
 .qm-value--neutral { color: #111827; }
 .qm-sub { font-size: 0.75rem; color: #9ca3af; }
 
@@ -547,9 +547,9 @@ watch(() => route.query, (q) => {
 	transition: all 0.15s;
 }
 .tab-btn--active {
-	background: #05c450;
+	background: #008744;
 	color: #ffffff;
-	border-color: #05c450;
+	border-color: #008744;
 	font-weight: 600;
 }
 
@@ -579,7 +579,7 @@ watch(() => route.query, (q) => {
 	transition: border-color 0.15s;
 }
 .logo-card--expanded {
-	border-color: #05c450;
+	border-color: #008744;
 	border-width: 1.5px;
 }
 
@@ -620,7 +620,7 @@ watch(() => route.query, (q) => {
 	flex-shrink: 0;
 	transition: all 0.15s;
 }
-.btn-review:hover { border-color: #05c450; color: #05c450; }
+.btn-review:hover { border-color: #008744; color: #008744; }
 
 /* expanded */
 .logo-card-expanded { padding: 20px; }
@@ -685,7 +685,7 @@ watch(() => route.query, (q) => {
 }
 .btn-add-certifier {
 	padding: 9px 20px;
-	background: #05c450;
+	background: #008744;
 	color: #ffffff;
 	border: none;
 	border-radius: 8px;
@@ -694,7 +694,7 @@ watch(() => route.query, (q) => {
 	cursor: pointer;
 	transition: background 0.15s;
 }
-.btn-add-certifier:hover { background: #04a844; }
+.btn-add-certifier:hover { background: #00753a; }
 .btn-outline {
 	padding: 9px 18px;
 	background: transparent;
@@ -888,7 +888,7 @@ watch(() => route.query, (q) => {
 }
 .btn-modal-primary {
 	padding: 9px 22px;
-	background: #05c450;
+	background: #008744;
 	color: #ffffff;
 	border: none;
 	border-radius: 8px;
@@ -896,7 +896,7 @@ watch(() => route.query, (q) => {
 	font-weight: 600;
 	cursor: pointer;
 }
-.btn-modal-primary:hover { background: #04a844; }
+.btn-modal-primary:hover { background: #00753a; }
 
 /* Awaiting rescan list */
 .awaiting-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; margin-bottom: 4px; }

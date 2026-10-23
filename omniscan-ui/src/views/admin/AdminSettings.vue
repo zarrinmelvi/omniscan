@@ -5,7 +5,6 @@
 
 		<div class="gs-single-col">
 			<!-- LEFT COLUMN: Appearance + Notifications -->
-			<div class="gs-grid-left">
 				<!-- Appearance -->
 				<section class="gs-card">
 					<h2 class="gs-section-head">Appearance</h2>
@@ -104,7 +103,6 @@
 					</div>
 					</template>
 				</section>
-			</div>
 
 		</div>
 
@@ -322,7 +320,8 @@ onMounted(() => {
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
-	max-width: 680px;
+	max-width: 720px;
+	width: 100%;
 }
 
 @media (max-width: 1024px) {

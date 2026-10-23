@@ -38,19 +38,6 @@
 							</button>
 						</div>
 					</div>
-
-					<div class="gs-row">
-						<div class="gs-row-info">
-							<div class="gs-row-label">Rows per page</div>
-							<div class="gs-row-sub">How many items tables and lists show at once.</div>
-						</div>
-						<select v-model="form.rowsPerPage" class="gs-select">
-							<option :value="10">10</option>
-							<option :value="25">25</option>
-							<option :value="50">50</option>
-							<option :value="100">100</option>
-						</select>
-					</div>
 					</template>
 				</section>
 
@@ -168,7 +155,6 @@ const signInTime = new Date().toLocaleTimeString('en-US', {
 // shared /api/admin/settings endpoint.
 const form = reactive({
 	darkMode: false,
-	rowsPerPage: 10,
 	emailOnSystemError: true,
 	dailySummaryReport: true,
 	monthlyLogoReminder: true,
@@ -212,7 +198,6 @@ async function fetchSettings(): Promise<void> {
 		})
 		// Merge only the fields this page owns so we don't pull unrelated keys
 		// (AI/thresholds) into the form object.
-		if (typeof data.rowsPerPage === 'number') form.rowsPerPage = data.rowsPerPage
 		if (typeof data.emailOnSystemError === 'boolean') form.emailOnSystemError = data.emailOnSystemError
 		if (typeof data.dailySummaryReport === 'boolean') form.dailySummaryReport = data.dailySummaryReport
 		if (typeof data.monthlyLogoReminder === 'boolean') form.monthlyLogoReminder = data.monthlyLogoReminder

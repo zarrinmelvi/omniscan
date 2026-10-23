@@ -775,6 +775,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { apiFetch, ApiError } from '@/utils/api'
 import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal.vue'
@@ -874,11 +875,7 @@ const productSearch = ref('')
 const productSort = ref<'name_asc' | 'name_desc' | 'newest'>('name_asc')
 const productAllergenFilter = ref<string>('all')
 
-function setProductAllergenFilter(val: string): void {
-	productAllergenFilter.value = val
-	productPage.value = 1
-	fetchProducts()
-}const productAllergenOptions = computed(() => {
+const productAllergenOptions = computed(() => {
 	const names = new Set<string>()
 	for (const p of productList.value) {
 		for (const a of p.allergens_detected) names.add(a)
@@ -1669,8 +1666,15 @@ async function confirmDelete(): Promise<void> {
 	}
 }
 
+const route = useRoute()
+
 onMounted(() => {
-	fetchTabContent('allergen')
+	const tabParam = route.query.tab as string | undefined
+	if (tabParam === 'products') {
+		switchTab('products')
+	} else {
+		fetchTabContent('allergen')
+	}
 })
 </script>
 
@@ -1692,7 +1696,7 @@ h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 4px; color: #0f172a; }
 .tab-icon { flex-shrink: 0; }
 
 .content-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow: hidden; }
-.controls-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid #f1f5f9; }
+.controls-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid #f1f5f9; }
 .section-title { font-size: 0.92rem; color: #64748b; font-weight: 500; }
 .action-controls { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-end; }
 .search-box { display: flex; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 14px; width: 260px; }
@@ -2035,4 +2039,9 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 	0% { background-position: 100% 0; }
 	100% { background-position: -100% 0; }
 }
+
+/* ── Interactive state focus rings ── */
+.tab-button:focus-visible { outline: 2px solid #008744; outline-offset: 2px; }
+.filter-chip:focus-visible { outline: 2px solid #008744; outline-offset: 2px; }
+.filter-chip:hover { background: #f0fdf4; border-color: #16a34a; color: #15803d; }
 </style>

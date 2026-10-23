@@ -45,18 +45,12 @@
 				@click="activeTab = 'duplicates'">
 				Possible duplicates · {{ duplicateCards.length }}
 			</button>
-			<button
-				class="tab-btn"
-				:class="{ 'tab-btn--active': activeTab === 'training' }"
-				@click="activeTab = 'training'">
-				Training corrections · {{ trainingCards.length }}
-			</button>
 		</div>
 
-		<!-- ── Main 2-col layout ──────────────────────────────────── -->
+		<!-- ── Main single-col layout ────────────────────────────── -->
 		<div class="vp-body">
 
-			<!-- Left: queue cards -->
+			<!-- queue cards -->
 			<div class="vp-queue">
 
 				<div v-if="isLoading" class="sk-stack">
@@ -122,7 +116,6 @@
 								<div class="logo-actions">
 									<button class="btn-add-certifier" @click="openAddDialog(card)">Add to certifier registry</button>
 									<button class="btn-outline" @click="openNotHalalDialog(card)">Not a Halal certifier</button>
-									<button class="btn-outline" @click="openRescanDialog(card)">Ask Consumers to rescan</button>
 								</div>
 
 								<!-- Impact banner -->
@@ -136,23 +129,6 @@
 				</template>
 			</div>
 
-			<!-- Right: info panels -->
-			<aside class="vp-aside">
-				<div class="info-card">
-					<div class="info-card-title">What happens after your decision</div>
-					<ol class="info-steps">
-						<li><strong>Registry updated.</strong> The AI recognizes this certifier on every future scan.</li>
-						<li><strong>Past scans re-checked.</strong> Affected products update without further review.</li>
-						<li><strong>Consumers notified.</strong> Verdicts that changed are sent as in-app and email notices.</li>
-						<li><strong>Saved for training.</strong> Your decision joins the next model retraining batch.</li>
-						<li><strong>Audit entry logged.</strong> "Certifier added by {{ adminName }}" appears in System Logs.</li>
-					</ol>
-				</div>
-				<div class="privacy-card">
-					<div class="privacy-title">Not shown here, on purpose</div>
-					<p class="privacy-body">Consumer allergen profiles and per-Consumer verdicts stay private. You review the product and the logo, not the person who scanned it.</p>
-				</div>
-			</aside>
 		</div>
 
 		<!-- ── Awaiting Rescan read-only list ─────────────────────── -->
@@ -215,20 +191,6 @@
 					<div class="modal-box-actions">
 						<button class="btn-modal-secondary" @click="notHalalDialog.open = false">Cancel</button>
 						<button class="btn-modal-primary" @click="confirmNotHalal">Confirm</button>
-					</div>
-				</div>
-			</div>
-		</Teleport>
-
-		<!-- ── Ask consumers to rescan dialog ─────────────────────── -->
-		<Teleport to="body">
-			<div v-if="rescanDialog.open" class="modal-overlay" @click.self="rescanDialog.open = false">
-				<div class="modal-box">
-					<div class="modal-box-title">Ask Consumers to rescan?</div>
-					<p class="modal-box-body">Consumers who scanned this product will receive a notification asking them to re-upload a clearer image. The card will move to "Awaiting rescan" status.</p>
-					<div class="modal-box-actions">
-						<button class="btn-modal-secondary" @click="rescanDialog.open = false">Cancel</button>
-						<button class="btn-modal-primary" @click="confirmRescan">Confirm</button>
 					</div>
 				</div>
 			</div>
@@ -315,7 +277,7 @@ const unmatchedCardsData = ref<ServerCard[]>([])
 const duplicateCardsData = ref<ServerCard[]>([])
 const trainingCardsData = ref<ServerCard[]>([])
 
-type TabType = 'unmatched' | 'duplicates' | 'training'
+type TabType = 'unmatched' | 'duplicates'
 const activeTab = ref<TabType>('unmatched')
 const expandedId = ref<number | null>(null)
 
@@ -323,7 +285,6 @@ const showAwaitingRescan = ref(false)
 
 const addDialog = ref<{ open: boolean; card: QueueCard | null; certifier: string; full_name: string; source_url: string; saving: boolean; error: string | null }>({ open: false, card: null, certifier: '', full_name: '', source_url: '', saving: false, error: null })
 const notHalalDialog = ref<{ open: boolean; card: QueueCard | null; reason: string }>({ open: false, card: null, reason: '' })
-const rescanDialog = ref<{ open: boolean; card: QueueCard | null }>({ open: false, card: null })
 
 const toast = ref({ visible: false, message: '' })
 
@@ -379,8 +340,7 @@ const trainingCards = computed<QueueCard[]>(() =>
 
 const activeTabCards = computed<QueueCard[]>(() => {
 	if (activeTab.value === 'unmatched') return unmatchedCards.value
-	if (activeTab.value === 'duplicates') return duplicateCards.value
-	return trainingCards.value
+	return duplicateCards.value
 })
 
 const awaitingRescanItems = computed(() =>
@@ -399,10 +359,6 @@ function openAddDialog(card: QueueCard): void {
 
 function openNotHalalDialog(card: QueueCard): void {
 	notHalalDialog.value = { open: true, card, reason: '' }
-}
-
-function openRescanDialog(card: QueueCard): void {
-	rescanDialog.value = { open: true, card }
 }
 
 function showToast(msg: string): void {
@@ -452,15 +408,6 @@ function confirmNotHalal(): void {
 	showToast('Marked as not a Halal certifier.')
 }
 
-function confirmRescan(): void {
-	const card = rescanDialog.value.card
-	if (!card) return
-	rescanDialog.value.open = false
-	resolvedIds.value = new Set([...resolvedIds.value, card.id])
-	expandedId.value = null
-	showToast('Consumers asked to rescan. Card moved to Awaiting rescan.')
-}
-
 // ── API ──────────────────────────────────────────────────────────────────
 async function fetchQueue(): Promise<void> {
 	isLoading.value = true
@@ -502,7 +449,6 @@ onMounted(async () => {
 
 	const tabParam = route.query.tab as string | undefined
 	if (tabParam === 'needs-decision') activeTab.value = 'unmatched'
-	else if (tabParam === 'training-corrections') activeTab.value = 'training'
 	else if (tabParam === 'possible-duplicates') activeTab.value = 'duplicates'
 
 	const cardParam = route.query.card
@@ -513,7 +459,7 @@ onMounted(async () => {
 		const match = allCards.find((c) => c.id === id || c.rawIds.includes(id))
 		if (match) {
 			// Set the right tab
-			activeTab.value = match.type === 'duplicate' ? 'duplicates' : match.type === 'training' ? 'training' : 'unmatched'
+			activeTab.value = match.type === 'duplicate' ? 'duplicates' : 'unmatched'
 			expandedId.value = match.id
 		}
 	}
@@ -521,7 +467,6 @@ onMounted(async () => {
 
 watch(() => route.query, (q) => {
 	if (q.tab === 'needs-decision') activeTab.value = 'unmatched'
-	else if (q.tab === 'training-corrections') activeTab.value = 'training'
 	else if (q.tab === 'possible-duplicates') activeTab.value = 'duplicates'
 })
 </script>
@@ -608,14 +553,13 @@ watch(() => route.query, (q) => {
 	font-weight: 600;
 }
 
-/* ── Body 2-col ───────────────────────────────────────── */
+/* ── Body single-col ──────────────────────────────────── */
 .vp-body {
-	display: grid;
-	grid-template-columns: 1fr 320px;
-	gap: 20px;
-	align-items: start;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
 }
-@media (max-width: 1100px) { .vp-body { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .vp-body { flex-direction: column; } }
 
 .vp-queue { display: flex; flex-direction: column; gap: 12px; }
 .vp-empty { color: #9ca3af; font-size: 0.875rem; padding: 24px 0; }

@@ -585,10 +585,11 @@ onMounted(fetchUsers)
 
 .controls-bar {
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
-	padding: 16px 20px;
+	gap: 12px;
+	padding: 12px 20px;
 	border-bottom: 1px solid #f1f5f9;
+	flex-wrap: wrap;
 }
 
 .search-box {

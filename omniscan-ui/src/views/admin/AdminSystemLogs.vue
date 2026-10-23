@@ -189,57 +189,15 @@
 				</div>
 			</div>
 
-			<!-- Recent requests table -->
-			<div class="log-card">
-				<div class="log-header-row">
-					<span class="log-header-text">Recent requests</span>
-					<button
-						class="slow-only-btn"
-						:class="{ 'slow-only-btn--active': showSlowOnly }"
-						@click="showSlowOnly = !showSlowOnly"
-					>Slow only</button>
-				</div>
-				<div class="log-scroll">
-					<div v-if="filteredRequests.length === 0 && showSlowOnly" class="empty-note">
-						No slow requests.
-					</div>
-					<div v-else-if="filteredRequests.length === 0" class="empty-note">
-						No requests recorded yet.
-					</div>
-					<table v-else class="log-table">
-						<thead>
-							<tr>
-								<th>TIME</th>
-								<th>DESCRIPTION</th>
-								<th>MS</th>
-								<th>BADGE</th>
-								<th>DETAILS</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr v-for="(r, i) in filteredRequests" :key="i">
-								<td class="mono muted">{{ formatTimeShort(r.ts) }}</td>
-								<td>{{ pathToDescription(r.path) }}</td>
-								<td class="mono" :class="latencyClass(r.durationMs)">{{ r.durationMs }}ms</td>
-								<td>
-									<span class="lat-badge" :class="latencyBadgeClass(r.durationMs)">
-										{{ latencyBadgeLabel(r.durationMs) }}
-									</span>
-								</td>
-								<td><a class="lat-details-link" href="#" @click.prevent>Details</a></td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
+			<!-- Recent requests table removed per admin portal cleanup -->
 		</div>
 
 		<!-- ═══════════════════════════════════════════════════════ -->
 		<!-- TAB 3 — AUDIT LOG                                       -->
 		<!-- ═══════════════════════════════════════════════════════ -->
-		<div v-if="activeTab === 'audit-log'">
-			<!-- Controls row -->
-			<div class="al-controls">
+		<div v-if="activeTab === 'audit-log' || activeTab === 'api-latency'">
+			<!-- Controls row — only shown on dedicated audit-log tab -->
+			<div v-if="activeTab === 'audit-log'" class="al-controls">
 				<div class="al-chips">
 					<button
 						v-for="cat in auditCategories"
@@ -273,7 +231,7 @@
 
 			<!-- Grouped events -->
 			<div v-else>
-				<div v-for="group in groupedAuditEvents" :key="group.label">
+				<div v-for="group in pagedGroupedAuditEvents" :key="group.label">
 					<div class="al-group-head">{{ group.label }}</div>
 					<div
 						v-for="evt in group.events"
@@ -291,9 +249,13 @@
 							<span class="al-cat-badge" :class="'al-cat-' + eventCategory(evt)">
 								{{ categoryLabel(eventCategory(evt)) }}
 							</span>
-							<a class="al-details-link" href="#" @click.prevent>Details</a>
 						</div>
 					</div>
+				</div>
+				<div v-if="auditTotalPages > 1" class="al-pagination">
+					<button :disabled="auditPage === 1" @click="auditPage--" class="page-nav">‹</button>
+					<span class="al-page-info">{{ auditPage }} / {{ auditTotalPages }}</span>
+					<button :disabled="auditPage === auditTotalPages" @click="auditPage++" class="page-nav">›</button>
 				</div>
 			</div>
 
@@ -380,7 +342,7 @@
 									<a
 										class="fa-product-link"
 										href="#"
-										@click.prevent="$router.push('/admin/productsdata')"
+										@click.prevent="$router.push('/admin/productsdata?tab=products')"
 									>{{ prod.product_name }}</a>
 									<span class="fa-product-count">{{ prod.flag_count }} flags</span>
 								</div>
@@ -394,7 +356,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
 import { useRoute } from 'vue-router'
 
@@ -791,6 +753,34 @@ const groupedAuditEvents = computed<AuditGroup[]>(() => {
 	return Array.from(groups.entries()).map(([label, events]) => ({ label, events }))
 })
 
+// ─── Audit Log Pagination ─────────────────────────────────────────────────────
+
+const auditPage = ref(1)
+const AUDIT_PAGE_SIZE = 20
+
+const auditTotalPages = computed(() => Math.max(1, Math.ceil(filteredAuditEvents.value.length / AUDIT_PAGE_SIZE)))
+
+const pagedGroupedAuditEvents = computed<AuditGroup[]>(() => {
+	const start = (auditPage.value - 1) * AUDIT_PAGE_SIZE
+	const paged = filteredAuditEvents.value.slice(start, start + AUDIT_PAGE_SIZE)
+	const groups: Map<string, AuditEventRow[]> = new Map()
+	const todayStr = new Date().toDateString()
+	const yesterdayStr = new Date(Date.now() - 86400000).toDateString()
+	for (const evt of paged) {
+		const d = new Date(evt.created_at)
+		const ds = d.toDateString()
+		let label: string
+		if (ds === todayStr) label = 'TODAY'
+		else if (ds === yesterdayStr) label = 'YESTERDAY'
+		else label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+		if (!groups.has(label)) groups.set(label, [])
+		groups.get(label)!.push(evt)
+	}
+	return [...groups.entries()].map(([label, events]) => ({ label, events }))
+})
+
+watch(filteredAuditEvents, () => { auditPage.value = 1 })
+
 // ─── Flag Audit Tab ────────────────────────────────────────────────────────────
 
 const topProfileAllergens = computed(() => {
@@ -1184,6 +1174,7 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 10px;
+	padding: 0 0 16px;
 	margin-bottom: 20px;
 }
 .al-chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -1194,12 +1185,12 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .al-chip:hover { border-color: #008744; color: #008744; }
 .al-chip--active { background: #008744; color: #fff; border-color: #008744; }
 .al-search {
-	flex: 1; min-width: 160px; padding: 7px 14px; border-radius: 8px;
+	width: 200px; padding: 7px 14px; border-radius: 8px;
 	border: 1px solid #e2e8f0; background: #fff; color: #334155; font-size: 0.85rem;
 }
 .al-search:focus { outline: none; border-color: #008744; }
 .al-days-select {
-	padding: 7px 12px; border-radius: 8px; border: 1px solid #e2e8f0;
+	width: auto; min-width: 130px; padding: 7px 12px; border-radius: 8px; border: 1px solid #e2e8f0;
 	background: #fff; color: #334155; font-size: 0.82rem; cursor: pointer;
 }
 .al-group-head {
@@ -1230,8 +1221,12 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .al-cat-halal-registry { background: #ede9fe; color: #7c3aed; }
 .al-cat-settings      { background: #f1f5f9; color: #64748b; }
 .al-cat-other         { background: #f1f5f9; color: #64748b; }
-.al-details-link { color: #008744; text-decoration: underline; cursor: pointer; font-size: 0.78rem; }
 .al-footer { font-size: 0.78rem; color: #94a3b8; margin-top: 20px; padding-top: 12px; border-top: 1px solid #f1f5f9; }
+.al-pagination { display:flex; align-items:center; justify-content:center; gap:12px; padding:16px 0; }
+.al-page-info { font-size:0.82rem; color:#64748b; }
+.page-nav { min-width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; background:#fff; color:#334155; border-radius:8px; font-size:1rem; cursor:pointer; transition:background 0.12s; }
+.page-nav:hover:not(:disabled) { background:#f1f5f9; }
+.page-nav:disabled { opacity:0.4; cursor:not-allowed; }
 .al-empty { text-align: center; padding: 48px 24px; }
 .al-empty svg { margin: 0 auto 12px; display: block; }
 .al-empty p { color: #94a3b8; font-size: 0.88rem; margin-bottom: 12px; }
@@ -1359,4 +1354,9 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 	0% { background-position: 100% 0; }
 	100% { background-position: -100% 0; }
 }
+
+/* ── Interactive state focus rings ── */
+.tab-btn:focus-visible { outline: 2px solid #008744; outline-offset: 2px; }
+.al-chip:focus-visible { outline: 2px solid #008744; outline-offset: 2px; }
+.al-chip:hover:not(.al-chip--active) { background: #f0fdf4; border-color: #16a34a; color: #15803d; }
 </style>

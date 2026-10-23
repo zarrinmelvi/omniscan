@@ -95,7 +95,7 @@
 						<div class="sk-bar-fill shimmer"></div>
 					</div>
 				</div>
-				<div v-else-if="allergenDist.length === 0" class="chart-empty">No allergen data yet.</div>
+				<div v-else-if="allergenDist.length === 0" class="chart-empty"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>No allergen data yet.</div>
 				<div v-else class="allergen-bars">
 					<div v-for="item in allergenDist" :key="item.name" class="bar-row" @click="goToAllergen(item.name)" style="cursor:pointer">
 						<span class="bar-label">{{ formatAllergenName(item.name) }}</span>
@@ -118,7 +118,7 @@
 				<div v-if="isLoading" class="sk-donut-wrap">
 					<div class="sk-donut shimmer"></div>
 				</div>
-				<div v-else-if="(scanVerdicts?.total ?? 0) === 0" class="chart-empty">No scans yet.</div>
+				<div v-else-if="(scanVerdicts?.total ?? 0) === 0" class="chart-empty"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>No scans yet.</div>
 				<div v-else class="donut-wrap">
 					<svg class="donut-svg" viewBox="0 0 120 120">
 						<circle cx="60" cy="60" r="46" fill="none" stroke-width="18" class="donut-track"/>
@@ -158,7 +158,7 @@
 					</div>
 				</div>
 				<div v-if="isLoading" class="sk-chart-area shimmer"></div>
-				<div v-else-if="scansOverTime.length === 0" class="chart-empty">No scans in this range yet.</div>
+				<div v-else-if="scansOverTime.length === 0" class="chart-empty"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>No scans in this range yet.</div>
 				<div v-else class="area-chart-wrap">
 					<svg class="area-svg" :viewBox="`0 0 ${AREA_W} ${AREA_H}`" preserveAspectRatio="none">
 						<defs>
@@ -187,7 +187,7 @@
 					</div>
 				</div>
 				<div v-if="isLoading" class="sk-chart-area shimmer"></div>
-				<div v-else-if="confDistribution.length === 0" class="chart-empty">No scans in this range yet.</div>
+				<div v-else-if="confDistribution.length === 0" class="chart-empty"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>No scans in this range yet.</div>
 				<div v-else class="hist-wrap">
 					<svg class="hist-svg" :viewBox="`0 0 ${HIST_W} ${HIST_H}`" preserveAspectRatio="none">
 						<g v-for="(bar, i) in histBars" :key="bar.label">
@@ -781,7 +781,8 @@ const thresholdX = computed(() => {
 .flag-reason { color: #6b7280; }
 .flag-scans { color: #374151; font-weight: 500; text-align: center; }
 .empty-note { color: #9ca3af; font-size: 0.875rem; text-align: center; padding: 24px; }
-.chart-empty { padding: 40px 12px; text-align: center; color: #9ca3af; font-size: 0.85rem; }
+.chart-empty { display:flex; flex-direction:column; align-items:center; gap:8px; padding:40px 12px; text-align:center; color:#9ca3af; font-size:0.85rem; }
+.chart-empty svg { color:#d1d5db; }
 
 /* Verdict badges */
 .verdict-badge {

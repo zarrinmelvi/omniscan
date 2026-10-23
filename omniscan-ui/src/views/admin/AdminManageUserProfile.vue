@@ -69,8 +69,29 @@
 			</div>
 
 			<!-- Loading / error states -->
-			<p v-if="isLoading" class="state-message">Loading…</p>
-			<p v-else-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+			<div v-if="isLoading" class="data-table-wrap">
+				<table class="data-table">
+					<thead>
+						<tr><th>CONSUMER</th><th>EMAIL</th><th>SCANS</th><th>PANTRY ITEMS</th><th>CREATED</th><th>LAST ACTIVE</th><th>STATUS</th></tr>
+					</thead>
+					<tbody>
+						<tr v-for="n in 8" :key="n" class="users-sk-row">
+							<td><div class="sk-cell shimmer" style="width:140px;height:14px"></div></td>
+							<td><div class="sk-cell shimmer" style="width:120px;height:12px"></div></td>
+							<td><div class="sk-cell shimmer" style="width:30px;height:12px"></div></td>
+							<td><div class="sk-cell shimmer" style="width:100px;height:10px"></div></td>
+							<td><div class="sk-cell shimmer" style="width:50px;height:12px"></div></td>
+							<td><div class="sk-cell shimmer" style="width:70px;height:12px"></div></td>
+							<td><div class="sk-cell shimmer" style="width:60px;height:20px;border-radius:9999px"></div></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div v-else-if="errorMessage" class="admin-error-banner">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+				<span>{{ errorMessage }}</span>
+				<button class="admin-error-retry" @click="fetchUsers">Try again</button>
+			</div>
 			<p v-else-if="filteredUsers.length === 0" class="empty-note">No user accounts match the current filters.</p>
 
 			<template v-else>
@@ -183,8 +204,28 @@
 					</div>
 				</div>
 
-				<p v-if="isLoading" class="state-message">Loading…</p>
-				<p v-else-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+				<div v-if="isLoading" class="data-table-wrap">
+					<table class="data-table">
+						<thead>
+							<tr><th>CONSUMER</th><th>EMAIL</th><th>LAST ACTIVE</th><th>ARCHIVED</th><th>DELETES</th><th>STATUS</th></tr>
+						</thead>
+						<tbody>
+							<tr v-for="n in 5" :key="n" class="users-sk-row">
+								<td><div class="sk-cell shimmer" style="width:130px;height:14px"></div></td>
+								<td><div class="sk-cell shimmer" style="width:120px;height:12px"></div></td>
+								<td><div class="sk-cell shimmer" style="width:60px;height:12px"></div></td>
+								<td><div class="sk-cell shimmer" style="width:60px;height:12px"></div></td>
+								<td><div class="sk-cell shimmer" style="width:80px;height:12px"></div></td>
+								<td><div class="sk-cell shimmer" style="width:60px;height:20px;border-radius:9999px"></div></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div v-else-if="errorMessage" class="admin-error-banner">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+					<span>{{ errorMessage }}</span>
+					<button class="admin-error-retry" @click="fetchUsers">Try again</button>
+				</div>
 				<table v-else class="data-table">
 					<thead>
 						<tr>
@@ -839,6 +880,27 @@ td {
 	text-align: center;
 	color: #dc2626;
 	font-size: 0.9rem;
+}
+
+/* Group A: Error banner */
+.admin-error-banner { display:flex; align-items:center; gap:10px; padding:14px 18px; margin:16px 20px; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; font-size:0.85rem; color:#b91c1c; }
+.admin-error-banner svg { flex-shrink:0; color:#dc2626; }
+.admin-error-banner span { flex:1; }
+.admin-error-retry { border:1px solid #fca5a5; background:#fff; border-radius:6px; padding:5px 14px; font-size:0.78rem; font-weight:600; color:#dc2626; cursor:pointer; flex-shrink:0; }
+.admin-error-retry:hover { background:#fef2f2; }
+
+/* Group B: Table skeleton */
+.data-table-wrap { overflow-x:auto; }
+.users-sk-row td { padding:14px 20px; border-bottom:1px solid #f8fafc; }
+.sk-cell { border-radius:6px; display:block; }
+.shimmer {
+	background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+	background-size: 400% 100%;
+	animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer {
+	0% { background-position: 100% 0; }
+	100% { background-position: -100% 0; }
 }
 
 /* Pagination */

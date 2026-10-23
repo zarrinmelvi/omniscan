@@ -55,8 +55,12 @@
 				</div>
 			</div>
 
-			<p v-if="isLoading" class="state-message">Loading data…</p>
-			<p v-else-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+			<p v-if="isLoading && activeTab !== 'halal'" class="state-message">Loading data…</p>
+			<div v-else-if="errorMessage" class="admin-error-banner">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+				<span>{{ errorMessage }}</span>
+				<button class="admin-error-retry" @click="fetchTabContent(activeTab)">Try again</button>
+			</div>
 
 			<!-- 1. ALLERGEN DICTIONARY -->
 			<template v-else-if="activeTab === 'allergen'">
@@ -130,7 +134,17 @@
 			</template>
 
 			<!-- 2. HALAL LOGO LIBRARY (card grid) -->
-			<template v-else-if="activeTab === 'halal'">
+			<div v-else-if="activeTab === 'halal'">
+				<!-- skeleton while halal logos load -->
+				<div v-if="isLoading" class="certifier-grid" style="padding:24px">
+					<div v-for="n in 6" :key="n" class="certifier-sk-card">
+						<div class="certifier-sk-logo shimmer"></div>
+						<div class="certifier-sk-line shimmer" style="width:60%;height:12px;margin-bottom:8px"></div>
+						<div class="certifier-sk-line shimmer" style="width:80%;height:10px;margin-bottom:6px"></div>
+						<div class="certifier-sk-line shimmer" style="width:50%;height:10px"></div>
+					</div>
+				</div>
+				<template v-else>
 				<!-- Header card -->
 				<div class="halal-header-card">
 					<div class="halal-header-text">
@@ -255,6 +269,7 @@
 					</div>
 				</div>
 			</template>
+			</div>
 
 			<!-- 3. INGREDIENT MAPPINGS -->
 			<template v-else-if="activeTab === 'ingredient'">
@@ -407,9 +422,32 @@
 					<button class="filter-chip" :class="{ 'filter-chip--active': productFilter === 'unverified' }" @click="productFilter = 'unverified'">Unverified Halal logo · {{ productUnverifiedCount }}</button>
 				</div>
 
-				<p v-if="productLoading" class="state-message">Loading…</p>
+				<div v-if="productLoading" class="table-wrap">
+					<table class="data-table products-table">
+						<thead><tr><th>PRODUCT</th><th>BRAND</th><th>SCANS</th><th>HALAL STATUS</th><th>ALLERGENS DETECTED</th><th>UPDATED</th><th>ACTIONS</th></tr></thead>
+						<tbody>
+							<tr v-for="n in 6" :key="n" class="products-sk-row">
+								<td><div class="sk-cell shimmer" style="width:70%;height:14px"></div></td>
+								<td><div class="sk-cell shimmer" style="width:60%;height:12px"></div></td>
+								<td><div class="sk-cell shimmer" style="width:30px;height:12px"></div></td>
+								<td><div class="sk-cell shimmer" style="width:90px;height:20px;border-radius:9999px"></div></td>
+								<td><div class="sk-cell shimmer" style="width:80%;height:12px"></div></td>
+								<td><div class="sk-cell shimmer" style="width:50px;height:12px"></div></td>
+								<td><div class="sk-cell shimmer" style="width:80px;height:12px"></div></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 				<p v-else-if="productError" class="error-message">{{ productError }}</p>
-				<p v-else-if="productList.length === 0" class="empty-note">No products found.</p>
+				<div v-else-if="productList.length === 0" class="prod-empty-state">
+					<svg class="prod-empty-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+					</svg>
+					<div class="prod-empty-title" v-if="productSearch.trim()">No products match "{{ productSearch }}"</div>
+					<div class="prod-empty-title" v-else>No products yet.</div>
+					<div class="prod-empty-sub" v-if="productSearch.trim()">Check the spelling or clear the search.</div>
+					<button v-if="productSearch.trim()" class="prod-clear-search" @click="productSearch = ''">Clear search</button>
+				</div>
 				<div v-else class="table-wrap">
 					<table class="data-table products-table">
 						<thead>
@@ -2089,4 +2127,39 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 .test-flags-label{font-size:0.78rem;color:#64748b;margin:14px 0 8px;}
 .flag-result-chip{display:inline-block;background:#fff1f2;color:#be123c;border-radius:9999px;padding:3px 10px;font-size:0.74rem;font-weight:600;margin:2px 4px 2px 0;}
 .test-hint,.test-empty{font-size:0.78rem;color:#94a3b8;margin-top:10px;}
+
+/* ── Group A2: Error banner ── */
+.admin-error-banner { display:flex; align-items:center; gap:10px; padding:14px 18px; margin:16px 24px; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; font-size:0.85rem; color:#b91c1c; }
+.admin-error-banner svg { flex-shrink:0; color:#dc2626; }
+.admin-error-banner span { flex:1; }
+.admin-error-retry { border:1px solid #fca5a5; background:#fff; border-radius:6px; padding:5px 14px; font-size:0.78rem; font-weight:600; color:#dc2626; cursor:pointer; flex-shrink:0; }
+.admin-error-retry:hover { background:#fef2f2; }
+
+/* ── Group A1: Products empty state ── */
+.prod-empty-state { display:flex; flex-direction:column; align-items:center; padding:48px 24px; text-align:center; gap:8px; }
+.prod-empty-icon { color:#94a3b8; margin-bottom:4px; }
+.prod-empty-title { font-size:0.95rem; font-weight:600; color:#374151; }
+.prod-empty-sub { font-size:0.82rem; color:#9ca3af; }
+.prod-clear-search { margin-top:8px; border:1px solid #e2e8f0; background:#fff; border-radius:8px; padding:7px 18px; font-size:0.82rem; font-weight:600; color:#374151; cursor:pointer; }
+.prod-clear-search:hover { background:#f8fafc; }
+
+/* ── Group B1: Halal skeleton ── */
+.certifier-sk-card { border:1px solid #e2e8f0; border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:8px; min-height:180px; }
+.certifier-sk-logo { width:56px; height:56px; border-radius:12px; margin-bottom:8px; }
+.certifier-sk-line { height:12px; border-radius:6px; }
+
+/* ── Group B2: Products skeleton ── */
+.products-sk-row td { padding: 14px 24px; border-bottom:1px solid #f8fafc; }
+.sk-cell { border-radius:6px; display:block; }
+
+/* ── Shimmer ── */
+.shimmer {
+	background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+	background-size: 400% 100%;
+	animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer {
+	0% { background-position: 100% 0; }
+	100% { background-position: -100% 0; }
+}
 </style>

@@ -10,6 +10,10 @@
 				<section class="gs-card">
 					<h2 class="gs-section-head">Appearance</h2>
 
+					<template v-if="!isLoaded">
+						<div class="gs-sk-row shimmer" v-for="n in 2" :key="n"></div>
+					</template>
+					<template v-else>
 					<div class="gs-row">
 						<div class="gs-row-info">
 							<div class="gs-row-label">Theme</div>
@@ -47,6 +51,7 @@
 							<option :value="100">100</option>
 						</select>
 					</div>
+					</template>
 				</section>
 
 				<!-- Notifications -->
@@ -57,6 +62,10 @@
 						<span class="gs-sent-email">{{ notifyEmail }}</span>
 					</div>
 
+					<template v-if="!isLoaded">
+						<div class="gs-sk-row shimmer" v-for="n in 3" :key="n"></div>
+					</template>
+					<template v-else>
 					<div class="gs-toggle-row">
 						<span class="gs-toggle-icon">
 							<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -106,6 +115,7 @@
 							<span class="slider"></span>
 						</label>
 					</div>
+					</template>
 				</section>
 			</div>
 
@@ -221,10 +231,10 @@ async function fetchSettings(): Promise<void> {
 // Debounced auto-save of all preferences. Suppressed until the initial load
 // has settled so mounting the page never triggers a spurious write.
 let saveTimer: ReturnType<typeof setTimeout> | undefined
-let isLoaded = false
+const isLoaded = ref(false)
 
 async function autosave(): Promise<void> {
-	if (!isLoaded) return
+	if (!isLoaded.value) return
 	try {
 		await apiFetch('/api/admin/settings', {
 			method: 'PUT',
@@ -289,7 +299,7 @@ onMounted(() => {
 	// switch reflects reality before the backend settings load.
 	form.darkMode = localStorage.getItem(DARK_MODE_KEY) === 'true'
 	fetchSettings().then(() => {
-		isLoaded = true
+		isLoaded.value = true
 		// Cancel any auto-save that may have been scheduled while seeding the
 		// form from the backend, so loading the page never writes back to the DB.
 		if (saveTimer) {
@@ -654,5 +664,17 @@ input:checked + .slider:before {
 	font-size: 0.875rem;
 	font-weight: 500;
 	z-index: 10000;
+}
+
+/* Group B: Skeleton rows */
+.gs-sk-row { height:52px; border-radius:8px; margin-bottom:8px; }
+.shimmer {
+	background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+	background-size: 400% 100%;
+	animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer {
+	0% { background-position: 100% 0; }
+	100% { background-position: -100% 0; }
 }
 </style>

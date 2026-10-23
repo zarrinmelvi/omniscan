@@ -63,8 +63,13 @@
 					<div v-for="n in 3" :key="n" class="sk-card shimmer"></div>
 				</div>
 
-				<div v-else-if="activeTabCards.length === 0" class="vp-empty">
-					No items in this queue.
+				<div v-else-if="activeTabCards.length === 0" class="vp-empty-state">
+					<svg class="vp-empty-icon" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+						<polyline points="22 4 12 14.01 9 11.01"/>
+					</svg>
+					<div class="vp-empty-title">No decisions needed</div>
+					<div class="vp-empty-sub">The AI resolved every scan. New items appear here automatically.</div>
 				</div>
 
 				<template v-else>
@@ -614,6 +619,12 @@ watch(() => route.query, (q) => {
 
 .vp-queue { display: flex; flex-direction: column; gap: 12px; }
 .vp-empty { color: #9ca3af; font-size: 0.875rem; padding: 24px 0; }
+
+/* ── Empty state ──────────────────────────────────────── */
+.vp-empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 24px; text-align:center; gap:10px; }
+.vp-empty-icon { color:#16a34a; margin-bottom:4px; }
+.vp-empty-title { font-size:1rem; font-weight:600; color:#111827; }
+.vp-empty-sub { font-size:0.85rem; color:#9ca3af; max-width:320px; line-height:1.5; }
 
 /* ── Logo cards ───────────────────────────────────────── */
 .logo-card {

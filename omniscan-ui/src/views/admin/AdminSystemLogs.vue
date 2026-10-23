@@ -29,7 +29,11 @@
 		<!-- ═══════════════════════════════════════════════════════ -->
 		<!-- TAB 1 — OVERVIEW                                        -->
 		<!-- ═══════════════════════════════════════════════════════ -->
-		<div v-if="activeTab === 'overview'">
+		<div v-if="sysLoading && activeTab === 'overview'" class="sl-sk-overview">
+			<div class="sl-sk-card shimmer"></div>
+			<div class="sl-sk-card shimmer"></div>
+		</div>
+		<div v-else-if="activeTab === 'overview'">
 			<!-- Two side-by-side summary cards -->
 			<div class="ov-cards">
 				<!-- Card 1: API response time -->
@@ -95,7 +99,8 @@
 		<!-- ═══════════════════════════════════════════════════════ -->
 		<!-- TAB 2 — API LATENCY                                     -->
 		<!-- ═══════════════════════════════════════════════════════ -->
-		<div v-if="activeTab === 'api-latency'">
+		<div v-if="sysLoading && activeTab === 'api-latency'" class="sl-sk-chart shimmer"></div>
+		<div v-else-if="activeTab === 'api-latency'">
 			<div class="lat-layout">
 				<!-- LEFT: chart card -->
 				<div class="chart-card">
@@ -496,6 +501,7 @@ const errorMessage = ref<string | null>(null)
 const flagStats = ref<FlagAuditStatsResponse | null>(null)
 const flagStatsLoading = ref(false)
 const flagStatsLoaded = ref(false)
+const sysLoading = ref(true)
 const expandedAllergen = ref<number | null>(null)
 const showSlowOnly = ref(false)
 
@@ -887,6 +893,8 @@ async function fetchLogs(): Promise<void> {
 		errorMessage.value = null
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load system telemetry.'
+	} finally {
+		sysLoading.value = false
 	}
 }
 
@@ -1337,4 +1345,18 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 
 /* Stat card kept for dark-mode.css compat */
 .stat-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; }
+
+/* Group B: System Logs skeleton */
+.sl-sk-overview { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; }
+.sl-sk-card { height:140px; border-radius:14px; }
+.sl-sk-chart { height:200px; border-radius:14px; margin-bottom:24px; }
+.shimmer {
+	background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+	background-size: 400% 100%;
+	animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer {
+	0% { background-position: 100% 0; }
+	100% { background-position: -100% 0; }
+}
 </style>

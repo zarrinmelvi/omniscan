@@ -2122,3 +2122,109 @@ html.ion-palette-dark .page-num:focus-visible { outline: 2px solid #4ade80 !impo
 
 html.ion-palette-dark .theme-toggle-btn { background: #334155 !important; color: #fbbf24 !important; }
 html.ion-palette-dark .theme-toggle-btn:hover { background: #475569 !important; }
+
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/* ADMIN LOGIN PAGE DARK MODE — always dark green, never navy            */
+/* These rules beat the generic .header-section, .subtitle etc rules     */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+/* Page shell */
+html.ion-palette-dark .admin-login {
+  background-color: #0f1a0f !important;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+}
+
+/* Brand header section — override the .header-section profile card rule */
+html.ion-palette-dark .admin-login .header-section {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Title text */
+html.ion-palette-dark .admin-login h1 {
+  color: #d1d5db !important;
+}
+html.ion-palette-dark .admin-login h1 strong {
+  color: #ffffff !important;
+}
+
+/* Subtitle */
+html.ion-palette-dark .admin-login .subtitle {
+  color: #9ca3af !important;
+}
+
+/* Login card */
+html.ion-palette-dark .admin-login .login-card {
+  background: #1a2a1a !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+}
+
+/* Card header strip */
+html.ion-palette-dark .admin-login .card-header {
+  background: rgba(255,255,255,0.04) !important;
+  border-bottom-color: rgba(255,255,255,0.06) !important;
+  color: #6b7280 !important;
+}
+
+/* Form labels */
+html.ion-palette-dark .admin-login label {
+  color: #d1d5db !important;
+}
+
+/* Inputs */
+html.ion-palette-dark .admin-login input {
+  background: rgba(255,255,255,0.06) !important;
+  background-color: rgba(255,255,255,0.06) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: #f9fafb !important;
+  -webkit-text-fill-color: #f9fafb !important;
+}
+html.ion-palette-dark .admin-login input::placeholder {
+  color: #6b7280 !important;
+}
+html.ion-palette-dark .admin-login input:focus {
+  border-color: #16a34a !important;
+  background: rgba(255,255,255,0.09) !important;
+  background-color: rgba(255,255,255,0.09) !important;
+}
+
+/* Password toggle icon */
+html.ion-palette-dark .admin-login .pw-toggle {
+  color: #6b7280 !important;
+}
+html.ion-palette-dark .admin-login .pw-toggle:hover {
+  color: #9ca3af !important;
+}
+
+/* Error banner */
+html.ion-palette-dark .admin-login .banner--error {
+  background: #450a0a !important;
+  border-color: #7f1d1d !important;
+  color: #fca5a5 !important;
+}
+
+/* Footer texts */
+html.ion-palette-dark .admin-login .footer-note {
+  color: #4b5563 !important;
+}
+html.ion-palette-dark .admin-login .page-footer {
+  color: #374151 !important;
+}
+
+/* Theme toggle button */
+html.ion-palette-dark .admin-login .theme-toggle-btn,
+html.ion-palette-dark .theme-toggle-btn {
+  background: rgba(255,255,255,0.07) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: #9ca3af !important;
+}
+html.ion-palette-dark .theme-toggle-btn:hover {
+  background: rgba(255,255,255,0.13) !important;
+  color: #e5e7eb !important;
+}

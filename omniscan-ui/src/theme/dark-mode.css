@@ -1450,47 +1450,6 @@ html.ion-palette-dark .sidebar .nav-item.active .nav-icon {
 	color: #ffffff !important;
 }
 
-/* == Admin Login page — dark mode styles (prevents flash on logout from dark mode) == */
-html.ion-palette-dark .admin-login {
-	background-color: var(--dm-bg-page) !important;
-	background-image:
-		linear-gradient(to right, rgba(51, 65, 85, 0.3) 1px, transparent 1px),
-		linear-gradient(to bottom, rgba(51, 65, 85, 0.3) 1px, transparent 1px) !important;
-}
-html.ion-palette-dark .header-section h1 {
-	color: var(--dm-text-primary) !important;
-}
-html.ion-palette-dark .header-section h1 strong {
-	color: var(--dm-text-primary) !important;
-}
-html.ion-palette-dark .header-section .subtitle {
-	color: var(--dm-text-secondary) !important;
-}
-html.ion-palette-dark .login-card {
-	background: var(--dm-bg-card) !important;
-	border-color: var(--dm-border) !important;
-}
-html.ion-palette-dark .card-header {
-	background: var(--dm-bg-subtle) !important;
-	border-bottom-color: var(--dm-border) !important;
-	color: var(--dm-text-secondary) !important;
-}
-html.ion-palette-dark .login-card label {
-	color: var(--dm-text-secondary) !important;
-}
-html.ion-palette-dark .login-card input {
-	background: var(--dm-bg-input) !important;
-	border-color: var(--dm-border) !important;
-	color: var(--dm-text-primary) !important;
-}
-html.ion-palette-dark .login-card input::placeholder {
-	color: var(--dm-text-secondary) !important;
-}
-html.ion-palette-dark .footer-note,
-html.ion-palette-dark .page-footer {
-	color: var(--dm-text-secondary) !important;
-}
-
 /* == ConfirmDiscardModal — unsaved changes confirmation dark mode == */
 html.ion-palette-dark .confirm-discard-modal {
 	background: var(--dm-bg-card) !important;
@@ -2120,8 +2079,8 @@ html.ion-palette-dark .al-chip:focus-visible,
 html.ion-palette-dark .page-nav:focus-visible,
 html.ion-palette-dark .page-num:focus-visible { outline: 2px solid #4ade80 !important; outline-offset: 2px !important; }
 
-html.ion-palette-dark .theme-toggle-btn { background: #334155 !important; color: #fbbf24 !important; }
-html.ion-palette-dark .theme-toggle-btn:hover { background: #475569 !important; }
+html.ion-palette-dark .top-bar .theme-toggle-btn { background: #334155 !important; color: #fbbf24 !important; }
+html.ion-palette-dark .top-bar .theme-toggle-btn:hover { background: #475569 !important; }
 
 
 /* ══════════════════════════════════════════════════════════════════════ */
@@ -2184,6 +2143,14 @@ html.ion-palette-dark .admin-login input {
   border-color: rgba(255,255,255,0.12) !important;
   color: #f9fafb !important;
   -webkit-text-fill-color: #f9fafb !important;
+}
+/* Kill browser autofill white flash on login inputs */
+html.ion-palette-dark .admin-login input:-webkit-autofill,
+html.ion-palette-dark .admin-login input:-webkit-autofill:hover,
+html.ion-palette-dark .admin-login input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px rgba(26, 42, 26, 0.95) inset !important;
+  -webkit-text-fill-color: #f9fafb !important;
+  caret-color: #f9fafb !important;
 }
 html.ion-palette-dark .admin-login input::placeholder {
   color: #6b7280 !important;

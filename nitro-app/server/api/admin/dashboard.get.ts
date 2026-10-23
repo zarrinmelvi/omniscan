@@ -83,11 +83,11 @@ export default defineEventHandler(async (event) => {
 				},
 				orderBy: { name: 'asc' },
 			}),
-			// Recent flagged items (top 3 for the table)
+			// Recent flagged items (top 20 for deduplication — we pick 3 unique products)
 			prisma.flaggedScan.findMany({
 				where: { status: { in: ['pending', 'awaiting_rescan'] } },
 				orderBy: { created_at: 'desc' },
-				take: 3,
+				take: 20,
 				select: {
 					id: true,
 					flag_reason: true,
@@ -176,23 +176,44 @@ export default defineEventHandler(async (event) => {
 			.slice(0, 8)
 
 		// ── Recent flagged items ──────────────────────────────────────────
-		const recentFlaggedMapped = recentFlagged.map((f) => ({
-			id: f.id,
-			product_name: f.scan?.product?.product_name ?? '[Product name]',
-			brand_name: f.scan?.product?.brand_name ?? '',
-			flag_reason: (() => {
-				const r = f.flag_reason.toLowerCase()
-				if (r.includes('allergen') || r.includes('contains') || r.includes('ingredient')) return 'Allergen conflict'
-				if (r.includes('halal') || r.includes('certif') || r.includes('logo')) return 'Halal conflict'
-				if (r.includes('unclear') || r.includes('low confidence') || r.includes('scan')) return 'Unclear scan'
-				return 'Flagged scan'
-			})(),
-			safety_verdict: f.scan?.safety_verdict ?? 'Red',
-			scan_count: allFlaggedScans.filter(
-				(fs) => fs.scan?.product?.product_name === f.scan?.product?.product_name,
-			).length,
-			status: f.status === 'awaiting_rescan' ? 'Awaiting rescan' : 'Pending',
-		}))
+		interface RecentFlaggedRow {
+			id: number
+			product_name: string
+			brand_name: string
+			flag_reason: string
+			safety_verdict: string
+			scan_count: number
+			status: string
+		}
+
+		// Deduplicate by product name — show each product once (most recent flag for it)
+		const seenProducts = new Set<string>()
+		const recentFlaggedMapped: RecentFlaggedRow[] = []
+
+		for (const f of recentFlagged) {
+			const productName = f.scan?.product?.product_name ?? '[Product name]'
+			if (seenProducts.has(productName)) continue
+			seenProducts.add(productName)
+			const r = f.flag_reason.toLowerCase()
+			recentFlaggedMapped.push({
+				id: f.id,
+				product_name: productName,
+				brand_name: f.scan?.product?.brand_name ?? '',
+				flag_reason: r.includes('allergen') || r.includes('contains') || r.includes('ingredient')
+					? 'Allergen conflict'
+					: r.includes('halal') || r.includes('certif') || r.includes('logo')
+					? 'Halal conflict'
+					: r.includes('unclear') || r.includes('low confidence') || r.includes('scan')
+					? 'Unclear scan'
+					: 'Flagged scan',
+				safety_verdict: f.scan?.safety_verdict ?? 'Red',
+				scan_count: allFlaggedScans.filter(
+					(fs) => fs.scan?.product?.product_name === productName,
+				).length,
+				status: f.status === 'awaiting_rescan' ? 'Awaiting rescan' : 'Pending',
+			})
+			if (recentFlaggedMapped.length >= 3) break
+		}
 
 		return {
 			success: true,

@@ -247,7 +247,7 @@
 				</div>
 				<div v-if="filteredAuditEvents.length > 0" class="al-pagination">
 					<span class="al-page-range">
-						Showing {{ (auditPage - 1) * 20 + 1 }}–{{ Math.min(auditPage * 20, filteredAuditEvents.length) }} of {{ filteredAuditEvents.length }} logs
+						Showing {{ (auditPage - 1) * 10 + 1 }}–{{ Math.min(auditPage * 10, filteredAuditEvents.length) }} of {{ filteredAuditEvents.length }} logs
 					</span>
 					<div class="al-page-btns">
 						<button class="page-nav" :disabled="auditPage === 1" @click="auditPage--">← Previous</button>
@@ -764,7 +764,7 @@ const groupedAuditEvents = computed<AuditGroup[]>(() => {
 // ─── Audit Log Pagination ─────────────────────────────────────────────────────
 
 const auditPage = ref(1)
-const AUDIT_PAGE_SIZE = 20
+const AUDIT_PAGE_SIZE = 10
 
 const auditTotalPages = computed(() => Math.max(1, Math.ceil(filteredAuditEvents.value.length / AUDIT_PAGE_SIZE)))
 
@@ -1188,18 +1188,31 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 }
 .al-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .al-chip {
-	padding: 5px 14px; border-radius: 9999px; border: 1px solid #e2e8f0;
-	background: #f8fafc; color: #475569; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+	height: 32px;
+	display: inline-flex;
+	align-items: center;
+	padding: 0 14px;
+	border-radius: 9999px;
+	border: 1px solid #e2e8f0;
+	background: #f8fafc;
+	color: #475569;
+	font-size: 0.78rem;
+	font-weight: 600;
+	cursor: pointer;
+	white-space: nowrap;
+	flex-shrink: 0;
+	transition: all 0.15s;
 }
 .al-chip:hover { border-color: #008744; color: #008744; }
-.al-chip--active { background: #008744; color: #fff; border-color: #008744; }
+.al-chip--active { height: 32px; background: #008744; color: #fff; border-color: #008744; }
 .al-search {
 	width: 200px; padding: 7px 14px; border-radius: 8px;
 	border: 1px solid #e2e8f0; background: #fff; color: #334155; font-size: 0.85rem;
 }
 .al-search:focus { outline: none; border-color: #008744; }
 .al-days-select {
-	width: auto; min-width: 130px; padding: 7px 12px; border-radius: 8px; border: 1px solid #e2e8f0;
+	height: 32px;
+	width: auto; min-width: 130px; padding: 0 12px; border-radius: 8px; border: 1px solid #e2e8f0;
 	background: #fff; color: #334155; font-size: 0.82rem; cursor: pointer;
 }
 .al-group-head {

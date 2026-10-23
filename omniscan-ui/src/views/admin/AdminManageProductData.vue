@@ -273,65 +273,6 @@
 
 			<!-- 3. INGREDIENT MAPPINGS -->
 			<template v-else-if="activeTab === 'ingredient'">
-				<!-- Feature E — Unmapped-terms panel + Test-an-ingredient-line box -->
-				<div class="ingredient-top-row">
-					<!-- LEFT: Unmapped terms from real recent scans -->
-					<div class="unmapped-card">
-						<div class="unmapped-head">
-							<span class="unmapped-title">Unmapped terms<span class="unmapped-count"> · {{ unmappedTerms.length }}</span></span>
-							<span class="unmapped-note">The AI found these but could not map them</span>
-						</div>
-
-						<template v-if="unmappedLoading">
-							<div v-for="n in 4" :key="n" class="unmapped-skeleton"></div>
-						</template>
-
-						<p v-else-if="unmappedTerms.length === 0" class="unmapped-empty">No unmapped terms from recent scans.</p>
-
-						<template v-else>
-							<div v-for="u in unmappedTerms" :key="u.term" class="unmapped-row">
-								<div class="unmapped-left">
-									<div class="unmapped-term">{{ u.term }}</div>
-									<div class="unmapped-sub">seen {{ u.seen_count }} times</div>
-								</div>
-								<div class="unmapped-actions">
-									<template v-if="u.suggested_allergen_name">
-										<span class="ai-suggests">AI suggests {{ u.suggested_allergen_name }}</span>
-										<button class="btn-map" @click="mapUnmappedTerm(u)">Map to {{ u.suggested_allergen_name }}</button>
-									</template>
-									<span v-else class="ai-suggests">No suggestion</span>
-									<button class="btn-ignore" @click="ignoreUnmappedTerm(u)">Ignore</button>
-								</div>
-							</div>
-						</template>
-					</div>
-
-					<!-- RIGHT: Test an ingredient line -->
-					<div class="ingredient-test-card">
-						<div class="ingredient-test-title">Test an ingredient line</div>
-						<input
-							v-model="ingredientTestText"
-							class="ingredient-test-input"
-							type="text"
-							placeholder="Water, hipon extract, wheat flour, soy lecithin"
-						/>
-
-						<p v-if="!ingredientTestText.trim()" class="test-hint">
-							Type an ingredient line to see what the scanner would flag.
-						</p>
-						<template v-else>
-							<div class="test-flags-label">AI would flag:</div>
-							<p v-if="testLoading && testFlags.length === 0" class="test-empty">Checking…</p>
-							<p v-else-if="testFlags.length === 0" class="test-empty">No allergens flagged.</p>
-							<template v-else>
-								<span v-for="f in testFlags" :key="f.id" class="flag-result-chip">
-									{{ f.name }}<span v-if="f.matched_term"> ({{ f.matched_term }})</span>
-								</span>
-							</template>
-						</template>
-					</div>
-				</div>
-
 				<!-- Ingredient search / action row -->
 				<div class="ingredient-controls-row">
 					<div class="search-box">
@@ -431,13 +372,16 @@
 						</svg>
 						<input v-model="productSearch" type="text" placeholder="Search by name or brand" />
 					</div>
-					<select v-model="productSort" class="ingredient-filter-select">
+					<select v-model="productSort" class="ctrl-select">
 						<option value="name_asc">Name A–Z</option>
 						<option value="name_desc">Name Z–A</option>
 						<option value="newest">Newest</option>
 					</select>
-					<button class="filter-chip" :class="{ 'filter-chip--active': productAllergenFilter === 'all' }" @click="setProductAllergenFilter('all')">All allergens</button>
-					<button v-for="allergen in productAllergenOptions" :key="allergen" class="filter-chip" :class="{ 'filter-chip--active': productAllergenFilter === allergen }" @click="setProductAllergenFilter(allergen)">{{ allergen }}</button>
+					<select v-model="productAllergenFilter" class="ctrl-select">
+						<option value="all">All allergens</option>
+						<option v-for="allergen in productAllergenOptions" :key="allergen" :value="allergen">{{ allergen }}</option>
+					</select>
+					<span class="ctrl-count">{{ productTotalFiltered }} products</span>
 				</div>
 
 				<div v-if="productLoading" class="table-wrap">
@@ -746,11 +690,6 @@
 			<div v-if="productToast.visible" class="product-toast">{{ productToast.message }}</div>
 		</Teleport>
 
-		<!-- ══════════════════ INGREDIENT TOAST (Feature E) ══════════════════ -->
-		<Teleport to="body">
-			<div v-if="ingredientToast.visible" class="product-toast ingredient-toast">{{ ingredientToast.message }}</div>
-		</Teleport>
-
 		<!-- ══════════════════ COMPARE LOGOS DIALOG ══════════════════ -->
 		<Teleport to="body">
 			<div v-if="compareDialog.open && compareDialog.logo" class="modal-overlay" @click.self="compareDialog.open = false">
@@ -911,20 +850,6 @@ interface MappingRow {
 	updated_at: string
 }
 
-// ─── Feature E — Ingredient Mappings extras ─────────────────────────────────
-interface UnmappedTerm {
-	term: string
-	seen_count: number
-	suggested_allergen_id: number | null
-	suggested_allergen_name: string | null
-}
-
-interface TestFlag {
-	id: number
-	name: string
-	matched_term: string
-}
-
 const activeTab = ref<TabType>('allergen')
 const searchQuery = ref('')
 const ingredientAllergenFilter = ref('all')
@@ -953,9 +878,7 @@ function setProductAllergenFilter(val: string): void {
 	productAllergenFilter.value = val
 	productPage.value = 1
 	fetchProducts()
-}
-
-const productAllergenOptions = computed(() => {
+}const productAllergenOptions = computed(() => {
 	const names = new Set<string>()
 	for (const p of productList.value) {
 		for (const a of p.allergens_detected) names.add(a)
@@ -974,16 +897,6 @@ const mergeError = ref<string | null>(null)
 const viewProductTarget = ref<ProductRow | null>(null)
 const productToast = ref<{ visible: boolean; message: string }>({ visible: false, message: '' })
 let productToastTimer: ReturnType<typeof setTimeout> | null = null
-
-// ─── Feature E — Ingredient Mappings extras state ───────────────────────────
-const unmappedTerms = ref<UnmappedTerm[]>([])
-const unmappedLoading = ref(false)
-const ingredientTestText = ref('')
-const testFlags = ref<TestFlag[]>([])
-const testLoading = ref(false)
-let ingredientTestTimer: ReturnType<typeof setTimeout> | null = null
-const ingredientToast = ref<{ visible: boolean; message: string }>({ visible: false, message: '' })
-let ingredientToastTimer: ReturnType<typeof setTimeout> | null = null
 
 // ─── Halal lifecycle state (Feature C) ──────────────────────────────────────
 const rescrapingId = ref<number | null>(null)
@@ -1520,68 +1433,6 @@ async function fetchMappings(): Promise<void> {
 	ingredientMappings.value = data.ingredient_mappings ?? []
 }
 
-// ─── Feature E — Ingredient Mappings extras ─────────────────────────────────
-async function fetchUnmappedTerms(): Promise<void> {
-	unmappedLoading.value = true
-	try {
-		const data = await apiFetch<{ unmapped: UnmappedTerm[] }>('/api/admin/unmapped-terms?limit=8', { isAdmin: true })
-		unmappedTerms.value = data.unmapped ?? []
-	} catch {
-		unmappedTerms.value = []
-	} finally {
-		unmappedLoading.value = false
-	}
-}
-
-async function runIngredientTest(): Promise<void> {
-	const text = ingredientTestText.value.trim()
-	if (!text) {
-		testFlags.value = []
-		return
-	}
-	testLoading.value = true
-	try {
-		const data = await apiFetch<{ flagged: TestFlag[] }>('/api/admin/ingredient-test', {
-			method: 'POST',
-			body: { text },
-			isAdmin: true,
-		})
-		testFlags.value = data.flagged ?? []
-	} catch {
-		testFlags.value = []
-	} finally {
-		testLoading.value = false
-	}
-}
-
-async function mapUnmappedTerm(u: UnmappedTerm): Promise<void> {
-	if (u.suggested_allergen_id == null) return
-	try {
-		await apiFetch('/api/ingredient_mapping', {
-			method: 'POST',
-			body: { scientific_term: u.term, simplified_term: u.term, allergen_id: u.suggested_allergen_id },
-			isAdmin: true,
-		})
-		unmappedTerms.value = unmappedTerms.value.filter((t) => t.term !== u.term)
-		showIngredientToast(`Mapped '${u.term}' to ${u.suggested_allergen_name}.`)
-		await fetchMappings()
-	} catch (err) {
-		showIngredientToast(err instanceof ApiError ? err.message : `Failed to map '${u.term}'.`)
-	}
-}
-
-function ignoreUnmappedTerm(u: UnmappedTerm): void {
-	unmappedTerms.value = unmappedTerms.value.filter((t) => t.term !== u.term)
-}
-
-function showIngredientToast(message: string): void {
-	ingredientToast.value = { visible: true, message }
-	if (ingredientToastTimer) clearTimeout(ingredientToastTimer)
-	ingredientToastTimer = setTimeout(() => {
-		ingredientToast.value = { visible: false, message: '' }
-	}, 3000)
-}
-
 async function fetchTabContent(tab: TabType): Promise<void> {
 	isLoading.value = true
 	errorMessage.value = null
@@ -1595,7 +1446,6 @@ async function fetchTabContent(tab: TabType): Promise<void> {
 			await Promise.all([
 				fetchMappings(),
 				allergens.value.length ? Promise.resolve() : fetchAllergens(),
-				fetchUnmappedTerms(),
 			])
 		}
 	} catch (err) {
@@ -1621,6 +1471,11 @@ function switchTab(tab: TabType): void {
 
 // Reset to page 1 and refetch when products search/sort changes.
 watch([productSearch, productSort], () => {
+	if (activeTab.value !== 'products') return
+	productPage.value = 1
+	fetchProducts()
+})
+watch(productAllergenFilter, () => {
 	if (activeTab.value !== 'products') return
 	productPage.value = 1
 	fetchProducts()
@@ -1814,18 +1669,6 @@ async function confirmDelete(): Promise<void> {
 	}
 }
 
-// Feature E — debounced ingredient-line test (runs ~400ms after typing stops).
-watch(ingredientTestText, () => {
-	if (ingredientTestTimer) clearTimeout(ingredientTestTimer)
-	if (!ingredientTestText.value.trim()) {
-		testFlags.value = []
-		return
-	}
-	ingredientTestTimer = setTimeout(() => {
-		runIngredientTest()
-	}, 400)
-})
-
 onMounted(() => {
 	fetchTabContent('allergen')
 })
@@ -1849,7 +1692,7 @@ h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 4px; color: #0f172a; }
 .tab-icon { flex-shrink: 0; }
 
 .content-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow: hidden; }
-.controls-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; gap: 12px; flex-wrap: wrap; }
+.controls-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid #f1f5f9; }
 .section-title { font-size: 0.92rem; color: #64748b; font-weight: 500; }
 .action-controls { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-end; }
 .search-box { display: flex; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 14px; width: 260px; }
@@ -1972,7 +1815,7 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 12px 24px;
+	padding: 0 24px 12px;
 	border-bottom: 1px solid #f1f5f9;
 	gap: 12px;
 	flex-wrap: wrap;
@@ -2003,7 +1846,7 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 	color: #94a3b8;
 	white-space: nowrap;
 }
-.ingredient-controls-row { display:flex; align-items:center; gap:12px; padding:16px 24px 8px; flex-wrap:wrap; }
+.ingredient-controls-row { display:flex; align-items:center; gap:12px; padding:14px 24px 8px; flex-wrap:wrap; }
 .allergen-dropdown-select { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 14px; font-size: 0.88rem; color: #334155; background: #fff; cursor: pointer; min-width: 180px; }
 
 /* Allergen group header */
@@ -2132,9 +1975,9 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 
 /* ─── Products tab ─────────────────────────────────────────────────────────── */
 .dup-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin:16px 24px;font-size:0.84rem;color:#92400e;}
-.products-controls{display:flex;align-items:center;gap:12px;padding:0 24px 16px;flex-wrap:wrap;}
-.filter-chip{border:1px solid #e2e8f0;background:#fff;border-radius:9999px;padding:6px 14px;font-size:0.8rem;font-weight:600;color:#64748b;cursor:pointer;}
-.filter-chip--active{background:#fef9c3;border-color:#fde047;color:#854d0e;}
+.products-controls{display:flex;align-items:center;gap:12px;padding:14px 24px 12px;flex-wrap:wrap;}
+.ctrl-select{border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:0.88rem;color:#334155;background:#fff;cursor:pointer;}
+.ctrl-count{font-size:0.82rem;color:#94a3b8;margin-left:auto;white-space:nowrap;}
 .product-cell{display:flex;align-items:center;gap:12px;}
 .product-thumb{width:40px;height:40px;border-radius:8px;background:#f1f5f9;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
 .product-thumb img{width:100%;height:100%;object-fit:cover;}
@@ -2157,33 +2000,6 @@ td { padding: 16px 24px; border-bottom: 1px solid #f8fafc; font-size: 0.88rem; v
 .products-table tbody tr:hover { background: #f8fafc; }
 .merge-copy{margin:0;font-size:0.88rem;color:#334155;line-height:1.5;}
 .product-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 24px;border-radius:9999px;font-size:0.875rem;font-weight:500;z-index:10000;box-shadow:0 8px 30px rgba(0,0,0,0.2);}
-
-/* ── Feature E — Ingredient Mappings: unmapped-terms + test box ─────────── */
-.ingredient-top-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 24px 0;}
-@media(max-width:900px){.ingredient-top-row{grid-template-columns:1fr;}}
-.unmapped-card,.ingredient-test-card{border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;background:#fff;}
-.unmapped-card{border-color:#fcd34d;}
-.unmapped-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.unmapped-title{font-size:0.9rem;font-weight:700;color:#0f172a;}
-.unmapped-count{color:#94a3b8;font-weight:600;}
-.unmapped-note{font-size:0.72rem;color:#94a3b8;}
-.unmapped-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #f1f5f9;}
-.unmapped-row:first-of-type{border-top:none;}
-.unmapped-term{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;color:#0f172a;font-size:0.9rem;}
-.unmapped-sub{font-size:0.72rem;color:#94a3b8;}
-.unmapped-actions{display:flex;align-items:center;gap:8px;}
-.unmapped-empty{font-size:0.78rem;color:#94a3b8;margin:4px 0;}
-.unmapped-skeleton{height:34px;border-radius:8px;margin:8px 0;background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 37%,#f1f5f9 63%);background-size:400% 100%;animation:unmapped-shimmer 1.4s ease infinite;}
-@keyframes unmapped-shimmer{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
-.ai-suggests{font-size:0.72rem;color:#94a3b8;margin-right:2px;}
-.btn-map{background:#008744;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:0.78rem;font-weight:600;cursor:pointer;}
-.btn-map:hover{background:#00753a;}
-.btn-ignore{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:6px 12px;font-size:0.78rem;font-weight:600;color:#64748b;cursor:pointer;}
-.ingredient-test-title{font-size:0.9rem;font-weight:700;color:#0f172a;margin-bottom:12px;}
-.ingredient-test-input{width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;font-size:0.88rem;color:#1e293b;box-sizing:border-box;}
-.test-flags-label{font-size:0.78rem;color:#64748b;margin:14px 0 8px;}
-.flag-result-chip{display:inline-block;background:#fff1f2;color:#be123c;border-radius:9999px;padding:3px 10px;font-size:0.74rem;font-weight:600;margin:2px 4px 2px 0;}
-.test-hint,.test-empty{font-size:0.78rem;color:#94a3b8;margin-top:10px;}
 
 /* ── Group A2: Error banner ── */
 .admin-error-banner { display:flex; align-items:center; gap:10px; padding:14px 18px; margin:16px 24px; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; font-size:0.85rem; color:#b91c1c; }

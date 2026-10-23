@@ -3,7 +3,7 @@
 		<h1 class="gs-page-title">General Settings</h1>
 		<p class="gs-subtitle">Your preferences for the Admin Portal. Changes save automatically.</p>
 
-		<div class="gs-grid">
+		<div class="gs-single-col">
 			<!-- LEFT COLUMN: Appearance + Notifications -->
 			<div class="gs-grid-left">
 				<!-- Appearance -->
@@ -106,21 +106,6 @@
 				</section>
 			</div>
 
-			<!-- RIGHT COLUMN: Account -->
-			<section class="gs-card gs-account-card">
-				<h2 class="gs-section-head">Account</h2>
-
-				<div class="gs-avatar">{{ initials }}</div>
-				<div class="gs-acct-name">{{ adminAuthStore.admin?.full_name || 'Admin' }}</div>
-				<div class="gs-acct-sub">Admin · Signed in today at {{ signInTime }}</div>
-
-				<div class="gs-field">
-					<label class="gs-label" for="gs-email-input">Email</label>
-					<input id="gs-email-input" v-model="editEmail" class="gs-input" type="email" autocomplete="email" />
-					<span class="gs-hint">Used for notifications. Sign-in uses your username and password.</span>
-					<button type="button" class="gs-btn gs-btn--primary gs-btn--email-save" @click="saveProfile">Save email</button>
-				</div>
-			</section>
 		</div>
 
 		<div v-if="gsToast.visible" class="gs-toast">{{ gsToast.message }}</div>
@@ -333,16 +318,16 @@ onMounted(() => {
 	margin: 0 0 24px;
 }
 
-.gs-grid {
-	display: grid;
-	grid-template-columns: 1fr 360px;
-	gap: 24px;
-	align-items: start;
+.gs-single-col {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	max-width: 680px;
 }
 
 @media (max-width: 1024px) {
-	.gs-grid {
-		grid-template-columns: 1fr;
+	.gs-single-col {
+		max-width: 100%;
 	}
 }
 

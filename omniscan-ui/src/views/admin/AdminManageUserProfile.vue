@@ -587,56 +587,58 @@ onMounted(fetchUsers)
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	padding: 12px 20px;
+	padding: 16px 24px;
 	border-bottom: 1px solid #f1f5f9;
 	flex-wrap: wrap;
 }
 
 .search-box {
+	height: 40px;
 	display: flex;
 	align-items: center;
-	background: #ffffff;
+	gap: 8px;
+	padding: 0 12px;
+	background: #fff;
 	border: 1px solid #e2e8f0;
-	border-radius: 8px;
-	padding: 8px 14px;
-	width: 260px;
-	flex-shrink: 0;
-}
-
-.search-icon {
-	color: #94a3b8;
-	margin-right: 10px;
+	border-radius: 10px;
+	flex: 1;
+	min-width: 200px;
 }
 
 .search-box input {
 	border: none;
 	outline: none;
-	width: 100%;
-	font-size: 0.88rem;
+	flex: 1;
+	font-size: 0.875rem;
 	color: #1e293b;
-}
-
-.filter-select {
-	background: #ffffff;
-	border: 1px solid #e2e8f0;
-	border-radius: 8px;
-	padding: 8px 16px;
-	font-size: 0.88rem;
-	color: #334155;
-	outline: none;
-	cursor: pointer;
+	background: transparent;
+	height: 100%;
 }
 
 .controls-right {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 12px;
+	flex-shrink: 0;
+}
+
+.filter-select {
+	height: 40px;
+	padding: 0 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	font-size: 0.875rem;
+	color: #334155;
+	background: #fff;
+	cursor: pointer;
 }
 
 .user-count-label {
-	font-size: 0.8rem;
+	font-size: 0.82rem;
 	color: #94a3b8;
 	white-space: nowrap;
+	display: flex;
+	align-items: center;
 }
 
 /* Data Table */

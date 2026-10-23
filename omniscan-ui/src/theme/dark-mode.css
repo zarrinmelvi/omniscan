@@ -2195,3 +2195,56 @@ html.ion-palette-dark .theme-toggle-btn:hover {
   background: rgba(255,255,255,0.13) !important;
   color: #e5e7eb !important;
 }
+
+
+/* == Dashboard time range chips == */
+html.ion-palette-dark .range-pill {
+    background: var(--dm-bg-chip) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text-secondary) !important;
+}
+html.ion-palette-dark .range-pill:hover:not(.range-pill--active) {
+    background: rgba(0, 135, 68, 0.15) !important;
+    border-color: #008744 !important;
+    color: #4ade80 !important;
+}
+html.ion-palette-dark .range-pill--active {
+    background: #008744 !important;
+    border-color: #008744 !important;
+    color: #ffffff !important;
+}
+
+/* == Manage Product Data — table row hover dark mode == */
+html.ion-palette-dark .manage-product-data .data-table tbody tr:hover {
+    background: rgba(30, 41, 59, 0.8) !important;
+}
+html.ion-palette-dark .manage-product-data .data-table td {
+    color: var(--dm-text-primary) !important;
+}
+/* == Manage Product Data — control inputs dark mode == */
+html.ion-palette-dark .manage-product-data .ctrl-select,
+html.ion-palette-dark .manage-product-data .allergen-dropdown-select {
+    background: var(--dm-bg-input) !important;
+    background-color: var(--dm-bg-input) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text-primary) !important;
+    color-scheme: dark;
+}
+html.ion-palette-dark .manage-product-data .search-box {
+    background: var(--dm-bg-input) !important;
+    border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .manage-product-data .search-box input {
+    color: var(--dm-text-primary) !important;
+    background: transparent !important;
+}
+html.ion-palette-dark .manage-product-data .search-box input::placeholder {
+    color: var(--dm-text-secondary) !important;
+}
+
+/* == Verification Panel — brand parity == */
+html.ion-palette-dark .tab-btn.active { background: #008744 !important; border-color: #008744 !important; color: #ffffff !important; }
+html.ion-palette-dark .tab-btn:hover:not(.active) { background: var(--dm-bg-chip) !important; color: var(--dm-text-primary) !important; }
+/* System logs row hover */
+html.ion-palette-dark .al-event-row:hover { background: #1e293b !important; }
+html.ion-palette-dark .fa-flag-row:hover { background: #1e293b !important; }

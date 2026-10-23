@@ -57,7 +57,7 @@
 				</div>
 			</div>
 
-			<p v-if="isLoading && activeTab !== 'halal'" class="state-message">Loading data…</p>
+			<p v-if="isLoading && activeTab === 'ingredient'" class="state-message">Loading data…</p>
 			<div v-else-if="errorMessage" class="admin-error-banner">
 				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
 				<span>{{ errorMessage }}</span>
@@ -81,6 +81,18 @@
 							</tr>
 						</thead>
 						<tbody>
+							<template v-if="isLoading && activeTab === 'allergen'">
+								<tr v-for="n in 8" :key="'sk-' + n" class="allergen-sk-row">
+									<td><div class="sk-cell shimmer" style="width:30px;height:12px"></div></td>
+									<td><div class="sk-cell shimmer" style="width:100px;height:14px"></div></td>
+									<td><div class="sk-cell shimmer" style="width:140px;height:12px"></div></td>
+									<td><div class="sk-cell shimmer" style="width:30px;height:20px;border-radius:9999px"></div></td>
+									<td><div class="sk-cell shimmer" style="width:80px;height:20px;border-radius:9999px"></div></td>
+									<td><div class="sk-cell shimmer" style="width:70px;height:12px"></div></td>
+									<td><div class="sk-cell shimmer" style="width:90px;height:28px;border-radius:9999px"></div></td>
+								</tr>
+							</template>
+							<template v-else>
 							<tr v-for="item in pagedAllergens" :key="item.id">
 								<td class="cell-id">#{{ item.id }}</td>
 								<td class="cell-allergen">{{ item.name }}</td>
@@ -110,6 +122,7 @@
 									</div>
 								</td>
 							</tr>
+							</template>
 						</tbody>
 					</table>
 				</div>
@@ -312,7 +325,13 @@
 					</button>
 				</div>
 
-				<p v-if="pagedGroupedIngredients.length === 0" class="empty-note">No ingredient mapping records found.</p>
+				<div v-if="isLoading" class="im-skeleton">
+					<div v-for="g in 3" :key="g" class="im-sk-group">
+						<div class="im-sk-group-header shimmer"></div>
+						<div v-for="r in 4" :key="r" class="im-sk-row shimmer"></div>
+					</div>
+				</div>
+				<p v-else-if="pagedGroupedIngredients.length === 0" class="empty-note">No ingredient mapping records found.</p>
 				<div v-else class="table-wrap">
 					<template v-for="group in pagedGroupedIngredients" :key="group.allergen">
 						<!-- Group header row -->
@@ -2174,4 +2193,15 @@ td {
 	.ingredient-controls-row { flex-wrap: wrap; }
 	.ingredient-controls-row .search-box { flex: 1 1 200px; }
 }
+</style>
+
+<style scoped>
+/* ── Allergen skeleton rows ── */
+.allergen-sk-row td { padding: 12px 24px; border-bottom: 1px solid #f8fafc; }
+
+/* ── Ingredient Mappings skeleton ── */
+.im-skeleton { padding: 0; }
+.im-sk-group { margin-bottom: 16px; }
+.im-sk-group-header { height: 40px; border-radius: 0; margin-bottom: 2px; }
+.im-sk-row { height: 48px; border-bottom: 1px solid #f1f5f9; }
 </style>

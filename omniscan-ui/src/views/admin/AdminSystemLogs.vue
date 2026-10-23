@@ -75,7 +75,7 @@
 			<div class="ov-recent">
 				<div class="ov-recent-head-row">
 					<span class="ov-recent-head">Recent changes</span>
-					<button class="ov-tab-link" @click="switchTab('audit-log')">Open Audit Log</button>
+					<button class="ov-tab-link" @click="switchTab('api-latency')">Open Audit Log</button>
 				</div>
 				<div v-if="recentAuditEvents.length === 0" class="empty-note">
 					No changes recorded yet.
@@ -133,15 +133,15 @@
 							<rect
 								v-if="peakAlert && peakBucketX !== null"
 								:x="peakBucketX - 20"
-								y="20"
+								y="22"
 								width="40"
-								height="155"
+								height="153"
 								class="slow-rect"
 							/>
 							<text
 								v-if="peakAlert && peakBucketX !== null"
 								:x="peakBucketX"
-								y="35"
+								y="18"
 								class="slow-label"
 								text-anchor="middle"
 							>Slow · {{ overview.peak_latency }}ms</text>
@@ -195,9 +195,9 @@
 		<!-- ═══════════════════════════════════════════════════════ -->
 		<!-- TAB 3 — AUDIT LOG                                       -->
 		<!-- ═══════════════════════════════════════════════════════ -->
-		<div v-if="activeTab === 'audit-log' || activeTab === 'api-latency'">
-			<!-- Controls row — only shown on dedicated audit-log tab -->
-			<div v-if="activeTab === 'audit-log'" class="al-controls">
+		<div v-if="activeTab === 'api-latency'">
+			<!-- Controls row — always shown in api-latency tab -->
+			<div class="al-controls">
 				<div class="al-chips">
 					<button
 						v-for="cat in auditCategories"
@@ -207,12 +207,6 @@
 						@click="selectedCategory = cat.value"
 					>{{ cat.label }}</button>
 				</div>
-				<input
-					v-model="auditSearch"
-					type="text"
-					class="al-search"
-					placeholder="Search changes"
-				/>
 				<select v-model="auditDays" class="al-days-select">
 					<option value="7">Last 7 days</option>
 					<option value="30">Last 30 days</option>
@@ -252,10 +246,14 @@
 						</div>
 					</div>
 				</div>
-				<div v-if="auditTotalPages > 1" class="al-pagination">
-					<button :disabled="auditPage === 1" @click="auditPage--" class="page-nav">‹</button>
-					<span class="al-page-info">{{ auditPage }} / {{ auditTotalPages }}</span>
-					<button :disabled="auditPage === auditTotalPages" @click="auditPage++" class="page-nav">›</button>
+				<div v-if="filteredAuditEvents.length > 0" class="al-pagination">
+					<span class="al-page-range">
+						Showing {{ (auditPage - 1) * 20 + 1 }}–{{ Math.min(auditPage * 20, filteredAuditEvents.length) }} of {{ filteredAuditEvents.length }} logs
+					</span>
+					<div class="al-page-btns">
+						<button class="page-nav" :disabled="auditPage === 1" @click="auditPage--">← Previous</button>
+						<button class="page-nav" :disabled="auditPage === auditTotalPages" @click="auditPage++">Next →</button>
+					</div>
 				</div>
 			</div>
 
@@ -268,7 +266,24 @@
 		<!-- TAB 4 — FLAG AUDIT (allergens only)                     -->
 		<!-- ═══════════════════════════════════════════════════════ -->
 		<div v-if="activeTab === 'flag-audit'">
-			<div v-if="flagStatsLoading" class="empty-note">Loading flag statistics…</div>
+			<div v-if="flagStatsLoading" class="fa-skeleton">
+				<div class="fa-sk-section">
+					<div class="fa-sk-title shimmer"></div>
+					<div v-for="n in 5" :key="n" class="fa-sk-bar-row">
+						<div class="fa-sk-label shimmer"></div>
+						<div class="fa-sk-bar shimmer"></div>
+						<div class="fa-sk-count shimmer"></div>
+					</div>
+				</div>
+				<div class="fa-sk-section" style="margin-top:24px">
+					<div class="fa-sk-title shimmer"></div>
+					<div v-for="n in 4" :key="n" class="fa-sk-bar-row">
+						<div class="fa-sk-label shimmer"></div>
+						<div class="fa-sk-bar shimmer"></div>
+						<div class="fa-sk-count shimmer"></div>
+					</div>
+				</div>
+			</div>
 			<div v-else-if="!flagStats" class="empty-note">Unable to load flag statistics.</div>
 			<div v-else>
 
@@ -454,7 +469,6 @@ const route = useRoute()
 const tabs = [
 	{ id: 'overview', label: 'Overview' },
 	{ id: 'api-latency', label: 'API Latency' },
-	{ id: 'audit-log', label: 'Audit Log' },
 	{ id: 'flag-audit', label: 'Flag Audit' },
 ]
 
@@ -496,8 +510,7 @@ const peakAlert = computed(() => overview.value.peak_latency > latencyTarget.val
 const tabSubtitle = computed(() => {
 	switch (activeTab.value) {
 		case 'overview': return 'How the system is running. Entries appear only when something changes.'
-		case 'api-latency': return 'Response time today, and what happens when it slows.'
-		case 'audit-log': return 'Every change to your data, in plain language. Written when something changes, never on a timer.'
+		case 'api-latency': return 'Response time today, and what happens when it slows. Admin changes are listed below.'
 		case 'flag-audit': return 'Which allergens trigger the most flags. Counts only; Consumer details stay private.'
 		default: return ''
 	}
@@ -557,7 +570,7 @@ const recentAuditEvents = computed(() => auditEvents.value.slice(0, 3))
 
 const CHART_LEFT = 44
 const CHART_RIGHT = 750
-const CHART_TOP = 20
+const CHART_TOP = 32
 const CHART_BOTTOM = 175
 
 const chartMax = computed(() => {
@@ -723,10 +736,6 @@ const filteredAuditEvents = computed(() => {
 		const ts = new Date(evt.created_at).getTime()
 		if (ts < cutoff) return false
 		if (selectedCategory.value !== 'all' && eventCategory(evt) !== selectedCategory.value) return false
-		if (auditSearch.value.trim()) {
-			const q = auditSearch.value.toLowerCase()
-			if (!evt.summary.toLowerCase().includes(q) && !toPlainEnglish(evt.summary).toLowerCase().includes(q)) return false
-		}
 		return true
 	})
 })
@@ -938,7 +947,7 @@ let clock: ReturnType<typeof setInterval> | null = null
 let poller: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
-	const VALID_TABS = ['overview', 'api-latency', 'audit-log', 'flag-audit'] as const
+	const VALID_TABS = ['overview', 'api-latency', 'flag-audit'] as const
 	const tabParam = route.query.tab
 	if (typeof tabParam === 'string' && (VALID_TABS as readonly string[]).includes(tabParam)) {
 		activeTab.value = tabParam
@@ -1222,7 +1231,9 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .al-cat-settings      { background: #f1f5f9; color: #64748b; }
 .al-cat-other         { background: #f1f5f9; color: #64748b; }
 .al-footer { font-size: 0.78rem; color: #94a3b8; margin-top: 20px; padding-top: 12px; border-top: 1px solid #f1f5f9; }
-.al-pagination { display:flex; align-items:center; justify-content:center; gap:12px; padding:16px 0; }
+.al-pagination { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-top: 1px solid #f1f5f9; margin-top: 8px; flex-wrap: wrap; gap: 8px; }
+.al-page-range { font-size: 0.82rem; color: #94a3b8; }
+.al-page-btns { display: flex; gap: 8px; }
 .al-page-info { font-size:0.82rem; color:#64748b; }
 .page-nav { min-width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; background:#fff; color:#334155; border-radius:8px; font-size:1rem; cursor:pointer; transition:background 0.12s; }
 .page-nav:hover:not(:disabled) { background:#f1f5f9; }
@@ -1359,4 +1370,13 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .tab-btn:focus-visible { outline: 2px solid #008744; outline-offset: 2px; }
 .al-chip:focus-visible { outline: 2px solid #008744; outline-offset: 2px; }
 .al-chip:hover:not(.al-chip--active) { background: #f0fdf4; border-color: #16a34a; color: #15803d; }
+
+/* ── Flag Audit skeleton ── */
+.fa-skeleton { padding: 8px 0; }
+.fa-sk-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px 24px; }
+.fa-sk-title { height: 16px; width: 200px; border-radius: 6px; margin-bottom: 16px; }
+.fa-sk-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.fa-sk-label { width: 80px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+.fa-sk-bar { flex: 1; height: 10px; border-radius: 9999px; }
+.fa-sk-count { width: 40px; height: 12px; border-radius: 4px; flex-shrink: 0; }
 </style>

@@ -60,9 +60,8 @@
 					</select>
 					<select v-model="filterStatus" class="filter-select">
 						<option value="All">All statuses</option>
-						<option value="Active">Active</option>
-						<option value="Inactive">Inactive</option>
-						<option value="Archived">Archived</option>
+						<option value="Online">Online</option>
+						<option value="Offline">Offline</option>
 					</select>
 					<span class="user-count-label">{{ filteredUsers.length }} Consumers</span>
 				</div>
@@ -142,7 +141,7 @@
 								<span v-if="u.archives_in_days != null" class="archives-sub">Archives in {{ u.archives_in_days }} days</span>
 							</td>
 							<td>
-								<span class="status-badge" :class="u.status.toLowerCase()">{{ u.status }}</span>
+								<span class="status-badge" :class="statusBadgeLabel(u.status).toLowerCase()">{{ statusBadgeLabel(u.status) }}</span>
 							</td>
 						</tr>
 					</tbody>
@@ -196,9 +195,8 @@
 						</select>
 						<select v-model="filterStatus" class="filter-select">
 							<option value="All">All statuses</option>
-							<option value="Active">Active</option>
-							<option value="Inactive">Inactive</option>
-							<option value="Archived">Archived</option>
+							<option value="Online">Online</option>
+							<option value="Offline">Offline</option>
 						</select>
 						<span class="user-count-label">{{ filteredUsers.length }} Consumers</span>
 					</div>
@@ -264,7 +262,7 @@
 								</div>
 							</td>
 							<td>
-								<span class="status-badge archived">Archived</span>
+								<span class="status-badge" :class="statusBadgeLabel(u.status).toLowerCase()">{{ statusBadgeLabel(u.status) }}</span>
 							</td>
 						</tr>
 					</tbody>
@@ -327,9 +325,13 @@ interface Stats {
 }
 
 const searchQuery = ref('')
-const filterStatus = ref<'All' | 'Active' | 'Inactive' | 'Archived'>('All')
+const filterStatus = ref<'All' | 'Online' | 'Offline'>('All')
 const sortOrder = ref<'Newest' | 'Oldest'>('Newest')
 const showHelp = ref(false)
+
+function statusBadgeLabel(status: 'Active' | 'Inactive' | 'Archived'): 'Online' | 'Offline' {
+	return status === 'Active' ? 'Online' : 'Offline'
+}
 const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
 
@@ -377,7 +379,7 @@ async function fetchUsers(): Promise<void> {
 	}
 }
 
-const isArchivedView = computed(() => filterStatus.value === 'Archived')
+const isArchivedView = computed(() => false)
 
 const filteredUsers = computed<UserRow[]>(() => {
 	const query = searchQuery.value.trim().toLowerCase()
@@ -387,7 +389,10 @@ const filteredUsers = computed<UserRow[]>(() => {
 			u.name.toLowerCase().includes(query) ||
 			(u.username ?? '').toLowerCase().includes(query) ||
 			u.email_masked.toLowerCase().includes(query)
-		const matchesStatus = filterStatus.value === 'All' || u.status === filterStatus.value
+		const matchesStatus =
+			filterStatus.value === 'All' ||
+			(filterStatus.value === 'Online' && u.status === 'Active') ||
+			(filterStatus.value === 'Offline' && (u.status === 'Inactive' || u.status === 'Archived'))
 		return matchesQuery && matchesStatus
 	})
 
@@ -776,11 +781,13 @@ td {
 	font-size: 0.78rem;
 	font-weight: 500;
 }
-.status-badge.active {
+.status-badge.active,
+.status-badge.online {
 	background-color: #dcfce7;
 	color: #15803d;
 }
-.status-badge.inactive {
+.status-badge.inactive,
+.status-badge.offline {
 	background-color: #f1f5f9;
 	color: #64748b;
 }

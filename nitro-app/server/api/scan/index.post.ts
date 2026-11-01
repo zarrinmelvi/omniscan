@@ -367,6 +367,21 @@ export default defineEventHandler(async (event) => {
 		extraction.simplified_ingredients = catalogMatch.simplified_ingredients
 	}
 
+	// Condition 3: product name was extracted but ingredients text is still empty/whitespace-only
+	// after the catalog-match fill attempt. Prompt the user to re-scan rather than saving an
+	// incomplete record. Mock-data scans remain exempt (mockTextField?.data check).
+	if (!mockTextField?.data) {
+		const hasName = extraction.product_name.trim().length > 0
+		const hasIngredients = extraction.ingredients_text.trim().length > 0
+		if (hasName && !hasIngredients) {
+			throw createError({
+				statusCode: 422,
+				statusMessage: 'We could read the product name but not the ingredients. Please re-scan with a clearer view of the ingredients panel.',
+				data: { rescan_required: true },
+			})
+		}
+	}
+
 	let { verdict, reasons } = determineVerdict(extraction.ingredients_text)
 
 	const aiMatchedHalalLogos = extraction.halal_logo_detected ? resolveHalalLogoMatches(extraction.certifying_body, halalLogos) : []

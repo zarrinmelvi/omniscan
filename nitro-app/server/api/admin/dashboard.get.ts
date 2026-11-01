@@ -30,6 +30,11 @@ export default defineEventHandler(async (event) => {
 		const priorStart = new Date(now)
 		priorStart.setDate(priorStart.getDate() - 60)
 
+		// ── Attention certifiers: overdue or linked to unverified products ──
+		const OVERDUE_DAYS = 30
+		const overdueCutoff = new Date(now)
+		overdueCutoff.setDate(overdueCutoff.getDate() - OVERDUE_DAYS)
+
 		const [
 			totalScans,
 			pendingFlags,
@@ -41,7 +46,7 @@ export default defineEventHandler(async (event) => {
 			allScans,
 			allFlaggedScans,
 			allergenRows,
-			recentFlagged,
+			attentionCertifiers,
 		] = await Promise.all([
 			prisma.scan.count(),
 			prisma.flaggedScan.count({ where: { status: 'pending' } }),
@@ -83,22 +88,32 @@ export default defineEventHandler(async (event) => {
 				},
 				orderBy: { name: 'asc' },
 			}),
-			// Recent flagged items (top 20 for deduplication — we pick 3 unique products)
-			prisma.flaggedScan.findMany({
-				where: { status: { in: ['pending', 'awaiting_rescan'] } },
-				orderBy: { created_at: 'desc' },
-				take: 20,
+			// Attention certifiers: active logos that are overdue or linked to unverified products
+			prisma.halalLogo.findMany({
+				where: {
+					is_active: true,
+					OR: [
+						{ last_checked_at: { lt: overdueCutoff } },
+						{ last_checked_at: null },
+						{
+							product_links: {
+								some: { product: { halal_unverified: true } },
+							},
+						},
+					],
+				},
 				select: {
 					id: true,
-					flag_reason: true,
-					status: true,
-					scan: {
+					certifier: true,
+					full_name: true,
+					last_checked_at: true,
+					_count: {
 						select: {
-							safety_verdict: true,
-							product: { select: { product_name: true, brand_name: true } },
+							product_links: { where: { product: { halal_unverified: true } } },
 						},
 					},
 				},
+				orderBy: { last_checked_at: 'asc' },
 			}),
 		])
 
@@ -175,45 +190,19 @@ export default defineEventHandler(async (event) => {
 			.sort((a, b) => b.count - a.count)
 			.slice(0, 8)
 
-		// ── Recent flagged items ──────────────────────────────────────────
-		interface RecentFlaggedRow {
-			id: number
-			product_name: string
-			brand_name: string
-			flag_reason: string
-			safety_verdict: string
-			scan_count: number
-			status: string
-		}
-
-		// Deduplicate by product name — show each product once (most recent flag for it)
-		const seenProducts = new Set<string>()
-		const recentFlaggedMapped: RecentFlaggedRow[] = []
-
-		for (const f of recentFlagged) {
-			const productName = f.scan?.product?.product_name ?? '[Product name]'
-			if (seenProducts.has(productName)) continue
-			seenProducts.add(productName)
-			const r = f.flag_reason.toLowerCase()
-			recentFlaggedMapped.push({
-				id: f.id,
-				product_name: productName,
-				brand_name: f.scan?.product?.brand_name ?? '',
-				flag_reason: r.includes('allergen') || r.includes('contains') || r.includes('ingredient')
-					? 'Allergen conflict'
-					: r.includes('halal') || r.includes('certif') || r.includes('logo')
-					? 'Halal conflict'
-					: r.includes('unclear') || r.includes('low confidence') || r.includes('scan')
-					? 'Unclear scan'
-					: 'Flagged scan',
-				safety_verdict: f.scan?.safety_verdict ?? 'Red',
-				scan_count: allFlaggedScans.filter(
-					(fs) => fs.scan?.product?.product_name === productName,
-				).length,
-				status: f.status === 'awaiting_rescan' ? 'Awaiting rescan' : 'Pending',
-			})
-			if (recentFlaggedMapped.length >= 3) break
-		}
+		// ── Attention certifiers payload ──────────────────────────────────
+		const attentionCertifiersPayload = attentionCertifiers.map((c) => ({
+			id: c.id,
+			certifier: c.certifier,
+			full_name: c.full_name,
+			status:
+				c._count.product_links > 0
+					? 'unverified'
+					: (!c.last_checked_at || new Date(c.last_checked_at) < overdueCutoff)
+					? 'overdue'
+					: 'ok',
+			unverified_product_count: c._count.product_links,
+		}))
 
 		return {
 			success: true,
@@ -251,7 +240,7 @@ export default defineEventHandler(async (event) => {
 				{ label: '95+', count: confBuckets.gte95 },
 			],
 			allergen_distribution: allergenDist,
-			recent_flagged_items: recentFlaggedMapped,
+			attention_certifiers: attentionCertifiersPayload,
 		}
 	} catch (err: any) {
 		if (err?.statusCode) throw err

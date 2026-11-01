@@ -995,7 +995,7 @@ html.ion-palette-dark .sidebar-footer { border-top-color: var(--dm-border); }
 html.ion-palette-dark .admin-name { color: var(--dm-text-primary); }
 html.ion-palette-dark .admin-main { background: var(--dm-bg-page); }
 html.ion-palette-dark .top-bar {
-	background: var(--dm-bg-card);
+	background: var(--dm-bg-card) !important;
 	border-bottom-color: var(--dm-border);
 	color: var(--dm-text-secondary);
 }

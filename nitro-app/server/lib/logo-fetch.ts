@@ -17,36 +17,44 @@ export type FetchLogoResult =
 	| { ok: false; error: string }
 
 export async function fetchLogoAsBase64(url: string): Promise<FetchLogoResult> {
-	if (!url || typeof url !== 'string' || !url.trim().toLowerCase().startsWith('https://')) {
-		return { ok: false, error: 'URL must be https' }
+	const trimmed = (url ?? '').trim()
+	const lower = trimmed.toLowerCase()
+	if (!lower.startsWith('http://') && !lower.startsWith('https://')) {
+		return { ok: false, error: 'URL must use http or https' }
 	}
+
+	// Upgrade http:// → https:// before the outbound request.
+	const requestUrl = lower.startsWith('http://') ? 'https://' + trimmed.slice(7) : trimmed
 
 	const controller = new AbortController()
 	const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS)
 
 	try {
-		const res = await fetch(url.trim(), { signal: controller.signal, redirect: 'follow' })
+		const res = await fetch(requestUrl, { signal: controller.signal, redirect: 'follow' })
 
 		if (!res.ok) {
-			return { ok: false, error: `Download failed (${res.status})` }
+			return { ok: false, error: `Network error: server returned HTTP ${res.status}` }
 		}
 
 		const contentType = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase()
 		if (!contentType.startsWith('image/')) {
-			return { ok: false, error: 'URL did not return an image' }
+			return { ok: false, error: 'Non-image content type: URL did not return an image' }
 		}
 
 		const buf = await res.arrayBuffer()
 		if (buf.byteLength > MAX_BYTES) {
-			return { ok: false, error: 'Image too large' }
+			return { ok: false, error: 'Oversized file: image exceeds the 2 MB download limit' }
 		}
 
 		const b64 = Buffer.from(buf).toString('base64')
 		return { ok: true, dataUri: `data:${contentType};base64,${b64}` }
 	} catch (err) {
+		if (controller.signal.aborted) {
+			return { ok: false, error: 'Timeout: download exceeded the 10-second limit' }
+		}
 		return {
 			ok: false,
-			error: 'Could not download the logo. The link may have changed or the site may be down.',
+			error: 'Network error: could not reach the server. The link may have changed or the site may be down.',
 		}
 	} finally {
 		clearTimeout(timeout)

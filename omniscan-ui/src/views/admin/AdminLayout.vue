@@ -379,6 +379,9 @@ onUnmounted(() => {
 
 /* Header Top Bar */
 .top-bar {
+	position: sticky;
+	top: 0;
+	z-index: 50;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;

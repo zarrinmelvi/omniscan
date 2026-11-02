@@ -37,7 +37,7 @@
 					<div class="metric-value">{{ stats?.total_scans ?? 0 }}</div>
 				</div>
 				<!-- Pending Flags -->
-				<div class="metric-card" @click="router.push('/admin/verification?tab=needs-decision')">
+				<div class="metric-card" @click="router.push('/admin/verification')">
 					<div class="metric-label">Pending flags</div>
 					<div class="metric-value">{{ stats?.pending_flags ?? 0 }}</div>
 				</div>
@@ -118,8 +118,8 @@
 			</div>
 		</div>
 
-		<!-- ── Row 3: Area Line + Histogram ────────────────────────── -->
-		<div class="chart-row chart-row--2col">
+		<!-- ── Row 3: Scans over time ───────────────────────────────── -->
+		<div class="chart-row">
 			<!-- Scans Over Time Area Chart -->
 			<div class="chart-card">
 				<div class="chart-card-header">
@@ -148,93 +148,33 @@
 					</div>
 				</div>
 			</div>
-
-			<!-- AI Confidence Distribution Histogram -->
-			<div class="chart-card">
-				<div class="chart-card-header">
-					<div>
-						<div class="chart-title">AI confidence distribution</div>
-						<div class="chart-sub">Threshold locked at 90%</div>
-					</div>
-				</div>
-				<div v-if="isLoading" class="sk-chart-area shimmer"></div>
-				<div v-else-if="confDistribution.length === 0" class="chart-empty"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>No scans in this range yet.</div>
-				<div v-else class="hist-wrap">
-					<svg class="hist-svg" :viewBox="`0 0 ${HIST_W} ${HIST_H}`" preserveAspectRatio="none">
-						<g v-for="(bar, i) in histBars" :key="bar.label">
-							<rect
-								:x="bar.x" :y="bar.y"
-								:width="bar.w" :height="bar.barH"
-								:fill="bar.aboveThreshold ? '#05c450' : '#2d6a4f'"
-								rx="3"
-								@click="bar.aboveThreshold ? null : goToTrainingCorrections()"
-								style="cursor: pointer"
-							/>
-						</g>
-						<!-- 90% threshold dashed line -->
-						<line
-							:x1="thresholdX" y1="0"
-							:x2="thresholdX" :y2="HIST_H - 28"
-							stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 3"
-						/>
-						<text :x="thresholdX" y="10" class="threshold-label" text-anchor="middle">90%</text>
-					</svg>
-					<div class="hist-axis">
-						<span v-for="bar in histBars" :key="bar.label">{{ bar.label }}</span>
-					</div>
-				</div>
-			</div>
 		</div>
 
-		<!-- ── Recent Flagged Items Table ───────────────────────────── -->
+		<!-- ── Halal Certifiers Needing Attention ────────────────────── -->
 		<div class="table-card">
 			<div class="table-header">
-				<div class="chart-title">Recent flagged items</div>
-				<router-link to="/admin/verification" class="view-all-link">View all</router-link>
+				<div class="chart-title">Halal certifiers needing attention</div>
+				<router-link to="/admin/productsdata?tab=halal" class="view-all-link">Manage</router-link>
 			</div>
-			<table class="flag-table">
-				<thead>
-					<tr>
-						<th>PRODUCT</th>
-						<th>REASON</th>
-						<th>VERDICT</th>
-						<th>SCANS</th>
-						<th>STATUS</th>
-					</tr>
-				</thead>
-				<tbody>
-					<!-- Skeleton rows -->
-					<template v-if="isLoading">
-						<tr v-for="n in 3" :key="n" class="sk-row">
-							<td colspan="5"><div class="sk-line" style="height:14px;width:100%"></div></td>
-						</tr>
-					</template>
-					<template v-else>
-						<tr v-if="recentFlaggedItems.length === 0">
-							<td colspan="5" class="empty-note">No pending flagged items.</td>
-						</tr>
-						<tr
-							v-for="item in recentFlaggedItems"
-							:key="item.id"
-							class="flag-row"
-							@click="goToFlaggedItem(item.id)">
-							<td class="flag-product">{{ item.product_name }}</td>
-							<td class="flag-reason">{{ item.flag_reason }}</td>
-							<td>
-								<span class="verdict-badge" :class="`verdict-badge--${(item.safety_verdict ?? 'red').toLowerCase()}`">
-									{{ item.safety_verdict ?? 'Red' }}
-								</span>
-							</td>
-							<td class="flag-scans">{{ item.scan_count }}</td>
-							<td>
-								<span class="status-badge" :class="item.status === 'Pending' ? 'status-badge--pending' : 'status-badge--rescan'">
-									{{ item.status }}
-								</span>
-							</td>
-						</tr>
-					</template>
-				</tbody>
-			</table>
+			<template v-if="isLoading">
+				<div v-for="n in 3" :key="n" class="sk-line" style="height:44px;border-radius:8px;margin-bottom:8px;background:#e5e7eb"></div>
+			</template>
+			<div v-else-if="attentionCertifiers.length === 0" class="empty-note">
+				All certifiers are verified and up to date.
+			</div>
+			<div v-else class="cert-attention-list">
+				<div
+					v-for="c in attentionCertifiers"
+					:key="c.id"
+					class="cert-attention-row"
+					@click="router.push('/admin/productsdata?tab=halal')"
+				>
+					<div class="cert-attention-name">{{ c.certifier }}</div>
+					<span class="cert-attention-status" :class="`cert-status--${c.status}`">
+						{{ c.status === 'unverified' ? 'Unverified products' : 'Overdue check' }}
+					</span>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -257,16 +197,13 @@ interface DashboardStats {
 }
 interface ScanVerdicts { Green: number; Yellow: number; Red: number; total: number }
 interface ScansOverTimeEntry { date: string; count: number }
-interface ConfBucket { label: string; count: number }
 interface AllergenEntry { name: string; count: number }
-interface RecentFlaggedItem {
+interface AttentionCertifier {
 	id: number
-	product_name: string
-	brand_name: string
-	flag_reason: string
-	safety_verdict: string | null
-	scan_count: number
-	status: string
+	certifier: string
+	full_name: string
+	status: 'unverified' | 'overdue' | 'ok'
+	unverified_product_count: number
 }
 
 // ── State ──────────────────────────────────────────────────────────────────
@@ -279,9 +216,8 @@ const errorMessage = ref<string | null>(null)
 const stats = ref<DashboardStats | null>(null)
 const scanVerdicts = ref<ScanVerdicts | null>(null)
 const scansOverTime = ref<ScansOverTimeEntry[]>([])
-const confDistribution = ref<ConfBucket[]>([])
 const allergenDist = ref<AllergenEntry[]>([])
-const recentFlaggedItems = ref<RecentFlaggedItem[]>([])
+const attentionCertifiers = ref<AttentionCertifier[]>([])
 
 const ranges: { label: string; value: '7d' | '30d' | '90d' }[] = [
 	{ label: '7 days', value: '7d' },
@@ -299,16 +235,14 @@ async function loadDashboard(): Promise<void> {
 			stats: DashboardStats
 			scan_verdicts: ScanVerdicts
 			scans_over_time: ScansOverTimeEntry[]
-			ai_confidence_distribution: ConfBucket[]
 			allergen_distribution: AllergenEntry[]
-			recent_flagged_items: RecentFlaggedItem[]
+			attention_certifiers: AttentionCertifier[]
 		}>(`/api/admin/dashboard?range=${selectedRange.value}`, { isAdmin: true })
 		stats.value = data.stats
 		scanVerdicts.value = data.scan_verdicts
 		scansOverTime.value = data.scans_over_time
-		confDistribution.value = data.ai_confidence_distribution
 		allergenDist.value = data.allergen_distribution
-		recentFlaggedItems.value = data.recent_flagged_items
+		attentionCertifiers.value = data.attention_certifiers ?? []
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load dashboard.'
 	} finally {
@@ -324,8 +258,6 @@ function setRange(r: '7d' | '30d' | '90d'): void {
 function goToVerification(): void { router.push('/admin/verification') }
 function filterByVerdict(verdict: string): void { router.push(`/admin/verification?verdict=${verdict}`) }
 function goToAllergen(name: string): void { router.push('/admin/productsdata?allergen=' + encodeURIComponent(name)) }
-function goToTrainingCorrections(): void { router.push('/admin/verification') }
-function goToFlaggedItem(id: number): void { router.push('/admin/verification?card=' + id) }
 
 onMounted(loadDashboard)
 
@@ -410,32 +342,6 @@ const axisLabels = computed(() => {
 	})
 })
 
-// ── Histogram ─────────────────────────────────────────────────────────────
-const HIST_W = 320, HIST_H = 160
-
-const histBars = computed(() => {
-	const data = confDistribution.value
-	if (data.length === 0) return []
-	const maxCount = Math.max(...data.map((d) => d.count), 1)
-	const n = data.length
-	const barW = (HIST_W / n) * 0.70
-	const gap = (HIST_W / n) * 0.30
-	return data.map((d, i) => {
-		const barH = Math.max(4, (d.count / maxCount) * (HIST_H - 32))
-		const x = i * (HIST_W / n) + gap / 2
-		const y = HIST_H - 28 - barH
-		// threshold is at the 80–90 / 90–95 boundary (index 4 = '90–95' bucket start)
-		const aboveThreshold = i >= 4
-		return { ...d, x, y, w: barW, barH, aboveThreshold }
-	})
-})
-
-// threshold line x = start of '90–95' bucket
-const thresholdX = computed(() => {
-	const n = 6
-	const gap = (HIST_W / n) * 0.35
-	return 4 * (HIST_W / n) + gap / 2 - 1
-})
 </script>
 
 <style scoped>
@@ -700,26 +606,6 @@ const thresholdX = computed(() => {
 	padding: 0 2px;
 }
 
-/* ── Histogram ────────────────────────────────────────── */
-.hist-wrap { display: flex; flex-direction: column; gap: 4px; }
-.hist-svg {
-	width: 100%;
-	height: 120px;
-	overflow: visible;
-}
-.threshold-label {
-	font-size: 8px;
-	fill: #ef4444;
-	font-weight: 600;
-}
-.hist-axis {
-	display: flex;
-	justify-content: space-between;
-	font-size: 0.68rem;
-	color: #9ca3af;
-	padding: 0 2px;
-}
-
 /* ── Table ────────────────────────────────────────────── */
 .table-card {
 	background: #ffffff;
@@ -758,6 +644,25 @@ const thresholdX = computed(() => {
 .flag-reason { color: #6b7280; }
 .flag-scans { color: #374151; font-weight: 500; text-align: center; }
 .empty-note { color: #9ca3af; font-size: 0.875rem; text-align: center; padding: 24px; }
+
+/* ── Certifier attention list ────────────────────────── */
+.cert-attention-list { display: flex; flex-direction: column; }
+.cert-attention-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 16px;
+	border-bottom: 1px solid #f3f4f6;
+	cursor: pointer;
+	transition: background 0.12s;
+}
+.cert-attention-row:last-child { border-bottom: none; }
+.cert-attention-row:hover { background: #f9fafb; }
+.cert-attention-name { font-size: 0.875rem; font-weight: 600; color: #111827; }
+.cert-attention-status { font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 9999px; }
+.cert-status--unverified { background: #fef3c7; color: #d97706; }
+.cert-status--overdue { background: #fee2e2; color: #dc2626; }
+.cert-status--ok { background: #d1fae5; color: #065f46; }
 .chart-empty { display:flex; flex-direction:column; align-items:center; gap:8px; padding:40px 12px; text-align:center; color:#9ca3af; font-size:0.85rem; }
 .chart-empty svg { color:#d1d5db; }
 

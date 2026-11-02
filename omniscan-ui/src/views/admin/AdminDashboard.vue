@@ -20,11 +20,11 @@
 			</div>
 		</div>
 
-		<!-- ── 4-Card Metric Row ────────────────────────────────────── -->
+		<!-- ── 3-Card Metric Row ────────────────────────────────────── -->
 		<div class="metric-grid">
 			<!-- Skeleton -->
 			<template v-if="isLoading">
-				<div v-for="n in 4" :key="n" class="metric-card sk-card">
+				<div v-for="n in 3" :key="n" class="metric-card sk-card">
 					<div class="sk-line" style="width:60%;height:12px;margin-bottom:14px"></div>
 					<div class="sk-line" style="width:40%;height:32px;margin-bottom:10px"></div>
 					<div class="sk-line" style="width:80%;height:10px"></div>
@@ -35,45 +35,16 @@
 				<div class="metric-card" @click="router.push('/admin/systemlogs?tab=api-latency')">
 					<div class="metric-label">Total scans</div>
 					<div class="metric-value">{{ stats?.total_scans ?? 0 }}</div>
-					<div class="metric-footer">
-						<span class="trend trend--up">▲ {{ stats?.trends?.total_scans_pct ?? 0 }}% vs prior</span>
-						<svg class="sparkline" viewBox="0 0 60 24" preserveAspectRatio="none">
-							<polyline :points="sparklinePoints(stats?.sparklines?.scans ?? [])" fill="none" stroke="#05c450" stroke-width="1.5"/>
-						</svg>
-					</div>
 				</div>
 				<!-- Pending Flags -->
 				<div class="metric-card" @click="router.push('/admin/verification?tab=needs-decision')">
 					<div class="metric-label">Pending flags</div>
 					<div class="metric-value">{{ stats?.pending_flags ?? 0 }}</div>
-					<div class="metric-footer">
-						<span class="trend trend--up">▲ {{ stats?.trends?.pending_flags_pct ?? 0 }}% vs prior</span>
-						<svg class="sparkline" viewBox="0 0 60 24" preserveAspectRatio="none">
-							<polyline :points="sparklinePoints(stats?.sparklines?.flags ?? [])" fill="none" stroke="#f97316" stroke-width="1.5"/>
-						</svg>
-					</div>
 				</div>
 				<!-- Active Consumers -->
 				<div class="metric-card" @click="router.push('/admin/usersprofile')">
 					<div class="metric-label">Active Consumers</div>
 					<div class="metric-value">{{ stats?.active_consumers ?? 0 }}</div>
-					<div class="metric-footer">
-						<span class="trend trend--up">▲ {{ stats?.trends?.active_consumers_pct ?? 0 }}% vs prior</span>
-						<svg class="sparkline" viewBox="0 0 60 24" preserveAspectRatio="none">
-							<polyline :points="sparklinePoints(stats?.sparklines?.consumers ?? [])" fill="none" stroke="#05c450" stroke-width="1.5"/>
-						</svg>
-					</div>
-				</div>
-				<!-- API Health -->
-				<div class="metric-card" @click="router.push('/admin/systemlogs?filter=api')">
-					<div class="metric-label">API health</div>
-					<div class="metric-value">{{ stats?.api_latency_ms ?? 0 }} <span class="metric-unit">ms</span></div>
-					<div class="metric-footer">
-						<span class="health-pill">Healthy</span>
-						<svg class="sparkline" viewBox="0 0 60 24" preserveAspectRatio="none">
-							<polyline :points="sparklinePoints(stats?.sparklines?.api_health ?? [])" fill="none" stroke="#05c450" stroke-width="1.5"/>
-						</svg>
-					</div>
 				</div>
 			</template>
 		</div>
@@ -536,10 +507,10 @@ const thresholdX = computed(() => {
 	color: #008744;
 }
 
-/* ── 4-card metric grid ───────────────────────────────── */
+/* ── 3-card metric grid ───────────────────────────────── */
 .metric-grid {
 	display: grid;
-	grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: repeat(3, 1fr);
 	gap: 16px;
 	margin-bottom: 20px;
 }

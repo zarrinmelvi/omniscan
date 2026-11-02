@@ -84,6 +84,12 @@
 					</div>
 				</div>
 
+				<!-- AI-extraction disclaimer — always shown, sibling of the ingredients card -->
+				<div class="ingredients-disclaimer">
+					<ion-icon :icon="informationCircleOutline" />
+					<span>Ingredients are AI-extracted from the label — always verify against the actual packaging.</span>
+				</div>
+
 				<div v-if="personalAllergenAlerts.length" class="show-alternatives-trigger">
 					<button type="button" class="show-alternatives-btn" @click="toggleAlternatives">
 						<ion-icon :icon="swapHorizontalOutline" />
@@ -750,6 +756,20 @@ function forceDismiss() {
 	padding: 0 14px 14px 14px;
 	line-height: 1.45;
 	white-space: pre-line;
+}
+
+.ingredients-disclaimer {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	background: #fffbeb;
+	border: 1px solid #fde68a;
+	border-radius: 12px;
+	padding: 12px 14px;
+	margin-bottom: 16px;
+	font-size: 0.8rem;
+	color: #92400e;
+	line-height: 1.4;
 }
 
 .section-title {

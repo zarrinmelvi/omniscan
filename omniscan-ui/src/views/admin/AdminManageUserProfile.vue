@@ -10,12 +10,7 @@
 		<div class="lifecycle-row-card">
 			<div class="lifecycle-row-head">
 				<span class="lifecycle-row-title">Account lifecycle</span>
-				<button class="how-link" type="button" @click="showHelp = !showHelp">How this works</button>
 			</div>
-
-			<p v-if="showHelp" class="lifecycle-help">
-				Accounts idle for 6 months (180 days) are archived automatically and emailed a 7-day warning. If no login follows, the account is deleted and its personal data anonymized.
-			</p>
 
 			<div class="lc-track">
 				<div class="lc-card lc-card--active">
@@ -327,7 +322,6 @@ interface Stats {
 const searchQuery = ref('')
 const filterStatus = ref<'All' | 'Online' | 'Offline'>('All')
 const sortOrder = ref<'Newest' | 'Oldest'>('Newest')
-const showHelp = ref(false)
 
 function statusBadgeLabel(status: 'Active' | 'Inactive' | 'Archived'): 'Online' | 'Offline' {
 	return status === 'Active' ? 'Online' : 'Offline'
@@ -517,21 +511,6 @@ onMounted(fetchUsers)
 	font-size: 0.95rem;
 	font-weight: 600;
 	color: #0f172a;
-}
-.how-link {
-	background: none;
-	border: none;
-	color: #16a34a;
-	font-size: 0.82rem;
-	font-weight: 600;
-	cursor: pointer;
-	text-decoration: underline;
-}
-.lifecycle-help {
-	font-size: 0.82rem;
-	color: #64748b;
-	line-height: 1.5;
-	margin: 0 0 16px;
 }
 .lc-track {
 	display: flex;

@@ -157,6 +157,7 @@ interface ScanResultDisplay {
 		image_base64_back: string | null
 		net_quantity_detected: number | null
 		net_unit_detected: string | null
+		food_category: string
 	}
 	safety_verdict: 'Red' | 'Yellow' | 'Green'
 	reasons: string[]
@@ -428,6 +429,7 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 					halal_logo_id: null,
 					image_base64: null,
 					image_base64_back: null,
+					food_category: '',
 				},
 				safety_verdict: 'Red',
 				reasons: [errorMessage],
@@ -478,6 +480,7 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 			image_base64_back: scan.product.image_base64_back ?? null,
 			net_quantity_detected: scan.product.net_quantity_detected ?? null,
 			net_unit_detected: scan.product.net_unit_detected ?? null,
+			food_category: scan.product.food_category ?? '',
 		},
 		safety_verdict: scan.safety_verdict,
 		reasons: scan.flag_reason ? scan.flag_reason.split(', ') : [],

@@ -44,7 +44,7 @@
 					</div>
 				</div>
 
-				<div v-if="isHalalCertified || isHalalUnverified || allergenTags.length" class="badge-row">
+				<div v-if="isHalalCertified || isHalalUnverified || allergenTags.length || detectedFoodCategory" class="badge-row">
 					<span v-if="isHalalCertified" class="badge badge-halal">
 						<ion-icon :icon="checkmarkCircleOutline" />
 						{{ halalCertifiedLabel }}
@@ -61,6 +61,9 @@
 					>
 						<ion-icon :icon="warningOutline" />
 						{{ tag.label }}
+					</span>
+					<span v-if="detectedFoodCategory" class="badge badge-category">
+						{{ detectedFoodCategory }}
 					</span>
 				</div>
 
@@ -337,6 +340,12 @@ const unitOptions = ['pcs', 'bottles', 'cans', 'packs', 'boxes', 'g', 'kg', 'ml'
 const storageOptions = ['Fridge', 'Freezer', 'Cupboard']
 const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
 
+// Detected AI food category — only shown/pre-selected when it matches a valid pantry category.
+const detectedFoodCategory = computed(() => {
+	const cat = product.value?.food_category
+	return typeof cat === 'string' && cat && categoryOptions.includes(cat) ? cat : ''
+})
+
 const quantity = ref(1)
 const unit = ref('L')
 const storageLocation = ref('Fridge')
@@ -402,7 +411,11 @@ function resetPantryForm() {
 	const normalizedUnit = typeof detectedUnit === 'string' ? (unitMap[detectedUnit] ?? detectedUnit) : null
 	unit.value = normalizedUnit && UNIT_OPTIONS.includes(normalizedUnit) ? normalizedUnit : 'pcs'
 
-	category.value = 'Uncategorized'
+	const detectedCat = product.value?.food_category
+	category.value =
+		typeof detectedCat === 'string' && detectedCat && categoryOptions.includes(detectedCat) && detectedCat !== 'Uncategorized'
+			? detectedCat
+			: 'Uncategorized'
 
 	storageLocation.value = 'Fridge'
 	const detected = normalizeDetectedDate(product.value?.expiration_date_detected)
@@ -653,6 +666,11 @@ function forceDismiss() {
 .badge-allergen--personal {
 	background: #fee2e2;
 	color: #b91c1c;
+}
+
+.badge-category {
+	background: #eff6ff;
+	color: #1d4ed8;
 }
 
 .personal-allergen-alert {

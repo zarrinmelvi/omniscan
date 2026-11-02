@@ -39,12 +39,6 @@
 				@click="activeTab = 'unmatched'">
 				Unmatched logos · {{ unmatchedCards.length }}
 			</button>
-			<button
-				class="tab-btn"
-				:class="{ 'tab-btn--active': activeTab === 'duplicates' }"
-				@click="activeTab = 'duplicates'">
-				Possible duplicates · {{ duplicateCards.length }}
-			</button>
 		</div>
 
 		<!-- ── Main single-col layout ────────────────────────────── -->
@@ -274,10 +268,9 @@ const errorMessage = ref<string | null>(null)
 // Server-provided queue data (the single source of truth now)
 const metrics = ref<QueueMetricsRaw | null>(null)
 const unmatchedCardsData = ref<ServerCard[]>([])
-const duplicateCardsData = ref<ServerCard[]>([])
 const trainingCardsData = ref<ServerCard[]>([])
 
-type TabType = 'unmatched' | 'duplicates'
+type TabType = 'unmatched'
 const activeTab = ref<TabType>('unmatched')
 const expandedId = ref<number | null>(null)
 
@@ -326,22 +319,13 @@ const unmatchedCards = computed<QueueCard[]>(() =>
 		.map((c) => mapServerCard(c, 'unmatched'))
 )
 
-const duplicateCards = computed<QueueCard[]>(() =>
-	duplicateCardsData.value
-		.filter((c) => !resolvedIds.value.has(c.id))
-		.map((c) => mapServerCard(c, 'duplicate'))
-)
-
 const trainingCards = computed<QueueCard[]>(() =>
 	trainingCardsData.value
 		.filter((c) => !resolvedIds.value.has(c.id))
 		.map((c) => mapServerCard(c, 'training'))
 )
 
-const activeTabCards = computed<QueueCard[]>(() => {
-	if (activeTab.value === 'unmatched') return unmatchedCards.value
-	return duplicateCards.value
-})
+const activeTabCards = computed<QueueCard[]>(() => unmatchedCards.value)
 
 const awaitingRescanItems = computed(() =>
 	rawScans.value.filter((s) => s.status === 'awaiting_rescan').map((s) => ({ id: s.id, product_name: s.product_name }))
@@ -422,7 +406,6 @@ async function fetchQueue(): Promise<void> {
 		}>('/api/admin/verification-queue', { method: 'GET', isAdmin: true })
 		metrics.value = data.metrics
 		unmatchedCardsData.value = data.unmatched
-		duplicateCardsData.value = data.duplicates
 		trainingCardsData.value = data.training
 
 		// The awaiting-rescan read-only modal list isn't part of the queue
@@ -449,17 +432,15 @@ onMounted(async () => {
 
 	const tabParam = route.query.tab as string | undefined
 	if (tabParam === 'needs-decision') activeTab.value = 'unmatched'
-	else if (tabParam === 'possible-duplicates') activeTab.value = 'duplicates'
 
 	const cardParam = route.query.card
 	if (cardParam) {
 		const id = Number(cardParam)
 		// Try to find matching card across all tabs and expand it
-		const allCards = [...unmatchedCards.value, ...duplicateCards.value, ...trainingCards.value]
+		const allCards = [...unmatchedCards.value, ...trainingCards.value]
 		const match = allCards.find((c) => c.id === id || c.rawIds.includes(id))
 		if (match) {
-			// Set the right tab
-			activeTab.value = match.type === 'duplicate' ? 'duplicates' : 'unmatched'
+			activeTab.value = 'unmatched'
 			expandedId.value = match.id
 		}
 	}
@@ -467,7 +448,6 @@ onMounted(async () => {
 
 watch(() => route.query, (q) => {
 	if (q.tab === 'needs-decision') activeTab.value = 'unmatched'
-	else if (q.tab === 'possible-duplicates') activeTab.value = 'duplicates'
 })
 </script>
 

@@ -522,7 +522,7 @@ const latencyHealth = computed<{ label: string; dotColor: string; class: string 
 	const target = latencyTarget.value
 	if (avg === 0 && overview.value.total_requests === 0) return { label: 'Normal', dotColor: '#16a34a', class: 'health-ok' }
 	if (avg >= target) return { label: 'Down', dotColor: '#dc2626', class: 'health-bad' }
-	if (avg >= target * 0.66) return { label: 'Degraded', dotColor: '#ea580c', class: 'health-warn' }
+	if (avg >= target * 0.66) return { label: 'Slow', dotColor: '#ea580c', class: 'health-warn' }
 	return { label: 'Normal', dotColor: '#16a34a', class: 'health-ok' }
 })
 

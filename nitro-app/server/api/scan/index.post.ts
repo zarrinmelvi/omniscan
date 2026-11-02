@@ -55,6 +55,7 @@ interface ScanAiExtraction {
 	expiration_date: string | null
 	net_quantity: number | null
 	net_unit: string | null
+	food_category: string
 }
 
 interface HalalLogoRecord {
@@ -81,7 +82,7 @@ function buildPrompt(): string {
 		'matching exactly this shape:',
 		'{"is_food_product": boolean, "is_real_photo": boolean, "front_image_index": number, "product_name": string, "brand": string, "ingredients_text": string,',
 		'"simplified_ingredients": string, "halal_logo_detected": boolean, "certifying_body": string,',
-		'"expiration_date": string | null, "net_quantity": number | null, "net_unit": string | null}.',
+		'"expiration_date": string | null, "net_quantity": number | null, "net_unit": string | null, "food_category": string}.',
 		'"is_food_product" must be false for anything that is not meant for human consumption',
 		'(e.g. lotion, shampoo, shoes, electronics, toys, stationery) — when false, you may leave the',
 		'other string fields as empty strings, halal_logo_detected as false, front_image_index as 0, and expiration_date as null,',
@@ -109,6 +110,9 @@ function buildPrompt(): string {
 		'"net_unit" should be the unit of measure as printed (e.g. "ml", "L", "g", "kg", "oz", "fl oz", "pcs", "pack"). Return only the unit string, lowercase. If no unit is visible or net_quantity is null, return null.',
 		'Do not invent ingredients, certifications, product identity, or a date that are not visibly present.',
 		'"is_real_photo" MUST be true for genuine photographs AND commercial stock or e-commerce marketing images of real packaged food products, even if the packaging features cartoon mascots, anime/illustrated characters (e.g., Buldak Hochi mascot), animated graphics, or studio backgrounds. ONLY set is_real_photo to false when the entire uploaded image itself is a hand-drawn cartoon sketch, anime drawing, artwork, digital painting, meme, screenshot of an app/text, or contains no physical food packaging whatsoever.',
+		'"food_category" should classify the product into exactly one of these predefined pantry categories: ' +
+		'"Canned Goods", "Instant Noodles", "Condiments & Sauces", "Dairy", "Snacks", "Beverages", "Grains". ' +
+		'Choose the single best-fitting category based on the product type. If the category cannot be determined, return an empty string.',
 	].join(' ')
 }
 
@@ -144,6 +148,7 @@ function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 		expiration_date: normalizeToDateStringOrNull(candidate.expiration_date),
 		net_quantity: typeof candidate.net_quantity === 'number' ? candidate.net_quantity : null,
 		net_unit: typeof candidate.net_unit === 'string' && candidate.net_unit.trim() ? candidate.net_unit.trim().toLowerCase() : null,
+		food_category: normalizeToString(candidate.food_category),
 	}
 }
 
@@ -296,6 +301,7 @@ export default defineEventHandler(async (event) => {
 			expiration_date: null,
 			net_quantity: null,
 			net_unit: null,
+			food_category: '',
 		}
 	} else {
 		const imagesForAi = base64RawBack ? [base64Raw, base64RawBack] : [base64Raw]
@@ -630,6 +636,7 @@ export default defineEventHandler(async (event) => {
 					expiration_date_detected: extraction.expiration_date,
 					net_quantity_detected: extraction.net_quantity,
 					net_unit_detected: extraction.net_unit,
+					food_category: extraction.food_category || '',
 				},
 				safety_verdict: scan.safety_verdict,
 				flag_reason: scan.flag_reason,

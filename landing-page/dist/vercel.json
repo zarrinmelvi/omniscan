@@ -1,0 +1,15 @@
+{
+  "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/signin.html",
+      "destination": "https://app.omniscan.website/login",
+      "permanent": true
+    },
+    {
+      "source": "/signup.html",
+      "destination": "https://app.omniscan.website/register",
+      "permanent": true
+    }
+  ]
+}

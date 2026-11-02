@@ -454,7 +454,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr v-for="p in filteredProductList" :key="p.id" @click="viewProduct(p)" style="cursor:pointer">
+							<tr v-for="p in filteredProductList" :key="p.id">
 								<td>
 									<div class="product-cell">
 										<div class="product-thumb">
@@ -674,49 +674,6 @@
 			</div>
 		</Teleport>
 
-		<!-- ══════════════════ PRODUCT VIEW MODAL ══════════════════ -->
-		<Teleport to="body">
-			<div v-if="viewProductTarget" class="modal-overlay" @click.self="viewProductTarget = null">
-				<div class="modal" role="dialog" aria-modal="true">
-					<div class="modal-header">
-						<h2 class="modal-title">{{ viewProductTarget.product_name }}</h2>
-						<button class="modal-close" @click="viewProductTarget = null" aria-label="Close">
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<line x1="18" y1="6" x2="6" y2="18"></line>
-								<line x1="6" y1="6" x2="18" y2="18"></line>
-							</svg>
-						</button>
-					</div>
-					<div class="modal-body">
-						<div class="field">
-							<span class="field-label">Brand</span>
-							<span>{{ viewProductTarget.brand_name || '—' }}</span>
-						</div>
-						<div class="field">
-							<span class="field-label">Halal status</span>
-							<span class="halal-pill" :class="'halal-pill--' + viewProductTarget.halal_status.kind">{{ viewProductTarget.halal_status.label }}</span>
-						</div>
-						<div class="field">
-							<span class="field-label">Allergens detected</span>
-							<div>
-								<template v-if="viewProductTarget.allergens_detected.length > 0">
-									<span v-for="a in viewProductTarget.allergens_detected" :key="a" class="allergen-tag">{{ a }}</span>
-								</template>
-								<span v-else class="muted-dash">—</span>
-							</div>
-						</div>
-						<div class="field">
-							<span class="field-label">Scan count</span>
-							<span>{{ viewProductTarget.scan_count }}</span>
-						</div>
-					</div>
-					<div class="modal-footer">
-						<button class="btn-modal-cancel" @click="viewProductTarget = null">Close</button>
-					</div>
-				</div>
-			</div>
-		</Teleport>
-
 		<!-- ══════════════════ PRODUCT TOAST ══════════════════ -->
 		<Teleport to="body">
 			<div v-if="productToast.visible" class="product-toast">{{ productToast.message }}</div>
@@ -928,7 +885,6 @@ const productPage = ref(1)
 const mergeTarget = ref<ProductRow | null>(null)
 const merging = ref(false)
 const mergeError = ref<string | null>(null)
-const viewProductTarget = ref<ProductRow | null>(null)
 const productToast = ref<{ visible: boolean; message: string }>({ visible: false, message: '' })
 let productToastTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -1224,10 +1180,6 @@ function goToFirstOverdue(): void {
 	highlightTimer = setTimeout(() => {
 		highlightedId.value = null
 	}, 2500)
-}
-
-function viewProduct(p: ProductRow): void {
-	viewProductTarget.value = p
 }
 
 function openMerge(p: ProductRow): void {

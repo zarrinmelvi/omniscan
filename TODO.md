@@ -23,6 +23,22 @@ This file tracks all pending work across the OmniScan project. Items are grouped
 
 ---
 
+## 🟥 HIGH PRIORITY — Admin Portal Bugs
+
+### UI Cleanup
+- [ ] System Logs API Latency — refine Previous/Next pagination buttons (style them as proper buttons)
+- [ ] Verification Panel — remove "Awaiting Consumer Rescan" metric card (no purpose currently)
+- [ ] Remove bottom footer notes from: Manage User Profiles, System Logs API Latency, Manage Product Data (all tabs)
+- [ ] Manage User Profiles — remove "Archives in X days" sub-text from Last Active column
+- [ ] Manage User Profiles — Online/Offline status: show Online only when user is actively logged in (has a valid session), Offline otherwise
+
+### Data / Logic
+- [ ] Manage Product Data Products tab — duplicate products (e.g. "Afritada", "Adult Boost") should be automatically merged or flagged and auto-merged without manual admin action
+- [ ] Halal Logo Library re-scrape — direct logo image link cannot be saved via Edit modal; fix so at least one certifier can re-scrape successfully
+- [ ] Dashboard "Halal certifiers needing attention" card — clicking a row should navigate to `/admin/productsdata?tab=halal` (Halal Logo Library tab)
+
+---
+
 ## 🟧 MEDIUM PRIORITY — Deferred / Backlog
 
 ### Manage Product Data

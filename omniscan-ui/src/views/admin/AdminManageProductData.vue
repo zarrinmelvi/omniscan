@@ -501,14 +501,7 @@
 						</button>
 					</div>
 				</div>
-				<div class="card-footer-notice">
-					One record per unique product. When User 2 scans an item User 1 already scanned, the scan attaches to the existing record.
-				</div>
 			</template>
-
-			<div v-if="activeTab !== 'products'" class="card-footer-notice">
-				All changes are persisted to the OmniScan knowledge base and reflected across the Verification Panel and scan pipeline.
-			</div>
 		</div>
 
 		<!-- ══════════════════ CREATE / EDIT MODAL ══════════════════ -->
@@ -1665,6 +1658,8 @@ onMounted(() => {
 	const tabParam = route.query.tab as string | undefined
 	if (tabParam === 'products') {
 		switchTab('products')
+	} else if (tabParam === 'halal') {
+		switchTab('halal')
 	} else {
 		fetchTabContent('allergen')
 	}

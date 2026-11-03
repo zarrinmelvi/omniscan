@@ -19,11 +19,6 @@
 				<div class="qm-value qm-value--green">{{ queueMetrics.needsDecision }}</div>
 				<div class="qm-sub">distinct logos, covering {{ queueMetrics.needsDecisionScans }} scans</div>
 			</div>
-			<div class="qm-card qm-card--clickable" @click="showAwaitingRescan = true">
-				<div class="qm-label">Awaiting Consumer rescan</div>
-				<div class="qm-value qm-value--neutral">{{ queueMetrics.awaitingRescan }}</div>
-				<div class="qm-sub">unclear scans, not yours to review</div>
-			</div>
 			<div class="qm-card">
 				<div class="qm-label">Resolved this week</div>
 				<div class="qm-value qm-value--neutral">{{ queueMetrics.resolvedThisWeek }}</div>
@@ -124,29 +119,6 @@
 			</div>
 
 		</div>
-
-		<!-- ── Awaiting Rescan read-only list ─────────────────────── -->
-		<Teleport to="body">
-			<div v-if="showAwaitingRescan" class="modal-overlay" @click.self="showAwaitingRescan = false">
-				<div class="modal-box">
-					<div class="modal-box-header">
-						<span class="modal-box-title">Awaiting Consumer rescan</span>
-						<button class="modal-close-btn" @click="showAwaitingRescan = false">✕</button>
-					</div>
-					<p class="modal-box-sub">These scans are unclear — Consumers have been asked to re-upload. No action needed from you.</p>
-					<div v-if="awaitingRescanItems.length === 0" class="modal-empty">No items awaiting rescan.</div>
-					<div v-else class="awaiting-list">
-						<div v-for="item in awaitingRescanItems" :key="item.id" class="awaiting-row">
-							<span class="awaiting-product">{{ item.product_name }}</span>
-							<span class="awaiting-badge">Awaiting rescan</span>
-						</div>
-					</div>
-					<div class="modal-box-footer">
-						<button class="btn-modal-secondary" @click="showAwaitingRescan = false">Close</button>
-					</div>
-				</div>
-			</div>
-		</Teleport>
 
 		<!-- ── Add to certifier registry dialog ───────────────────── -->
 		<Teleport to="body">
@@ -261,7 +233,6 @@ const router = useRouter()
 const adminStore = useAdminAuthStore()
 const adminName = computed(() => adminStore.admin?.full_name ?? 'Admin')
 
-const rawScans = ref<FlaggedScanRaw[]>([])
 const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
 
@@ -273,8 +244,6 @@ const trainingCardsData = ref<ServerCard[]>([])
 type TabType = 'unmatched'
 const activeTab = ref<TabType>('unmatched')
 const expandedId = ref<number | null>(null)
-
-const showAwaitingRescan = ref(false)
 
 const addDialog = ref<{ open: boolean; card: QueueCard | null; certifier: string; full_name: string; source_url: string; saving: boolean; error: string | null }>({ open: false, card: null, certifier: '', full_name: '', source_url: '', saving: false, error: null })
 const notHalalDialog = ref<{ open: boolean; card: QueueCard | null; reason: string }>({ open: false, card: null, reason: '' })
@@ -326,10 +295,6 @@ const trainingCards = computed<QueueCard[]>(() =>
 )
 
 const activeTabCards = computed<QueueCard[]>(() => unmatchedCards.value)
-
-const awaitingRescanItems = computed(() =>
-	rawScans.value.filter((s) => s.status === 'awaiting_rescan').map((s) => ({ id: s.id, product_name: s.product_name }))
-)
 
 // ── Card expand / deep-link ──────────────────────────────────────────────
 function expandCard(id: number, _idx: number): void {
@@ -407,18 +372,6 @@ async function fetchQueue(): Promise<void> {
 		metrics.value = data.metrics
 		unmatchedCardsData.value = data.unmatched
 		trainingCardsData.value = data.training
-
-		// The awaiting-rescan read-only modal list isn't part of the queue
-		// endpoint payload, so fetch flagged scans for that list only.
-		try {
-			const flags = await apiFetch<{ flagged_scans: FlaggedScanRaw[] }>(
-				'/api/admin/flagged-scans?type=all',
-				{ method: 'GET', isAdmin: true }
-			)
-			rawScans.value = flags.flagged_scans
-		} catch {
-			rawScans.value = []
-		}
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load queue.'
 	} finally {

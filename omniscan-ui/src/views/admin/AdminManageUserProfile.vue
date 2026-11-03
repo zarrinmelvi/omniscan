@@ -133,7 +133,6 @@
 							<td class="date-cell">{{ formatShortDate(u.created_at) }}</td>
 							<td class="date-cell">
 								{{ relativeLastActive(u.last_active) }}
-								<span v-if="u.archives_in_days != null" class="archives-sub">Archives in {{ u.archives_in_days }} days</span>
 							</td>
 							<td>
 								<span class="status-badge" :class="statusBadgeLabel(u.status).toLowerCase()">{{ statusBadgeLabel(u.status) }}</span>
@@ -159,10 +158,6 @@
 					<button class="page-nav" :disabled="currentPage === totalPages" @click="nextPage" aria-label="Next page">
 						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
 					</button>
-				</div>
-
-				<div class="table-foot-note">
-					No "View" button and no manual actions: archiving, the email and deletion all happen automatically. Pantry limit is 100 active items per account (fixed); archived items are not counted. Emails are masked.
 				</div>
 			</template>
 		</div>

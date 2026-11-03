@@ -255,10 +255,6 @@
 					</div>
 				</div>
 			</div>
-
-			<div class="al-footer">
-				Consumer sign-ins are not listed. Only admin sign-ins and changes to data appear here.
-			</div>
 		</div>
 
 		<!-- ═══════════════════════════════════════════════════════ -->
@@ -1251,6 +1247,29 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .page-nav { min-width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; background:#fff; color:#334155; border-radius:8px; font-size:1rem; cursor:pointer; transition:background 0.12s; }
 .page-nav:hover:not(:disabled) { background:#f1f5f9; }
 .page-nav:disabled { opacity:0.4; cursor:not-allowed; }
+.al-page-btns .page-nav {
+	height: 34px;
+	padding: 0 16px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid #e2e8f0;
+	background: #ffffff;
+	color: #334155;
+	border-radius: 8px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.12s, border-color 0.12s;
+}
+.al-page-btns .page-nav:hover:not(:disabled) {
+	background: #f1f5f9;
+	border-color: #cbd5e1;
+}
+.al-page-btns .page-nav:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
 .al-empty { text-align: center; padding: 48px 24px; }
 .al-empty svg { margin: 0 auto 12px; display: block; }
 .al-empty p { color: #94a3b8; font-size: 0.88rem; margin-bottom: 12px; }

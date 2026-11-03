@@ -6,13 +6,48 @@
 					<div class="brand-panel-inner">
 						<span class="brand-panel-name">OmniScan</span>
 						<p class="brand-panel-tagline">Scan with confidence. Live with intention.</p>
+						<ul class="brand-features">
+							<li>
+								<span class="feature-icon">
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+								</span>
+								Scan any food label
+							</li>
+							<li>
+								<span class="feature-icon">
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+								</span>
+								Get alerts for your allergens
+							</li>
+							<li>
+								<span class="feature-icon">
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+								</span>
+								Keep your pantry organized
+							</li>
+						</ul>
 					</div>
 				</aside>
 				<div class="auth-card">
-					<!-- Back button shown ONLY on Step 1 -->
-					<button v-if="step === 1" class="back-button" @click="handleBack">
-						<ion-icon :icon="chevronBackOutline" />
-					</button>
+					<!-- Top bar shown ONLY on Step 1 -->
+					<template v-if="step === 1">
+						<div class="auth-topbar">
+							<button type="button" class="back-to-home" @click="handleBack">
+								<ion-icon :icon="chevronBackOutline" />
+								Back to home
+							</button>
+							<div class="dark-mode-toggle-row">
+								<span>Dark mode</span>
+								<ion-toggle :checked="isDark" @ion-change="toggleDarkMode" class="custom-toggle" />
+							</div>
+						</div>
+					</template>
+					<!-- Back button shown ONLY on Step 2 -->
+					<template v-else>
+						<button class="back-button" @click="step = 1">
+							<ion-icon :icon="chevronBackOutline" />
+						</button>
+					</template>
 
 					<div class="progress-bar">
 						<div class="progress-segment" :class="{ 'progress-segment--filled': step >= 1 }"></div>
@@ -30,42 +65,22 @@
 						<div v-if="errorMessage" class="form-error">{{ errorMessage }}</div>
 
 						<form @submit.prevent="handleRegister">
-							<div class="form-group">
-								<label class="input-label">First Name</label>
-								<div class="custom-input-wrapper">
-									<input
-										v-model="firstName"
-										type="text"
-										placeholder="Enter your first name"
-										class="custom-input"
-										:class="{ 'input-error': fieldErrors.firstName }"
-										@input="clearFieldError('firstName')" />
+							<!-- Name row side by side -->
+							<div class="name-row">
+								<div class="form-group">
+									<label class="input-label">First name</label>
+									<input v-model="firstName" type="text" placeholder="First name" class="custom-input" :class="{ 'input-error': fieldErrors.firstName }" @input="clearFieldError('firstName')" />
+								</div>
+								<div class="form-group">
+									<label class="input-label">Last name</label>
+									<input v-model="lastName" type="text" placeholder="Last name" class="custom-input" :class="{ 'input-error': fieldErrors.lastName }" @input="clearFieldError('lastName')" />
 								</div>
 							</div>
-
-							<div class="form-group">
-								<label class="input-label">Middle Name <span class="optional-hint">(optional)</span></label>
-								<div class="custom-input-wrapper">
-									<input
-										v-model="middleName"
-										type="text"
-										placeholder="Enter your middle name"
-										class="custom-input"
-									/>
-								</div>
-							</div>
-
-							<div class="form-group">
-								<label class="input-label">Last Name</label>
-								<div class="custom-input-wrapper">
-									<input
-										v-model="lastName"
-										type="text"
-										placeholder="Enter your last name"
-										class="custom-input"
-										:class="{ 'input-error': fieldErrors.lastName }"
-										@input="clearFieldError('lastName')" />
-								</div>
+							<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
+								{{ showMiddleName ? '− Remove middle name' : '+ Add middle name (optional)' }}
+							</button>
+							<div v-if="showMiddleName" class="form-group">
+								<input v-model="middleName" type="text" placeholder="Middle name" class="custom-input" />
 							</div>
 
 							<div class="form-group">
@@ -111,27 +126,27 @@
 								</div>
 							</div>
 
-							<!-- Password Security Checklist -->
-							<div class="password-checklist">
-								<div class="check-item" :class="{ valid: passCriteria.length }">
-									<ion-icon :icon="passCriteria.length ? checkmarkCircle : closeCircle" />
-									<span>At least 8 characters</span>
+							<!-- Password criteria 2-column circle grid -->
+							<div class="pass-criteria-grid">
+								<div class="criteria-item" :class="{ valid: passCriteria.length }">
+									<span class="criteria-circle">{{ passCriteria.length ? '✓' : '' }}</span>
+									At least 8 characters
 								</div>
-								<div class="check-item" :class="{ valid: passCriteria.upper }">
-									<ion-icon :icon="passCriteria.upper ? checkmarkCircle : closeCircle" />
-									<span>At least 1 uppercase letter (A-Z)</span>
+								<div class="criteria-item" :class="{ valid: passCriteria.upper }">
+									<span class="criteria-circle">{{ passCriteria.upper ? '✓' : '' }}</span>
+									1 uppercase letter (A–Z)
 								</div>
-								<div class="check-item" :class="{ valid: passCriteria.lower }">
-									<ion-icon :icon="passCriteria.lower ? checkmarkCircle : closeCircle" />
-									<span>At least 1 lowercase letter (a-z)</span>
+								<div class="criteria-item" :class="{ valid: passCriteria.lower }">
+									<span class="criteria-circle">{{ passCriteria.lower ? '✓' : '' }}</span>
+									1 lowercase letter (a–z)
 								</div>
-								<div class="check-item" :class="{ valid: passCriteria.number }">
-									<ion-icon :icon="passCriteria.number ? checkmarkCircle : closeCircle" />
-									<span>At least 1 number (0-9)</span>
+								<div class="criteria-item" :class="{ valid: passCriteria.number }">
+									<span class="criteria-circle">{{ passCriteria.number ? '✓' : '' }}</span>
+									1 number (0–9)
 								</div>
-								<div class="check-item" :class="{ valid: passCriteria.special }">
-									<ion-icon :icon="passCriteria.special ? checkmarkCircle : closeCircle" />
-									<span>At least 1 special character (!@#$%^&*)</span>
+								<div class="criteria-item" :class="{ valid: passCriteria.special }">
+									<span class="criteria-circle">{{ passCriteria.special ? '✓' : '' }}</span>
+									1 special character (!@#$%^&*)
 								</div>
 							</div>
 
@@ -179,11 +194,11 @@
 						</p>
 					</template>
 
-					<!-- STEP 2: Dietary Preferences -->
+					<!-- STEP 2: Allergens / Dietary Preferences -->
 					<template v-else>
 						<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! 🎉' : 'Almost There!' }}</span>
-						<h1 class="auth-title">Allergens / Allergy List</h1>
-						<p class="auth-subtitle">{{ route.query.step === '2' ? 'Your account is active. Now personalise your experience:' : 'Select your allergens / allergy list so we can help you make better choices' }}</p>
+						<h1 class="auth-title">Your allergens</h1>
+						<p class="auth-subtitle">Choose up to 5. We flag them on every scan. You can change them later in your profile.</p>
 
 						<div v-if="isLoadingAllergens" class="state-block">
 							<ion-spinner name="crescent" />
@@ -196,44 +211,63 @@
 						</div>
 
 						<template v-else>
-							<div class="dietary-pref-section">
-								<p class="pref-section-label">Dietary Preference</p>
-								<button
-									type="button"
-									class="pref-card pref-card--halal"
-									:class="{ 'pref-card--selected': halalSelected }"
-									@click="toggleHalal()">
-									<span class="pref-emoji">🕌</span>
-									<span class="pref-label">Halal</span>
-								</button>
+							<!-- Counter row -->
+							<div class="allergen-counter-row">
+								<span class="allergen-count-text">{{ allergenCount }} of 5 selected</span>
+								<div class="allergen-dots">
+									<span v-for="i in 5" :key="i" class="allergen-dot" :class="{ 'allergen-dot--filled': i <= allergenCount }"></span>
+								</div>
 							</div>
-							<p class="pref-section-label">Allergens / Allergies (up to 5)</p>
 
-							<div class="pref-grid">
+							<!-- Allergen chip grid -->
+							<div class="allergen-chip-grid">
 								<button
 									v-for="allergen in allergenCatalog"
 									:key="allergen.id"
 									type="button"
-									class="pref-card"
-									:class="{ 'pref-card--selected': selectedAllergenIds.includes(allergen.id) }"
+									class="allergen-chip"
+									:class="{ 'allergen-chip--selected': selectedAllergenIds.includes(allergen.id) }"
 									@click="toggleAllergen(allergen.id)">
-									<span class="pref-emoji">{{ emojiForAllergen(allergen.name) }}</span>
-									<span class="pref-label">{{ formatAllergenName(allergen.name) }}</span>
+									<span v-if="selectedAllergenIds.includes(allergen.id)" class="chip-check">✓</span>
+									{{ formatAllergenName(allergen.name) }}
 								</button>
 							</div>
-						</template>
 
-						<p v-if="prefLimitWarning" class="pref-limit-warning">You can select up to 5 allergens / allergies.</p>
+							<!-- Limit reached banner -->
+							<div v-if="allergenCount >= 5" class="allergen-limit-banner">
+								You've reached the limit of 5. Remove one to choose another.
+							</div>
+
+							<!-- Halal toggle card -->
+							<div class="halal-toggle-card">
+								<div class="halal-toggle-text">
+									<p class="halal-toggle-label">Halal only</p>
+									<p class="halal-toggle-sub">Flag products without a verified Halal logo. This is a dietary preference, not an allergen.</p>
+								</div>
+								<ion-toggle v-model="halalSelected" class="custom-toggle" />
+							</div>
+						</template>
 
 						<div v-if="prefsError" class="form-error">{{ prefsError }}</div>
 						<div v-if="setupError" class="form-error">{{ setupError }}</div>
 
-						<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs" @click="completeSetup">
-							<ion-spinner v-if="isSavingPrefs" name="crescent" class="btn-spinner" />
-							<span v-else>Complete Setup</span>
-						</ion-button>
+						<!-- T&C checkbox -->
+						<div class="terms-check-row">
+							<label class="checkbox-container">
+								<input v-model="termsAccepted" type="checkbox" class="custom-checkbox-input" />
+								<span class="custom-checkbox-box"></span>
+								<span class="remember-label">I agree to the <button type="button" class="terms-inline-btn" @click="isTermsOpen = true">Terms and Conditions</button></span>
+							</label>
+						</div>
 
-						<button type="button" class="skip-link" :disabled="isSavingPrefs" @click="skipForNow">Skip for now</button>
+						<!-- Step 2 actions -->
+						<div class="step2-actions">
+							<button type="button" class="btn-back" @click="step = 1">Back</button>
+							<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs || !termsAccepted" @click="completeSetup">
+								<ion-spinner v-if="isSavingPrefs" name="crescent" class="btn-spinner" />
+								<span v-else>Create account</span>
+							</ion-button>
+						</div>
 					</template>
 				</div>
 			</div>
@@ -383,14 +417,16 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, IonFooter, toastController } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, IonFooter, IonToggle, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, checkmarkCircle, closeCircle, arrowDownOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 function handleGoogleSignIn(): void {
 	window.location.href = `${API_BASE_URL}/api/auth/google`
@@ -420,8 +456,10 @@ const password = ref('')
 const confirmPassword = ref('')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+const showMiddleName = ref(false)
 const isSubmitting = ref(false)
 const isTermsOpen = ref(false)
+const termsAccepted = ref(false)
 const errorMessage = ref<string | null>(null)
 
 // Terms & Conditions scroll gate — the user must reach the bottom of the
@@ -650,6 +688,7 @@ async function handleRegister(): Promise<void> {
 
 async function acceptTerms(): Promise<void> {
 	isTermsOpen.value = false
+	termsAccepted.value = true
 
 	if (await redirectIfAlreadyAuthenticated()) {
 		return
@@ -735,12 +774,6 @@ async function completeSetup(): Promise<void> {
 	isSavingPrefs.value = true
 	prefsError.value = ''
 	setupError.value = ''
-
-	if (allergenCount.value === 0 && !halalSelected.value) {
-		setupError.value = 'Please select at least one allergen / allergy before completing setup or click "Skip for now".'
-		isSavingPrefs.value = false
-		return
-	}
 
 	await authStore.checkAuth()
 	if (!authStore.isAuthenticated) {
@@ -844,6 +877,11 @@ onUnmounted(() => {
 	display: flex;
 	align-items: center;
 }
+
+/* Top bar */
+.auth-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.back-to-home { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 0.85rem; color: #6b7280; padding: 0; }
+.dark-mode-toggle-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #6b7280; }
 
 .progress-bar {
 	display: flex;
@@ -960,34 +998,16 @@ onUnmounted(() => {
 	cursor: pointer;
 }
 
-/* Password Checklist Styling */
-.password-checklist {
-	background: #f9fafb;
-	border: 1px solid #f3f4f6;
-	border-radius: 10px;
-	padding: 10px 12px;
-	margin-top: 8px;
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-}
+/* Name row */
+.name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0; }
+.add-middle-link { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #05c450; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0; margin: 4px 0 14px; }
 
-.check-item {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: 0.78rem;
-	color: #9ca3af;
-}
-
-.check-item.valid {
-	color: #16a34a;
-	font-weight: 500;
-}
-
-.check-item ion-icon {
-	font-size: 0.95rem;
-}
+/* Password criteria */
+.pass-criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-top: 10px; padding: 12px 14px; background: #f9fafb; border-radius: 10px; margin-bottom: 14px; }
+.criteria-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #9ca3af; }
+.criteria-item.valid { color: #15803d; }
+.criteria-circle { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #d1d5db; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.65rem; font-weight: 700; }
+.criteria-item.valid .criteria-circle { border-color: #15803d; color: #15803d; }
 
 .submit-button {
 	--background: #05c450;
@@ -1081,47 +1101,98 @@ onUnmounted(() => {
 	padding: 24px 0;
 }
 
-.dietary-pref-section { margin-bottom: 16px; }
-.pref-section-label { font-size: 0.82rem; font-weight: 700; color: #374151; margin: 0 0 10px; }
-.pref-card--halal { max-width: 160px; }
+/* Allergen section */
+.allergen-counter-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.allergen-count-text { font-size: 0.85rem; color: #374151; font-weight: 500; }
+.allergen-dots { display: flex; gap: 6px; }
+.allergen-dot { width: 10px; height: 10px; border-radius: 50%; background: #d1d5db; }
+.allergen-dot--filled { background: #15803d; }
+.allergen-chip-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.allergen-chip { display: inline-flex; align-items: center; gap: 5px; padding: 8px 16px; border-radius: 9999px; border: 1.5px solid #d1d5db; background: transparent; color: #374151; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.allergen-chip:hover:not(.allergen-chip--selected) { border-color: #15803d; color: #15803d; }
+.allergen-chip--selected { background: #15803d; border-color: #15803d; color: #fff; font-weight: 600; }
+.chip-check { font-size: 0.8rem; }
+.allergen-limit-banner { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 10px; padding: 10px 14px; font-size: 0.82rem; margin-bottom: 14px; }
 
-.pref-grid {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 12px;
-	margin-bottom: 24px;
+/* Halal toggle card */
+.halal-toggle-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+.halal-toggle-text { flex: 1; }
+.halal-toggle-label { font-size: 0.9rem; font-weight: 600; color: #111827; margin: 0 0 2px; }
+.halal-toggle-sub { font-size: 0.78rem; color: #6b7280; margin: 0; line-height: 1.4; }
+
+/* T&C row */
+.terms-check-row { margin-bottom: 16px; }
+.terms-inline-btn { background: none; border: none; color: #05c450; font-weight: 600; cursor: pointer; font-size: inherit; padding: 0; }
+
+/* Checkbox */
+.checkbox-container {
+	position: relative;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	user-select: none;
 }
 
-.pref-card {
-	border: 1px solid #e5e7eb;
-	background: #ffffff;
-	border-radius: 16px;
-	padding: 18px 12px;
+.custom-checkbox-input {
+	position: absolute;
+	opacity: 0;
+	cursor: pointer;
+	height: 0;
+	width: 0;
+}
+
+.custom-checkbox-box {
+	width: 18px;
+	height: 18px;
+	background-color: #ffffff;
+	border: 1.5px solid #d1d5db;
+	border-radius: 5px;
+	transition: all 0.2s ease;
 	display: flex;
-	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: 10px;
-	cursor: pointer;
-	transition: all 0.2s ease;
+	flex-shrink: 0;
 }
 
-.pref-card--selected {
+.checkbox-container:hover .custom-checkbox-box {
 	border-color: #05c450;
-	background: #f0fdf4;
-	box-shadow: 0 0 0 1px #05c450;
 }
 
-.pref-emoji {
-	font-size: 1.8rem;
-	line-height: 1;
+.custom-checkbox-input:checked ~ .custom-checkbox-box {
+	background-color: #05c450;
+	border-color: #05c450;
 }
 
-.pref-label {
+.custom-checkbox-box::after {
+	content: '';
+	width: 4px;
+	height: 8px;
+	border: solid #ffffff;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+	opacity: 0;
+	margin-bottom: 2px;
+	transition: opacity 0.15s ease;
+}
+
+.custom-checkbox-input:checked ~ .custom-checkbox-box::after {
+	opacity: 1;
+}
+
+.remember-label {
 	font-size: 0.85rem;
-	font-weight: 600;
-	color: #111827;
+	color: #374151;
+	margin-left: 8px;
 }
+
+/* Step 2 bottom actions */
+.step2-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-top: 8px; }
+.btn-back { height: 48px; border: 1.5px solid #d1d5db; border-radius: 9999px; background: transparent; color: #374151; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+
+/* Brand features */
+.brand-features { list-style: none; padding: 0; margin: 28px 0 0; display: flex; flex-direction: column; gap: 16px; }
+.brand-features li { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; opacity: 0.9; }
+.feature-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
 .skip-link {
 	display: block;
@@ -1276,6 +1347,26 @@ onUnmounted(() => {
 	text-transform: none;
 }
 
+/* Dark mode */
+:global(html.ion-palette-dark) .auth-content { --background: #0b160b; }
+:global(html.ion-palette-dark) .auth-card { background: #0b160b; }
+:global(html.ion-palette-dark) .auth-title { color: #f9fafb; }
+:global(html.ion-palette-dark) .auth-subtitle { color: #9ca3af; }
+:global(html.ion-palette-dark) .input-label { color: #d1d5db; }
+:global(html.ion-palette-dark) .custom-input { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
+:global(html.ion-palette-dark) .custom-input::placeholder { color: #6b7280; }
+:global(html.ion-palette-dark) .pass-criteria-grid { background: #172617; }
+:global(html.ion-palette-dark) .criteria-item { color: #6b7280; }
+:global(html.ion-palette-dark) .allergen-chip { border-color: #2d4a2d; color: #d1d5db; }
+:global(html.ion-palette-dark) .allergen-chip--selected { background: #15803d; border-color: #15803d; color: #fff; }
+:global(html.ion-palette-dark) .halal-toggle-card { background: #172617; border-color: #2d4a2d; }
+:global(html.ion-palette-dark) .halal-toggle-label { color: #f9fafb; }
+:global(html.ion-palette-dark) .halal-toggle-sub { color: #9ca3af; }
+:global(html.ion-palette-dark) .btn-back { border-color: #2d4a2d; color: #d1d5db; }
+:global(html.ion-palette-dark) .back-to-home { color: #9ca3af; }
+:global(html.ion-palette-dark) .dark-mode-toggle-row { color: #9ca3af; }
+:global(html.ion-palette-dark) .remember-label { color: #d1d5db; }
+
 /* TABLET (>=768px) */
 @media (min-width: 768px) {
 	.auth-layout {
@@ -1349,10 +1440,6 @@ onUnmounted(() => {
 
 	.auth-card .back-button {
 		display: none;
-	}
-
-	.pref-grid {
-		grid-template-columns: repeat(3, 1fr);
 	}
 }
 </style>

@@ -6,92 +6,124 @@
 					<div class="brand-panel-inner">
 						<span class="brand-panel-name">OmniScan</span>
 						<p class="brand-panel-tagline">Scan with confidence. Live with intention.</p>
+						<ul class="brand-features">
+							<li>
+								<span class="feature-icon">
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+								</span>
+								Scan any food label
+							</li>
+							<li>
+								<span class="feature-icon">
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+								</span>
+								Get alerts for your allergens
+							</li>
+							<li>
+								<span class="feature-icon">
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+								</span>
+								Keep your pantry organized
+							</li>
+						</ul>
 					</div>
 				</aside>
 				<div class="auth-card">
-				<button type="button" class="back-button" @click="goToLandingPage">
-				<ion-icon :icon="chevronBackOutline" />
-				</button>
+					<div class="auth-topbar">
+						<button type="button" class="back-to-home" @click="goToLandingPage">
+							<ion-icon :icon="chevronBackOutline" />
+							Back to home
+						</button>
+						<div class="dark-mode-toggle-row">
+							<span>Dark mode</span>
+							<ion-toggle :checked="isDark" @ion-change="toggleDarkMode" class="custom-toggle" />
+						</div>
+					</div>
 
-				<span class="brand-label">OmniScan</span>
-				<h1 class="auth-title">Welcome Back</h1>
-				<p class="auth-subtitle">Sign in to continue managing your pantry</p>
+					<span class="brand-label">OmniScan</span>
+					<h1 class="auth-title">Welcome Back</h1>
+					<p class="auth-subtitle">Sign in to continue managing your pantry</p>
 
-				<div v-if="errorMessage" class="form-error">
-					{{ errorMessage }}
-					<!-- Resend button shown only when login blocked due to unverified email -->
-					<div v-if="requiresVerification" class="resend-row">
-						<ion-button
-							size="small"
-							fill="outline"
-							class="resend-inline-button"
-							:disabled="isResending || cooldown > 0"
-							@click="handleResend">
-							<ion-spinner v-if="isResending" name="crescent" class="btn-spinner" />
-							<span v-else-if="cooldown > 0">Resend in {{ cooldown }}s</span>
-							<span v-else>Resend verification email</span>
+					<div v-if="errorMessage" class="form-error">
+						{{ errorMessage }}
+						<!-- Resend button shown only when login blocked due to unverified email -->
+						<div v-if="requiresVerification" class="resend-row">
+							<ion-button
+								size="small"
+								fill="outline"
+								class="resend-inline-button"
+								:disabled="isResending || cooldown > 0"
+								@click="handleResend">
+								<ion-spinner v-if="isResending" name="crescent" class="btn-spinner" />
+								<span v-else-if="cooldown > 0">Resend in {{ cooldown }}s</span>
+								<span v-else>Resend verification email</span>
+							</ion-button>
+						</div>
+					</div>
+
+					<div v-if="googleCancelled" class="banner-warning">
+						Google sign-in was cancelled. Try again or use your email.
+					</div>
+
+					<div v-if="resendSuccess" class="form-success">
+						Verification email sent! Check your inbox.
+					</div>
+
+					<form @submit.prevent="handleLogin">
+						<div class="form-group">
+							<label class="input-label">Email Address</label>
+							<div class="custom-input-wrapper">
+								<input v-model="email" type="email" placeholder="your@email.com" required class="custom-input" :class="{ 'input-error': !!errorMessage }" />
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="input-label">Password</label>
+							<div class="custom-input-wrapper">
+								<input
+									v-model="password"
+									:type="showPassword ? 'text' : 'password'"
+									placeholder="Enter your password"
+									required
+									class="custom-input"
+									:class="{ 'input-error': !!errorMessage }" />
+								<ion-icon
+									:icon="showPassword ? eyeOffOutline : eyeOutline"
+									class="password-toggle"
+									@click="showPassword = !showPassword" />
+							</div>
+						</div>
+
+						<div class="form-row">
+							<label class="checkbox-container">
+								<input v-model="rememberMe" type="checkbox" class="custom-checkbox-input" />
+								<span class="custom-checkbox-box"></span>
+								<span class="remember-label">Remember me</span>
+							</label>
+							<router-link to="/forgot-password" class="forgot-link">Forgot password?</router-link>
+						</div>
+
+						<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
+							<ion-spinner v-if="isSubmitting" name="crescent" class="btn-spinner" />
+							<span v-else>Sign In</span>
 						</ion-button>
-					</div>
-				</div>
+					</form>
 
-				<div v-if="resendSuccess" class="form-success">
-					Verification email sent! Check your inbox.
-				</div>
+					<div class="oauth-divider"><span>or</span></div>
+					<button type="button" class="google-btn" @click="handleGoogleSignIn">
+						<svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+							<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+							<path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+							<path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+							<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+						</svg>
+						Sign in with Google
+					</button>
 
-				<form @submit.prevent="handleLogin">
-					<div class="form-group">
-						<label class="input-label">Email Address</label>
-						<div class="custom-input-wrapper">
-							<input v-model="email" type="email" placeholder="your@email.com" required class="custom-input" />
-						</div>
-					</div>
-
-					<div class="form-group">
-						<label class="input-label">Password</label>
-						<div class="custom-input-wrapper">
-							<input
-								v-model="password"
-								:type="showPassword ? 'text' : 'password'"
-								placeholder="Enter your password"
-								required
-								class="custom-input" />
-							<ion-icon
-								:icon="showPassword ? eyeOffOutline : eyeOutline"
-								class="password-toggle"
-								@click="showPassword = !showPassword" />
-						</div>
-					</div>
-
-					<div class="form-row">
-						<label class="checkbox-container">
-							<input v-model="rememberMe" type="checkbox" class="custom-checkbox-input" />
-							<span class="custom-checkbox-box"></span>
-							<span class="remember-label">Remember me</span>
-						</label>
-						<router-link to="/forgot-password" class="forgot-link">Forgot password?</router-link>
-					</div>
-
-					<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
-						<ion-spinner v-if="isSubmitting" name="crescent" class="btn-spinner" />
-						<span v-else>Sign In</span>
-					</ion-button>
-				</form>
-
-				<div class="oauth-divider"><span>or</span></div>
-				<button type="button" class="google-btn" @click="handleGoogleSignIn">
-					<svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-						<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-						<path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-						<path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-						<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-					</svg>
-					Sign in with Google
-				</button>
-
-				<p class="switch-auth">
-					Don't have an account?
-					<router-link to="/register" class="switch-link">Get Started</router-link>
-				</p>
+					<p class="switch-auth">
+						Don't have an account?
+						<router-link to="/register" class="switch-link">Create one</router-link>
+					</p>
 				</div>
 			</div>
 		</ion-content>
@@ -99,13 +131,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
+import { ref, computed, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToggle } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const authStore = useAuthStore()
+const route = useRoute()
+const { isDark, toggle: toggleDarkMode } = useDarkMode()
+
+const googleCancelled = computed(() => route.query.google_cancelled === '1')
 
 function goToLandingPage(): void {
 	window.location.href = 'https://omniscan.website'
@@ -214,16 +252,30 @@ onUnmounted(() => {
 	background: #ffffff;
 }
 
-.back-button {
-	background: none;
-	border: none;
-	font-size: 1.25rem;
-	color: #111827;
-	padding: 4px 0;
-	margin-bottom: 24px;
-	cursor: pointer;
+/* Top bar */
+.auth-topbar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 32px;
+}
+.back-to-home {
 	display: flex;
 	align-items: center;
+	gap: 6px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 0.85rem;
+	color: #6b7280;
+	padding: 0;
+}
+.dark-mode-toggle-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.82rem;
+	color: #6b7280;
 }
 
 .brand-label {
@@ -287,6 +339,9 @@ onUnmounted(() => {
 .custom-input::placeholder {
 	color: #9ca3af;
 }
+
+/* Input error border */
+.custom-input.input-error { border-color: #dc2626 !important; }
 
 .password-toggle {
 	position: absolute;
@@ -409,6 +464,17 @@ onUnmounted(() => {
 	font-size: 0.85rem;
 }
 
+/* Banners */
+.banner-warning {
+	background: #fffbeb;
+	border: 1px solid #fde68a;
+	color: #92400e;
+	border-radius: 8px;
+	padding: 10px 14px;
+	margin-bottom: 16px;
+	font-size: 0.85rem;
+}
+
 .oauth-divider {
 	display: flex;
 	align-items: center;
@@ -470,6 +536,48 @@ onUnmounted(() => {
 	margin-bottom: 16px;
 	font-size: 0.85rem;
 }
+
+/* Brand features */
+.brand-features {
+	list-style: none;
+	padding: 0;
+	margin: 28px 0 0;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+.brand-features li {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 0.9rem;
+	opacity: 0.9;
+}
+.feature-icon {
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	background: rgba(255,255,255,0.15);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+/* Dark mode */
+:global(html.ion-palette-dark) .auth-content { --background: #0b160b; }
+:global(html.ion-palette-dark) .auth-card { background: #0b160b; }
+:global(html.ion-palette-dark) .auth-title { color: #f9fafb; }
+:global(html.ion-palette-dark) .auth-subtitle { color: #9ca3af; }
+:global(html.ion-palette-dark) .input-label { color: #d1d5db; }
+:global(html.ion-palette-dark) .custom-input { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
+:global(html.ion-palette-dark) .custom-input::placeholder { color: #6b7280; }
+:global(html.ion-palette-dark) .google-btn { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
+:global(html.ion-palette-dark) .back-to-home { color: #9ca3af; }
+:global(html.ion-palette-dark) .dark-mode-toggle-row { color: #9ca3af; }
+:global(html.ion-palette-dark) .switch-auth { color: #9ca3af; }
+:global(html.ion-palette-dark) .remember-label { color: #d1d5db; }
+:global(html.ion-palette-dark) .oauth-divider { color: #6b7280; }
 
 /* TABLET (>=768px): roomier vertically centered card */
 @media (min-width: 768px) {
@@ -544,8 +652,8 @@ onUnmounted(() => {
 	}
 
 	/* The brand panel replaces the need for the mobile back button */
-	.auth-card .back-button {
-		display: none;
+	.auth-card .auth-topbar {
+		display: flex;
 	}
 }
 </style>

@@ -6,7 +6,7 @@ export const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'http://lo
 // Frontend client portal base URL. Production custom domain by default.
 // Reuses the same FRONTEND_URL env var the email templates use, so the OAuth
 // redirect target and verification/reset links always point at the same host.
-export const FRONTEND_URL = process.env.FRONTEND_URL || 'https://omniscan.website'
+export const FRONTEND_URL = process.env.FRONTEND_URL || 'https://app.omniscan.website'
 // Derived landing targets after a successful / failed OAuth login.
 export const OAUTH_FRONTEND_SUCCESS = `${FRONTEND_URL.replace(/\/$/, '')}/tabs/home`
 export const OAUTH_FRONTEND_FAILURE = `${FRONTEND_URL.replace(/\/$/, '')}/login`

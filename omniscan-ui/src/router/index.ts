@@ -9,36 +9,43 @@ const routes: Array<RouteRecordRaw> = [
 		path: '/',
 		name: 'welcome',
 		component: () => import('../views/WelcomePage.vue'),
+		meta: { title: 'OmniScan' },
 	},
 	{
 		path: '/login',
 		name: 'login',
 		component: () => import('../views/LoginPage.vue'),
+		meta: { title: 'OmniScan' },
 	},
 	{
 		path: '/forgot-password',
 		name: 'forgot-password',
 		component: () => import('../views/ForgotPasswordPage.vue'),
+		meta: { title: 'OmniScan' },
 	},
 	{
 		path: '/reset-password',
 		name: 'reset-password',
 		component: () => import('../views/ResetPasswordPage.vue'),
+		meta: { title: 'OmniScan' },
 	},
 	{
 		path: '/register',
 		name: 'register',
 		component: () => import('../views/RegisterPage.vue'),
+		meta: { title: 'OmniScan' },
 	},
 	{
 		path: '/check-email',
 		name: 'check-email',
 		component: () => import('../views/CheckEmailPage.vue'),
+		meta: { title: 'OmniScan' },
 	},
 	{
 		path: '/verify/:token',
 		name: 'verify-email',
 		component: () => import('../views/VerifyEmailPage.vue'),
+		meta: { title: 'OmniScan' },
 	},
 	{
 		// Deliberately top-level, not nested under /tabs/ — the admin portal
@@ -47,10 +54,12 @@ const routes: Array<RouteRecordRaw> = [
 		path: '/admin/login',
 		name: 'admin-login',
 		component: () => import('../views/admin/AdminLoginPage.vue'),
+		meta: { title: 'OmniScan Admin Portal' },
 	},
 	{
 		path: '/admin',
 		component: () => import('../views/admin/AdminLayout.vue'),
+		meta: { title: 'OmniScan Admin Portal' },
 		// beforeEnter on the parent route fires for navigation into any of
 		// its children too (it's part of the matched chain), so this one
 		// guard covers the whole admin section — no need to repeat it per
@@ -78,37 +87,44 @@ const routes: Array<RouteRecordRaw> = [
 				path: 'dashboard',
 				name: 'admin-dashboard',
 				component: () => import('../views/admin/AdminDashboard.vue'),
+				meta: { title: 'OmniScan Admin Portal' },
 			},
 			{
 				path: 'verification',
 				name: 'admin-verification',
 				component: () => import('../views/admin/VerificationPanel.vue'),
+				meta: { title: 'OmniScan Admin Portal' },
 			},
 			{
 				path: 'productsdata',
 				name: 'admin-productsdata',
 				component: () => import('../views/admin/AdminManageProductData.vue'),
+				meta: { title: 'OmniScan Admin Portal' },
 			},
 			{
 				path: 'usersprofile',
 				name: 'admin-usersprofile',
 				component: () => import('../views/admin/AdminManageUserProfile.vue'),
+				meta: { title: 'OmniScan Admin Portal' },
 			},
 			{
 				path: 'settings',
 				name: 'admin-settings',
 				component: () => import('../views/admin/AdminSettings.vue'),
+				meta: { title: 'OmniScan Admin Portal' },
 			},
 			{
 				path: 'systemlogs',
 				name: 'admin-systemlogs',
 				component: () => import('../views/admin/AdminSystemLogs.vue'),
+				meta: { title: 'OmniScan Admin Portal' },
 			},
 		],
 	},
 	{
 		path: '/tabs/',
 		component: TabsPage,
+		meta: { title: 'OmniScan' },
 		children: [
 			{
 				path: '',
@@ -117,48 +133,45 @@ const routes: Array<RouteRecordRaw> = [
 			{
 				path: 'home',
 				component: () => import('../views/HomePage.vue'),
+				meta: { title: 'OmniScan' },
 			},
 			{
 				path: 'pantry',
 				component: () => import('../views/PantryPage.vue'),
+				meta: { title: 'OmniScan' },
 			},
 			{
-				// Nested under /tabs/, not top-level — same reasoning as
-				// settings/notifications below: shares the tabs outlet so
-				// back-navigation from the detail view works normally and
-				// the tab bar state stays consistent.
 				path: 'pantry/:id',
 				name: 'pantry-item-detail',
 				component: () => import('../views/PantryItemDetail.vue'),
+				meta: { title: 'OmniScan' },
 			},
 			{
 				path: 'scan',
 				component: () => import('../views/ScanPage.vue'),
+				meta: { title: 'OmniScan' },
 			},
 			{
 				path: 'recipes',
 				component: () => import('../views/RecipeSuggestions.vue'),
+				meta: { title: 'OmniScan' },
 			},
 			{
 				path: 'profile',
 				component: () => import('../views/ProfilePage.vue'),
+				meta: { title: 'OmniScan' },
 			},
 			{
-				// Nested under /tabs/ (not top-level) so it shares Profile's
-				// <ion-router-outlet> instance — the tab bar is hidden via CSS
-				// in TabsPage.vue instead. Ionic Vue's nested tabs outlet
-				// doesn't reliably restore state when the ROOT outlet swaps to
-				// a sibling route and back, so pushed pages that need normal
-				// back-navigation have to live inside the tabs outlet, not
-				// beside it.
 				path: 'settings',
 				name: 'settings',
 				component: () => import('../views/SettingsPage.vue'),
+				meta: { title: 'OmniScan' },
 			},
 			{
 				path: 'notifications',
 				name: 'notifications',
 				component: () => import('../views/NotificationsPage.vue'),
+				meta: { title: 'OmniScan' },
 			},
 		],
 	},
@@ -171,12 +184,9 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
 	// ── OAuth callback landing ─────────────────────────────────────────────
-	// The backend redirects here with ?oauth_token=...
-	// Consume it, establish the consumer session, then strip it from the URL.
 	if (to.query.oauth_token && typeof to.query.oauth_token === 'string') {
 		const authStore = useAuthStore()
 		await authStore.loginWithOAuthToken(to.query.oauth_token)
-		// Remove the token from the URL and proceed to the clean destination
 		const cleanQuery = { ...to.query }
 		delete cleanQuery.oauth_token
 		return next({ path: to.path, query: cleanQuery, replace: true })
@@ -184,14 +194,6 @@ router.beforeEach(async (to, from, next) => {
 	// ─────────────────────────────────────────────────────────────────────
 
 	// ── Mode restriction ──────────────────────────────────────────────────
-	// VITE_MODE controls which "face" of the app is served.
-	//   ADMIN  → only /admin/* routes are accessible; everything else
-	//            redirects to /admin/login so operators can't accidentally
-	//            land on the client shell.
-	//   CLIENT → /admin/* routes are blocked; redirect to / so that
-	//            end-users are never exposed to the admin portal.
-	// Defaults to CLIENT when the variable is absent (e.g. local dev without
-	// a .env override).
 	const mode = (import.meta.env.VITE_MODE ?? 'CLIENT') as 'ADMIN' | 'CLIENT'
 
 	if (mode === 'ADMIN' && !to.path.startsWith('/admin')) {
@@ -203,39 +205,24 @@ router.beforeEach(async (to, from, next) => {
 	// ─────────────────────────────────────────────────────────────────────
 
 	// ── Restore consumer session ──────────────────────────────────────────
-	// checkAuth() is async (network round-trip to /api/auth/me). Only called
-	// when the Pinia store is empty — avoids redundant calls on subsequent
-	// navigations within the same page session.
-	// Bug 4 fix: wrap in try/catch so a network error never hangs navigation.
 	const authStore = useAuthStore()
 	if (!authStore.isAuthenticated) {
 		try {
 			await authStore.checkAuth()
 		} catch {
-			// Treat any unexpected error as unauthenticated — do not block.
 			authStore.user = null
 			authStore.token = null
 		}
 	}
 	// ─────────────────────────────────────────────────────────────────────
 
-	// ── Restore admin session (synchronous, no network) ───────────────────
-	// checkAdminAuth() reads from sessionStorage only; safe to call on every
-	// navigation. Moving it here (from beforeEnter only) ensures it runs for
-	// routes like /admin/login that are NOT children of the /admin parent
-	// and therefore never hit the beforeEnter guard.
+	// ── Restore admin session ─────────────────────────────────────────────
 	const adminAuthStore = useAdminAuthStore()
 	adminAuthStore.checkAdminAuth()
 	// ─────────────────────────────────────────────────────────────────────
 
-	// ── Already-authenticated redirects (Bug 3 fix) ───────────────────────
-	// Redirect authenticated consumers away from auth pages they no longer
-	// need. Excludes flow-specific pages (check-email, verify/:token,
-	// forgot-password, reset-password) — authenticated users may legitimately
-	// land on those mid-flow.
+	// ── Already-authenticated redirects ───────────────────────────────────
 	const authOnlyPaths = ['/', '/login', '/register']
-	// Exception: an authenticated, just-verified user is sent to
-	// /register?step=2 to complete allergen setup — do NOT bounce them away.
 	const isSetupStep = to.path === '/register' && to.query.step === '2'
 	if (authOnlyPaths.includes(to.path) && authStore.isAuthenticated && !isSetupStep) {
 		return next('/tabs/home')
@@ -249,6 +236,12 @@ router.beforeEach(async (to, from, next) => {
 	if (to.path.startsWith('/tabs') && !authStore.isAuthenticated) {
 		return next('/login')
 	}
+	// ─────────────────────────────────────────────────────────────────────
+
+	// ── Set Dynamic Document Title ─────────────────────────────────────────
+	// Checks if the route has a meta.title, otherwise auto-detects /admin path
+	const routeTitle = (to.meta?.title as string) || (to.path.startsWith('/admin') ? 'OmniScan Admin Portal' : 'OmniScan')
+	document.title = routeTitle
 	// ─────────────────────────────────────────────────────────────────────
 
 	next()

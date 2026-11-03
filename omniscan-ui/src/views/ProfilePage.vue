@@ -493,7 +493,7 @@ async function handleLogout() {
 				cssClass: 'alert-button-danger',
 				handler: () => {
 					authStore.logout()
-					router.replace('/')
+					window.location.href = 'https://omniscan.website'
 				},
 			},
 		],

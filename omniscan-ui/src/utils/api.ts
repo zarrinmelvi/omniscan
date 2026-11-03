@@ -81,7 +81,7 @@ async function handleUnauthorized(isAdmin?: boolean): Promise<void> {
 	authStore.logout()
 
 	if (router.currentRoute.value.name !== 'welcome') {
-		router.push({ path: '/' })
+		window.location.href = 'https://omniscan.website'
 	}
 }
 

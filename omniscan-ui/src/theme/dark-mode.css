@@ -2257,3 +2257,19 @@ html.ion-palette-dark .cert-attention-row:hover { background: var(--dm-bg-chip) 
 html.ion-palette-dark .cert-attention-name { color: var(--dm-text-primary) !important; }
 html.ion-palette-dark .cert-attention-status { color: var(--dm-text-secondary) !important; }
 html.ion-palette-dark .table-header .chart-title { color: var(--dm-text-primary) !important; }
+
+/* == Flag Audit skeleton dark mode == */
+html.ion-palette-dark .fa-sk-section {
+    background: var(--dm-bg-card) !important;
+    border-color: var(--dm-border) !important;
+}
+html.ion-palette-dark .fa-sk-title,
+html.ion-palette-dark .fa-sk-label,
+html.ion-palette-dark .fa-sk-bar,
+html.ion-palette-dark .fa-sk-count {
+    background: var(--dm-bg-chip) !important;
+}
+html.ion-palette-dark .fa-skeleton .shimmer {
+    background: linear-gradient(90deg, #334155 25%, #475569 37%, #334155 63%) !important;
+    background-size: 400% 100% !important;
+}

@@ -24,7 +24,7 @@
 							<p class="row-title">Camera</p>
 							<p class="row-subtitle">Allow OmniScan to scan product's ingredients &amp; logo</p>
 						</div>
-						<ion-toggle v-model="cameraPermission" @ion-change="savePrefs" class="custom-toggle" />
+						<ion-toggle v-model="cameraPermission" @ion-change="onCameraToggleChange" class="custom-toggle" />
 					</div>
 					<div class="settings-row">
 						<div class="icon-wrapper icon-orange">
@@ -92,7 +92,7 @@
 						</div>
 						<div class="row-text">
 							<p class="row-title">Contact Support</p>
-							<p class="row-subtitle">support@omniscan.app</p>
+							<p class="row-subtitle">omniscan.official@gmail.com</p>
 						</div>
 						<ion-icon :icon="chevronForwardOutline" class="chevron" />
 					</button>
@@ -503,6 +503,39 @@ function savePrefs() {
 	localStorage.setItem(NOTIF_PREF_KEY, String(notificationsPermission.value))
 }
 
+async function onCameraToggleChange(): Promise<void> {
+	savePrefs()
+	if (cameraPermission.value) {
+		// User turned camera ON — trigger the browser permission prompt
+		try {
+			const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+			// Permission granted — stop the stream immediately (we just needed the prompt)
+			stream.getTracks().forEach((track) => track.stop())
+		} catch (err: any) {
+			const name = err?.name ?? ''
+			if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+				// Permission denied — revert the toggle
+				cameraPermission.value = false
+				savePrefs()
+				// Show a toast or alert
+				const { toastController } = await import('@ionic/vue')
+				const toast = await toastController.create({
+					message: 'Camera permission was denied. Please allow it in your browser settings.',
+					duration: 3500,
+					color: 'danger',
+					position: 'top',
+				})
+				await toast.present()
+			} else if (name === 'NotFoundError') {
+				// No camera on device — disable toggle
+				cameraPermission.value = false
+				savePrefs()
+			}
+			// Other errors (NotReadableError etc) — permission may still be granted, don't revert
+		}
+	}
+}
+
 async function updateNativeStatusBar(isDark: boolean) {
 	if (Capacitor.isNativePlatform()) {
 		// Style.Dark = Light icons for dark mode
@@ -522,7 +555,7 @@ async function onDarkModeToggle() {
 }
 
 function contactSupport() {
-	window.location.href = 'mailto:support@omniscan.app'
+	window.location.href = 'mailto:omniscan.official@gmail.com'
 }
 
 onMounted(async () => {

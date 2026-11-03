@@ -2,21 +2,19 @@
 
 Static HTML landing page deployed at `omniscan.website`.
 
-## Deploy
+## Deploy to Vercel
 
-Import this folder (`landing-page/`) as an "Other" static project on Vercel.
+Import `landing-page/` as an "Other" static project:
 - Build command: (leave empty)
 - Output directory: `dist`
 - Root directory: `landing-page`
 
-## Config
+Attach `omniscan.website` to this project.
+Reassign the Vue app's domain from `omniscan.website` to `app.omniscan.website`.
 
-Two values in `dist/index.html` control runtime behaviour:
+## Operator config (inside `dist/index.html`)
 
-- `VUE_APP_URL` — base URL of the Vue consumer app (default: `https://app.omniscan.website`)
-- `APK_URL` — APK download URL; leave empty `''` for the coming-soon dialog, set to a URL to enable direct download
-
-## Domain setup
-
-- Landing page → `omniscan.website` (root domain)
-- Vue app → reassign to `app.omniscan.website` in Vercel project settings (no code change needed)
+| Constant | Default | Purpose |
+|---|---|---|
+| `VUE_APP_URL` | `https://app.omniscan.website` | Vue consumer app base URL |
+| `APK_URL` | `''` | APK download URL — empty shows coming-soon dialog |

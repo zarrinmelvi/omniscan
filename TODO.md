@@ -6,9 +6,20 @@ This file tracks all pending work across the OmniScan project. Items are grouped
 
 ---
 
-## 🟥 HIGH PRIORITY — Specs Ready to Run
+## 🟥 HIGH PRIORITY — Consumer App Bugs
 
-No high-priority items pending. See backlog below.
+### Scan & Camera
+- [ ] Camera permission not working — fix camera access request flow
+- [ ] Blurry photos being accepted — add blur/quality detection gate before sending to AI
+- [ ] Front photo (product name only, no ingredients) rejected as first scan — should accept product name OR ingredients as valid first capture; don't require both upfront
+- [ ] Scanned modal slide-down: dismissal shows "unsaved item" alert; tapping "Keep editing" does not reopen the modal — fix so the modal comes back
+
+### Registration / Profile
+- [ ] Registration form text boxes — replace combined "Full name" field with separate First name, Middle name (optional), and Last name fields
+
+### Pantry / Scan Result
+- [ ] Auto-detect storage location based on food category (e.g. Dairy → Fridge, Canned Goods → Cupboard, Ice cream → Freezer)
+- [ ] Category dropdown in scan result modal not pre-filling even when food category is detected — category still shows "Uncategorized" despite food_category being returned by the backend
 
 ---
 

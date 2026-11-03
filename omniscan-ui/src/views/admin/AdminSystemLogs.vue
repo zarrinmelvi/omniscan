@@ -105,7 +105,6 @@
 				<div class="chart-card">
 					<div class="chart-header">
 						<h2>Response time</h2>
-						<span class="chart-subtitle">Today · built from real requests, not a timer</span>
 					</div>
 
 					<div v-if="latencySeries.length === 0" class="empty-note">
@@ -158,33 +157,6 @@
 						<svg class="alert-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
 						<span>Peak latency of {{ overview.peak_latency }}ms exceeded the {{ latencyTarget }}ms target.</span>
 					</div>
-				</div>
-
-				<!-- RIGHT: When it slows panel -->
-				<div class="when-slows-card">
-					<div class="wsc-title">When it slows</div>
-					<div class="wsc-sub">Proposed cutoffs, to confirm</div>
-					<div class="tier-rows">
-						<div class="tier-row">
-							<span class="tier-chip tier-fast">Fast</span>
-							<span class="tier-desc">Under 300 ms</span>
-						</div>
-						<div class="tier-row">
-							<span class="tier-chip tier-okay">Okay</span>
-							<span class="tier-desc">300 to 1,000 ms</span>
-						</div>
-						<div class="tier-row">
-							<span class="tier-chip tier-slow">Slow</span>
-							<span class="tier-desc">Over 1,000 ms</span>
-						</div>
-					</div>
-					<div class="wsc-after">After 3 slow requests in a row:</div>
-					<ol class="wsc-steps">
-						<li>The slow period is logged.</li>
-						<li>A notice appears on the bell.</li>
-						<li>An email is sent if "Email on system error" is on.</li>
-						<li>The recovery is logged too.</li>
-					</ol>
 				</div>
 			</div>
 
@@ -1099,11 +1071,8 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
    API Latency tab
 ──────────────────────────────────────────────────── */
 .lat-layout {
-	display: grid;
-	grid-template-columns: 1fr 280px;
-	gap: 20px;
+	display: block;
 	margin-bottom: 24px;
-	align-items: start;
 }
 
 /* Chart card */

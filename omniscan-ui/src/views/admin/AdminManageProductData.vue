@@ -165,10 +165,6 @@
 					<div class="halal-header-inner">
 						<div class="halal-header-text">
 							<h3 class="halal-header-title">Maintain halal certifier library</h3>
-							<p class="halal-header-desc">
-								Logos come from each certifier's official source. Check each one a month. The AI matches
-								scans against this library; certifiers are never assigned to products by hand.
-							</p>
 						</div>
 						<div class="halal-header-actions">
 							<div class="search-box">

@@ -4,7 +4,7 @@
 		<div class="dash-header">
 			<div>
 				<h1 class="dash-title">Welcome back, {{ adminName }}.</h1>
-				<p class="dash-sub">
+				<p class="dash-sub dash-sub--clickable" @click="router.push('/admin/verification')" style="cursor:pointer">
 					<span v-if="!isLoading" class="dash-flag-count">{{ stats?.pending_flags ?? 0 }} items</span>
 					<span v-else class="sk-inline"></span>
 					need your review.

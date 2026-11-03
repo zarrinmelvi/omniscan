@@ -262,7 +262,6 @@ const queueMetrics = computed(() => {
 		autoResolved: m?.auto_resolved_pct ?? 0,
 		needsDecision: visibleUnmatched.length,
 		needsDecisionScans,
-		awaitingRescan: m?.awaiting_rescan ?? 0,
 		resolvedThisWeek: m?.resolved_this_week ?? 0,
 	}
 })

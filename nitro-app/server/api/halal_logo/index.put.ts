@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAdminAuth } from '../../utils/requireAdminAuth'
+import { fetchLogoAsBase64 } from '../../lib/logo-fetch'
 
 export default defineEventHandler(async (event) => {
 	requireAdminAuth(event)
@@ -12,6 +13,7 @@ export default defineEventHandler(async (event) => {
 				full_name?: string
 				image_path?: string
 				source_url?: string
+				direct_logo_url?: string
 				is_accredited?: boolean
 				is_active?: boolean
 				country?: string
@@ -35,6 +37,19 @@ export default defineEventHandler(async (event) => {
 				...(body.country !== undefined ? { country: body.country.trim() || null } : {}),
 			},
 		})
+
+		// If a direct logo URL was provided, attempt to scrape the logo immediately
+		// so the admin can compare logos right after saving.
+		if (body.direct_logo_url && typeof body.direct_logo_url === 'string' && body.direct_logo_url.trim()) {
+			const scrapeResult = await fetchLogoAsBase64(body.direct_logo_url.trim())
+			if (scrapeResult.ok) {
+				await prisma.halalLogo.update({
+					where: { id: Number(body.id) },
+					data: { pending_logo_base64: scrapeResult.dataUri },
+				})
+			}
+		}
+
 		return { success: true, halalLogo }
 	} catch (err: any) {
 		if (err?.code === 'P2002') {

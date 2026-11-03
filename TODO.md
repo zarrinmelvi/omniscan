@@ -8,16 +8,7 @@ This file tracks all pending work across the OmniScan project. Items are grouped
 
 ## 🟥 HIGH PRIORITY — Specs Ready to Run
 
-### Landing Page Enhancement
-**Spec:** `.kiro/specs/landing-page-enhancement/`
-Deploy the static HTML landing page mockup as the public face of `omniscan.website`.
-
-- [ ] Create `dist/assets/` directory and copy `hero.webp`, `dashboard.webp`, `phone.webp`
-- [ ] Produce `dist/index.html` from mockup — corrected asset paths, updated meta description, accessibility fixes (hero aria-label, lazy phone image)
-- [ ] Wire navigation constants — `VUE_APP_URL` + `APK_URL`, Sign in → `/login`, Sign up/Get started → `/register`
-- [ ] APK download handler — coming-soon dialog when `APK_URL` empty; file download when set
-- [ ] Theme toggle — confirm `aria-pressed` state wiring
-- [ ] `dist/vercel.json` — `outputDirectory: "dist"`, 308 redirects for `/signin.html` → `/login` and `/signup.html` → `/register`
+No high-priority items pending. See backlog below.
 
 ---
 
@@ -122,6 +113,15 @@ All of the following have been implemented, committed, and pushed to `main`:
 - [x] Three rescan-prompt conditions: (a) label unreadable, (b) Halal logo detected but certifier unidentified, (c) NEW — product name found but ingredients missing
 - [x] Ingredients disclaimer — separate amber section below the ingredients card (always visible)
 - [x] Food category detection — AI detects food category, shown on scan result, auto-fills pantry Category dropdown
+
+### Landing Page Enhancement (spec: landing-page-enhancement)
+- [x] Create `dist/assets/` and copy `hero.webp`, `dashboard.webp`, `phone.webp`
+- [x] Produce `dist/index.html` — corrected asset paths, meta description, aria-label, lazy loading
+- [x] Wire `VUE_APP_URL` + `APK_URL` constants; Sign in → `/login`, Sign up/Get started → `/register`
+- [x] APK download handler — coming-soon dialog when empty, direct download when set
+- [x] Theme toggle with `aria-pressed` state
+- [x] `dist/vercel.json` — `outputDirectory: "dist"`, 308 redirects for `/signin.html` and `/signup.html`
+- [x] `README.md` with deploy instructions and operator config table
 
 ---
 

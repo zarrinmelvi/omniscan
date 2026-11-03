@@ -9,8 +9,8 @@
 					</div>
 				</aside>
 				<div class="auth-card">
-				<button type="button" class="back-button" @click="$router.push('/')">
-					<ion-icon :icon="chevronBackOutline" />
+				<button type="button" class="back-button" @click="goToLandingPage">
+				<ion-icon :icon="chevronBackOutline" />
 				</button>
 
 				<span class="brand-label">OmniScan</span>
@@ -106,6 +106,10 @@ import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
 
 const authStore = useAuthStore()
+
+function goToLandingPage(): void {
+	window.location.href = 'https://omniscan.website'
+}
 
 function handleGoogleSignIn(): void {
 	window.location.href = `${API_BASE_URL}/api/auth/google`

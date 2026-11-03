@@ -66,7 +66,7 @@
 			<div v-if="isLoading" class="data-table-wrap">
 				<table class="data-table">
 					<thead>
-						<tr><th>CONSUMER</th><th>EMAIL</th><th>SCANS</th><th>PANTRY ITEMS</th><th>CREATED</th><th>LAST ACTIVE</th><th>STATUS</th></tr>
+						<tr><th>CONSUMER</th><th>EMAIL</th><th>SCANS</th><th>PANTRY ITEMS</th><th>CREATED</th><th>STATUS</th></tr>
 					</thead>
 					<tbody>
 						<tr v-for="n in 8" :key="n" class="users-sk-row">
@@ -75,7 +75,6 @@
 							<td><div class="sk-cell shimmer" style="width:30px;height:12px"></div></td>
 							<td><div class="sk-cell shimmer" style="width:100px;height:10px"></div></td>
 							<td><div class="sk-cell shimmer" style="width:50px;height:12px"></div></td>
-							<td><div class="sk-cell shimmer" style="width:70px;height:12px"></div></td>
 							<td><div class="sk-cell shimmer" style="width:60px;height:20px;border-radius:9999px"></div></td>
 						</tr>
 					</tbody>
@@ -97,7 +96,6 @@
 							<th>SCANS</th>
 							<th>PANTRY ITEMS</th>
 							<th>CREATED</th>
-							<th>LAST ACTIVE</th>
 							<th>STATUS</th>
 						</tr>
 					</thead>
@@ -131,11 +129,8 @@
 								</div>
 							</td>
 							<td class="date-cell">{{ formatShortDate(u.created_at) }}</td>
-							<td class="date-cell">
-								{{ relativeLastActive(u.last_active) }}
-							</td>
 							<td>
-								<span class="status-badge" :class="statusBadgeLabel(u.status).toLowerCase()">{{ statusBadgeLabel(u.status) }}</span>
+								<span class="status-badge" :class="statusBadgeLabel(u).toLowerCase()">{{ statusBadgeLabel(u) }}</span>
 							</td>
 						</tr>
 					</tbody>
@@ -252,7 +247,7 @@
 								</div>
 							</td>
 							<td>
-								<span class="status-badge" :class="statusBadgeLabel(u.status).toLowerCase()">{{ statusBadgeLabel(u.status) }}</span>
+								<span class="status-badge" :class="statusBadgeLabel(u).toLowerCase()">{{ statusBadgeLabel(u) }}</span>
 							</td>
 						</tr>
 					</tbody>
@@ -291,6 +286,7 @@ interface ApiUserRow {
 	inactive_days: number
 	inactive_for: string | null
 	status: 'Active' | 'Inactive' | 'Archived'
+	is_online?: boolean
 	deletion_due: boolean
 	scan_count: number
 	pantry_item_count: number
@@ -318,8 +314,8 @@ const searchQuery = ref('')
 const filterStatus = ref<'All' | 'Online' | 'Offline'>('All')
 const sortOrder = ref<'Newest' | 'Oldest'>('Newest')
 
-function statusBadgeLabel(status: 'Active' | 'Inactive' | 'Archived'): 'Online' | 'Offline' {
-	return status === 'Active' ? 'Online' : 'Offline'
+function statusBadgeLabel(u: UserRow): 'Online' | 'Offline' {
+	return u.is_online ? 'Online' : 'Offline'
 }
 const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
@@ -347,7 +343,7 @@ function mapRow(r: ApiUserRow): UserRow {
 				? r.avatar_base64
 				: `data:image/jpeg;base64,${r.avatar_base64}`
 			: null,
-		sortTs: new Date(r.last_active || r.created_at).getTime() || 0,
+		sortTs: new Date(r.created_at).getTime() || 0,
 	}
 }
 
@@ -380,8 +376,8 @@ const filteredUsers = computed<UserRow[]>(() => {
 			u.email_masked.toLowerCase().includes(query)
 		const matchesStatus =
 			filterStatus.value === 'All' ||
-			(filterStatus.value === 'Online' && u.status === 'Active') ||
-			(filterStatus.value === 'Offline' && (u.status === 'Inactive' || u.status === 'Archived'))
+			(filterStatus.value === 'Online' && !!u.is_online) ||
+			(filterStatus.value === 'Offline' && !u.is_online)
 		return matchesQuery && matchesStatus
 	})
 
@@ -451,15 +447,6 @@ function formatShortDate(iso: string | null): string {
 		: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-function relativeLastActive(iso: string): string {
-	if (!iso) return '—'
-	const d = new Date(iso)
-	if (Number.isNaN(d.getTime())) return '—'
-	const days = Math.max(0, Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24)))
-	if (days === 0) return 'Today'
-	if (days === 1) return 'Yesterday'
-	return `${days} days ago`
-}
 
 onMounted(fetchUsers)
 </script>

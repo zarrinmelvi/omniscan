@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
 		const [users, deletedCount] = await Promise.all([
 			prisma.user.findMany({
 				where: { deleted_at: null },
-				orderBy: { created_at: 'asc' },
+				orderBy: { created_at: 'desc' },
 				select: {
 					id: true,
 					name: true,
@@ -65,6 +65,7 @@ export default defineEventHandler(async (event) => {
 					last_active: true,
 					created_at: true,
 					avatar_base64: true,
+					session_token: true,
 					_count: {
 						select: {
 							scan: true,
@@ -108,6 +109,7 @@ export default defineEventHandler(async (event) => {
 				inactive_days: inactiveDays,
 				inactive_for: formatInactiveFor(inactiveDays),
 				status,
+				is_online: !!u.session_token,
 				deletion_due: deletionDue,
 				scan_count: u._count.scan,
 				pantry_item_count: u._count.pantry_item,

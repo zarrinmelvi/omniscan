@@ -2248,3 +2248,12 @@ html.ion-palette-dark .tab-btn:hover:not(.active) { background: var(--dm-bg-chip
 /* System logs row hover */
 html.ion-palette-dark .al-event-row:hover { background: #1e293b !important; }
 html.ion-palette-dark .fa-flag-row:hover { background: #1e293b !important; }
+
+/* == Dashboard dark mode — cert-attention section and missing rules == */
+html.ion-palette-dark .dashboard { background: var(--dm-bg-page) !important; }
+html.ion-palette-dark .cert-attention-list { background: var(--dm-bg-card) !important; }
+html.ion-palette-dark .cert-attention-row { border-bottom-color: var(--dm-border) !important; }
+html.ion-palette-dark .cert-attention-row:hover { background: var(--dm-bg-chip) !important; }
+html.ion-palette-dark .cert-attention-name { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .cert-attention-status { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .table-header .chart-title { color: var(--dm-text-primary) !important; }

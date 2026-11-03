@@ -149,7 +149,7 @@
 								v-model="form.expirationDate"
 								type="date"
 								class="date-input"
-								:class="{ 'date-input--has-value': !!form.expirationDate }"
+								:class="{ 'date-input--has-value': !!form.expirationDate, 'date-input--expired': isExpirationExpired }"
 								:disabled="isSubmitting"
 								@change="onExpirationDateChange"
 							/>
@@ -255,7 +255,7 @@ interface AnalyzeResult {
 }
 
 const props = defineProps<{ isOpen: boolean }>()
-const emit = defineEmits<{ close: []; created: [] }>()
+const emit = defineEmits<{ close: []; created: []; 'keep-open': [] }>()
 
 async function showQuotaModal(message: string): Promise<void> {
 	const alert = await alertController.create({
@@ -332,6 +332,13 @@ const isFormValid = computed(() => {
 	const hasAtLeastOneDate = !!form.expirationDate || !!form.bestBeforeDate
 	const hasBothDates = !!form.expirationDate && !!form.bestBeforeDate
 	return hasName && hasValidQty && hasAtLeastOneDate && !hasBothDates
+})
+
+const isExpirationExpired = computed(() => {
+	if (!form.expirationDate) return false
+	const today = new Date()
+	today.setHours(0, 0, 0, 0)
+	return new Date(form.expirationDate + 'T00:00:00') < today
 })
 
 function resetAll(): void {
@@ -471,7 +478,10 @@ async function handleDismiss(): Promise<void> {
 		})
 		await alert.present()
 		const { role } = await alert.onDidDismiss()
-		if (role !== 'confirm') return
+		if (role !== 'confirm') {
+			emit('keep-open')
+			return
+		}
 	}
 
 	forceDismiss()
@@ -896,6 +906,11 @@ ion-accordion-group {
 	border-color: #22c55e;
 	box-shadow: 0 0 0 1px #22c55e;
 	outline: none;
+}
+
+.date-input--expired {
+	border-color: #dc2626 !important;
+	box-shadow: 0 0 0 1px #dc2626 !important;
 }
 
 .or-divider {

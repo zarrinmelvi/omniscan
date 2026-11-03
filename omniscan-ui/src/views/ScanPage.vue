@@ -102,7 +102,7 @@
 			</template>
 		</div>
 
-		<PhotoPantryUploadModal :is-open="isPhotoModalOpen" @close="isPhotoModalOpen = false" @created="onPhotoUploadCreated" />
+		<PhotoPantryUploadModal :is-open="isPhotoModalOpen" @close="isPhotoModalOpen = false" @created="onPhotoUploadCreated" @keep-open="onPhotoKeepOpen" />
 
 		<ScanResultModal
 			:is-open="isResultModalOpen"
@@ -144,6 +144,13 @@ function openUploadModal(): void {
 
 function onPhotoUploadCreated(): void {
 	isPhotoModalOpen.value = false
+}
+
+function onPhotoKeepOpen(): void {
+	isPhotoModalOpen.value = false
+	nextTick(() => {
+		isPhotoModalOpen.value = true
+	})
 }
 
 interface ScanResultDisplay {

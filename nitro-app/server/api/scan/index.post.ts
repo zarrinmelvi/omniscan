@@ -376,10 +376,12 @@ export default defineEventHandler(async (event) => {
 	// Condition 3: product name was extracted but ingredients text is still empty/whitespace-only
 	// after the catalog-match fill attempt. Prompt the user to re-scan rather than saving an
 	// incomplete record. Mock-data scans remain exempt (mockTextField?.data check).
+	// Only fire when both images were provided (hasBackImage) — a single front-facing photo
+	// with only a product name is a valid first capture and the user will scan ingredients next.
 	if (!mockTextField?.data) {
 		const hasName = extraction.product_name.trim().length > 0
 		const hasIngredients = extraction.ingredients_text.trim().length > 0
-		if (hasName && !hasIngredients) {
+		if (hasBackImage && hasName && !hasIngredients) {
 			throw createError({
 				statusCode: 422,
 				statusMessage: 'We could read the product name but not the ingredients. Please re-scan with a clearer view of the ingredients panel.',

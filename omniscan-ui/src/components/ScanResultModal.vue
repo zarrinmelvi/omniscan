@@ -239,7 +239,7 @@ const props = withDefaults(
 	},
 )
 
-const emit = defineEmits(['close', 'added'])
+const emit = defineEmits(['close', 'added', 'keep-open'])
 
 const product = computed(() => props.data?.product || null)
 
@@ -401,6 +401,19 @@ function toggleAlternatives() {
 	}
 }
 
+function storageForCategory(cat: string): string {
+	const map: Record<string, string> = {
+		'Dairy': 'Fridge',
+		'Beverages': 'Fridge',
+		'Snacks': 'Cupboard',
+		'Canned Goods': 'Cupboard',
+		'Condiments & Sauces': 'Cupboard',
+		'Grains': 'Cupboard',
+		'Instant Noodles': 'Cupboard',
+	}
+	return map[cat] ?? 'Fridge'
+}
+
 function resetPantryForm() {
 	const detectedQty = product.value?.net_quantity_detected
 	quantity.value = typeof detectedQty === 'number' && detectedQty > 0 ? detectedQty : 1
@@ -417,13 +430,27 @@ function resetPantryForm() {
 			? detectedCat
 			: 'Uncategorized'
 
-	storageLocation.value = 'Fridge'
+	const catForStorage = typeof detectedCat === 'string' && detectedCat && categoryOptions.includes(detectedCat) ? detectedCat : ''
+	storageLocation.value = storageForCategory(catForStorage)
 	const detected = normalizeDetectedDate(product.value?.expiration_date_detected)
 	expirationDate.value = detected ?? ''
 	bestBeforeDate.value = ''
 	dateAutoDetected.value = !!detected
 	submitError.value = ''
 }
+
+// Also re-apply pre-fills when product data arrives (handles race between isOpen and data)
+watch(
+	() => product.value?.food_category,
+	(cat) => {
+		if (!cat) return
+		if (typeof cat === 'string' && cat && categoryOptions.includes(cat) && cat !== 'Uncategorized') {
+			category.value = cat
+			// Also update storage location based on the newly confirmed category
+			storageLocation.value = storageForCategory(cat)
+		}
+	},
+)
 
 watch(expirationDate, (newValue) => {
 	if (!dateAutoDetected.value) return
@@ -539,7 +566,11 @@ async function handleDismiss() {
 		})
 		await alert.present()
 		const { role } = await alert.onDidDismiss()
-		if (role !== 'confirm') return
+		if (role !== 'confirm') {
+			// Modal was already dismissed by Ionic swipe — ask parent to reopen it
+			emit('keep-open')
+			return
+		}
 	}
 
 	forceDismiss()

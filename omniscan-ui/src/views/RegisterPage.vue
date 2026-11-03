@@ -44,6 +44,18 @@
 							</div>
 
 							<div class="form-group">
+								<label class="input-label">Middle Name <span class="optional-hint">(optional)</span></label>
+								<div class="custom-input-wrapper">
+									<input
+										v-model="middleName"
+										type="text"
+										placeholder="Enter your middle name"
+										class="custom-input"
+									/>
+								</div>
+							</div>
+
+							<div class="form-group">
 								<label class="input-label">Last Name</label>
 								<div class="custom-input-wrapper">
 									<input
@@ -400,6 +412,7 @@ watch(
 
 // Step 1 — account creation
 const firstName = ref('')
+const middleName = ref('')
 const lastName = ref('')
 const username = ref('')
 const email = ref('')
@@ -644,7 +657,13 @@ async function acceptTerms(): Promise<void> {
 
 	isSubmitting.value = true
 	try {
-		const response = await authStore.register(firstName.value.trim(), lastName.value.trim(), username.value.trim(), email.value, password.value)
+		const response = await authStore.register(
+			[firstName.value.trim(), middleName.value.trim()].filter(Boolean).join(' '),
+			lastName.value.trim(),
+			username.value.trim(),
+			email.value,
+			password.value,
+		)
 
 		if (response.requiresVerification) {
 			router.push({ path: '/check-email', query: { email: email.value } })
@@ -890,6 +909,12 @@ onUnmounted(() => {
 	font-weight: 600;
 	color: #374151;
 	margin-bottom: 6px;
+}
+
+.optional-hint {
+	font-size: 0.75rem;
+	color: #94a3b8;
+	font-weight: 400;
 }
 
 .custom-input-wrapper {

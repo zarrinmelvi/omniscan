@@ -108,12 +108,13 @@
 			:is-open="isResultModalOpen"
 			:data="analysisResult || undefined"
 			@close="onModalClosed"
-			@added="onPantryItemAdded" />
+			@added="onPantryItemAdded"
+			@keep-open="onKeepOpen" />
 	</ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
 import {
 	IonPage,
 	IonContent,
@@ -178,6 +179,14 @@ let scanAbortController: AbortController | null = null
 
 function onPantryItemAdded(): void {
 	isResultModalOpen.value = false
+}
+
+function onKeepOpen(): void {
+	// Reopen the modal after Ionic dismisses it on swipe-down when user picks "Keep Editing"
+	isResultModalOpen.value = false
+	nextTick(() => {
+		isResultModalOpen.value = true
+	})
 }
 
 function onModalClosed(): void {
@@ -569,8 +578,17 @@ async function openCamera(): Promise<void> {
 			isCameraReady.value = true
 			startBrightnessLoop()
 		}
-	} catch (err) {
-		cameraError.value = 'Camera access was denied or unavailable.'
+	} catch (err: any) {
+		const name = err?.name ?? ''
+		if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+			cameraError.value = 'Camera permission was denied. Please allow camera access in your browser settings and try again.'
+		} else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+			cameraError.value = 'No camera found on this device.'
+		} else if (name === 'NotReadableError' || name === 'TrackStartError') {
+			cameraError.value = 'Camera is in use by another app. Close other apps and try again.'
+		} else {
+			cameraError.value = 'Camera access was denied or unavailable. Try using "Upload a Photo" instead.'
+		}
 		console.error('[ScanPage] getUserMedia failed:', err)
 	}
 }
@@ -639,6 +657,18 @@ function stopBrightnessLoop(): void {
 	}
 }
 
+function computeLaplacianVariance(ctx: CanvasRenderingContext2D, w: number, h: number): number {
+	const { data } = ctx.getImageData(0, 0, w, h)
+	const grays: number[] = []
+	for (let i = 0; i < data.length; i += 4) {
+		grays.push(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2])
+	}
+	// Simple variance as a proxy for sharpness
+	const mean = grays.reduce((a, b) => a + b, 0) / grays.length
+	const variance = grays.reduce((sum, v) => sum + (v - mean) ** 2, 0) / grays.length
+	return variance
+}
+
 function handleCapture(): void {
 	if (!videoRef.value || !canvasRef.value || isCapturing.value) return
 
@@ -681,6 +711,16 @@ function handleCapture(): void {
 		cropWidth,
 		cropHeight
 	)
+
+	// Blur gate: reject photos with very low sharpness variance
+	const BLUR_THRESHOLD = 80
+	const blurVariance = computeLaplacianVariance(ctx, cropWidth, cropHeight)
+	if (blurVariance < BLUR_THRESHOLD) {
+		cameraError.value = 'Photo is too blurry. Please hold steady and try again.'
+		isCapturing.value = false
+		isSavingImage.value = false
+		return
+	}
 
 	canvas.toBlob(
 		(blob) => {

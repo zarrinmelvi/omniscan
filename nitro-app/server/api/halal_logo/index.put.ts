@@ -32,6 +32,7 @@ export default defineEventHandler(async (event) => {
 				...(body.full_name !== undefined ? { full_name: body.full_name.trim() } : {}),
 				...(body.image_path !== undefined ? { image_path: body.image_path.trim() } : {}),
 				...(body.source_url !== undefined ? { source_url: body.source_url.trim() } : {}),
+				...(body.direct_logo_url && body.direct_logo_url.trim() ? { source_url: body.direct_logo_url.trim() } : {}),
 				...(body.is_accredited !== undefined ? { is_accredited: body.is_accredited } : {}),
 				...(body.is_active !== undefined ? { is_active: body.is_active } : {}),
 				...(body.country !== undefined ? { country: body.country.trim() || null } : {}),

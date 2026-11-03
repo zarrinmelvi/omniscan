@@ -1516,7 +1516,7 @@ function openEditModal(item: any): void {
 			source_url: item.source_url,
 			is_accredited: item.is_accredited,
 			country: item.country ?? '',
-			direct_logo_url: '',
+			direct_logo_url: /\.(png|jpg|jpeg|webp|svg|gif)(\?.*)?$/i.test(item.source_url ?? '') ? (item.source_url ?? '') : '',
 		}
 	} else {
 		form.value = { scientific_term: item.scientific_term, simplified_term: item.simplified_term, allergen_id: item.allergen_id }

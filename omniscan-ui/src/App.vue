@@ -1,7 +1,7 @@
 <template>
 	<!-- Admin routes: use plain router-view without Ionic wrapper -->
 	<router-view v-if="isAdminRoute" />
-	
+
 	<!-- User-facing routes: Ionic app with adaptive navigation -->
 	<ion-app v-else>
 		<!-- Desktop navigation sidebar (>= 1024px AND /tabs/ routes only) -->
@@ -10,7 +10,7 @@
 			:userName="authStore.user?.name"
 			:userEmail="authStore.user?.email"
 			:userAvatarBase64="null" />
-		
+
 		<!-- Main content area with offset when desktop nav is shown -->
 		<ion-router-outlet :class="{ 'with-desktop-nav': isDesktop && isTabsRoute }" />
 	</ion-app>
@@ -18,16 +18,18 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { IonApp, IonRouterOutlet } from '@ionic/vue'
 import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
+import { App } from '@capacitor/app'
 import { useBreakpoint } from '@/utils/useBreakpoint'
 import DesktopNav from '@/components/DesktopNav.vue'
 import { startSessionWatcher } from '@/composables/useSessionWatcher'
 import { useAuthStore } from '@/stores/authStore'
 
 const route = useRoute()
+const router = useRouter()
 const { isDesktop } = useBreakpoint()
 const authStore = useAuthStore()
 
@@ -52,6 +54,16 @@ onMounted(async () => {
 		await StatusBar.show()
 		await StatusBar.setOverlaysWebView({ overlay: true })
 		await updateStatusBar(darkModeEnabled)
+
+		// Listen for deep link redirects back to the app (OAuth / custom scheme callbacks)
+		await App.addListener('appUrlOpen', (event) => {
+			console.log('App opened with URL:', event.url)
+
+			// Handle redirect back from Google OAuth or omniscan.website domain
+			if (event.url.includes('google-auth-callback') || event.url.includes('omniscan.website')) {
+				router.push('/tabs/home')
+			}
+		})
 	}
 
 	// Watch the consumer session in the background so a server-side invalidation

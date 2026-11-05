@@ -18,22 +18,38 @@
 
 		<!-- User identity footer -->
 		<div class="nav-footer">
-			<div class="nav-footer__user">
-				<div class="nav-footer__avatar">
-					<img v-if="userAvatarBase64" :src="userAvatarBase64" alt="Avatar" class="nav-footer__avatar-img" />
-					<span v-else class="nav-footer__avatar-initial">{{ (userName || '?').charAt(0).toUpperCase() }}</span>
+			<button type="button" class="nav-footer__user-btn" @click="goToProfile">
+				<div class="nav-footer__user">
+					<div class="nav-footer__avatar">
+						<img v-if="userAvatarBase64" :src="userAvatarBase64" alt="Avatar" class="nav-footer__avatar-img" />
+						<span v-else class="nav-footer__avatar-initial">{{ (userName || '?').charAt(0).toUpperCase() }}</span>
+					</div>
+					<div class="nav-footer__info">
+						<span class="nav-footer__name">{{ userName || 'User' }}</span>
+						<span class="nav-footer__email">{{ userEmail || '' }}</span>
+					</div>
 				</div>
-				<div class="nav-footer__info">
-					<span class="nav-footer__name">{{ userName || 'User' }}</span>
-					<span class="nav-footer__email">{{ userEmail || '' }}</span>
+			</button>
+			<button type="button" class="nav-footer__logout" @click="showLogoutConfirm = true">Log Out</button>
+		</div>
+
+		<!-- Logout confirmation overlay -->
+		<div v-if="showLogoutConfirm" class="logout-confirm-overlay" @click.self="showLogoutConfirm = false">
+			<div class="logout-confirm-modal">
+				<p class="logout-confirm-title">Log Out</p>
+				<p class="logout-confirm-msg">Are you sure you want to log out?</p>
+				<div class="logout-confirm-actions">
+					<button type="button" class="logout-btn-cancel" @click="showLogoutConfirm = false">Cancel</button>
+					<button type="button" class="logout-btn-confirm" @click="confirmLogout">Log Out</button>
 				</div>
 			</div>
-			<button type="button" class="nav-footer__logout" @click="handleLogout">Log Out</button>
 		</div>
 	</nav>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { IonIcon } from '@ionic/vue'
 import {
 	homeOutline,
@@ -51,14 +67,20 @@ defineProps<{
 }>()
 
 const authStore = useAuthStore()
+const router = useRouter()
+const showLogoutConfirm = ref(false)
 
-async function handleLogout(): Promise<void> {
+async function confirmLogout(): Promise<void> {
 	try {
 		await authStore.logout()
 	} catch {
 		/* ignore */
 	}
 	window.location.href = 'https://omniscan.website'
+}
+
+function goToProfile(): void {
+	router.push('/tabs/profile')
 }
 
 const navItems = [
@@ -176,7 +198,6 @@ const navItems = [
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	margin-bottom: 10px;
 }
 
 .nav-footer__avatar {
@@ -242,5 +263,103 @@ const navItems = [
 
 .nav-footer__logout:hover {
 	color: #b91c1c;
+}
+
+/* User row as clickable button */
+.nav-footer__user-btn {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	background: none;
+	border: none;
+	padding: 0;
+	margin-bottom: 10px;
+	cursor: pointer;
+	border-radius: 8px;
+	transition: background 0.15s;
+	text-align: left;
+}
+.nav-footer__user-btn:hover {
+	background: rgba(0, 0, 0, 0.05);
+}
+
+/* Logout confirmation overlay */
+.logout-confirm-overlay {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.4);
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	padding-bottom: 24px;
+	z-index: 10;
+	border-radius: inherit;
+}
+.logout-confirm-modal {
+	background: #ffffff;
+	border-radius: 16px;
+	padding: 20px 20px 16px;
+	width: calc(100% - 24px);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+.logout-confirm-title {
+	font-size: 1rem;
+	font-weight: 700;
+	color: #111827;
+	margin: 0 0 6px;
+	text-align: center;
+}
+.logout-confirm-msg {
+	font-size: 0.82rem;
+	color: #6b7280;
+	text-align: center;
+	margin: 0 0 16px;
+}
+.logout-confirm-actions {
+	display: flex;
+	gap: 10px;
+}
+.logout-btn-cancel {
+	flex: 1;
+	height: 40px;
+	border: 1.5px solid #d1d5db;
+	border-radius: 9999px;
+	background: transparent;
+	color: #374151;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+.logout-btn-confirm {
+	flex: 1;
+	height: 40px;
+	border: none;
+	border-radius: 9999px;
+	background: #dc2626;
+	color: #ffffff;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+.logout-btn-confirm:hover {
+	background: #b91c1c;
+}
+
+:global(html.ion-palette-dark) .logout-confirm-modal {
+	background: #1e293b;
+}
+:global(html.ion-palette-dark) .logout-confirm-title {
+	color: #f9fafb;
+}
+:global(html.ion-palette-dark) .logout-confirm-msg {
+	color: #9ca3af;
+}
+:global(html.ion-palette-dark) .logout-btn-cancel {
+	border-color: #334155;
+	color: #d1d5db;
+}
+:global(html.ion-palette-dark) .nav-footer__user-btn:hover {
+	background: rgba(255, 255, 255, 0.06);
 }
 </style>

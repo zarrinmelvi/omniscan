@@ -1,6 +1,8 @@
 <template>
 	<ion-page>
-		<ion-header class="ion-no-border">
+		<AppHeader v-if="isDesktop" />
+
+		<ion-header v-if="!isDesktop" class="ion-no-border">
 			<ion-toolbar class="notif-toolbar">
 				<ion-buttons slot="start">
 					<ion-button @click="goBackToProfile">
@@ -72,6 +74,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonIcon, IonSpinner } from '@ionic/vue'
+import AppHeader from '@/components/AppHeader.vue'
+import { useBreakpoint } from '@/utils/useBreakpoint'
 import {
 	chevronBackOutline,
 	alertCircleOutline,
@@ -83,6 +87,7 @@ import {
 import { apiFetch, ApiError } from '@/utils/api'
 
 const router = useRouter()
+const { isDesktop } = useBreakpoint()
 
 function goBackToProfile() {
 	if (window.history.length > 1) {

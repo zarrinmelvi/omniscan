@@ -1,8 +1,15 @@
 <template>
 	<div class="app-header">
-		<slot name="title">
-			<span class="app-header__brand">OmniScan</span>
-		</slot>
+		<div class="app-header__left">
+			<div v-if="isDesktop" class="app-header__breadcrumb">
+				<span class="app-header__breadcrumb-root">OmniScan</span>
+				<span class="app-header__breadcrumb-sep"> / </span>
+				<span class="app-header__breadcrumb-page">{{ breadcrumbLabel }}</span>
+			</div>
+			<slot v-else name="title">
+				<span class="app-header__brand">OmniScan</span>
+			</slot>
+		</div>
 		<div class="app-header__actions">
 			<slot name="actions" />
 			<button type="button" class="app-header__theme" @click="toggleDarkMode" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
@@ -19,27 +26,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { IonIcon } from '@ionic/vue'
 import { notificationsOutline, moonOutline, sunnyOutline } from 'ionicons/icons'
 import { apiFetch } from '@/utils/api'
+import { useDarkMode } from '@/composables/useDarkMode'
+import { useBreakpoint } from '@/utils/useBreakpoint'
 
 const router = useRouter()
+const route = useRoute()
+const { isDesktop } = useBreakpoint()
+const { isDark, toggle: toggleDarkMode } = useDarkMode()
+
+const props = defineProps<{ pageName?: string }>()
+
 const unreadNotifCount = ref(0)
 
-const DARK_MODE_KEY = 'omniscan_dark_mode'
-const isDark = ref(false)
-
-function applyDarkMode(enabled: boolean): void {
-	document.documentElement.classList.toggle('ion-palette-dark', enabled)
-	localStorage.setItem(DARK_MODE_KEY, String(enabled))
-}
-
-function toggleDarkMode(): void {
-	isDark.value = !isDark.value
-	applyDarkMode(isDark.value)
-}
+const breadcrumbLabel = computed(() => {
+	if (props.pageName) return props.pageName
+	const map: Record<string, string> = {
+		'/tabs/home': 'Home',
+		'/tabs/pantry': 'Pantry',
+		'/tabs/scan': 'Upload',
+		'/tabs/recipes': 'Recipes',
+		'/tabs/profile': 'Profile',
+		'/tabs/settings': 'Settings',
+		'/tabs/notifications': 'Notifications',
+	}
+	return map[route.path] ?? route.meta?.breadcrumb as string ?? ''
+})
 
 async function fetchUnreadNotifs(): Promise<void> {
 	try {
@@ -59,7 +75,6 @@ defineExpose({ fetchUnreadNotifs })
 
 onMounted(() => {
 	fetchUnreadNotifs()
-	isDark.value = localStorage.getItem(DARK_MODE_KEY) === 'true'
 })
 </script>
 
@@ -72,6 +87,27 @@ onMounted(() => {
 	padding: 10px 16px;
 	background: #ffffff;
 	border-bottom: 1px solid #f1f5f9;
+}
+.app-header__left {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+}
+.app-header__breadcrumb {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 0.9rem;
+}
+.app-header__breadcrumb-root {
+	color: #94a3b8;
+}
+.app-header__breadcrumb-sep {
+	color: #94a3b8;
+}
+.app-header__breadcrumb-page {
+	color: #111827;
+	font-weight: 700;
 }
 .app-header__brand {
 	font-size: 1.05rem;

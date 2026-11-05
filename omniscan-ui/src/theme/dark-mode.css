@@ -939,7 +939,7 @@ html.ion-palette-dark .edit-error {
 
 /* === Desktop Sidebar Navigation Dark Mode Overrides === */
 html.ion-palette-dark .desktop-nav {
-  background: var(--dm-header-bg) !important;
+  background: #0d1117 !important;
   border-right-color: var(--dm-border) !important;
 }
 
@@ -977,6 +977,52 @@ html.ion-palette-dark .desktop-nav .nav-item--active:hover {
 html.ion-palette-dark .desktop-nav .nav-item--active ion-icon,
 html.ion-palette-dark .desktop-nav .nav-item--active:hover ion-icon {
   color: #ffffff !important;
+}
+
+/* == DesktopNav brand header dark mode == */
+html.ion-palette-dark .nav-brand {
+	border-bottom-color: #1a2e1a !important;
+}
+html.ion-palette-dark .nav-brand__name {
+	color: #f1f5f9 !important;
+}
+html.ion-palette-dark .nav-brand__sub {
+	color: #94a3b8 !important;
+}
+
+/* == DesktopNav user footer dark mode == */
+html.ion-palette-dark .nav-footer {
+	border-top-color: #1a2e1a !important;
+}
+html.ion-palette-dark .nav-footer__name {
+	color: #f1f5f9 !important;
+}
+html.ion-palette-dark .nav-footer__email {
+	color: #94a3b8 !important;
+}
+html.ion-palette-dark .nav-footer__avatar {
+	background: #1e4d2e !important;
+	color: #f1f5f9 !important;
+}
+html.ion-palette-dark .nav-footer__avatar-initial {
+	color: #ffffff !important;
+}
+html.ion-palette-dark .nav-footer__logout {
+	color: #f87171 !important;
+}
+html.ion-palette-dark .nav-footer__logout:hover {
+	color: #fca5a5 !important;
+}
+
+/* == AppHeader breadcrumb dark mode == */
+html.ion-palette-dark .app-header__breadcrumb-root {
+	color: #94a3b8 !important;
+}
+html.ion-palette-dark .app-header__breadcrumb-sep {
+	color: #64748b !important;
+}
+html.ion-palette-dark .app-header__breadcrumb-page {
+	color: #f1f5f9 !important;
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */

@@ -1,7 +1,9 @@
 <template>
 	<ion-page>
+		<AppHeader v-if="isDesktop" :pageName="item?.product?.product_name ?? 'Item Detail'" />
+
 		<!-- Header with Title Left-Aligned Next to Back Arrow -->
-		<ion-header class="ion-no-border">
+		<ion-header v-if="!isDesktop" class="ion-no-border">
 			<ion-toolbar class="detail-toolbar">
 				<ion-buttons slot="start">
 					<ion-back-button default-href="/tabs/pantry" text="" class="back-btn"></ion-back-button>
@@ -290,6 +292,8 @@ import {
 	onIonViewWillEnter,
 	toastController,
 } from '@ionic/vue'
+import AppHeader from '@/components/AppHeader.vue'
+import { useBreakpoint } from '@/utils/useBreakpoint'
 import {
 	alertCircleOutline,
 	calendarOutline,
@@ -346,6 +350,7 @@ interface Product {
 type Tab = 'overview' | 'ingredients' | 'alternatives'
 
 const route = useRoute()
+const { isDesktop } = useBreakpoint()
 const item = ref<PantryItemDetailDto | null>(null)
 const isLoading = ref(true)
 const loadError = ref('')

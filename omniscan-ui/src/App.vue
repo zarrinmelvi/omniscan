@@ -5,7 +5,11 @@
 	<!-- User-facing routes: Ionic app with adaptive navigation -->
 	<ion-app v-else>
 		<!-- Desktop navigation sidebar (>= 1024px AND /tabs/ routes only) -->
-		<DesktopNav v-if="isDesktop && isTabsRoute" />
+		<DesktopNav
+			v-if="isDesktop && isTabsRoute"
+			:userName="authStore.user?.name"
+			:userEmail="authStore.user?.email"
+			:userAvatarBase64="null" />
 		
 		<!-- Main content area with offset when desktop nav is shown -->
 		<ion-router-outlet :class="{ 'with-desktop-nav': isDesktop && isTabsRoute }" />
@@ -21,9 +25,11 @@ import { StatusBar, Style } from '@capacitor/status-bar'
 import { useBreakpoint } from '@/utils/useBreakpoint'
 import DesktopNav from '@/components/DesktopNav.vue'
 import { startSessionWatcher } from '@/composables/useSessionWatcher'
+import { useAuthStore } from '@/stores/authStore'
 
 const route = useRoute()
 const { isDesktop } = useBreakpoint()
+const authStore = useAuthStore()
 
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 const isTabsRoute = computed(() => route.path.startsWith('/tabs/'))
@@ -59,7 +65,7 @@ onMounted(async () => {
 <style scoped>
 /* Offset main content when desktop navigation is shown */
 .with-desktop-nav {
-	margin-left: 260px;
+	margin-left: 180px;
 }
 
 /* Remove offset on smaller screens */

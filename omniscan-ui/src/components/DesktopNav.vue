@@ -1,5 +1,12 @@
 <template>
 	<nav class="desktop-nav">
+		<!-- Brand header -->
+		<div class="nav-brand">
+			<span class="nav-brand__name">OmniScan</span>
+			<span class="nav-brand__sub">Smart Pantry</span>
+		</div>
+
+		<!-- Navigation items -->
 		<ul class="nav-menu">
 			<li v-for="item in navItems" :key="item.path">
 				<router-link :to="item.path" class="nav-item" active-class="nav-item--active">
@@ -8,6 +15,21 @@
 				</router-link>
 			</li>
 		</ul>
+
+		<!-- User identity footer -->
+		<div class="nav-footer">
+			<div class="nav-footer__user">
+				<div class="nav-footer__avatar">
+					<img v-if="userAvatarBase64" :src="userAvatarBase64" alt="Avatar" class="nav-footer__avatar-img" />
+					<span v-else class="nav-footer__avatar-initial">{{ (userName || '?').charAt(0).toUpperCase() }}</span>
+				</div>
+				<div class="nav-footer__info">
+					<span class="nav-footer__name">{{ userName || 'User' }}</span>
+					<span class="nav-footer__email">{{ userEmail || '' }}</span>
+				</div>
+			</div>
+			<button type="button" class="nav-footer__logout" @click="handleLogout">Log Out</button>
+		</div>
 	</nav>
 </template>
 
@@ -20,6 +42,24 @@ import {
 	restaurantOutline,
 	personOutline,
 } from 'ionicons/icons'
+import { useAuthStore } from '@/stores/authStore'
+
+defineProps<{
+	userName?: string
+	userEmail?: string
+	userAvatarBase64?: string | null
+}>()
+
+const authStore = useAuthStore()
+
+async function handleLogout(): Promise<void> {
+	try {
+		await authStore.logout()
+	} catch {
+		/* ignore */
+	}
+	window.location.href = 'https://omniscan.website'
+}
 
 const navItems = [
 	{ path: '/tabs/home', label: 'Home', icon: homeOutline },
@@ -36,14 +76,40 @@ const navItems = [
 	left: 0;
 	top: 0;
 	bottom: 0;
-	width: 260px;
+	width: 180px;
 	background: var(--ion-background-color, #ffffff);
 	border-right: 1px solid var(--ion-border-color, #e5e7eb);
-	padding: 24px 0;
+	padding: 0;
 	overflow-y: auto;
 	z-index: 1000;
+	display: flex;
+	flex-direction: column;
 }
 
+/* ── Brand header ── */
+.nav-brand {
+	padding: 20px 16px 12px;
+	border-bottom: 1px solid #e5e7eb;
+	margin-bottom: 8px;
+	flex-shrink: 0;
+}
+
+.nav-brand__name {
+	display: block;
+	font-size: 1.2rem;
+	font-weight: 700;
+	color: #111827;
+	letter-spacing: -0.01em;
+}
+
+.nav-brand__sub {
+	display: block;
+	font-size: 0.75rem;
+	color: #9ca3af;
+	margin-top: 2px;
+}
+
+/* ── Nav menu ── */
 .nav-menu {
 	list-style: none;
 	padding: 8px 0;
@@ -51,24 +117,28 @@ const navItems = [
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
+	flex: 1;
+	overflow-y: auto;
 }
 
 .nav-item {
 	display: flex;
 	align-items: center;
-	gap: 12px;
-	padding: 11px 14px;
-	margin: 0 12px;
+	gap: 10px;
+	padding: 10px 12px;
+	margin: 0 10px;
 	border-radius: 12px;
 	color: #374151;
 	text-decoration: none;
 	transition: background 0.2s, color 0.2s;
 	min-height: 44px;
+	font-size: 0.875rem;
 }
 
 .nav-item ion-icon {
-	font-size: 22px;
+	font-size: 20px;
 	color: #374151;
+	flex-shrink: 0;
 }
 
 /* Inactive nav item hover state (Light Mode) */
@@ -93,5 +163,84 @@ const navItems = [
 .nav-item--active ion-icon,
 .nav-item--active:hover ion-icon {
 	color: #ffffff !important;
+}
+
+/* ── User identity footer ── */
+.nav-footer {
+	padding: 16px;
+	border-top: 1px solid #e5e7eb;
+	flex-shrink: 0;
+}
+
+.nav-footer__user {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 10px;
+}
+
+.nav-footer__avatar {
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	background: #05c450;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	overflow: hidden;
+}
+
+.nav-footer__avatar-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.nav-footer__avatar-initial {
+	color: #ffffff;
+	font-size: 0.85rem;
+	font-weight: 700;
+}
+
+.nav-footer__info {
+	min-width: 0;
+	flex: 1;
+}
+
+.nav-footer__name {
+	display: block;
+	font-size: 0.82rem;
+	font-weight: 700;
+	color: #111827;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.nav-footer__email {
+	display: block;
+	font-size: 0.72rem;
+	color: #9ca3af;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.nav-footer__logout {
+	display: block;
+	width: 100%;
+	background: none;
+	border: none;
+	color: #dc2626;
+	font-size: 0.82rem;
+	font-weight: 600;
+	padding: 6px 0;
+	cursor: pointer;
+	text-align: left;
+}
+
+.nav-footer__logout:hover {
+	color: #b91c1c;
 }
 </style>

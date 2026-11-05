@@ -1,6 +1,8 @@
 <template>
 	<ion-page>
-		<ion-header class="ion-no-border">
+		<AppHeader v-if="isDesktop" />
+
+		<ion-header v-if="!isDesktop" class="ion-no-border">
 			<ion-toolbar class="settings-toolbar">
 				<ion-buttons slot="start">
 					<ion-button @click="goBackToProfile">
@@ -416,6 +418,9 @@ import {
 	IonItem,
 	IonLabel,
 } from '@ionic/vue'
+import AppHeader from '@/components/AppHeader.vue'
+import { useBreakpoint } from '@/utils/useBreakpoint'
+import { useDarkMode } from '@/composables/useDarkMode'
 import {
 	chevronBackOutline,
 	chevronForwardOutline,
@@ -430,6 +435,8 @@ import {
 } from 'ionicons/icons'
 
 const router = useRouter()
+const { isDesktop } = useBreakpoint()
+const { isDark: isDarkSingleton, set: setDarkMode } = useDarkMode()
 
 // Use router.back() so the Settings page slides out to the right (reverse
 // of the forward-push animation used to enter it). router.push() would
@@ -443,13 +450,12 @@ function goBackToProfile() {
 	}
 }
 
-const DARK_MODE_KEY = 'omniscan_dark_mode'
 const CAMERA_PREF_KEY = 'omniscan_pref_camera'
 const NOTIF_PREF_KEY = 'omniscan_pref_notifications'
 
 const cameraPermission = ref(true)
 const notificationsPermission = ref(true)
-const darkMode = ref(false)
+const darkMode = ref(isDarkSingleton.value)
 
 const isTermsOpen = ref(false)
 const isFaqOpen = ref(false)
@@ -544,13 +550,8 @@ async function updateNativeStatusBar(isDark: boolean) {
 	}
 }
 
-function applyDarkModeClass(enabled: boolean) {
-	document.documentElement.classList.toggle('ion-palette-dark', enabled)
-}
-
 async function onDarkModeToggle() {
-	localStorage.setItem(DARK_MODE_KEY, String(darkMode.value))
-	applyDarkModeClass(darkMode.value)
+	setDarkMode(darkMode.value)
 	await updateNativeStatusBar(darkMode.value)
 }
 
@@ -561,7 +562,7 @@ function contactSupport() {
 onMounted(async () => {
 	cameraPermission.value = localStorage.getItem(CAMERA_PREF_KEY) !== 'false'
 	notificationsPermission.value = localStorage.getItem(NOTIF_PREF_KEY) !== 'false'
-	darkMode.value = localStorage.getItem(DARK_MODE_KEY) === 'true'
+	darkMode.value = isDarkSingleton.value
 
 	await updateNativeStatusBar(darkMode.value)
 })

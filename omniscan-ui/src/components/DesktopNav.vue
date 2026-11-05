@@ -189,7 +189,7 @@ const navItems = [
 
 /* ── User identity footer ── */
 .nav-footer {
-	padding: 16px;
+	padding: 12px 14px 14px;
 	border-top: 1px solid #e5e7eb;
 	flex-shrink: 0;
 }
@@ -197,7 +197,9 @@ const navItems = [
 .nav-footer__user {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 8px;
+	width: 100%;
+	min-width: 0;
 }
 
 .nav-footer__avatar {
@@ -256,12 +258,15 @@ const navItems = [
 	color: #dc2626;
 	font-size: 0.82rem;
 	font-weight: 600;
-	padding: 6px 0;
+	padding: 7px 8px;
 	cursor: pointer;
-	text-align: left;
+	text-align: center;
+	border-radius: 8px;
+	transition: background 0.15s, color 0.15s;
 }
 
 .nav-footer__logout:hover {
+	background: rgba(220, 38, 38, 0.08);
 	color: #b91c1c;
 }
 
@@ -273,8 +278,8 @@ const navItems = [
 	width: 100%;
 	background: none;
 	border: none;
-	padding: 0;
-	margin-bottom: 10px;
+	padding: 6px 8px;
+	margin-bottom: 4px;
 	cursor: pointer;
 	border-radius: 8px;
 	transition: background 0.15s;
@@ -286,61 +291,66 @@ const navItems = [
 
 /* Logout confirmation overlay */
 .logout-confirm-overlay {
-	position: absolute;
+	position: fixed;
 	inset: 0;
-	background: rgba(0, 0, 0, 0.4);
+	background: rgba(0, 0, 0, 0.45);
 	display: flex;
-	align-items: flex-end;
+	align-items: center;
 	justify-content: center;
-	padding-bottom: 24px;
-	z-index: 10;
-	border-radius: inherit;
+	z-index: 9999;
 }
 .logout-confirm-modal {
 	background: #ffffff;
-	border-radius: 16px;
-	padding: 20px 20px 16px;
-	width: calc(100% - 24px);
-	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+	border-radius: 20px;
+	padding: 28px 28px 22px;
+	width: 340px;
+	max-width: calc(100vw - 48px);
+	box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
 }
 .logout-confirm-title {
-	font-size: 1rem;
+	font-size: 1.15rem;
 	font-weight: 700;
 	color: #111827;
-	margin: 0 0 6px;
+	margin: 0 0 8px;
 	text-align: center;
 }
 .logout-confirm-msg {
-	font-size: 0.82rem;
+	font-size: 0.88rem;
 	color: #6b7280;
 	text-align: center;
-	margin: 0 0 16px;
+	margin: 0 0 22px;
 }
 .logout-confirm-actions {
 	display: flex;
-	gap: 10px;
+	gap: 12px;
 }
 .logout-btn-cancel {
 	flex: 1;
-	height: 40px;
+	height: 44px;
 	border: 1.5px solid #d1d5db;
 	border-radius: 9999px;
 	background: transparent;
 	color: #374151;
-	font-size: 0.85rem;
+	font-size: 0.88rem;
 	font-weight: 600;
 	cursor: pointer;
+	transition: background 0.15s, border-color 0.15s;
+}
+.logout-btn-cancel:hover {
+	background: #f9fafb;
+	border-color: #9ca3af;
 }
 .logout-btn-confirm {
 	flex: 1;
-	height: 40px;
+	height: 44px;
 	border: none;
 	border-radius: 9999px;
 	background: #dc2626;
 	color: #ffffff;
-	font-size: 0.85rem;
+	font-size: 0.88rem;
 	font-weight: 600;
 	cursor: pointer;
+	transition: background 0.15s;
 }
 .logout-btn-confirm:hover {
 	background: #b91c1c;

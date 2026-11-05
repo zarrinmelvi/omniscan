@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.omniscan.app', // or your app's package ID
+  appId: 'website.omniscan.app', // or your app's package ID
   appName: 'OmniScan',
   webDir: 'dist',
   plugins: {

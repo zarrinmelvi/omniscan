@@ -1,6 +1,6 @@
 <template>
 	<nav class="desktop-nav">
-		<!-- Brand header (Smart Pantry sub-label removed) -->
+		<!-- Brand header -->
 		<div class="nav-brand">
 			<span class="nav-brand__name">OmniScan</span>
 		</div>
@@ -93,16 +93,13 @@ const navItems = [
 
 <style scoped>
 .desktop-nav {
-	position: fixed;
-	left: 0;
-	top: 0;
-	bottom: 0;
 	width: 220px;
+	height: 100vh;
 	background: var(--ion-background-color, #ffffff);
 	border-right: 1px solid var(--ion-border-color, #e5e7eb);
 	padding: 0;
 	overflow-y: auto;
-	z-index: 1000;
+	flex-shrink: 0;
 	display: flex;
 	flex-direction: column;
 }

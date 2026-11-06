@@ -106,8 +106,4 @@ onMounted(() => {
 	height: 100%;
 	overflow: hidden;
 }
-
-.app-layout--desktop .app-main {
-	margin-left: 220px; /* Offset for DesktopNav width */
-}
 </style>

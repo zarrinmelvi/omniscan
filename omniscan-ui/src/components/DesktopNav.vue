@@ -1,6 +1,6 @@
 <template>
 	<nav class="desktop-nav">
-		<!-- Brand header -->
+		<!-- Brand header (Smart Pantry sub-label removed) -->
 		<div class="nav-brand">
 			<span class="nav-brand__name">OmniScan</span>
 		</div>
@@ -93,27 +93,25 @@ const navItems = [
 
 <style scoped>
 .desktop-nav {
+	position: fixed;
+	left: 0;
+	top: 0;
+	bottom: 0;
 	width: 220px;
-	height: 100vh;
 	background: var(--ion-background-color, #ffffff);
 	border-right: 1px solid var(--ion-border-color, #e5e7eb);
 	padding: 0;
-	box-sizing: border-box;
-	flex-shrink: 0;
+	overflow-y: auto;
+	z-index: 1000;
 	display: flex;
 	flex-direction: column;
-	justify-content: space-between;
 }
 
 /* ── Brand header ── */
 .nav-brand {
-	height: 60px;
-	padding: 0 20px;
-	display: flex;
-	align-items: center;
+	padding: 20px 20px 16px;
 	border-bottom: 1px solid var(--ion-border-color, #e5e7eb);
 	flex-shrink: 0;
-	box-sizing: border-box;
 }
 
 .nav-brand__name {
@@ -157,6 +155,7 @@ const navItems = [
 	flex-shrink: 0;
 }
 
+/* Inactive nav item hover state */
 .nav-item:hover:not(.nav-item--active) {
 	background: #f0fdf4;
 	color: #15803d;
@@ -166,6 +165,7 @@ const navItems = [
 	color: #15803d;
 }
 
+/* Active nav item state - locked solid green */
 .nav-item--active,
 .nav-item--active:hover {
 	background: #00b050 !important;
@@ -262,6 +262,7 @@ const navItems = [
 	color: #b91c1c;
 }
 
+/* User row as clickable button */
 .nav-footer__user-btn {
 	display: flex;
 	align-items: center;
@@ -280,6 +281,7 @@ const navItems = [
 	background: rgba(0, 0, 0, 0.05);
 }
 
+/* Logout confirmation overlay */
 .logout-confirm-overlay {
 	position: fixed;
 	inset: 0;

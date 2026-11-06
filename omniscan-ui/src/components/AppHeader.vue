@@ -1,5 +1,5 @@
 <template>
-	<header class="app-header">
+	<div class="app-header">
 		<div class="app-header__left">
 			<div v-if="isDesktop" class="app-header__breadcrumb">
 				<span class="app-header__breadcrumb-root">OmniScan</span>
@@ -22,7 +22,7 @@
 				</span>
 			</button>
 		</div>
-	</header>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -82,13 +82,11 @@ onMounted(() => {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	height: 60px;
-	padding: 0 24px;
+	gap: 12px;
+	padding: 14px 24px;
 	background: #ffffff;
 	border-bottom: 1px solid var(--ion-border-color, #e5e7eb);
 	width: 100%;
-	box-sizing: border-box;
-	flex-shrink: 0;
 }
 .app-header__left {
 	display: flex;
@@ -99,7 +97,7 @@ onMounted(() => {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font-size: 0.95rem;
+	font-size: 0.9rem;
 }
 .app-header__breadcrumb-root {
 	color: #6b7280;

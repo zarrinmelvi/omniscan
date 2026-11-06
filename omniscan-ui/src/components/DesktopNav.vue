@@ -1,6 +1,6 @@
 <template>
 	<nav class="desktop-nav">
-		<!-- Brand header (Smart Pantry sub-label removed) -->
+		<!-- Brand header -->
 		<div class="nav-brand">
 			<span class="nav-brand__name">OmniScan</span>
 		</div>
@@ -109,23 +109,31 @@ const navItems = [
 
 /* ── Brand header ── */
 .nav-brand {
-	padding: 20px 20px 16px;
-	border-bottom: 1px solid var(--ion-border-color, #e5e7eb);
+	padding: 24px 20px 16px;
+	border-bottom: 1px solid #e5e7eb;
+	margin-bottom: 8px;
 	flex-shrink: 0;
 }
 
 .nav-brand__name {
 	display: block;
-	font-size: 1.3rem;
-	font-weight: 800;
-	color: #05c450;
-	letter-spacing: -0.02em;
+	font-size: 1.2rem;
+	font-weight: 700;
+	color: #111827;
+	letter-spacing: -0.01em;
+}
+
+.nav-brand__sub {
+	display: block;
+	font-size: 0.75rem;
+	color: #9ca3af;
+	margin-top: 2px;
 }
 
 /* ── Nav menu ── */
 .nav-menu {
 	list-style: none;
-	padding: 16px 0;
+	padding: 12px 0;
 	margin: 0;
 	display: flex;
 	flex-direction: column;
@@ -137,25 +145,25 @@ const navItems = [
 .nav-item {
 	display: flex;
 	align-items: center;
-	gap: 12px;
-	padding: 10px 14px;
+	gap: 14px;
+	padding: 13px 16px;
 	margin: 0 12px;
 	border-radius: 12px;
 	color: #374151;
 	text-decoration: none;
 	transition: background 0.2s, color 0.2s;
 	min-height: 44px;
-	font-size: 0.9rem;
+	font-size: 0.95rem;
 	font-weight: 500;
 }
 
 .nav-item ion-icon {
-	font-size: 20px;
-	color: #4b5563;
+	font-size: 22px;
+	color: #374151;
 	flex-shrink: 0;
 }
 
-/* Inactive nav item hover state */
+/* Inactive nav item hover state (Light Mode) */
 .nav-item:hover:not(.nav-item--active) {
 	background: #f0fdf4;
 	color: #15803d;
@@ -165,7 +173,7 @@ const navItems = [
 	color: #15803d;
 }
 
-/* Active nav item state - locked solid green */
+/* Active nav item state (Light Mode) - locked solid green */
 .nav-item--active,
 .nav-item--active:hover {
 	background: #00b050 !important;
@@ -182,21 +190,21 @@ const navItems = [
 /* ── User identity footer ── */
 .nav-footer {
 	padding: 12px 14px 14px;
-	border-top: 1px solid var(--ion-border-color, #e5e7eb);
+	border-top: 1px solid #e5e7eb;
 	flex-shrink: 0;
 }
 
 .nav-footer__user {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 8px;
 	width: 100%;
 	min-width: 0;
 }
 
 .nav-footer__avatar {
-	width: 36px;
-	height: 36px;
+	width: 34px;
+	height: 34px;
 	border-radius: 50%;
 	background: #05c450;
 	display: flex;
@@ -214,7 +222,7 @@ const navItems = [
 
 .nav-footer__avatar-initial {
 	color: #ffffff;
-	font-size: 0.9rem;
+	font-size: 0.85rem;
 	font-weight: 700;
 }
 
@@ -252,7 +260,7 @@ const navItems = [
 	font-weight: 600;
 	padding: 7px 8px;
 	cursor: pointer;
-	text-align: left;
+	text-align: center;
 	border-radius: 8px;
 	transition: background 0.15s, color 0.15s;
 }
@@ -363,11 +371,5 @@ const navItems = [
 }
 :global(html.ion-palette-dark) .nav-footer__user-btn:hover {
 	background: rgba(255, 255, 255, 0.06);
-}
-:global(html.ion-palette-dark) .nav-brand__name {
-	color: #05c450;
-}
-:global(html.ion-palette-dark) .nav-footer__name {
-	color: #f3f4f6;
 }
 </style>

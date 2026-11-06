@@ -98,17 +98,22 @@ const navItems = [
 	background: var(--ion-background-color, #ffffff);
 	border-right: 1px solid var(--ion-border-color, #e5e7eb);
 	padding: 0;
-	overflow-y: auto;
+	box-sizing: border-box;
 	flex-shrink: 0;
 	display: flex;
 	flex-direction: column;
+	justify-content: space-between;
 }
 
 /* ── Brand header ── */
 .nav-brand {
-	padding: 20px 20px 16px;
+	height: 60px;
+	padding: 0 20px;
+	display: flex;
+	align-items: center;
 	border-bottom: 1px solid var(--ion-border-color, #e5e7eb);
 	flex-shrink: 0;
+	box-sizing: border-box;
 }
 
 .nav-brand__name {
@@ -152,7 +157,6 @@ const navItems = [
 	flex-shrink: 0;
 }
 
-/* Inactive nav item hover state */
 .nav-item:hover:not(.nav-item--active) {
 	background: #f0fdf4;
 	color: #15803d;
@@ -162,7 +166,6 @@ const navItems = [
 	color: #15803d;
 }
 
-/* Active nav item state - locked solid green */
 .nav-item--active,
 .nav-item--active:hover {
 	background: #00b050 !important;
@@ -259,7 +262,6 @@ const navItems = [
 	color: #b91c1c;
 }
 
-/* User row as clickable button */
 .nav-footer__user-btn {
 	display: flex;
 	align-items: center;
@@ -278,7 +280,6 @@ const navItems = [
 	background: rgba(0, 0, 0, 0.05);
 }
 
-/* Logout confirmation overlay */
 .logout-confirm-overlay {
 	position: fixed;
 	inset: 0;

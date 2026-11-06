@@ -1,4 +1,4 @@
-import { defineEventHandler, getQuery, sendRedirect, createError } from 'h3'
+import { defineEventHandler, getQuery, sendRedirect } from 'h3'
 import jwt from 'jsonwebtoken'
 import { randomUUID } from 'crypto'
 import { prisma } from '../../../lib/prisma'

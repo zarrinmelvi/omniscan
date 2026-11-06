@@ -176,14 +176,17 @@
 						</form>
 
 						<div class="oauth-divider"><span>or</span></div>
-						<button type="button" class="google-btn" @click="handleGoogleSignIn">
-							<svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-								<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-								<path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-								<path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-								<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-							</svg>
-							Sign up with Google
+						<button type="button" class="google-btn" :disabled="isGoogleSubmitting" @click="handleGoogleSignIn">
+							<ion-spinner v-if="isGoogleSubmitting" name="crescent" class="btn-spinner" />
+							<template v-else>
+								<svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+									<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+									<path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+									<path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+									<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+								</svg>
+								Sign up with Google
+							</template>
 						</button>
 
 						<p class="switch-auth">
@@ -336,7 +339,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, IonFooter, IonToggle, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, arrowDownOutline } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
-import { Browser } from '@capacitor/browser'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
@@ -349,34 +351,50 @@ const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 const PREF_MAX = 5
 const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)
+const isGoogleSubmitting = ref(false)
+
+async function showToast(message: string, color: 'success' | 'danger' | 'warning' = 'success') {
+	const toast = await toastController.create({
+		message,
+		duration: 3500,
+		color,
+		position: 'top',
+	})
+	await toast.present()
+}
 
 async function handleGoogleSignIn(): Promise<void> {
+	if (isGoogleSubmitting.value) return
 	const isNative = Capacitor.isNativePlatform()
 
 	if (isNative) {
+		isGoogleSubmitting.value = true
 		try {
-			// Trigger native Google Account bottom sheet prompt
 			const result = await GoogleSignIn.signIn()
 			const idToken = result.idToken
 
-			// Verify token with backend
+			if (!idToken) {
+				throw new Error('No ID Token returned from Google Sign-In')
+			}
+
 			await apiFetch('/api/auth/google/verify', {
 				method: 'POST',
 				body: { idToken },
 				skipAuth: true,
 			})
 
-			// Check auth state and advance directly to Step 2
 			await authStore.checkAuth()
 			step.value = 2
 			fetchAllergenCatalog()
 			router.replace({ path: '/register', query: { step: '2' } })
-		} catch (error) {
+		} catch (error: any) {
 			console.error('Native Google Sign-Up failed:', error)
-			void showToast('Google sign-up failed. Please try again.', 'danger')
+			const errMsg = error?.message || 'Google sign-up failed. Please try again.'
+			void showToast(errMsg, 'danger')
+		} finally {
+			isGoogleSubmitting.value = false
 		}
 	} else {
-		// Fallback for Web browser execution
 		window.location.href = `${API_BASE_URL}/api/auth/google`
 	}
 }
@@ -473,16 +491,6 @@ const fieldErrors = reactive({
 
 function clearFieldError(field: keyof typeof fieldErrors) {
 	fieldErrors[field] = false
-}
-
-async function showToast(message: string, color: 'success' | 'danger' | 'warning' = 'success') {
-	const toast = await toastController.create({
-		message,
-		duration: 3000,
-		color,
-		position: 'top',
-	})
-	await toast.present()
 }
 
 const ALLOWED_DOMAINS = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com']
@@ -718,6 +726,16 @@ function onWindowFocus(): void {
 }
 
 onMounted(async () => {
+	if (Capacitor.isNativePlatform()) {
+		try {
+			await GoogleSignIn.initialize({
+				clientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com', // Put your Google Web Client ID here
+			})
+		} catch (e) {
+			console.warn('GoogleSignIn plugin initialization warning:', e)
+		}
+	}
+
 	if (step.value === 2) {
 		await authStore.checkAuth()
 		fetchAllergenCatalog()

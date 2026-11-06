@@ -86,7 +86,6 @@ onMounted(() => {
 	gap: 12px;
 	padding: 10px 16px;
 	background: #ffffff;
-	border-top: 3px solid #00b050;
 	border-bottom: 1px solid #f1f5f9;
 }
 .app-header__left {
@@ -172,7 +171,6 @@ onMounted(() => {
 .dark .app-header,
 :global(body.dark) .app-header {
 	background: #1e293b;
-	border-top-color: #00b050;
 	border-bottom-color: #334155;
 }
 .dark .app-header__bell {

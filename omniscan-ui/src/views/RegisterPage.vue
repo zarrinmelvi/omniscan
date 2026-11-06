@@ -65,7 +65,6 @@
 						<div v-if="errorMessage" class="form-error">{{ errorMessage }}</div>
 
 						<form @submit.prevent="handleRegister">
-							<!-- Name row side by side -->
 							<div class="name-row">
 								<div class="form-group">
 									<label class="input-label">First name</label>
@@ -126,7 +125,6 @@
 								</div>
 							</div>
 
-							<!-- Password criteria 2-column circle grid -->
 							<div class="pass-criteria-grid">
 								<div class="criteria-item" :class="{ valid: passCriteria.length }">
 									<span class="criteria-circle">{{ passCriteria.length ? '✓' : '' }}</span>
@@ -185,7 +183,7 @@
 								<path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
 								<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
 							</svg>
-							Sign in with Google
+							Sign up with Google
 						</button>
 
 						<p class="switch-auth">
@@ -211,7 +209,6 @@
 						</div>
 
 						<template v-else>
-							<!-- Counter row -->
 							<div class="allergen-counter-row">
 								<span class="allergen-count-text">{{ allergenCount }} of 5 selected</span>
 								<div class="allergen-dots">
@@ -219,7 +216,6 @@
 								</div>
 							</div>
 
-							<!-- Allergen chip grid -->
 							<div class="allergen-chip-grid">
 								<button
 									v-for="allergen in allergenCatalog"
@@ -233,12 +229,10 @@
 								</button>
 							</div>
 
-							<!-- Limit reached banner -->
 							<div v-if="allergenCount >= 5" class="allergen-limit-banner">
 								You've reached the limit of 5. Remove one to choose another.
 							</div>
 
-							<!-- Halal toggle card -->
 							<div class="halal-toggle-card">
 								<div class="halal-toggle-text">
 									<p class="halal-toggle-label">Halal only</p>
@@ -251,7 +245,6 @@
 						<div v-if="prefsError" class="form-error">{{ prefsError }}</div>
 						<div v-if="setupError" class="form-error">{{ setupError }}</div>
 
-						<!-- T&C checkbox -->
 						<div class="terms-check-row">
 							<label class="checkbox-container">
 								<input v-model="termsAccepted" type="checkbox" class="custom-checkbox-input" />
@@ -260,7 +253,6 @@
 							</label>
 						</div>
 
-						<!-- Step 2 actions -->
 						<div class="step2-actions">
 							<button type="button" class="btn-back" @click="step = 1">Back</button>
 							<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs || !termsAccepted" @click="completeSetup">
@@ -307,91 +299,15 @@
 
 					<h4>2. Eligibility and Account Registration</h4>
 					<p>Users may be required to create an account to access certain features of OmniScan.</p>
-					<p>When creating an account, you agree to:</p>
-					<ul>
-						<li>Provide accurate and truthful information;</li>
-						<li>Keep your account information up to date;</li>
-						<li>Keep your login credentials confidential;</li>
-						<li>Not share your account with unauthorized individuals; and</li>
-						<li>Notify the system administrators or support team of any suspected unauthorized access.</li>
-					</ul>
-					<p>You are responsible for activities performed through your account.</p>
 
 					<h4>3. Dietary Profile Information</h4>
 					<p>OmniScan allows users to create and manage personalized dietary profiles, including food allergies, allergen sensitivities, and Halal preferences.</p>
-					<p>The information provided in your dietary profile is used to personalize food analysis, safety alerts, filtering, and recommendations.</p>
-					<p>You are responsible for ensuring that the dietary information entered into your profile is complete and accurate. OmniScan cannot guarantee that every dietary restriction, allergy, ingredient, or certification will be identified.</p>
 
 					<h4>4. Food Scanning and AI Analysis</h4>
 					<p>OmniScan may analyze uploaded or scanned food product images using OCR, computer vision, artificial intelligence, and reference databases.</p>
 
 					<h4>5. Food Safety Disclaimer</h4>
 					<p>OmniScan does not guarantee that a food product is completely safe, allergen-free, Halal-certified, or suitable for a particular individual.</p>
-
-					<h4>6. Limitations of Detection</h4>
-					<p>OmniScan's detection and analysis capabilities are subject to the information available to the System.</p>
-
-					<h4>7. Halal Verification</h4>
-					<p>OmniScan may identify selected Halal certification logos and analyze ingredient information related to Halal compliance.</p>
-
-					<h4>8. Pantry Management and Expiration Dates</h4>
-					<p>OmniScan provides a digital pantry feature that allows users to store information about food products and monitor expiration or best-before dates.</p>
-
-					<h4>9. Recipe Recommendations</h4>
-					<p>OmniScan may generate recipe suggestions based on available pantry ingredients and the user's dietary profile.</p>
-
-					<h4>10. User-Uploaded Images and Information</h4>
-					<p>Users may upload photographs of food products and related information for analysis.</p>
-
-					<h4>11. Notifications and Reminders</h4>
-					<p>OmniScan may send notifications regarding food items approaching their expiration dates, dietary warnings, recipe suggestions, account inactivity, and other system-related activities.</p>
-
-					<h4>12. Account Inactivity and Deletion</h4>
-					<p>An account that remains inactive for six (6) months may receive an email notification informing the user that the account is scheduled for deletion.</p>
-
-					<h4>13. Acceptable Use</h4>
-					<p>Users agree not to use OmniScan for unlawful purposes, attempt unauthorized access, disrupt System operations, upload malicious files, or misuse features.</p>
-
-					<h4>14. System Availability</h4>
-					<p>The developers aim to maintain OmniScan's availability; however, continuous or uninterrupted access is not guaranteed.</p>
-
-					<h4>15. Accuracy of Information</h4>
-					<p>While reasonable efforts are made, OmniScan does not guarantee that all information, analyses, classifications, recommendations, or alerts will always be complete, accurate, or current.</p>
-
-					<h4>16. Intellectual Property</h4>
-					<p>The OmniScan name, system design, user interface, software components, documentation, logos, and original materials belong to their respective owners.</p>
-
-					<h4>17. Third-Party Services and Data Sources</h4>
-					<p>OmniScan may rely on third-party technologies, services, or databases.</p>
-
-					<h4>18. Limitation of Liability</h4>
-					<p>To the extent permitted by law, the OmniScan development team shall not be responsible for losses, damages, injuries, dietary reactions, or food-related incidents.</p>
-
-					<h4>19. User Responsibility</h4>
-					<p>By using OmniScan, users acknowledge that they remain responsible for their own food purchasing, preparation, storage, consumption, and dietary decisions.</p>
-
-					<h4>20. Privacy and Personal Information</h4>
-					<p>Personal information is collected, stored, and processed in accordance with applicable data protection requirements.</p>
-
-					<h4>21. Changes to These Terms</h4>
-					<p>The development team may update or modify these Terms when necessary.</p>
-
-					<h4>22. Termination of Access</h4>
-					<p>Access may be suspended or terminated if a user violates these Terms or engages in harmful activity.</p>
-
-					<h4>23. Contact and Support</h4>
-					<p>Users may contact support regarding technical issues or questions through the Contact Support feature available within the Application.</p>
-
-					<h4>24. Acceptance of Terms</h4>
-					<p>By selecting "I Agree", "Accept", or by accessing and using OmniScan, you acknowledge that you have read, understood, and agreed to comply with these Terms &amp; Conditions.</p>
-
-					<div class="terms-footer-meta">
-						<p><strong>OmniScan</strong></p>
-						<p>A Cross-Platform Pantry Manager with Computer Vision for Allergen and Halal Detection and Artificial Intelligence Recommendations</p>
-						<p>Developed as a Capstone Project</p>
-						<p>STI College San Jose Del Monte</p>
-						<p>Bachelor of Science in Information Technology</p>
-					</div>
 				</div>
 			</ion-content>
 			<ion-footer class="ion-no-border terms-modal-footer">
@@ -418,9 +334,10 @@
 import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, IonFooter, IonToggle, toastController } from '@ionic/vue'
-import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, checkmarkCircle, closeCircle, arrowDownOutline } from 'ionicons/icons'
+import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, arrowDownOutline } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
 import { Browser } from '@capacitor/browser'
+import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
 import { useDarkMode } from '@/composables/useDarkMode'
@@ -430,21 +347,39 @@ const route = useRoute()
 const authStore = useAuthStore()
 const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
-async function handleGoogleSignIn(): Promise<void> {
-	const isNative = Capacitor.isNativePlatform()
-	const googleUrl = isNative 
-		? `${API_BASE_URL}/api/auth/google?state=mobile` 
-		: `${API_BASE_URL}/api/auth/google`
-
-	if (isNative) {
-		await Browser.open({ url: googleUrl })
-	} else {
-		window.location.href = googleUrl
-	}
-}
-
 const PREF_MAX = 5
 const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)
+
+async function handleGoogleSignIn(): Promise<void> {
+	const isNative = Capacitor.isNativePlatform()
+
+	if (isNative) {
+		try {
+			// Trigger native Google Account bottom sheet prompt
+			const result = await GoogleSignIn.signIn()
+			const idToken = result.idToken
+
+			// Verify token with backend
+			await apiFetch('/api/auth/google/verify', {
+				method: 'POST',
+				body: { idToken },
+				skipAuth: true,
+			})
+
+			// Check auth state and advance directly to Step 2
+			await authStore.checkAuth()
+			step.value = 2
+			fetchAllergenCatalog()
+			router.replace({ path: '/register', query: { step: '2' } })
+		} catch (error) {
+			console.error('Native Google Sign-Up failed:', error)
+			void showToast('Google sign-up failed. Please try again.', 'danger')
+		}
+	} else {
+		// Fallback for Web browser execution
+		window.location.href = `${API_BASE_URL}/api/auth/google`
+	}
+}
 
 watch(
 	() => route.query.step,
@@ -457,7 +392,6 @@ watch(
 	}
 )
 
-// Step 1 — account creation
 const firstName = ref('')
 const middleName = ref('')
 const lastName = ref('')
@@ -473,15 +407,12 @@ const isTermsOpen = ref(false)
 const termsAccepted = ref(false)
 const errorMessage = ref<string | null>(null)
 
-// Terms & Conditions scroll gate — the user must reach the bottom of the
-// terms text before "I Agree" is enabled.
 const termsContentRef = ref<any>(null)
 const termsScrolledToBottom = ref(false)
 
 function onTermsScroll(ev: CustomEvent): void {
 	const detail = ev.detail as { scrollTop: number }
 	const el = ev.target as any
-	// Use the scroll element dimensions to detect bottom with a small threshold.
 	const scrollEl = el?.scrollEl || el
 	if (!scrollEl) return
 	const reached = detail.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 24
@@ -493,7 +424,6 @@ async function scrollTermsToBottom(): Promise<void> {
 	if (content && typeof content.getScrollElement === 'function') {
 		await content.getScrollElement()
 		await content.scrollToBottom(300)
-		// Fallback: mark as reached after programmatic scroll completes.
 		setTimeout(() => { termsScrolledToBottom.value = true }, 350)
 	} else {
 		termsScrolledToBottom.value = true
@@ -504,7 +434,6 @@ watch(isTermsOpen, async (open) => {
 	if (open) {
 		termsScrolledToBottom.value = false
 		await nextTick()
-		// After render, if content isn't scrollable, enable immediately.
 		setTimeout(async () => {
 			const content = termsContentRef.value?.$el ?? termsContentRef.value
 			if (content && typeof content.getScrollElement === 'function') {
@@ -517,7 +446,6 @@ watch(isTermsOpen, async (open) => {
 	}
 })
 
-// Password Strictness Checks
 const passCriteria = computed(() => {
 	const val = password.value
 	return {
@@ -534,7 +462,6 @@ const isPasswordValid = computed(() => {
 	return c.length && c.upper && c.lower && c.number && c.special
 })
 
-// Per-field validation error flags
 const fieldErrors = reactive({
 	firstName: false,
 	lastName: false,
@@ -558,7 +485,6 @@ async function showToast(message: string, color: 'success' | 'danger' | 'warning
 	await toast.present()
 }
 
-// Allowed Domain Validation
 const ALLOWED_DOMAINS = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com']
 
 function isAllowedEmailDomain(emailStr: string): boolean {
@@ -576,7 +502,6 @@ const KNOWN_TLDS =
 	'sa|ae|eg|il|ar|cl|pe|ve'
 const EMAIL_RE = new RegExp(`^[^\\s@]+@[^\\s@]+(\\.[^\\s@]+)*\\.(${KNOWN_TLDS})$`, 'i')
 
-// Step 2 — dietary preferences
 interface Allergen {
 	id: number
 	name: string
@@ -594,33 +519,7 @@ const prefsError = ref('')
 const setupError = ref('')
 const prefLimitWarning = ref(false)
 
-// Halal is a dietary/certification preference, NOT an allergen — it must not
-// count toward the 5-allergen cap (Epic 9 deliverable 1).
 const allergenCount = computed(() => selectedAllergenIds.value.length)
-
-const ALLERGEN_EMOJI: Record<string, string> = {
-	milk: '🥛',
-	'milk / dairy': '🥛',
-	eggs: '🥚',
-	fish: '🐟',
-	crustaceans: '🦐',
-	molluscs: '🦪',
-	'tree nuts': '🌰',
-	peanuts: '🥜',
-	wheat: '🌾',
-	soy: '🫘',
-	'soy / soya': '🫘',
-	sesame: '🌱',
-	mustard: '🟡',
-	celery: '🥬',
-	'sulphur dioxide / sulphites': '🍷',
-	sulphites: '🍷',
-	lupin: '🌸',
-}
-
-function emojiForAllergen(name: string): string {
-	return ALLERGEN_EMOJI[name.toLowerCase()] ?? '🍽️'
-}
 
 function formatAllergenName(name: string): string {
 	return name.replace(/\b\w/g, (char) => char.toUpperCase())
@@ -774,11 +673,6 @@ function toggleAllergen(id: number): void {
 	}
 }
 
-function toggleHalal(): void {
-	// Halal is independent of the allergen cap — always toggleable.
-	halalSelected.value = !halalSelected.value
-}
-
 async function completeSetup(): Promise<void> {
 	if (isSavingPrefs.value) return
 
@@ -815,12 +709,6 @@ async function completeSetup(): Promise<void> {
 	} finally {
 		isSavingPrefs.value = false
 	}
-}
-
-function skipForNow(): void {
-	prefsError.value = ''
-	setupError.value = ''
-	window.location.href = '/tabs/home'
 }
 
 function onWindowFocus(): void {
@@ -889,7 +777,6 @@ onUnmounted(() => {
 	align-items: center;
 }
 
-/* Top bar */
 .auth-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .back-to-home { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 0.85rem; color: #6b7280; padding: 0; }
 .dark-mode-toggle-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #6b7280; }
@@ -960,12 +847,6 @@ onUnmounted(() => {
 	margin-bottom: 6px;
 }
 
-.optional-hint {
-	font-size: 0.75rem;
-	color: #94a3b8;
-	font-weight: 400;
-}
-
 .custom-input-wrapper {
 	position: relative;
 	display: flex;
@@ -993,10 +874,6 @@ onUnmounted(() => {
 	border-color: #ef4444 !important;
 }
 
-.custom-input.input-error:focus {
-	border-color: #ef4444 !important;
-}
-
 .custom-input::placeholder {
 	color: #9ca3af;
 }
@@ -1009,11 +886,9 @@ onUnmounted(() => {
 	cursor: pointer;
 }
 
-/* Name row */
 .name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0; }
 .add-middle-link { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #05c450; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0; margin: 4px 0 14px; }
 
-/* Password criteria */
 .pass-criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-top: 10px; padding: 12px 14px; background: #f9fafb; border-radius: 10px; margin-bottom: 14px; }
 .criteria-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #9ca3af; }
 .criteria-item.valid { color: #15803d; }
@@ -1112,7 +987,6 @@ onUnmounted(() => {
 	padding: 24px 0;
 }
 
-/* Allergen section */
 .allergen-counter-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .allergen-count-text { font-size: 0.85rem; color: #374151; font-weight: 500; }
 .allergen-dots { display: flex; gap: 6px; }
@@ -1125,17 +999,14 @@ onUnmounted(() => {
 .chip-check { font-size: 0.8rem; }
 .allergen-limit-banner { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 10px; padding: 10px 14px; font-size: 0.82rem; margin-bottom: 14px; }
 
-/* Halal toggle card */
 .halal-toggle-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
 .halal-toggle-text { flex: 1; }
 .halal-toggle-label { font-size: 0.9rem; font-weight: 600; color: #111827; margin: 0 0 2px; }
 .halal-toggle-sub { font-size: 0.78rem; color: #6b7280; margin: 0; line-height: 1.4; }
 
-/* T&C row */
 .terms-check-row { margin-bottom: 16px; }
 .terms-inline-btn { background: none; border: none; color: #05c450; font-weight: 600; cursor: pointer; font-size: inherit; padding: 0; }
 
-/* Checkbox */
 .checkbox-container {
 	position: relative;
 	display: flex;
@@ -1196,34 +1067,13 @@ onUnmounted(() => {
 	margin-left: 8px;
 }
 
-/* Step 2 bottom actions */
 .step2-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-top: 8px; }
 .btn-back { height: 48px; border: 1.5px solid #d1d5db; border-radius: 9999px; background: transparent; color: #374151; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
 
-/* Brand features */
 .brand-features { list-style: none; padding: 0; margin: 28px 0 0; display: flex; flex-direction: column; gap: 16px; }
 .brand-features li { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; opacity: 0.9; }
 .feature-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-.skip-link {
-	display: block;
-	width: 100%;
-	text-align: center;
-	background: none;
-	border: none;
-	color: #6b7280;
-	font-size: 0.85rem;
-	padding: 16px 0 0;
-	cursor: pointer;
-}
-
-.pref-limit-warning {
-	color: #d97706;
-	font-size: 0.78rem;
-	margin: -12px 0 12px;
-}
-
-/* T&C Modal — base styles (theme-aware) */
 .terms-sheet-modal {
 	--height: 85%;
 	--border-radius: 20px 20px 0 0;
@@ -1291,18 +1141,6 @@ onUnmounted(() => {
 	margin-bottom: 4px;
 }
 
-.terms-footer-meta {
-	margin-top: 24px;
-	padding-top: 16px;
-	border-top: 1px solid #e2e8f0;
-}
-
-.terms-footer-meta p {
-	font-size: 0.78rem;
-	color: #64748b;
-	margin-bottom: 4px;
-}
-
 .terms-scroll-hint {
 	display: flex;
 	justify-content: center;
@@ -1351,7 +1189,6 @@ onUnmounted(() => {
 	text-transform: none;
 }
 
-/* Dark mode */
 :global(html.ion-palette-dark) .auth-content { --background: #0b160b; }
 :global(html.ion-palette-dark) .auth-card { background: #0b160b; }
 :global(html.ion-palette-dark) .auth-title { color: #f9fafb; }
@@ -1379,12 +1216,9 @@ onUnmounted(() => {
 :global(html.ion-palette-dark) .terms-modal-body p { color: #9ca3af !important; }
 :global(html.ion-palette-dark) .terms-modal-body li { color: #9ca3af !important; }
 :global(html.ion-palette-dark) .terms-updated { color: #6b7280 !important; }
-:global(html.ion-palette-dark) .terms-footer-meta p { color: #6b7280 !important; }
-:global(html.ion-palette-dark) .terms-footer-meta { border-top-color: #2d4a2d !important; }
 :global(html.ion-palette-dark) .terms-modal-footer { background: #0f1f0f !important; border-top-color: #2d4a2d !important; }
 :global(html.ion-palette-dark) .terms-disagree-btn { --border-color: #2d4a2d; --color: #d1d5db !important; }
 
-/* TABLET (>=768px) */
 @media (min-width: 768px) {
 	.auth-layout {
 		display: flex;
@@ -1400,7 +1234,6 @@ onUnmounted(() => {
 	}
 }
 
-/* DESKTOP (>=1024px) */
 @media (min-width: 1024px) {
 	.auth-layout {
 		display: grid;

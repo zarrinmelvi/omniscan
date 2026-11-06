@@ -164,7 +164,7 @@ onMounted(async () => {
 	if (Capacitor.isNativePlatform()) {
 		try {
 			await GoogleSignIn.initialize({
-				clientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com', // Put your Google Web Client ID here
+				clientId: '394571296954-s5pjiqq3fg7hhcsm0i0tn6l4mfs69s7m.apps.googleusercontent.com', 
 			})
 		} catch (e) {
 			console.warn('GoogleSignIn plugin initialization warning:', e)

@@ -12,16 +12,19 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.1",
     "@capacitor/app": "8.1.0",
+    "@capacitor/browser": "^8.0.5",
     "@capacitor/core": "8.4.1",
     "@capacitor/haptics": "8.0.2",
     "@capacitor/keyboard": "8.0.5",
     "@capacitor/status-bar": "8.0.2",
+    "@capawesome/capacitor-google-sign-in": "^0.1.4",
     "@ionic/vue": "^8.0.0",
     "@ionic/vue-router": "^8.0.0",
     "ionicons": "^7.0.0",
     "pinia": "^3.0.4",
-    "vue": "^3.3.0",
+    "vue": "^3.5.45",
     "vue-router": "^4.2.0"
   },
   "devDependencies": {

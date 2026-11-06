@@ -1,13 +1,6 @@
 <template>
 	<div class="app-layout" :class="{ 'app-layout--desktop': isDesktop }">
-		<!-- Master Left Sidebar for Desktop/Tablet -->
-		<DesktopNav
-			v-if="isDesktop"
-			:user-name="userName"
-			:user-email="userEmail"
-			:user-avatar-base64="userAvatarBase64" />
-
-		<!-- Main Page Outlet -->
+		<!-- Main Page Content Container -->
 		<div class="app-main">
 			<AppHeader v-if="isDesktop" />
 
@@ -15,7 +8,7 @@
 				<ion-tabs>
 					<ion-router-outlet></ion-router-outlet>
 
-					<!-- Mobile Bottom Tab Bar -->
+					<!-- Bottom tab bar: hidden on desktop (>= 768px) and settings/notifications -->
 					<ion-tab-bar slot="bottom" v-show="!hideTabBar && !isDesktop">
 						<ion-tab-button tab="home" href="/tabs/home">
 							<ion-icon :icon="homeOutline" />
@@ -49,47 +42,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { IonTabBar, IonTabButton, IonTabs, IonLabel, IonIcon, IonRouterOutlet } from '@ionic/vue'
 import { homeOutline, fileTrayStackedOutline, cameraOutline, restaurantOutline, personCircleOutline } from 'ionicons/icons'
-import DesktopNav from '@/components/DesktopNav.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import { useBreakpoint } from '@/utils/useBreakpoint'
-import { apiFetch } from '@/utils/api'
-
-interface UserDto {
-	id: number
-	name: string
-	email?: string
-	avatar_base64: string | null
-}
 
 const route = useRoute()
 const { isDesktop } = useBreakpoint()
 
-const userName = ref('')
-const userEmail = ref('')
-const userAvatarBase64 = ref<string | null>(null)
-
 const hideTabBar = computed(() => route.path === '/tabs/settings' || route.path === '/tabs/notifications')
-
-async function loadUserInfo(): Promise<void> {
-	try {
-		const res = await apiFetch<{ success: boolean; user: UserDto }>('/api/users', { method: 'GET' })
-		if (res.user) {
-			userName.value = res.user.name
-			userEmail.value = res.user.email || ''
-			userAvatarBase64.value = res.user.avatar_base64
-		}
-	} catch {
-		/* ignore */
-	}
-}
-
-onMounted(() => {
-	loadUserInfo()
-})
 </script>
 
 <style scoped>

@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
+import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 
 import { IonicVue } from '@ionic/vue'
 
@@ -42,6 +43,11 @@ import './theme/typography.css'
 import './theme/images.css'
 import './theme/accessibility.css'
 import './theme/forms.css'
+
+// Initialize Google Sign-In SDK
+GoogleSignIn.initialize({
+	clientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
+})
 
 const app = createApp(App).use(IonicVue).use(router).use(createPinia())
 

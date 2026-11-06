@@ -46,7 +46,6 @@
 
 					<div v-if="errorMessage" class="form-error">
 						{{ errorMessage }}
-						<!-- Resend button shown only when login blocked due to unverified email -->
 						<div v-if="requiresVerification" class="resend-row">
 							<ion-button
 								size="small"
@@ -137,6 +136,7 @@ import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToggle } from '
 import { chevronBackOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
 import { Browser } from '@capacitor/browser'
+import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
 import { useDarkMode } from '@/composables/useDarkMode'
@@ -153,14 +153,27 @@ function goToLandingPage(): void {
 
 async function handleGoogleSignIn(): Promise<void> {
 	const isNative = Capacitor.isNativePlatform()
-	const googleUrl = isNative 
-		? `${API_BASE_URL}/api/auth/google?state=mobile` 
-		: `${API_BASE_URL}/api/auth/google`
 
 	if (isNative) {
-		await Browser.open({ url: googleUrl })
+		try {
+			// Trigger native Android account bottom sheet prompt
+			const result = await GoogleSignIn.signIn()
+			const idToken = result.idToken
+
+			// Verify token with Nitro backend
+			await apiFetch('/api/auth/google/verify', {
+				method: 'POST',
+				body: { idToken },
+				skipAuth: true,
+			})
+
+			window.location.href = '/tabs/home'
+		} catch (error) {
+			console.error('Native Google Sign-In failed:', error)
+		}
 	} else {
-		window.location.href = googleUrl
+		// Fallback for Web browser execution
+		window.location.href = `${API_BASE_URL}/api/auth/google`
 	}
 }
 
@@ -247,7 +260,6 @@ onUnmounted(() => {
 	--background: #ffffff;
 }
 
-/* MOBILE-FIRST (<768px): single centered card, brand panel hidden */
 .auth-layout {
 	width: 100%;
 }
@@ -263,7 +275,6 @@ onUnmounted(() => {
 	background: #ffffff;
 }
 
-/* Top bar */
 .auth-topbar {
 	display: flex;
 	justify-content: space-between;
@@ -336,7 +347,7 @@ onUnmounted(() => {
 	border: 1px solid #e5e7eb;
 	border-radius: 12px;
 	padding: 0 14px;
-	font-size: 16px; /* keep >=16px to avoid iOS zoom on focus */
+	font-size: 16px;
 	color: #111827;
 	outline: none;
 	background: #ffffff;
@@ -351,7 +362,6 @@ onUnmounted(() => {
 	color: #9ca3af;
 }
 
-/* Input error border */
 .custom-input.input-error { border-color: #dc2626 !important; }
 
 .password-toggle {
@@ -377,7 +387,6 @@ onUnmounted(() => {
 	user-select: none;
 }
 
-/* Hide native browser checkbox */
 .custom-checkbox-input {
 	position: absolute;
 	opacity: 0;
@@ -386,7 +395,6 @@ onUnmounted(() => {
 	width: 0;
 }
 
-/* Custom Checkbox Frame */
 .custom-checkbox-box {
 	width: 18px;
 	height: 18px;
@@ -404,13 +412,11 @@ onUnmounted(() => {
 	border-color: #05c450;
 }
 
-/* Checked State Styling */
 .custom-checkbox-input:checked ~ .custom-checkbox-box {
 	background-color: #05c450;
 	border-color: #05c450;
 }
 
-/* White Checkmark Icon */
 .custom-checkbox-box::after {
 	content: '';
 	width: 4px;
@@ -475,7 +481,6 @@ onUnmounted(() => {
 	font-size: 0.85rem;
 }
 
-/* Banners */
 .banner-warning {
 	background: #fffbeb;
 	border: 1px solid #fde68a;
@@ -548,7 +553,6 @@ onUnmounted(() => {
 	font-size: 0.85rem;
 }
 
-/* Brand features */
 .brand-features {
 	list-style: none;
 	padding: 0;
@@ -575,7 +579,6 @@ onUnmounted(() => {
 	flex-shrink: 0;
 }
 
-/* Dark mode */
 :global(html.ion-palette-dark) .auth-content { --background: #0b160b; }
 :global(html.ion-palette-dark) .auth-card { background: #0b160b; }
 :global(html.ion-palette-dark) .auth-title { color: #f9fafb; }
@@ -590,7 +593,6 @@ onUnmounted(() => {
 :global(html.ion-palette-dark) .remember-label { color: #d1d5db; }
 :global(html.ion-palette-dark) .oauth-divider { color: #6b7280; }
 
-/* TABLET (>=768px): roomier vertically centered card */
 @media (min-width: 768px) {
 	.auth-layout {
 		display: flex;
@@ -606,7 +608,6 @@ onUnmounted(() => {
 	}
 }
 
-/* DESKTOP (>=1024px): two-panel split layout */
 @media (min-width: 1024px) {
 	.auth-layout {
 		display: grid;
@@ -654,7 +655,6 @@ onUnmounted(() => {
 		padding: 48px 64px;
 	}
 
-	/* Constrain the actual form column width and center it in the right panel */
 	.auth-card > * {
 		width: 100%;
 		max-width: 400px;
@@ -662,7 +662,6 @@ onUnmounted(() => {
 		margin-right: auto;
 	}
 
-	/* The brand panel replaces the need for the mobile back button */
 	.auth-card .auth-topbar {
 		display: flex;
 	}

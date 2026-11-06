@@ -133,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToggle, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons'
@@ -160,18 +160,6 @@ async function showToast(message: string, color: 'success' | 'danger' | 'warning
 	await toast.present()
 }
 
-onMounted(async () => {
-	if (Capacitor.isNativePlatform()) {
-		try {
-			await GoogleSignIn.initialize({
-				clientId: '394571296954-s5pjiqq3fg7hhcsm0i0tn6l4mfs69s7m.apps.googleusercontent.com', 
-			})
-		} catch (e) {
-			console.warn('GoogleSignIn plugin initialization warning:', e)
-		}
-	}
-})
-
 function goToLandingPage(): void {
 	window.location.href = 'https://omniscan.website'
 }
@@ -183,6 +171,10 @@ async function handleGoogleSignIn(): Promise<void> {
 	if (isNative) {
 		isGoogleSubmitting.value = true
 		try {
+			await GoogleSignIn.initialize({
+				clientId: '394571296954-s5pjiqq3fg7hhcsm0i0tn6l4mfs69s7m.apps.googleusercontent.com',
+			})
+
 			const result = await GoogleSignIn.signIn()
 			const idToken = result.idToken
 

@@ -1,9 +1,8 @@
 <template>
 	<nav class="desktop-nav">
-		<!-- Brand header -->
+		<!-- Brand header (Smart Pantry sub-label removed) -->
 		<div class="nav-brand">
 			<span class="nav-brand__name">OmniScan</span>
-			<span class="nav-brand__sub">Smart Pantry</span>
 		</div>
 
 		<!-- Navigation items -->
@@ -98,7 +97,7 @@ const navItems = [
 	left: 0;
 	top: 0;
 	bottom: 0;
-	width: 180px;
+	width: 220px;
 	background: var(--ion-background-color, #ffffff);
 	border-right: 1px solid var(--ion-border-color, #e5e7eb);
 	padding: 0;
@@ -110,35 +109,27 @@ const navItems = [
 
 /* ── Brand header ── */
 .nav-brand {
-	padding: 20px 16px 12px;
-	border-bottom: 1px solid #e5e7eb;
-	margin-bottom: 8px;
+	padding: 20px 20px 16px;
+	border-bottom: 1px solid var(--ion-border-color, #e5e7eb);
 	flex-shrink: 0;
 }
 
 .nav-brand__name {
 	display: block;
-	font-size: 1.2rem;
-	font-weight: 700;
-	color: #111827;
-	letter-spacing: -0.01em;
-}
-
-.nav-brand__sub {
-	display: block;
-	font-size: 0.75rem;
-	color: #9ca3af;
-	margin-top: 2px;
+	font-size: 1.3rem;
+	font-weight: 800;
+	color: #05c450;
+	letter-spacing: -0.02em;
 }
 
 /* ── Nav menu ── */
 .nav-menu {
 	list-style: none;
-	padding: 8px 0;
+	padding: 16px 0;
 	margin: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: 6px;
 	flex: 1;
 	overflow-y: auto;
 }
@@ -146,24 +137,25 @@ const navItems = [
 .nav-item {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	padding: 10px 12px;
-	margin: 0 10px;
+	gap: 12px;
+	padding: 10px 14px;
+	margin: 0 12px;
 	border-radius: 12px;
 	color: #374151;
 	text-decoration: none;
 	transition: background 0.2s, color 0.2s;
 	min-height: 44px;
-	font-size: 0.875rem;
+	font-size: 0.9rem;
+	font-weight: 500;
 }
 
 .nav-item ion-icon {
 	font-size: 20px;
-	color: #374151;
+	color: #4b5563;
 	flex-shrink: 0;
 }
 
-/* Inactive nav item hover state (Light Mode) */
+/* Inactive nav item hover state */
 .nav-item:hover:not(.nav-item--active) {
 	background: #f0fdf4;
 	color: #15803d;
@@ -173,7 +165,7 @@ const navItems = [
 	color: #15803d;
 }
 
-/* Active nav item state (Light Mode) - locked solid green */
+/* Active nav item state - locked solid green */
 .nav-item--active,
 .nav-item--active:hover {
 	background: #00b050 !important;
@@ -190,21 +182,21 @@ const navItems = [
 /* ── User identity footer ── */
 .nav-footer {
 	padding: 12px 14px 14px;
-	border-top: 1px solid #e5e7eb;
+	border-top: 1px solid var(--ion-border-color, #e5e7eb);
 	flex-shrink: 0;
 }
 
 .nav-footer__user {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 10px;
 	width: 100%;
 	min-width: 0;
 }
 
 .nav-footer__avatar {
-	width: 34px;
-	height: 34px;
+	width: 36px;
+	height: 36px;
 	border-radius: 50%;
 	background: #05c450;
 	display: flex;
@@ -222,7 +214,7 @@ const navItems = [
 
 .nav-footer__avatar-initial {
 	color: #ffffff;
-	font-size: 0.85rem;
+	font-size: 0.9rem;
 	font-weight: 700;
 }
 
@@ -260,7 +252,7 @@ const navItems = [
 	font-weight: 600;
 	padding: 7px 8px;
 	cursor: pointer;
-	text-align: center;
+	text-align: left;
 	border-radius: 8px;
 	transition: background 0.15s, color 0.15s;
 }
@@ -371,5 +363,11 @@ const navItems = [
 }
 :global(html.ion-palette-dark) .nav-footer__user-btn:hover {
 	background: rgba(255, 255, 255, 0.06);
+}
+:global(html.ion-palette-dark) .nav-brand__name {
+	color: #05c450;
+}
+:global(html.ion-palette-dark) .nav-footer__name {
+	color: #f3f4f6;
 }
 </style>

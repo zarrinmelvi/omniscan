@@ -419,6 +419,8 @@ import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from
 import { useRouter, useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, IonFooter, IonToggle, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, checkmarkCircle, closeCircle, arrowDownOutline } from 'ionicons/icons'
+import { Capacitor } from '@capacitor/core'
+import { Browser } from '@capacitor/browser'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
 import { useDarkMode } from '@/composables/useDarkMode'
@@ -428,8 +430,17 @@ const route = useRoute()
 const authStore = useAuthStore()
 const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
-function handleGoogleSignIn(): void {
-	window.location.href = `${API_BASE_URL}/api/auth/google`
+async function handleGoogleSignIn(): Promise<void> {
+	const isNative = Capacitor.isNativePlatform()
+	const googleUrl = isNative 
+		? `${API_BASE_URL}/api/auth/google?state=mobile` 
+		: `${API_BASE_URL}/api/auth/google`
+
+	if (isNative) {
+		await Browser.open({ url: googleUrl })
+	} else {
+		window.location.href = googleUrl
+	}
 }
 
 const PREF_MAX = 5

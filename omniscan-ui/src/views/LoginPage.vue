@@ -135,6 +135,8 @@ import { ref, computed, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToggle } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons'
+import { Capacitor } from '@capacitor/core'
+import { Browser } from '@capacitor/browser'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
 import { useDarkMode } from '@/composables/useDarkMode'
@@ -149,8 +151,17 @@ function goToLandingPage(): void {
 	window.location.href = 'https://omniscan.website'
 }
 
-function handleGoogleSignIn(): void {
-	window.location.href = `${API_BASE_URL}/api/auth/google`
+async function handleGoogleSignIn(): Promise<void> {
+	const isNative = Capacitor.isNativePlatform()
+	const googleUrl = isNative 
+		? `${API_BASE_URL}/api/auth/google?state=mobile` 
+		: `${API_BASE_URL}/api/auth/google`
+
+	if (isNative) {
+		await Browser.open({ url: googleUrl })
+	} else {
+		window.location.href = googleUrl
+	}
 }
 
 const email = ref('')

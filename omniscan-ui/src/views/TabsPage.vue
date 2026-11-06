@@ -1,13 +1,13 @@
 <template>
 	<div class="app-layout" :class="{ 'app-layout--desktop': isDesktop }">
-		<!-- Left Sidebar Navigation for Desktop/Tablet -->
+		<!-- Master Left Sidebar for Desktop/Tablet -->
 		<DesktopNav
 			v-if="isDesktop"
 			:user-name="userName"
 			:user-email="userEmail"
 			:user-avatar-base64="userAvatarBase64" />
 
-		<!-- Main Page Content Container -->
+		<!-- Main Page Outlet -->
 		<div class="app-main">
 			<AppHeader v-if="isDesktop" />
 
@@ -15,7 +15,7 @@
 				<ion-tabs>
 					<ion-router-outlet></ion-router-outlet>
 
-					<!-- Bottom tab bar: hidden on desktop (>= 768px) and settings/notifications -->
+					<!-- Mobile Bottom Tab Bar -->
 					<ion-tab-bar slot="bottom" v-show="!hideTabBar && !isDesktop">
 						<ion-tab-button tab="home" href="/tabs/home">
 							<ion-icon :icon="homeOutline" />

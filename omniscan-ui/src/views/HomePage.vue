@@ -1,8 +1,5 @@
 <template>
 	<ion-page>
-		<ion-header class="app-header-shell">
-			<AppHeader />
-		</ion-header>
 		<ion-content :fullscreen="true" class="home-content">
 			<div class="home-wrap">
 				<!-- Greeting header -->
@@ -241,7 +238,6 @@ import {
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
-import AppHeader from '@/components/AppHeader.vue'
 import SkeletonCard from '@/components/SkeletonCard.vue'
 
 const router = useRouter()
@@ -636,12 +632,6 @@ onIonViewWillEnter(() => {
 </script>
 
 <style scoped>
-.app-header-shell {
-	--background: #ffffff;
-}
-.app-header-shell::after {
-	display: none; /* remove Ionic's default header bottom shadow line */
-}
 .home-content {
 	--background: #f8fafc;
 }
@@ -671,6 +661,13 @@ onIonViewWillEnter(() => {
 	display: flex;
 	align-items: center;
 	gap: 10px;
+}
+
+/* Hide upper-right profile avatar on tablet and desktop screens */
+@media (min-width: 768px) {
+	.header-actions {
+		display: none !important;
+	}
 }
 
 .avatar-wrap {

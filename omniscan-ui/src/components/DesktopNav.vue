@@ -3,6 +3,7 @@
 		<!-- Brand header -->
 		<div class="nav-brand">
 			<span class="nav-brand__name">OmniScan</span>
+			<span class="nav-brand__sub">Smart Pantry</span>
 		</div>
 
 		<!-- Navigation items -->
@@ -97,7 +98,7 @@ const navItems = [
 	left: 0;
 	top: 0;
 	bottom: 0;
-	width: 220px;
+	width: 180px;
 	background: var(--ion-background-color, #ffffff);
 	border-right: 1px solid var(--ion-border-color, #e5e7eb);
 	padding: 0;
@@ -109,7 +110,7 @@ const navItems = [
 
 /* ── Brand header ── */
 .nav-brand {
-	padding: 24px 20px 16px;
+	padding: 20px 16px 12px;
 	border-bottom: 1px solid #e5e7eb;
 	margin-bottom: 8px;
 	flex-shrink: 0;
@@ -133,11 +134,11 @@ const navItems = [
 /* ── Nav menu ── */
 .nav-menu {
 	list-style: none;
-	padding: 12px 0;
+	padding: 8px 0;
 	margin: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: 4px;
 	flex: 1;
 	overflow-y: auto;
 }
@@ -145,20 +146,19 @@ const navItems = [
 .nav-item {
 	display: flex;
 	align-items: center;
-	gap: 14px;
-	padding: 13px 16px;
-	margin: 0 12px;
+	gap: 10px;
+	padding: 10px 12px;
+	margin: 0 10px;
 	border-radius: 12px;
 	color: #374151;
 	text-decoration: none;
 	transition: background 0.2s, color 0.2s;
 	min-height: 44px;
-	font-size: 0.95rem;
-	font-weight: 500;
+	font-size: 0.875rem;
 }
 
 .nav-item ion-icon {
-	font-size: 22px;
+	font-size: 20px;
 	color: #374151;
 	flex-shrink: 0;
 }

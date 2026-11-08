@@ -39,6 +39,7 @@ export type FlaggedScanSumAggregateOutputType = {
 }
 
 export type FlaggedScanMinAggregateOutputType = {
+  logo_crop_base64: string | null
   id: number | null
   flag_reason: string | null
   status: string | null
@@ -51,6 +52,7 @@ export type FlaggedScanMinAggregateOutputType = {
 }
 
 export type FlaggedScanMaxAggregateOutputType = {
+  logo_crop_base64: string | null
   id: number | null
   flag_reason: string | null
   status: string | null
@@ -63,6 +65,7 @@ export type FlaggedScanMaxAggregateOutputType = {
 }
 
 export type FlaggedScanCountAggregateOutputType = {
+  logo_crop_base64: number
   id: number
   flag_reason: number
   status: number
@@ -89,6 +92,7 @@ export type FlaggedScanSumAggregateInputType = {
 }
 
 export type FlaggedScanMinAggregateInputType = {
+  logo_crop_base64?: true
   id?: true
   flag_reason?: true
   status?: true
@@ -101,6 +105,7 @@ export type FlaggedScanMinAggregateInputType = {
 }
 
 export type FlaggedScanMaxAggregateInputType = {
+  logo_crop_base64?: true
   id?: true
   flag_reason?: true
   status?: true
@@ -113,6 +118,7 @@ export type FlaggedScanMaxAggregateInputType = {
 }
 
 export type FlaggedScanCountAggregateInputType = {
+  logo_crop_base64?: true
   id?: true
   flag_reason?: true
   status?: true
@@ -212,6 +218,7 @@ export type FlaggedScanGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 export type FlaggedScanGroupByOutputType = {
+  logo_crop_base64: string | null
   id: number
   flag_reason: string
   status: string
@@ -247,6 +254,7 @@ export type FlaggedScanWhereInput = {
   AND?: Prisma.FlaggedScanWhereInput | Prisma.FlaggedScanWhereInput[]
   OR?: Prisma.FlaggedScanWhereInput[]
   NOT?: Prisma.FlaggedScanWhereInput | Prisma.FlaggedScanWhereInput[]
+  logo_crop_base64?: Prisma.StringNullableFilter<"FlaggedScan"> | string | null
   id?: Prisma.IntFilter<"FlaggedScan"> | number
   flag_reason?: Prisma.StringFilter<"FlaggedScan"> | string
   status?: Prisma.StringFilter<"FlaggedScan"> | string
@@ -261,6 +269,7 @@ export type FlaggedScanWhereInput = {
 }
 
 export type FlaggedScanOrderByWithRelationInput = {
+  logo_crop_base64?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   flag_reason?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -279,6 +288,7 @@ export type FlaggedScanWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.FlaggedScanWhereInput | Prisma.FlaggedScanWhereInput[]
   OR?: Prisma.FlaggedScanWhereInput[]
   NOT?: Prisma.FlaggedScanWhereInput | Prisma.FlaggedScanWhereInput[]
+  logo_crop_base64?: Prisma.StringNullableFilter<"FlaggedScan"> | string | null
   flag_reason?: Prisma.StringFilter<"FlaggedScan"> | string
   status?: Prisma.StringFilter<"FlaggedScan"> | string
   admin_correction?: Prisma.StringNullableFilter<"FlaggedScan"> | string | null
@@ -292,6 +302,7 @@ export type FlaggedScanWhereUniqueInput = Prisma.AtLeast<{
 }, "id">
 
 export type FlaggedScanOrderByWithAggregationInput = {
+  logo_crop_base64?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   flag_reason?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -312,6 +323,7 @@ export type FlaggedScanScalarWhereWithAggregatesInput = {
   AND?: Prisma.FlaggedScanScalarWhereWithAggregatesInput | Prisma.FlaggedScanScalarWhereWithAggregatesInput[]
   OR?: Prisma.FlaggedScanScalarWhereWithAggregatesInput[]
   NOT?: Prisma.FlaggedScanScalarWhereWithAggregatesInput | Prisma.FlaggedScanScalarWhereWithAggregatesInput[]
+  logo_crop_base64?: Prisma.StringNullableWithAggregatesFilter<"FlaggedScan"> | string | null
   id?: Prisma.IntWithAggregatesFilter<"FlaggedScan"> | number
   flag_reason?: Prisma.StringWithAggregatesFilter<"FlaggedScan"> | string
   status?: Prisma.StringWithAggregatesFilter<"FlaggedScan"> | string
@@ -324,6 +336,7 @@ export type FlaggedScanScalarWhereWithAggregatesInput = {
 }
 
 export type FlaggedScanCreateInput = {
+  logo_crop_base64?: string | null
   flag_reason: string
   status?: string
   admin_correction?: string | null
@@ -335,6 +348,7 @@ export type FlaggedScanCreateInput = {
 }
 
 export type FlaggedScanUncheckedCreateInput = {
+  logo_crop_base64?: string | null
   id?: number
   flag_reason: string
   status?: string
@@ -347,6 +361,7 @@ export type FlaggedScanUncheckedCreateInput = {
 }
 
 export type FlaggedScanUpdateInput = {
+  logo_crop_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   flag_reason?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   admin_correction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -358,6 +373,7 @@ export type FlaggedScanUpdateInput = {
 }
 
 export type FlaggedScanUncheckedUpdateInput = {
+  logo_crop_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.IntFieldUpdateOperationsInput | number
   flag_reason?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -370,6 +386,7 @@ export type FlaggedScanUncheckedUpdateInput = {
 }
 
 export type FlaggedScanCreateManyInput = {
+  logo_crop_base64?: string | null
   id?: number
   flag_reason: string
   status?: string
@@ -382,6 +399,7 @@ export type FlaggedScanCreateManyInput = {
 }
 
 export type FlaggedScanUpdateManyMutationInput = {
+  logo_crop_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   flag_reason?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   admin_correction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -391,6 +409,7 @@ export type FlaggedScanUpdateManyMutationInput = {
 }
 
 export type FlaggedScanUncheckedUpdateManyInput = {
+  logo_crop_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.IntFieldUpdateOperationsInput | number
   flag_reason?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -413,6 +432,7 @@ export type FlaggedScanOrderByRelationAggregateInput = {
 }
 
 export type FlaggedScanCountOrderByAggregateInput = {
+  logo_crop_base64?: Prisma.SortOrder
   id?: Prisma.SortOrder
   flag_reason?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -431,6 +451,7 @@ export type FlaggedScanAvgOrderByAggregateInput = {
 }
 
 export type FlaggedScanMaxOrderByAggregateInput = {
+  logo_crop_base64?: Prisma.SortOrder
   id?: Prisma.SortOrder
   flag_reason?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -443,6 +464,7 @@ export type FlaggedScanMaxOrderByAggregateInput = {
 }
 
 export type FlaggedScanMinOrderByAggregateInput = {
+  logo_crop_base64?: Prisma.SortOrder
   id?: Prisma.SortOrder
   flag_reason?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -545,6 +567,7 @@ export type FlaggedScanUncheckedUpdateManyWithoutAdminNestedInput = {
 }
 
 export type FlaggedScanCreateWithoutScanInput = {
+  logo_crop_base64?: string | null
   flag_reason: string
   status?: string
   admin_correction?: string | null
@@ -555,6 +578,7 @@ export type FlaggedScanCreateWithoutScanInput = {
 }
 
 export type FlaggedScanUncheckedCreateWithoutScanInput = {
+  logo_crop_base64?: string | null
   id?: number
   flag_reason: string
   status?: string
@@ -595,6 +619,7 @@ export type FlaggedScanScalarWhereInput = {
   AND?: Prisma.FlaggedScanScalarWhereInput | Prisma.FlaggedScanScalarWhereInput[]
   OR?: Prisma.FlaggedScanScalarWhereInput[]
   NOT?: Prisma.FlaggedScanScalarWhereInput | Prisma.FlaggedScanScalarWhereInput[]
+  logo_crop_base64?: Prisma.StringNullableFilter<"FlaggedScan"> | string | null
   id?: Prisma.IntFilter<"FlaggedScan"> | number
   flag_reason?: Prisma.StringFilter<"FlaggedScan"> | string
   status?: Prisma.StringFilter<"FlaggedScan"> | string
@@ -607,6 +632,7 @@ export type FlaggedScanScalarWhereInput = {
 }
 
 export type FlaggedScanCreateWithoutAdminInput = {
+  logo_crop_base64?: string | null
   flag_reason: string
   status?: string
   admin_correction?: string | null
@@ -617,6 +643,7 @@ export type FlaggedScanCreateWithoutAdminInput = {
 }
 
 export type FlaggedScanUncheckedCreateWithoutAdminInput = {
+  logo_crop_base64?: string | null
   id?: number
   flag_reason: string
   status?: string
@@ -654,6 +681,7 @@ export type FlaggedScanUpdateManyWithWhereWithoutAdminInput = {
 }
 
 export type FlaggedScanCreateManyScanInput = {
+  logo_crop_base64?: string | null
   id?: number
   flag_reason: string
   status?: string
@@ -665,6 +693,7 @@ export type FlaggedScanCreateManyScanInput = {
 }
 
 export type FlaggedScanUpdateWithoutScanInput = {
+  logo_crop_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   flag_reason?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   admin_correction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -675,6 +704,7 @@ export type FlaggedScanUpdateWithoutScanInput = {
 }
 
 export type FlaggedScanUncheckedUpdateWithoutScanInput = {
+  logo_crop_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.IntFieldUpdateOperationsInput | number
   flag_reason?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -686,6 +716,7 @@ export type FlaggedScanUncheckedUpdateWithoutScanInput = {
 }
 
 export type FlaggedScanUncheckedUpdateManyWithoutScanInput = {
+  logo_crop_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.IntFieldUpdateOperationsInput | number
   flag_reason?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -697,6 +728,7 @@ export type FlaggedScanUncheckedUpdateManyWithoutScanInput = {
 }
 
 export type FlaggedScanCreateManyAdminInput = {
+  logo_crop_base64?: string | null
   id?: number
   flag_reason: string
   status?: string
@@ -708,6 +740,7 @@ export type FlaggedScanCreateManyAdminInput = {
 }
 
 export type FlaggedScanUpdateWithoutAdminInput = {
+  logo_crop_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   flag_reason?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   admin_correction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -718,6 +751,7 @@ export type FlaggedScanUpdateWithoutAdminInput = {
 }
 
 export type FlaggedScanUncheckedUpdateWithoutAdminInput = {
+  logo_crop_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.IntFieldUpdateOperationsInput | number
   flag_reason?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -729,6 +763,7 @@ export type FlaggedScanUncheckedUpdateWithoutAdminInput = {
 }
 
 export type FlaggedScanUncheckedUpdateManyWithoutAdminInput = {
+  logo_crop_base64?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.IntFieldUpdateOperationsInput | number
   flag_reason?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -742,6 +777,7 @@ export type FlaggedScanUncheckedUpdateManyWithoutAdminInput = {
 
 
 export type FlaggedScanSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  logo_crop_base64?: boolean
   id?: boolean
   flag_reason?: boolean
   status?: boolean
@@ -756,6 +792,7 @@ export type FlaggedScanSelect<ExtArgs extends runtime.Types.Extensions.InternalA
 }, ExtArgs["result"]["flaggedScan"]>
 
 export type FlaggedScanSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  logo_crop_base64?: boolean
   id?: boolean
   flag_reason?: boolean
   status?: boolean
@@ -770,6 +807,7 @@ export type FlaggedScanSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
 }, ExtArgs["result"]["flaggedScan"]>
 
 export type FlaggedScanSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  logo_crop_base64?: boolean
   id?: boolean
   flag_reason?: boolean
   status?: boolean
@@ -784,6 +822,7 @@ export type FlaggedScanSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
 }, ExtArgs["result"]["flaggedScan"]>
 
 export type FlaggedScanSelectScalar = {
+  logo_crop_base64?: boolean
   id?: boolean
   flag_reason?: boolean
   status?: boolean
@@ -795,7 +834,7 @@ export type FlaggedScanSelectScalar = {
   deleted_at?: boolean
 }
 
-export type FlaggedScanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "flag_reason" | "status" | "admin_correction" | "scan_id" | "admin_id" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["flaggedScan"]>
+export type FlaggedScanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"logo_crop_base64" | "id" | "flag_reason" | "status" | "admin_correction" | "scan_id" | "admin_id" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["flaggedScan"]>
 export type FlaggedScanInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   scan?: boolean | Prisma.ScanDefaultArgs<ExtArgs>
   admin?: boolean | Prisma.FlaggedScan$adminArgs<ExtArgs>
@@ -816,6 +855,7 @@ export type $FlaggedScanPayload<ExtArgs extends runtime.Types.Extensions.Interna
     admin: Prisma.$AdminPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
+    logo_crop_base64: string | null
     id: number
     flag_reason: string
     status: string
@@ -908,8 +948,8 @@ export interface FlaggedScanDelegate<ExtArgs extends runtime.Types.Extensions.In
    * // Get first 10 FlaggedScans
    * const flaggedScans = await prisma.flaggedScan.findMany({ take: 10 })
    * 
-   * // Only select the `id`
-   * const flaggedScanWithIdOnly = await prisma.flaggedScan.findMany({ select: { id: true } })
+   * // Only select the `logo_crop_base64`
+   * const flaggedScanWithLogo_crop_base64Only = await prisma.flaggedScan.findMany({ select: { logo_crop_base64: true } })
    * 
    */
   findMany<T extends FlaggedScanFindManyArgs>(args?: Prisma.SelectSubset<T, FlaggedScanFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FlaggedScanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -953,9 +993,9 @@ export interface FlaggedScanDelegate<ExtArgs extends runtime.Types.Extensions.In
    *   ]
    * })
    * 
-   * // Create many FlaggedScans and only return the `id`
-   * const flaggedScanWithIdOnly = await prisma.flaggedScan.createManyAndReturn({
-   *   select: { id: true },
+   * // Create many FlaggedScans and only return the `logo_crop_base64`
+   * const flaggedScanWithLogo_crop_base64Only = await prisma.flaggedScan.createManyAndReturn({
+   *   select: { logo_crop_base64: true },
    *   data: [
    *     // ... provide data here
    *   ]
@@ -1044,9 +1084,9 @@ export interface FlaggedScanDelegate<ExtArgs extends runtime.Types.Extensions.In
    *   ]
    * })
    * 
-   * // Update zero or more FlaggedScans and only return the `id`
-   * const flaggedScanWithIdOnly = await prisma.flaggedScan.updateManyAndReturn({
-   *   select: { id: true },
+   * // Update zero or more FlaggedScans and only return the `logo_crop_base64`
+   * const flaggedScanWithLogo_crop_base64Only = await prisma.flaggedScan.updateManyAndReturn({
+   *   select: { logo_crop_base64: true },
    *   where: {
    *     // ... provide filter here
    *   },
@@ -1250,6 +1290,7 @@ export interface Prisma__FlaggedScanClient<T, Null = never, ExtArgs extends runt
  * Fields of the FlaggedScan model
  */
 export interface FlaggedScanFieldRefs {
+  readonly logo_crop_base64: Prisma.FieldRef<"FlaggedScan", 'String'>
   readonly id: Prisma.FieldRef<"FlaggedScan", 'Int'>
   readonly flag_reason: Prisma.FieldRef<"FlaggedScan", 'String'>
   readonly status: Prisma.FieldRef<"FlaggedScan", 'String'>

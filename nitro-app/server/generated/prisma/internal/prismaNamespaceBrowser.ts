@@ -333,6 +333,7 @@ export type ScanScalarFieldEnum = (typeof ScanScalarFieldEnum)[keyof typeof Scan
 
 
 export const FlaggedScanScalarFieldEnum = {
+  logo_crop_base64: 'logo_crop_base64',
   id: 'id',
   flag_reason: 'flag_reason',
   status: 'status',

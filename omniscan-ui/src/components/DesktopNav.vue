@@ -58,7 +58,7 @@ import {
 	restaurantOutline,
 	personOutline,
 } from 'ionicons/icons'
-import { useAuthStore } from '@/stores/authStore'
+import { signOutConsumer } from '@/utils/api'
 
 defineProps<{
 	userName?: string
@@ -66,13 +66,12 @@ defineProps<{
 	userAvatarBase64?: string | null
 }>()
 
-const authStore = useAuthStore()
 const router = useRouter()
 const showLogoutConfirm = ref(false)
 
 async function confirmLogout(): Promise<void> {
 	try {
-		await authStore.logout()
+		await signOutConsumer()
 	} catch {
 		/* ignore */
 	}

@@ -60,10 +60,6 @@
 						</div>
 					</div>
 
-					<div v-if="sessionReplaced" class="banner-warning" role="status">
-						You were signed out because your account was signed in on another device.
-					</div>
-
 					<div v-if="googleCancelled" class="banner-warning">
 						Google sign-in was cancelled. Try again or use your email.
 					</div>
@@ -152,7 +148,6 @@ const route = useRoute()
 const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 const googleCancelled = computed(() => route.query.google_cancelled === '1')
-const sessionReplaced = computed(() => route.query.reason === 'session_replaced')
 const isGoogleSubmitting = ref(false)
 
 async function showToast(message: string, color: 'success' | 'danger' | 'warning' = 'danger') {

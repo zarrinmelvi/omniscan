@@ -17,11 +17,6 @@
 			<div class="card-header">SECURE ADMIN ACCESS</div>
 
 			<div class="card-body">
-				<!-- Signed in on another device banner (amber) -->
-				<div v-if="sessionReplaced" class="banner banner--warning" role="status">
-					You were signed out because your admin account was signed in on another device.
-				</div>
-
 				<!-- Wrong credentials banner (red) -->
 				<div v-if="errorMessage" class="banner banner--error">
 					{{ errorMessage }}
@@ -104,14 +99,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
 import { useDarkMode } from '@/composables/useDarkMode'
 
 const router = useRouter()
-const route = useRoute()
-const sessionReplaced = computed(() => route.query.reason === 'session_replaced')
 const adminAuthStore = useAdminAuthStore()
 
 const username    = ref('')
@@ -285,17 +278,6 @@ h1 strong {
 	background: #450a0a;
 	border-color: #7f1d1d;
 	color: #fca5a5;
-}
-
-.banner--warning {
-	background: #fffbeb;
-	border: 1px solid #fde68a;
-	color: #92400e;
-}
-:global(html.ion-palette-dark) .admin-login .banner--warning {
-	background: #2a2208;
-	border-color: #5c4a10;
-	color: #fcd34d;
 }
 
 /* ── Form ─────────────────────────────────────────── */

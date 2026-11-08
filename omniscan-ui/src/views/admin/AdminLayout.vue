@@ -89,8 +89,6 @@
 			@confirm="confirmLogout"
 		/>
 
-		<!-- Session replaced (signed in on another device) -->
-		<SessionReplacedModal :open="adminSessionReplacedOpen" @confirm="dismissAdminSessionReplaced" />
 
 		<main class="admin-main">
 			<!-- Offline detection banner -->
@@ -137,13 +135,9 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
 import ConfirmLogoutModal from '@/components/admin/ConfirmLogoutModal.vue'
-import SessionReplacedModal from '@/components/admin/SessionReplacedModal.vue'
 import { useDarkMode } from '@/composables/useDarkMode'
-import {
-	startAdminSessionWatcher,
-	adminSessionReplacedOpen,
-	dismissAdminSessionReplaced,
-} from '@/composables/useAdminSessionWatcher'
+import { startAdminSessionWatcher } from '@/composables/useAdminSessionWatcher'
+import { signOutAdmin } from '@/utils/api'
 
 const adminAuthStore = useAdminAuthStore()
 const router = useRouter()
@@ -181,10 +175,10 @@ const initials = computed(() => {
 	)
 })
 
-function confirmLogout(): void {
+async function confirmLogout(): Promise<void> {
 	showLogoutConfirm.value = false
-	// Clearing the store synchronously stops the session stream first.
-	adminAuthStore.logout()
+	// Clears the local session first (stops the stream), then notifies the server.
+	await signOutAdmin()
 	router.push({ path: '/admin/login' })
 }
 

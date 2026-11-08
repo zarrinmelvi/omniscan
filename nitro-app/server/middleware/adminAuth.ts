@@ -58,6 +58,7 @@ export default defineEventHandler(async (event) => {
 			})
 			if (!dbAdmin || dbAdmin.session_token == null || dbAdmin.session_token !== payload.sid) {
 				event.context.admin = null
+				event.context.authFailureReason = 'session_replaced'
 				return
 			}
 		}

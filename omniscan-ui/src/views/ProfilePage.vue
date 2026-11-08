@@ -197,7 +197,7 @@ import {
 	closeOutline,
 	cameraOutline,
 } from 'ionicons/icons'
-import { apiFetch, ApiError } from '@/utils/api'
+import { apiFetch, ApiError, signOutConsumer } from '@/utils/api'
 import AppHeader from '@/components/AppHeader.vue'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -491,8 +491,12 @@ async function handleLogout() {
 				text: 'Log Out',
 				role: 'destructive',
 				cssClass: 'alert-button-danger',
-				handler: () => {
-					authStore.logout()
+				handler: async () => {
+					try {
+						await signOutConsumer()
+					} catch {
+						/* ignore */
+					}
 					window.location.href = 'https://omniscan.website'
 				},
 			},

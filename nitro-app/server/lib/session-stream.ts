@@ -6,6 +6,7 @@ import { prisma } from './prisma'
 const CHECK_INTERVAL_MS = 2500
 const PING_INTERVAL_MS = 15_000
 const MAX_STREAM_MS = 45_000
+const PRESENCE_INTERVAL_MS = 60_000
 const MAX_CONSECUTIVE_DB_ERRORS = 3
 const EXPIRED_MESSAGE = 'Your session has expired. Please sign in again.'
 
@@ -37,6 +38,36 @@ async function accountExists(kind: SessionKind, id: number): Promise<boolean> {
 	}
 	const row = await prisma.admin.findUnique({ where: { id }, select: { id: true } })
 	return !!row
+}
+
+/**
+ * Verifies the Bearer JWT on the request (same secret/payload checks as the
+ * stream and auth middleware). Returns null for missing/invalid/expired tokens.
+ */
+export function readBearerSession(
+	event: H3Event,
+	kind: SessionKind,
+): { accountId: number; sid: string | undefined } | null {
+	const secret = process.env.JWT_SECRET
+	const authHeader = getHeader(event, 'authorization')
+	if (!secret || !authHeader || !authHeader.startsWith('Bearer ')) return null
+	const token = authHeader.slice('Bearer '.length).trim()
+	if (!token) return null
+	try {
+		const payload = jwt.verify(token, secret) as Record<string, unknown>
+		let accountId: number
+		if (kind === 'admin') {
+			if (payload.type !== 'admin' || typeof payload.adminId !== 'number') return null
+			accountId = payload.adminId
+		} else {
+			if (typeof payload.userId !== 'number') return null
+			accountId = payload.userId
+		}
+		const sid = typeof payload.sid === 'string' && payload.sid ? payload.sid : undefined
+		return { accountId, sid }
+	} catch {
+		return null
+	}
 }
 
 export async function handleSessionStream(event: H3Event, kind: SessionKind) {
@@ -122,6 +153,23 @@ export async function handleSessionStream(event: H3Event, kind: SessionKind) {
 
 		const reconnect = () => finish('event: reconnect\ndata: {}\n\n')
 
+		// Presence heartbeat (consumer users only). Only counts while this
+		// session is still the current one; also clears the inactivity warning
+		// stamp (same as login does) so the lifecycle job restarts its cycle.
+		let lastTouchAt = 0
+		const touchPresence = async () => {
+			if (kind !== 'user' || !sid) return
+			lastTouchAt = Date.now()
+			try {
+				await prisma.user.updateMany({
+					where: { id: accountId, session_token: sid },
+					data: { last_active: new Date(), inactivity_warning_sent_at: null },
+				})
+			} catch (err) {
+				console.error('[session-stream] last_active update failed:', err)
+			}
+		}
+
 		const check = async () => {
 			if (closed || checking || !sid) return
 			checking = true
@@ -131,6 +179,8 @@ export async function handleSessionStream(event: H3Event, kind: SessionKind) {
 				dbErrors = 0
 				if (stored == null || stored !== sid) {
 					finish('event: session_replaced\ndata: {"reason":"signed_in_elsewhere"}\n\n')
+				} else if (kind === 'user' && Date.now() - lastTouchAt >= PRESENCE_INTERVAL_MS) {
+					await touchPresence()
 				}
 			} catch (err) {
 				if (closed) return

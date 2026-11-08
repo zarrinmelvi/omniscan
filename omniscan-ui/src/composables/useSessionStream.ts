@@ -3,6 +3,8 @@
 // Uses fetch() + ReadableStream (not EventSource) because EventSource cannot
 // send an Authorization header. See createSessionStream() for the contract.
 
+import { isSessionReplacedBody } from '@/utils/api'
+
 const MAX_BACKOFF_MS = 30000
 const DEFAULT_RETRY_MS = 3000
 const FALLBACK_AFTER_FAILURES = 3
@@ -208,7 +210,14 @@ export function createSessionStream(options: SessionStreamOptions): SessionStrea
 			if (response.status === 401) {
 				controller = null
 				stop()
-				await onUnauthorized()
+				let body: unknown = null
+				try {
+					body = await response.json()
+				} catch {
+					/* non-JSON body: treat as a plain 401 */
+				}
+				if (isSessionReplacedBody(body)) await onReplaced()
+				else await onUnauthorized()
 				return
 			}
 			if (!response.ok || !response.body) {

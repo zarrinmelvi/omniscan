@@ -1,6 +1,10 @@
 <template>
 	<!-- Admin routes: use plain router-view without Ionic wrapper -->
-	<router-view v-if="isAdminRoute" />
+	<template v-if="isAdminRoute">
+		<router-view />
+		<!-- Global admin toast: lives here so it survives layout -> login navigation -->
+		<AdminToast />
+	</template>
 
 	<!-- User-facing routes: Ionic app with adaptive navigation -->
 	<ion-app v-else>
@@ -25,6 +29,7 @@ import { StatusBar, Style } from '@capacitor/status-bar'
 import { App } from '@capacitor/app'
 import { useBreakpoint } from '@/utils/useBreakpoint'
 import DesktopNav from '@/components/DesktopNav.vue'
+import AdminToast from '@/components/admin/AdminToast.vue'
 import { startSessionWatcher } from '@/composables/useSessionWatcher'
 import { useAuthStore } from '@/stores/authStore'
 

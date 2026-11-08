@@ -1,7 +1,13 @@
 import { watch, type WatchStopHandle } from 'vue'
-import { alertController } from '@ionic/vue'
+import { toastController } from '@ionic/vue'
 import router from '@/router'
-import { apiFetch, API_BASE_URL, handleUnauthorized, setSessionReplacedNotice } from '@/utils/api'
+import {
+	apiFetch,
+	API_BASE_URL,
+	handleUnauthorized,
+	registerSessionReplacedHandler,
+	setSessionReplacedNotice,
+} from '@/utils/api'
 import { useAuthStore } from '@/stores/authStore'
 import { createSessionStream, type SessionStream } from '@/composables/useSessionStream'
 
@@ -12,26 +18,42 @@ let started = false
 let stream: SessionStream | null = null
 let stopWatch: WatchStopHandle | null = null
 
+const REPLACED_MESSAGE = "Your account was signed in on another device, so you've been signed out here."
+
+// Module-level guard: the SSE stream and a 401 may report the same replacement
+// at the same moment; only the first one shows the toast / navigates.
+let handlingReplaced = false
+
 async function handleReplaced(): Promise<void> {
-	// Suppress the generic 401 redirect (api.ts) while the notice is up.
+	if (handlingReplaced) return
+	// Session already cleared (e.g. a stale in-flight request): nothing to announce.
+	if (!localStorage.getItem(CONSUMER_TOKEN_KEY)) return
+	handlingReplaced = true
+	// Suppress the generic 401 redirect (api.ts) while we handle this.
 	setSessionReplacedNotice('consumer', true)
 	try {
 		// Clear the local session only; the server already invalidated it, so no
 		// logout API call is needed.
 		useAuthStore().logout()
 
-		const alert = await alertController.create({
-			header: 'Signed out',
-			message: "Your account was signed in on another device, so you've been signed out here.",
-			buttons: ['OK'],
-			backdropDismiss: false,
-		})
-		await alert.present()
-		await alert.onDidDismiss()
+		try {
+			const toast = await toastController.create({
+				message: REPLACED_MESSAGE,
+				duration: 5000,
+				position: 'top',
+				color: 'warning',
+				buttons: [{ text: 'Dismiss', role: 'cancel' }],
+			})
+			// Present before navigating, but don't await dismissal.
+			await toast.present()
+		} catch {
+			/* toast failure must not block the redirect */
+		}
 
-		await router.replace({ path: '/login', query: { reason: 'session_replaced' } })
+		await router.replace('/login')
 	} finally {
 		setSessionReplacedNotice('consumer', false)
+		handlingReplaced = false
 	}
 }
 
@@ -57,6 +79,7 @@ async function fallbackCheck(): Promise<void> {
 export function startSessionWatcher(): () => void {
 	if (started) return stop
 	started = true
+	registerSessionReplacedHandler('consumer', handleReplaced)
 
 	stream = createSessionStream({
 		url: `${API_BASE_URL}/api/auth/session-stream`,
@@ -82,6 +105,7 @@ export function startSessionWatcher(): () => void {
 function stop(): void {
 	stopWatch?.()
 	stopWatch = null
+	registerSessionReplacedHandler('consumer', null)
 	stream?.stop()
 	stream = null
 	started = false

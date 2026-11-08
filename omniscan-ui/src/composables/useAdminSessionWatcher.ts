@@ -1,33 +1,42 @@
-import { ref, watch, type WatchStopHandle } from 'vue'
+import { watch, type WatchStopHandle } from 'vue'
 import router from '@/router'
-import { apiFetch, API_BASE_URL, handleUnauthorized, setSessionReplacedNotice } from '@/utils/api'
+import {
+	apiFetch,
+	API_BASE_URL,
+	handleUnauthorized,
+	registerSessionReplacedHandler,
+	setSessionReplacedNotice,
+} from '@/utils/api'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
 import { createSessionStream, type SessionStream } from '@/composables/useSessionStream'
+import { showAdminToast } from '@/composables/useAdminToast'
 
 const ADMIN_TOKEN_KEY = 'omniscan_admin_token'
-
-/** Drives the "signed in on another device" modal rendered by AdminLayout. */
-export const adminSessionReplacedOpen = ref(false)
+const REPLACED_MESSAGE = "Your admin account was signed in on another device, so you've been signed out here."
 
 let started = false
 let stream: SessionStream | null = null
 let stopWatch: WatchStopHandle | null = null
 
-async function handleReplaced(): Promise<void> {
-	// Suppress the generic admin 401 redirect while the modal is up.
-	setSessionReplacedNotice('admin', true)
-	// Clear the local admin session only; the server already invalidated it.
-	useAdminAuthStore().logout()
-	adminSessionReplacedOpen.value = true
-}
+// Module-level guard: the SSE stream and a 401 may report the same replacement
+// at the same moment; only the first one shows the toast / navigates.
+let handlingReplaced = false
 
-/** Called when the user dismisses the modal. */
-export async function dismissAdminSessionReplaced(): Promise<void> {
-	adminSessionReplacedOpen.value = false
+async function handleReplaced(): Promise<void> {
+	if (handlingReplaced) return
+	// Session already cleared (e.g. a stale in-flight request): nothing to announce.
+	if (!sessionStorage.getItem(ADMIN_TOKEN_KEY)) return
+	handlingReplaced = true
+	// Suppress the generic admin 401 redirect while we handle this.
+	setSessionReplacedNotice('admin', true)
 	try {
-		await router.replace({ path: '/admin/login', query: { reason: 'session_replaced' } })
+		// Clear the local admin session only; the server already invalidated it.
+		useAdminAuthStore().logout()
+		showAdminToast(REPLACED_MESSAGE, { duration: 5000, tone: 'warning' })
+		await router.replace('/admin/login')
 	} finally {
 		setSessionReplacedNotice('admin', false)
+		handlingReplaced = false
 	}
 }
 
@@ -48,6 +57,7 @@ async function fallbackCheck(): Promise<void> {
 export function startAdminSessionWatcher(): () => void {
 	if (started) return stop
 	started = true
+	registerSessionReplacedHandler('admin', handleReplaced)
 
 	stream = createSessionStream({
 		url: `${API_BASE_URL}/api/admin/session-stream`,
@@ -73,6 +83,7 @@ export function startAdminSessionWatcher(): () => void {
 function stop(): void {
 	stopWatch?.()
 	stopWatch = null
+	registerSessionReplacedHandler('admin', null)
 	stream?.stop()
 	stream = null
 	started = false

@@ -14,6 +14,9 @@ const DELETE_AFTER_DAYS = 187
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 
+// Online = has a live session AND was active within this window.
+const ONLINE_WINDOW_MS = 2 * 60 * 1000
+
 type LifecycleStatus = 'Active' | 'Inactive' | 'Archived'
 
 function daysBetween(from: Date, to: Date): number {
@@ -85,9 +88,13 @@ export default defineEventHandler(async (event) => {
 				],
 			})
 		}
-		if (statusKey === 'online') and.push({ session_token: { not: null } })
-		else if (statusKey === 'offline') and.push({ session_token: null })
-		else if (statusKey === 'active') and.push(activeCond)
+		const onlineSince = new Date(now.getTime() - ONLINE_WINDOW_MS)
+		if (statusKey === 'online') {
+			and.push({ session_token: { not: null }, last_active: { gte: onlineSince } })
+		} else if (statusKey === 'offline') {
+			and.push({ OR: [{ session_token: null }, { last_active: null }, { last_active: { lt: onlineSince } }] })
+		}
+		if (statusKey === 'active') and.push(activeCond)
 		else if (statusKey === 'inactive') and.push(inactiveCond)
 		else if (statusKey === 'archived') and.push(archivedCond)
 		const where = { AND: and }
@@ -162,7 +169,10 @@ export default defineEventHandler(async (event) => {
 				inactive_days: inactiveDays,
 				inactive_for: formatInactiveFor(inactiveDays),
 				status,
-				is_online: !!u.session_token,
+				is_online:
+					!!u.session_token &&
+					u.last_active != null &&
+					u.last_active.getTime() >= now.getTime() - ONLINE_WINDOW_MS,
 				deletion_due: deletionDue,
 				scan_count: u._count.scan,
 				pantry_item_count: u._count.pantry_item,

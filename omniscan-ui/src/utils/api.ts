@@ -74,6 +74,67 @@ export function setSessionReplacedNotice(role: 'consumer' | 'admin', active: boo
 	sessionReplacedNotice[role] = active
 }
 
+// Watchers register their "signed in on another device" handlers here (avoids
+// a circular import api.ts <-> watchers). Used by apiFetch on a
+// `session_replaced` 401 so it follows the exact same flow as the SSE event.
+type Role = 'consumer' | 'admin'
+const sessionReplacedHandlers: Partial<Record<Role, () => void | Promise<void>>> = {}
+
+export function registerSessionReplacedHandler(role: Role, fn: (() => void | Promise<void>) | null): void {
+	if (fn) sessionReplacedHandlers[role] = fn
+	else delete sessionReplacedHandlers[role]
+}
+
+/** True if a parsed 401 body (H3 error shape) says the session was replaced. */
+export function isSessionReplacedBody(body: unknown): boolean {
+	if (!body || typeof body !== 'object') return false
+	const b = body as { data?: { reason?: unknown } | null; reason?: unknown }
+	return b.data?.reason === 'session_replaced' || b.reason === 'session_replaced'
+}
+
+/** Runs the registered replaced-handler for the role, else generic 401 handling. */
+export async function handleSessionReplaced(isAdmin?: boolean): Promise<void> {
+	const handler = sessionReplacedHandlers[isAdmin ? 'admin' : 'consumer']
+	if (handler) {
+		await handler()
+		return
+	}
+	await handleUnauthorized(isAdmin)
+}
+
+/**
+ * User-initiated consumer logout: clears the local session FIRST (which
+ * synchronously stops the session stream so this device can't receive its own
+ * session_replaced), then tells the server. Failures are ignored.
+ */
+export async function signOutConsumer(): Promise<void> {
+	const token = localStorage.getItem(TOKEN_KEY)
+	const { useAuthStore } = await import('@/stores/authStore')
+	useAuthStore().logout()
+	notifyServerLogout('/api/auth/logout', token)
+}
+
+/** User-initiated admin logout; see signOutConsumer. */
+export async function signOutAdmin(): Promise<void> {
+	const token = sessionStorage.getItem(ADMIN_TOKEN_KEY)
+	const { useAdminAuthStore } = await import('@/stores/adminAuthStore')
+	useAdminAuthStore().logout()
+	notifyServerLogout('/api/admin/logout', token)
+}
+
+function notifyServerLogout(endpoint: string, token: string | null): void {
+	if (!token) return
+	try {
+		void fetch(`${API_BASE_URL}${endpoint}`, {
+			method: 'POST',
+			headers: { Authorization: `Bearer ${token}` },
+			keepalive: true,
+		}).catch(() => {})
+	} catch {
+		/* ignore */
+	}
+}
+
 export async function handleUnauthorized(isAdmin?: boolean): Promise<void> {
 	if (isAdmin) {
 		const { useAdminAuthStore } = await import('@/stores/adminAuthStore')
@@ -127,7 +188,11 @@ export async function apiFetch<T = unknown>(endpoint: string, options: ApiReques
 	const data = await parseJsonSafely(response)
 
 	if (response.status === 401 && !isAuthExempt(endpoint, skipAuth)) {
-		await handleUnauthorized(isAdmin)
+		if (isSessionReplacedBody(data)) {
+			await handleSessionReplaced(isAdmin)
+		} else {
+			await handleUnauthorized(isAdmin)
+		}
 		throw new ApiError('Unauthorized. Please log in again.', 401, data)
 	}
 

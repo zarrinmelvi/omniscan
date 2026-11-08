@@ -57,6 +57,7 @@ export default defineEventHandler(async (event) => {
 			})
 			if (!dbUser || dbUser.session_token == null || dbUser.session_token !== payload.sid) {
 				event.context.user = null
+				event.context.authFailureReason = 'session_replaced'
 				return
 			}
 		}

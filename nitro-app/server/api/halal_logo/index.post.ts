@@ -18,8 +18,8 @@ export default defineEventHandler(async (event) => {
 		  }
 		| null
 
-	if (!body?.certifier || typeof body.certifier !== 'string') {
-		throw createError({ statusCode: 400, statusMessage: 'certifier is required.' })
+	if (!body?.certifier || typeof body.certifier !== 'string' || !body.certifier.trim()) {
+		throw createError({ statusCode: 400, statusMessage: 'Certifier code is required.' })
 	}
 
 	// If a direct https image link was supplied, try to fetch + store it now so

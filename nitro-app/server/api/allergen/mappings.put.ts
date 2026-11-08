@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
 
 	const allergenId = Number(body?.allergen_id)
 	if (!allergenId || Number.isNaN(allergenId)) {
-		throw createError({ statusCode: 400, statusMessage: 'A valid allergen_id is required.' })
+		throw createError({ statusCode: 400, statusMessage: 'Please select an allergen.' })
 	}
 
 	// Normalise the incoming alias list: trim, drop empties, de-duplicate

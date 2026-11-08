@@ -1,4 +1,4 @@
-import { defineEventHandler, createError } from 'h3'
+import { defineEventHandler, createError, getQuery } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAdminAuth } from '../../utils/requireAdminAuth'
 
@@ -51,11 +51,65 @@ export default defineEventHandler(async (event) => {
 
 	try {
 		const now = new Date()
+		const q = getQuery(event)
+		const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '')
 
-		const [users, deletedCount] = await Promise.all([
+		const pageSize = Math.min(100, Math.max(1, Math.floor(Number(q.pageSize)) || 10))
+		const requestedPage = Math.max(1, Math.floor(Number(q.page)) || 1)
+		const search = str(q.search)
+		const sortKey = str(q.sort).toLowerCase()
+		const statusKey = str(q.status).toLowerCase()
+
+		// Lifecycle rules (same as deriveStatus above, expressed as Prisma conditions).
+		// inactiveDays = floor((now - last_active) / day), so:
+		//   >= N days inactive  <=>  last_active <= now - N days
+		const cutoff = (days: number) => new Date(now.getTime() - days * MS_PER_DAY)
+		const storedArchived = { status: { equals: 'archived', mode: 'insensitive' as const } }
+		const storedNotArchived = { NOT: storedArchived }
+		const activeCond = { AND: [storedNotArchived, { last_active: { gt: cutoff(INACTIVE_AFTER_DAYS) } }] }
+		const inactiveCond = {
+			AND: [
+				storedNotArchived,
+				{ last_active: { lte: cutoff(INACTIVE_AFTER_DAYS), gt: cutoff(ARCHIVE_AFTER_DAYS) } },
+			],
+		}
+		const archivedCond = { OR: [storedArchived, { last_active: { lte: cutoff(ARCHIVE_AFTER_DAYS) } }] }
+
+		const and: any[] = [{ deleted_at: null }]
+		if (search) {
+			and.push({
+				OR: [
+					{ name: { contains: search, mode: 'insensitive' } },
+					{ username: { contains: search, mode: 'insensitive' } },
+					{ email: { contains: search, mode: 'insensitive' } },
+				],
+			})
+		}
+		if (statusKey === 'online') and.push({ session_token: { not: null } })
+		else if (statusKey === 'offline') and.push({ session_token: null })
+		else if (statusKey === 'active') and.push(activeCond)
+		else if (statusKey === 'inactive') and.push(inactiveCond)
+		else if (statusKey === 'archived') and.push(archivedCond)
+		const where = { AND: and }
+
+		const direction = sortKey === 'oldest' ? 'asc' : 'desc'
+
+		const [total, lcActive, lcInactive, lcArchived, deletedCount] = await Promise.all([
+			prisma.user.count({ where }),
+			prisma.user.count({ where: { deleted_at: null, ...activeCond } }),
+			prisma.user.count({ where: { deleted_at: null, ...inactiveCond } }),
+			prisma.user.count({ where: { deleted_at: null, ...archivedCond } }),
+			prisma.user.count({ where: { deleted_at: { not: null } } }),
+		])
+		const totalPages = Math.max(1, Math.ceil(total / pageSize))
+		const page = Math.min(requestedPage, totalPages)
+
+		const [users] = await Promise.all([
 			prisma.user.findMany({
-				where: { deleted_at: null },
-				orderBy: { created_at: 'desc' },
+				where,
+				orderBy: [{ created_at: direction }, { id: direction }],
+				skip: (page - 1) * pageSize,
+				take: pageSize,
 				select: {
 					id: true,
 					name: true,
@@ -74,7 +128,6 @@ export default defineEventHandler(async (event) => {
 					},
 				},
 			}),
-			prisma.user.count({ where: { deleted_at: { not: null } } }),
 		])
 
 		const rows = users.map((u) => {
@@ -120,15 +173,22 @@ export default defineEventHandler(async (event) => {
 			}
 		})
 
+		const lifecycle = { active: lcActive, archived: lcArchived, deleted: deletedCount }
 		const stats = {
-			total: rows.length,
-			active: rows.filter((r) => r.status === 'Active').length,
-			inactive: rows.filter((r) => r.status === 'Inactive').length,
-			archived: rows.filter((r) => r.status === 'Archived').length,
+			total: lcActive + lcInactive + lcArchived,
+			active: lcActive,
+			inactive: lcInactive,
+			archived: lcArchived,
 			deleted: deletedCount,
 		}
 
-		return { success: true, users: rows, stats }
+		return {
+			success: true,
+			users: rows,
+			pagination: { page, page_size: pageSize, total, total_pages: totalPages },
+			lifecycle,
+			stats,
+		}
 	} catch (err: any) {
 		if (err?.statusCode) throw err
 		console.error('Failed to fetch admin users:', err)

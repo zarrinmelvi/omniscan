@@ -9,11 +9,11 @@ export default defineEventHandler(async (event) => {
 		| { scientific_term?: string; simplified_term?: string; allergen_id?: number }
 		| null
 
-	if (!body?.scientific_term || typeof body.scientific_term !== 'string') {
-		throw createError({ statusCode: 400, statusMessage: 'scientific_term is required.' })
+	if (!body?.scientific_term || typeof body.scientific_term !== 'string' || !body.scientific_term.trim()) {
+		throw createError({ statusCode: 400, statusMessage: 'Scientific / raw OCR term is required.' })
 	}
 	if (!body?.allergen_id || Number.isNaN(Number(body.allergen_id))) {
-		throw createError({ statusCode: 400, statusMessage: 'A valid allergen_id is required.' })
+		throw createError({ statusCode: 400, statusMessage: 'Please select an allergen.' })
 	}
 
 	try {

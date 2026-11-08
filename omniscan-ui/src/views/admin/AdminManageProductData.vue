@@ -13,21 +13,21 @@
 					<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
 				</svg>
 				Allergen Dictionary
-				<span class="tab-count-badge">{{ allergens.length }}</span>
+				<span class="tab-count-badge">{{ allergenTotal }}</span>
 			</button>
 			<button class="tab-button" :class="{ active: activeTab === 'halal' }" @click="switchTab('halal')">
 				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
 				</svg>
 				Halal Logo Library
-				<span class="tab-count-badge">{{ halalLogos.length }}</span>
+				<span class="tab-count-badge">{{ halalTotal }}</span>
 			</button>
 			<button class="tab-button" :class="{ active: activeTab === 'ingredient' }" @click="switchTab('ingredient')">
 				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
 				</svg>
 				Ingredient Mappings
-				<span class="tab-count-badge">{{ ingredientMappings.length }}</span>
+				<span class="tab-count-badge">{{ ingredientTotal }}</span>
 			</button>
 			<button class="tab-button" :class="{ active: activeTab === 'products' }" @click="switchTab('products')">
 				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
@@ -57,8 +57,7 @@
 				</div>
 			</div>
 
-			<p v-if="isLoading && activeTab === 'ingredient'" class="state-message">Loading data…</p>
-			<div v-else-if="errorMessage" class="admin-error-banner">
+			<div v-if="errorMessage" class="admin-error-banner">
 				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
 				<span>{{ errorMessage }}</span>
 				<button class="admin-error-retry" @click="fetchTabContent(activeTab)">Try again</button>
@@ -66,7 +65,7 @@
 
 			<!-- 1. ALLERGEN DICTIONARY -->
 			<template v-else-if="activeTab === 'allergen'">
-				<p v-if="filteredAllergens.length === 0" class="empty-note">No allergen records found.</p>
+				<p v-if="!isLoading && allergenRows.length === 0" class="empty-note">No allergen records found.</p>
 				<div v-else class="table-wrap">
 					<table class="data-table">
 						<thead>
@@ -93,7 +92,7 @@
 								</tr>
 							</template>
 							<template v-else>
-							<tr v-for="item in pagedAllergens" :key="item.id">
+							<tr v-for="item in allergenRows" :key="item.id">
 								<td class="cell-id">#{{ item.id }}</td>
 								<td class="cell-allergen">{{ item.name }}</td>
 								<td class="cell-aliases">{{ item.scientific_name || '—' }}</td>
@@ -126,7 +125,7 @@
 						</tbody>
 					</table>
 				</div>
-				<div v-if="filteredAllergens.length > 0" class="pagination-bar">
+				<div v-if="allergenTotal > 0" class="pagination-bar">
 					<span class="pagination-count">{{ allergenRangeLabel }}</span>
 					<div class="pagination-controls">
 						<button class="page-nav" :disabled="allergenPage === 1" @click="prevAllergenPage" aria-label="Previous page">
@@ -310,10 +309,10 @@
 					</div>
 					<select v-model="ingredientAllergenFilter" class="allergen-dropdown-select">
 						<option value="all">All Allergens</option>
-						<option v-for="a in sortedAllergens" :key="a.id" :value="a.name">{{ a.name }}</option>
+						<option v-for="a in sortedAllergens" :key="a.id" :value="a.id">{{ a.name }}</option>
 					</select>
 					<span class="ingredient-count-label" style="margin-left:auto">
-						Showing {{ filteredIngredients.length }} of {{ ingredientMappings.length }} mappings
+						Showing {{ ingredientMappings.length }} of {{ ingredientTotal }} mappings
 					</span>
 					<button class="btn-add" @click="openCreateModal">
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -376,7 +375,7 @@
 					</template>
 				</div>
 				<div v-if="ingredientTotalPages > 1" class="pagination-bar">
-					<span class="pagination-count">Showing {{ (ingredientPage - 1) * ingredientPageSize + 1 }}–{{ Math.min(ingredientPage * ingredientPageSize, filteredIngredients.length) }} of {{ filteredIngredients.length }}</span>
+					<span class="pagination-count">Showing {{ (ingredientPage - 1) * ingredientPageSize + 1 }}–{{ Math.min(ingredientPage * ingredientPageSize, ingredientTotal) }} of {{ ingredientTotal }}</span>
 					<div class="pagination-controls">
 						<button class="page-nav" :disabled="ingredientPage === 1" @click="ingredientPage > 1 && ingredientPage--" aria-label="Previous">
 							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -831,13 +830,29 @@ interface MappingRow {
 
 const activeTab = ref<TabType>('allergen')
 const searchQuery = ref('')
-const ingredientAllergenFilter = ref('all')
+const ingredientAllergenFilter = ref<'all' | number>('all')
 const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 
+// Full allergen list (unpaginated) — feeds dropdowns and the product filter.
 const allergens = ref<AllergenRow[]>([])
+// Current server page of the Allergen Dictionary table.
+const allergenRows = ref<AllergenRow[]>([])
 const halalLogos = ref<CertifierRow[]>([])
+// Current server page of Ingredient Mappings.
 const ingredientMappings = ref<MappingRow[]>([])
+
+// Tab badge totals (loaded in parallel on mount, kept fresh after changes).
+const allergenTotal = ref(0)
+const halalTotal = ref(0)
+const ingredientTotal = ref(0)
+
+interface PaginationInfo {
+	page: number
+	page_size: number
+	total: number
+	total_pages: number
+}
 
 // ─── Products tab state ───────────────────────────────────────────────────────
 const PRODUCT_PAGE_SIZE = 10
@@ -1013,7 +1028,8 @@ async function fetchProducts(): Promise<void> {
 		productList.value = data.products ?? []
 		productTotal.value = data.total ?? 0
 		productTotalFiltered.value = data.total_filtered ?? 0
-		productTabBadge.value = data.total ?? 0
+		// `total` is post-search; only an unfiltered request gives the grand total.
+		if (!productSearch.value.trim()) productTabBadge.value = data.total ?? 0
 		productDuplicatesCount.value = data.duplicates_count ?? 0
 		productUnverifiedCount.value = data.unverified_count ?? 0
 	} catch (err) {
@@ -1241,32 +1257,17 @@ const tabSingular = computed(() => {
 })
 
 // ─── Filtering ──────────────────────────────────────────────────────────────
-const filteredAllergens = computed(() => {
-	const q = searchQuery.value.trim().toLowerCase()
-	const base = q
-		? allergens.value.filter((a) => a.name.toLowerCase().includes(q) || a.scientific_name.toLowerCase().includes(q))
-		: allergens.value
-	// Epic 9 deliverable 3: sort A-Z by name to match the Ingredient Mappings
-	// view (which groups alphabetically by allergen). Keeps both views consistent.
-	return [...base].sort((a, b) => a.name.localeCompare(b.name))
-})
-
-// ─── Allergen Dictionary pagination ─────────────────────────────────────────
+// ─── Allergen Dictionary pagination (server-side) ───────────────────────────
 const ALLERGEN_PAGE_SIZE = 10
 const allergenPage = ref(1)
 
 const allergenTotalPages = computed(() =>
-	Math.max(1, Math.ceil(filteredAllergens.value.length / ALLERGEN_PAGE_SIZE)),
+	Math.max(1, Math.ceil(allergenTotal.value / ALLERGEN_PAGE_SIZE)),
 )
-
-const pagedAllergens = computed(() => {
-	const start = (allergenPage.value - 1) * ALLERGEN_PAGE_SIZE
-	return filteredAllergens.value.slice(start, start + ALLERGEN_PAGE_SIZE)
-})
 
 // Human-readable "Showing X–Y of Z" range for the current page.
 const allergenRangeLabel = computed(() => {
-	const total = filteredAllergens.value.length
+	const total = allergenTotal.value
 	if (total === 0) return 'No records'
 	const start = (allergenPage.value - 1) * ALLERGEN_PAGE_SIZE + 1
 	const end = Math.min(allergenPage.value * ALLERGEN_PAGE_SIZE, total)
@@ -1304,14 +1305,6 @@ function prevAllergenPage(): void {
 	if (allergenPage.value > 1) allergenPage.value--
 }
 
-// Reset to page 1 when the search filter changes.
-watch(searchQuery, () => {
-	allergenPage.value = 1
-})
-// Clamp if the current page falls out of range after data changes.
-watch(allergenTotalPages, (tp) => {
-	if (allergenPage.value > tp) allergenPage.value = tp
-})
 
 // Allergen list sorted A-Z for dropdowns (ingredient filter + mapping modal),
 // matching the alphabetical ordering used elsewhere (Epic 9 deliverable 3).
@@ -1328,53 +1321,21 @@ const filteredHalalLogos = computed(() => {
 const overdueLogos = computed(() => halalLogos.value.filter((l) => l.is_active && l.overdue))
 const pendingLogos = computed(() => halalLogos.value.filter((l) => l.has_pending))
 
-const filteredIngredients = computed(() => {
-	const q = searchQuery.value.trim().toLowerCase()
-	return ingredientMappings.value.filter((m) => {
-		if (ingredientAllergenFilter.value !== 'all' && m.allergen_name !== ingredientAllergenFilter.value) return false
-		if (q) {
-			return m.scientific_term.toLowerCase().includes(q) ||
-				m.simplified_term.toLowerCase().includes(q) ||
-				m.allergen_name.toLowerCase().includes(q)
-		}
-		return true
-	})
-})
-
-const groupedIngredients = computed(() => {
-	const groups: Record<string, typeof filteredIngredients.value> = {}
-	for (const ing of filteredIngredients.value) {
-		if (!groups[ing.allergen_name]) groups[ing.allergen_name] = []
-		groups[ing.allergen_name].push(ing)
-	}
-	return Object.entries(groups)
-		.sort(([a], [b]) => a.localeCompare(b))
-		.map(([allergen, items]) => ({ allergen, items }))
-})
-
-// ─── Ingredient Mappings pagination ─────────────────────────────────────────
+// ─── Ingredient Mappings pagination (server-side) ───────────────────────────
 const INGREDIENT_PAGE_SIZE = 20
 const ingredientPageSize = INGREDIENT_PAGE_SIZE // expose as non-const for template
 const ingredientPage = ref(1)
 
-const pagedIngredients = computed(() => {
-	const start = (ingredientPage.value - 1) * INGREDIENT_PAGE_SIZE
-	return filteredIngredients.value.slice(start, start + INGREDIENT_PAGE_SIZE)
-})
+const ingredientTotalPages = computed(() => Math.max(1, Math.ceil(ingredientTotal.value / INGREDIENT_PAGE_SIZE)))
 
-const ingredientTotalPages = computed(() => Math.max(1, Math.ceil(filteredIngredients.value.length / INGREDIENT_PAGE_SIZE)))
-
+// Rows on the current server page, grouped by allergen (A–Z).
 const pagedGroupedIngredients = computed(() => {
-	const groups: Record<string, typeof pagedIngredients.value> = {}
-	for (const ing of pagedIngredients.value) {
+	const groups: Record<string, MappingRow[]> = {}
+	for (const ing of ingredientMappings.value) {
 		if (!groups[ing.allergen_name]) groups[ing.allergen_name] = []
 		groups[ing.allergen_name].push(ing)
 	}
 	return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b)).map(([allergen, items]) => ({ allergen, items }))
-})
-
-watch([searchQuery, ingredientAllergenFilter], () => {
-	ingredientPage.value = 1
 })
 
 function formatDate(iso?: string): string {
@@ -1393,19 +1354,104 @@ function displaySimplified(scientificTerm: string, simplifiedTerm: string): stri
 }
 
 // ─── Fetching ─────────────────────────────────────────────────────────────────
+/** Full, unpaginated allergen list (dropdowns, product filter). */
 async function fetchAllergens(): Promise<void> {
 	const data = await apiFetch<AllergenRow[]>('/api/allergen', { isAdmin: true })
 	allergens.value = Array.isArray(data) ? data : []
 }
 
-async function fetchHalalLogos(): Promise<void> {
-	const data = await apiFetch<{ halalLogo: CertifierRow[] }>('/api/halal_logo?take=100&skip=0', { isAdmin: true })
-	halalLogos.value = data.halalLogo ?? []
+// Last-requested params per paginated tab, so watchers can skip duplicate fetches
+// (e.g. when switchTab resets search/page and has already fetched explicitly).
+let lastAllergenKey = ''
+let lastMappingKey = ''
+let allergenReqSeq = 0
+let mappingReqSeq = 0
+
+const allergenKey = (): string => `${allergenPage.value}|${searchQuery.value.trim()}`
+const mappingKey = (): string =>
+	`${ingredientPage.value}|${searchQuery.value.trim()}|${ingredientAllergenFilter.value}`
+
+/** Fetch the current page of the Allergen Dictionary (server-side paginated). */
+async function fetchAllergenPage(): Promise<void> {
+	lastAllergenKey = allergenKey()
+	const seq = ++allergenReqSeq
+	const params = new URLSearchParams({
+		page: String(allergenPage.value),
+		pageSize: String(ALLERGEN_PAGE_SIZE),
+	})
+	const q = searchQuery.value.trim()
+	if (q) params.set('search', q)
+	const data = await apiFetch<{ allergens: AllergenRow[]; pagination: PaginationInfo }>(
+		`/api/allergen?${params.toString()}`,
+		{ isAdmin: true },
+	)
+	if (seq !== allergenReqSeq) return // a newer request superseded this one
+	const total = data.pagination?.total ?? 0
+	allergenTotal.value = total
+	// Current page vanished (e.g. last row deleted): step back and refetch.
+	if ((data.allergens ?? []).length === 0 && allergenPage.value > 1 && total > 0) {
+		allergenPage.value = Math.min(allergenPage.value - 1, Math.ceil(total / ALLERGEN_PAGE_SIZE))
+		return fetchAllergenPage()
+	}
+	allergenRows.value = data.allergens ?? []
 }
 
+async function fetchHalalLogos(): Promise<void> {
+	const data = await apiFetch<{ halalLogo: CertifierRow[]; halalLogoCount?: number }>('/api/halal_logo?take=100&skip=0', { isAdmin: true })
+	halalLogos.value = data.halalLogo ?? []
+	halalTotal.value = data.halalLogoCount ?? halalLogos.value.length
+}
+
+/** Fetch the current page of Ingredient Mappings (server-side paginated). */
 async function fetchMappings(): Promise<void> {
-	const data = await apiFetch<{ ingredient_mappings: MappingRow[] }>('/api/ingredient_mapping', { isAdmin: true })
+	lastMappingKey = mappingKey()
+	const seq = ++mappingReqSeq
+	const params = new URLSearchParams({
+		page: String(ingredientPage.value),
+		pageSize: String(INGREDIENT_PAGE_SIZE),
+	})
+	const q = searchQuery.value.trim()
+	if (q) params.set('search', q)
+	if (ingredientAllergenFilter.value !== 'all') params.set('allergen_id', String(ingredientAllergenFilter.value))
+	const data = await apiFetch<{ ingredient_mappings: MappingRow[]; pagination: PaginationInfo }>(
+		`/api/ingredient_mapping?${params.toString()}`,
+		{ isAdmin: true },
+	)
+	if (seq !== mappingReqSeq) return
+	const total = data.pagination?.total ?? 0
+	ingredientTotal.value = total
+	if ((data.ingredient_mappings ?? []).length === 0 && ingredientPage.value > 1 && total > 0) {
+		ingredientPage.value = Math.min(ingredientPage.value - 1, Math.ceil(total / INGREDIENT_PAGE_SIZE))
+		return fetchMappings()
+	}
 	ingredientMappings.value = data.ingredient_mappings ?? []
+}
+
+/**
+ * Load all four tab badges in parallel (cheap one-row requests). Failures are
+ * ignored per-tab so one bad endpoint never blocks the others. `skip` omits the
+ * tab whose own fetch is already updating its total.
+ */
+async function fetchTabCounts(skip: TabType | null = null): Promise<void> {
+	const quiet = (p: Promise<void>) => p.catch(() => undefined)
+	const jobs: Promise<void>[] = []
+	if (skip !== 'allergen') {
+		jobs.push(quiet(apiFetch<{ pagination: PaginationInfo }>('/api/allergen?page=1&pageSize=1', { isAdmin: true })
+			.then((d) => { allergenTotal.value = d.pagination?.total ?? allergenTotal.value })))
+	}
+	if (skip !== 'halal') {
+		jobs.push(quiet(apiFetch<{ halalLogoCount?: number }>('/api/halal_logo?take=1&skip=0', { isAdmin: true })
+			.then((d) => { halalTotal.value = d.halalLogoCount ?? halalTotal.value })))
+	}
+	if (skip !== 'ingredient') {
+		jobs.push(quiet(apiFetch<{ pagination: PaginationInfo }>('/api/ingredient_mapping?page=1&pageSize=1', { isAdmin: true })
+			.then((d) => { ingredientTotal.value = d.pagination?.total ?? ingredientTotal.value })))
+	}
+	if (skip !== 'products') {
+		jobs.push(quiet(apiFetch<ProductsResponse>('/api/admin/products?page=1&limit=1', { isAdmin: true })
+			.then((d) => { productTabBadge.value = d.total ?? productTabBadge.value })))
+	}
+	await Promise.all(jobs)
 }
 
 async function fetchTabContent(tab: TabType): Promise<void> {
@@ -1413,11 +1459,12 @@ async function fetchTabContent(tab: TabType): Promise<void> {
 	errorMessage.value = null
 	try {
 		if (tab === 'allergen') {
-			await fetchAllergens()
+			await fetchAllergenPage()
+			if (allergens.value.length === 0) await fetchAllergens()
 		} else if (tab === 'halal') {
 			await fetchHalalLogos()
 		} else if (tab === 'ingredient') {
-			// The ingredient form needs the allergen list for its dropdown.
+			// The ingredient form + filter need the full allergen list for the dropdown.
 			await Promise.all([
 				fetchMappings(),
 				allergens.value.length ? Promise.resolve() : fetchAllergens(),
@@ -1430,11 +1477,49 @@ async function fetchTabContent(tab: TabType): Promise<void> {
 	}
 }
 
+// ─── Debounced search / page / filter handling for server-paginated tabs ─────
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+
+function refetchActivePaginated(): void {
+	if (activeTab.value === 'allergen') {
+		if (allergenKey() === lastAllergenKey) return
+		void fetchTabContent('allergen')
+	} else if (activeTab.value === 'ingredient') {
+		if (mappingKey() === lastMappingKey) return
+		void fetchTabContent('ingredient')
+	}
+}
+
+// Search: debounce 300ms, then jump back to page 1.
+watch(searchQuery, () => {
+	if (activeTab.value !== 'allergen' && activeTab.value !== 'ingredient') return
+	if (searchTimer) clearTimeout(searchTimer)
+	searchTimer = setTimeout(() => {
+		if (activeTab.value === 'allergen') allergenPage.value = 1
+		else ingredientPage.value = 1
+		refetchActivePaginated()
+	}, 300)
+})
+// Mapping allergen filter: immediate, reset to page 1.
+watch(ingredientAllergenFilter, () => {
+	if (activeTab.value !== 'ingredient') return
+	ingredientPage.value = 1
+	refetchActivePaginated()
+})
+watch(allergenPage, () => {
+	if (activeTab.value === 'allergen') refetchActivePaginated()
+})
+watch(ingredientPage, () => {
+	if (activeTab.value === 'ingredient') refetchActivePaginated()
+})
+
 function switchTab(tab: TabType): void {
+	if (searchTimer) clearTimeout(searchTimer)
 	activeTab.value = tab
 	searchQuery.value = ''
 	ingredientAllergenFilter.value = 'all'
 	allergenPage.value = 1
+	ingredientPage.value = 1
 	if (tab === 'products') {
 		productSearch.value = ''
 		productPage.value = 1
@@ -1557,7 +1642,36 @@ function onDiscard(): void {
 const discardLabel = computed(() => (modalMode.value === 'create' ? 'Discard Item' : 'Discard Changes'))
 
 // ─── Save (create or edit) ─────────────────────────────────────────────────────
+/** Friendly client-side required-field check; returns a message or null when valid. */
+function validateForm(): string | null {
+	const text = (v: unknown): string => (typeof v === 'string' ? v.trim() : '')
+	if (activeTab.value === 'allergen') {
+		if (!text(form.value.name)) return 'Allergen name is required.'
+	} else if (activeTab.value === 'halal') {
+		if (!text(form.value.certifier)) return 'Certifier code is required.'
+	} else if (activeTab.value === 'ingredient') {
+		if (!text(form.value.scientific_term)) return 'Scientific / raw OCR term is required.'
+		const id = Number(form.value.allergen_id)
+		if (!form.value.allergen_id || Number.isNaN(id) || id <= 0) return 'Please select an allergen.'
+	}
+	return null
+}
+
+/** Refresh derived data that an allergen change can affect (dropdown list + mapping badge). */
+async function refreshAfterAllergenChange(): Promise<void> {
+	await Promise.allSettled([
+		fetchAllergens(),
+		apiFetch<{ pagination: PaginationInfo }>('/api/ingredient_mapping?page=1&pageSize=1', { isAdmin: true })
+			.then((d) => { ingredientTotal.value = d.pagination?.total ?? ingredientTotal.value }),
+	])
+}
+
 async function saveModal(): Promise<void> {
+	const validationError = validateForm()
+	if (validationError) {
+		modalError.value = validationError
+		return
+	}
 	saving.value = true
 	modalError.value = null
 	try {
@@ -1596,6 +1710,7 @@ async function saveModal(): Promise<void> {
 				if (res?.skipped && res.skipped.length) {
 					modalError.value = `Saved. These aliases are already mapped to another allergen and were skipped: ${res.skipped.join(', ')}`
 					await fetchTabContent(activeTab.value)
+					await refreshAfterAllergenChange()
 					saving.value = false
 					return
 				}
@@ -1604,6 +1719,7 @@ async function saveModal(): Promise<void> {
 
 		modalOpen.value = false
 		await fetchTabContent(activeTab.value)
+		if (activeTab.value === 'allergen') await refreshAfterAllergenChange()
 	} catch (err) {
 		modalError.value = err instanceof ApiError ? err.message : 'Failed to save. Please try again.'
 	} finally {
@@ -1640,6 +1756,7 @@ async function confirmDelete(): Promise<void> {
 		await apiFetch(`${endpointMap[activeTab.value]}?id=${id}`, { method: 'DELETE', isAdmin: true })
 		deleteTargetId.value = null
 		await fetchTabContent(activeTab.value)
+		if (activeTab.value === 'allergen') await refreshAfterAllergenChange()
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to delete record.'
 		deleteTargetId.value = null
@@ -1652,13 +1769,20 @@ const route = useRoute()
 
 onMounted(() => {
 	const tabParam = route.query.tab as string | undefined
+	let initial: TabType = 'allergen'
 	if (tabParam === 'products') {
+		initial = 'products'
 		switchTab('products')
 	} else if (tabParam === 'halal') {
+		initial = 'halal'
 		switchTab('halal')
 	} else {
 		fetchTabContent('allergen')
 	}
+	// Fill every other tab badge in parallel without blocking the active tab.
+	void fetchTabCounts(initial)
+	// Full allergen list for dropdowns (the allergen tab loads it itself when empty).
+	if (initial !== 'allergen' && allergens.value.length === 0) void fetchAllergens().catch(() => undefined)
 })
 </script>
 

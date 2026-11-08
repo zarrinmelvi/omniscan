@@ -58,7 +58,7 @@
 						<option value="Online">Online</option>
 						<option value="Offline">Offline</option>
 					</select>
-					<span class="user-count-label">{{ filteredUsers.length }} Consumers</span>
+					<span class="user-count-label">{{ totalCount }} Consumers</span>
 				</div>
 			</div>
 
@@ -183,7 +183,7 @@
 							<option value="Online">Online</option>
 							<option value="Offline">Offline</option>
 						</select>
-						<span class="user-count-label">{{ filteredUsers.length }} Consumers</span>
+						<span class="user-count-label">{{ totalCount }} Consumers</span>
 					</div>
 				</div>
 
@@ -271,7 +271,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
 
 interface ApiUserRow {
@@ -347,54 +347,58 @@ function mapRow(r: ApiUserRow): UserRow {
 	}
 }
 
+const PAGE_SIZE = 10
+const totalCount = ref(0)
+const totalPages = ref(1)
+let fetchSeq = 0
+
 async function fetchUsers(): Promise<void> {
+	const seq = ++fetchSeq
 	isLoading.value = true
 	errorMessage.value = null
 	try {
-		const data = await apiFetch<{ users: ApiUserRow[]; stats: Stats }>('/api/admin/users', {
-			isAdmin: true,
+		const params = new URLSearchParams({
+			page: String(currentPage.value),
+			pageSize: String(PAGE_SIZE),
+			sort: sortOrder.value,
+			status: filterStatus.value,
 		})
+		const search = searchQuery.value.trim()
+		if (search) params.set('search', search)
+		const data = await apiFetch<{
+			users: ApiUserRow[]
+			pagination: { page: number; page_size: number; total: number; total_pages: number }
+			lifecycle: { active: number; archived: number; deleted: number }
+		}>(`/api/admin/users?${params.toString()}`, { isAdmin: true })
+		if (seq !== fetchSeq) return
 		users.value = (data.users ?? []).map(mapRow)
-		stats.value = data.stats ?? { total: 0, active: 0, inactive: 0, archived: 0, deleted: 0 }
+		totalCount.value = data.pagination?.total ?? 0
+		totalPages.value = Math.max(1, data.pagination?.total_pages ?? 1)
+		// Server clamps out-of-range pages; stay in sync without refetching.
+		if (data.pagination?.page && data.pagination.page !== currentPage.value) {
+			skipNextPageWatch = true
+			currentPage.value = data.pagination.page
+		}
+		stats.value = {
+			...stats.value,
+			active: data.lifecycle?.active ?? 0,
+			archived: data.lifecycle?.archived ?? 0,
+			deleted: data.lifecycle?.deleted ?? 0,
+		}
 	} catch (err) {
+		if (seq !== fetchSeq) return
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load user accounts.'
 		console.error('Failed to fetch users:', err)
 	} finally {
-		isLoading.value = false
+		if (seq === fetchSeq) isLoading.value = false
 	}
 }
 
 const isArchivedView = computed(() => false)
 
-const filteredUsers = computed<UserRow[]>(() => {
-	const query = searchQuery.value.trim().toLowerCase()
-	const filtered = users.value.filter((u) => {
-		const matchesQuery =
-			!query ||
-			u.name.toLowerCase().includes(query) ||
-			(u.username ?? '').toLowerCase().includes(query) ||
-			u.email_masked.toLowerCase().includes(query)
-		const matchesStatus =
-			filterStatus.value === 'All' ||
-			(filterStatus.value === 'Online' && !!u.is_online) ||
-			(filterStatus.value === 'Offline' && !u.is_online)
-		return matchesQuery && matchesStatus
-	})
-
-	return [...filtered].sort((a, b) =>
-		sortOrder.value === 'Newest' ? b.sortTs - a.sortTs : a.sortTs - b.sortTs
-	)
-})
-
-// ─── Pagination ───────────────────────────────────────────────────────────────
-const PAGE_SIZE = 10
-
-const totalPages = computed(() => Math.max(1, Math.ceil(filteredUsers.value.length / PAGE_SIZE)))
-
-const pagedUsers = computed<UserRow[]>(() => {
-	const start = (currentPage.value - 1) * PAGE_SIZE
-	return filteredUsers.value.slice(start, start + PAGE_SIZE)
-})
+// Rows for the current page (already filtered/sorted by the server).
+const filteredUsers = computed<UserRow[]>(() => users.value)
+const pagedUsers = filteredUsers
 
 const pageItems = computed<(number | '...')[]>(() => {
 	const total = totalPages.value
@@ -431,12 +435,34 @@ function prevPage(): void {
 	if (currentPage.value > 1) currentPage.value--
 }
 
-watch([searchQuery, filterStatus, sortOrder], () => {
-	currentPage.value = 1
+let skipNextPageWatch = false
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+
+function resetAndFetch(): void {
+	if (currentPage.value !== 1) {
+		// The page watcher triggers the fetch.
+		currentPage.value = 1
+	} else {
+		void fetchUsers()
+	}
+}
+
+watch(searchQuery, () => {
+	if (searchTimer) clearTimeout(searchTimer)
+	searchTimer = setTimeout(resetAndFetch, 300)
 })
 
-watch(totalPages, (tp) => {
-	if (currentPage.value > tp) currentPage.value = tp
+watch([filterStatus, sortOrder], () => {
+	if (searchTimer) clearTimeout(searchTimer)
+	resetAndFetch()
+})
+
+watch(currentPage, () => {
+	if (skipNextPageWatch) {
+		skipNextPageWatch = false
+		return
+	}
+	void fetchUsers()
 })
 
 function formatShortDate(iso: string | null): string {
@@ -449,6 +475,9 @@ function formatShortDate(iso: string | null): string {
 
 
 onMounted(fetchUsers)
+onBeforeUnmount(() => {
+	if (searchTimer) clearTimeout(searchTimer)
+})
 </script>
 
 <style scoped>

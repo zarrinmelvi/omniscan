@@ -755,7 +755,12 @@ const pagedGroupedAuditEvents = computed<AuditGroup[]>(() => {
 	return [...groups.entries()].map(([label, events]) => ({ label, events }))
 })
 
-watch(filteredAuditEvents, () => { auditPage.value = 1 })
+// Only explicit user changes reset to page 1; polling refreshes keep the page.
+watch([selectedCategory, auditDays], () => { auditPage.value = 1 })
+// After a refresh the list may have shrunk: clamp, never reset.
+watch(auditTotalPages, (total) => {
+	if (auditPage.value > total) auditPage.value = total
+})
 
 // ─── Flag Audit Tab ────────────────────────────────────────────────────────────
 
@@ -853,14 +858,22 @@ function eventTypeClass(type: string): string {
 
 // ─── Data fetching ─────────────────────────────────────────────────────────────
 
-async function fetchLogs(): Promise<void> {
+let logsInFlight = false
+
+/** Background refreshes (poll) never touch loading flags and keep UI state. */
+async function fetchLogs(background = false): Promise<void> {
+	if (logsInFlight) return
+	logsInFlight = true
+	if (!background) sysLoading.value = true
 	try {
 		data.value = await apiFetch<SystemLogsResponse>('/api/admin/system-logs', { isAdmin: true })
 		errorMessage.value = null
 	} catch (err) {
+		// Keep showing last good data on background failures; only surface the error.
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load system telemetry.'
 	} finally {
-		sysLoading.value = false
+		logsInFlight = false
+		if (!background) sysLoading.value = false
 	}
 }
 
@@ -909,9 +922,30 @@ function switchTab(tabId: string) {
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 
-const now = ref(new Date())
-let clock: ReturnType<typeof setInterval> | null = null
+const POLL_INTERVAL_MS = 30000
 let poller: ReturnType<typeof setInterval> | null = null
+
+function stopPolling() {
+	if (poller) clearInterval(poller)
+	poller = null
+}
+
+function startPolling() {
+	stopPolling()
+	poller = setInterval(() => {
+		if (document.visibilityState === 'hidden') return
+		void fetchLogs(true)
+	}, POLL_INTERVAL_MS)
+}
+
+function onVisibilityChange() {
+	if (document.visibilityState === 'visible') {
+		void fetchLogs(true) // catch up immediately, then keep the 30s cadence
+		startPolling()
+	} else {
+		stopPolling()
+	}
+}
 
 onMounted(() => {
 	const VALID_TABS = ['overview', 'api-latency', 'flag-audit'] as const
@@ -921,13 +955,13 @@ onMounted(() => {
 	}
 	fetchLogs()
 	if (activeTab.value === 'flag-audit') fetchFlagStats()
-	clock = setInterval(() => (now.value = new Date()), 1000)
-	poller = setInterval(fetchLogs, 5000)
+	document.addEventListener('visibilitychange', onVisibilityChange)
+	if (document.visibilityState !== 'hidden') startPolling()
 })
 
 onUnmounted(() => {
-	if (clock) clearInterval(clock)
-	if (poller) clearInterval(poller)
+	stopPolling()
+	document.removeEventListener('visibilitychange', onVisibilityChange)
 })
 </script>
 

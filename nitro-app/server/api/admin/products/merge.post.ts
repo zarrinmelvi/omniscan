@@ -19,11 +19,11 @@ export default defineEventHandler(async (event) => {
 		!Number.isInteger(duplicate_id) ||
 		duplicate_id <= 0
 	) {
-		throw createError({ statusCode: 400, statusMessage: 'Valid primary_id and duplicate_id are required.' })
+		throw createError({ statusCode: 400, statusMessage: 'Both the primary and duplicate products are required.' })
 	}
 
 	if (primary_id === duplicate_id) {
-		throw createError({ statusCode: 400, statusMessage: 'primary_id and duplicate_id must differ.' })
+		throw createError({ statusCode: 400, statusMessage: 'The primary and duplicate products must be different.' })
 	}
 
 	try {

@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'A valid halal logo id is required.' })
 	}
 	if (body.decision !== 'keep' && body.decision !== 'use_new') {
-		throw createError({ statusCode: 400, statusMessage: 'decision must be "keep" or "use_new".' })
+		throw createError({ statusCode: 400, statusMessage: 'Please choose whether to keep the current logo or use the new one.' })
 	}
 
 	const logo = await prisma.halalLogo.findUnique({ where: { id: Number(body.id) } })

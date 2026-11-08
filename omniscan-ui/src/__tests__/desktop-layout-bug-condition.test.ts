@@ -222,7 +222,7 @@ describe('Bug Condition Exploration Tests — Desktop Layout Defects (EXPECTED T
   // -------------------------------------------------------------------------
   // Defect 1.7 — dark-mode.css uses var(--dm-header-bg) instead of #0d1117
   // -------------------------------------------------------------------------
-  it('1.7: dark-mode.css sets html.ion-palette-dark .desktop-nav background to #0d1117', () => {
+  it('1.7: dark-mode sidebar background matches the top bar (var(--dm-header-bg))', () => {
     const cssPath = resolve(__dirname, '../theme/dark-mode.css')
     const css = readFileSync(cssPath, 'utf-8')
 
@@ -237,7 +237,7 @@ describe('Bug Condition Exploration Tests — Desktop Layout Defects (EXPECTED T
     const bgMatch = ruleBlock.match(/background\s*:\s*([^;!]+)(?:\s*!important)?;/)
     const bgValue = bgMatch ? bgMatch[1].trim() : null
 
-    // EXPECTED TO FAIL — currently reads "var(--dm-header-bg)"
-    expect(bgValue).toBe('#0d1117')
+    // Sidebar must match the top bar (.app-header) background
+    expect(bgValue).toBe('var(--dm-header-bg)')
   })
 })

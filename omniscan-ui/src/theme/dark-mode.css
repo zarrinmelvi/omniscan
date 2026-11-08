@@ -939,7 +939,7 @@ html.ion-palette-dark .edit-error {
 
 /* === Desktop Sidebar Navigation Dark Mode Overrides === */
 html.ion-palette-dark .desktop-nav {
-  background: #0d1117 !important;
+  background: var(--dm-header-bg) !important;
   border-right-color: var(--dm-border) !important;
 }
 
@@ -981,7 +981,7 @@ html.ion-palette-dark .desktop-nav .nav-item--active:hover ion-icon {
 
 /* == DesktopNav brand header dark mode == */
 html.ion-palette-dark .nav-brand {
-	border-bottom-color: #1a2e1a !important;
+	border-bottom-color: var(--dm-border) !important;
 }
 html.ion-palette-dark .nav-brand__name {
 	color: #f1f5f9 !important;
@@ -992,7 +992,7 @@ html.ion-palette-dark .nav-brand__sub {
 
 /* == DesktopNav user footer dark mode == */
 html.ion-palette-dark .nav-footer {
-	border-top-color: #1a2e1a !important;
+	border-top-color: var(--dm-border) !important;
 }
 html.ion-palette-dark .nav-footer__name {
 	color: #f1f5f9 !important;

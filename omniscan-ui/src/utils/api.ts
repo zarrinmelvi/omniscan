@@ -64,11 +64,23 @@ async function parseJsonSafely(response: Response): Promise<unknown> {
 // admin session (logout + redirect to /admin/login), and a 401 on a regular
 // user request only ever affects the user session (logout + redirect to
 // /login) — never the other one.
-async function handleUnauthorized(isAdmin?: boolean): Promise<void> {
+//
+// While a "signed in on another device" notice is being shown (see
+// useSessionWatcher / useAdminSessionWatcher), the session is already cleared
+// and the notice owns the redirect, so a racing 401 must not redirect too.
+const sessionReplacedNotice = { consumer: false, admin: false }
+
+export function setSessionReplacedNotice(role: 'consumer' | 'admin', active: boolean): void {
+	sessionReplacedNotice[role] = active
+}
+
+export async function handleUnauthorized(isAdmin?: boolean): Promise<void> {
 	if (isAdmin) {
 		const { useAdminAuthStore } = await import('@/stores/adminAuthStore')
 		const adminAuthStore = useAdminAuthStore()
 		adminAuthStore.logout()
+
+		if (sessionReplacedNotice.admin) return
 
 		if (router.currentRoute.value.name !== 'admin-login') {
 			router.push({ path: '/admin/login' })
@@ -79,6 +91,8 @@ async function handleUnauthorized(isAdmin?: boolean): Promise<void> {
 	const { useAuthStore } = await import('@/stores/authStore')
 	const authStore = useAuthStore()
 	authStore.logout()
+
+	if (sessionReplacedNotice.consumer) return
 
 	if (router.currentRoute.value.name !== 'welcome') {
 		window.location.href = 'https://omniscan.website'

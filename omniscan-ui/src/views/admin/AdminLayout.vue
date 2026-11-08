@@ -89,6 +89,9 @@
 			@confirm="confirmLogout"
 		/>
 
+		<!-- Session replaced (signed in on another device) -->
+		<SessionReplacedModal :open="adminSessionReplacedOpen" @confirm="dismissAdminSessionReplaced" />
+
 		<main class="admin-main">
 			<!-- Offline detection banner -->
 			<div v-if="isOffline" class="offline-banner">
@@ -134,7 +137,13 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
 import ConfirmLogoutModal from '@/components/admin/ConfirmLogoutModal.vue'
+import SessionReplacedModal from '@/components/admin/SessionReplacedModal.vue'
 import { useDarkMode } from '@/composables/useDarkMode'
+import {
+	startAdminSessionWatcher,
+	adminSessionReplacedOpen,
+	dismissAdminSessionReplaced,
+} from '@/composables/useAdminSessionWatcher'
 
 const adminAuthStore = useAdminAuthStore()
 const router = useRouter()
@@ -174,6 +183,7 @@ const initials = computed(() => {
 
 function confirmLogout(): void {
 	showLogoutConfirm.value = false
+	// Clearing the store synchronously stops the session stream first.
 	adminAuthStore.logout()
 	router.push({ path: '/admin/login' })
 }
@@ -182,12 +192,19 @@ function cancelLogout(): void {
 	showLogoutConfirm.value = false
 }
 
+let stopAdminWatcher: (() => void) | null = null
+
 onMounted(() => {
 	window.addEventListener('online', handleOnline)
 	window.addEventListener('offline', handleOffline)
+	// Watches adminAuthStore.isAuthenticated: the stream starts while an admin is
+	// signed in and stops synchronously on logout (before any redirect/request).
+	stopAdminWatcher = startAdminSessionWatcher()
 })
 
 onUnmounted(() => {
+	stopAdminWatcher?.()
+	stopAdminWatcher = null
 	window.removeEventListener('online', handleOnline)
 	window.removeEventListener('offline', handleOffline)
 })

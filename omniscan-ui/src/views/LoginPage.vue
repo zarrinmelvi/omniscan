@@ -60,6 +60,10 @@
 						</div>
 					</div>
 
+					<div v-if="sessionReplaced" class="banner-warning" role="status">
+						You were signed out because your account was signed in on another device.
+					</div>
+
 					<div v-if="googleCancelled" class="banner-warning">
 						Google sign-in was cancelled. Try again or use your email.
 					</div>
@@ -148,6 +152,7 @@ const route = useRoute()
 const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 const googleCancelled = computed(() => route.query.google_cancelled === '1')
+const sessionReplaced = computed(() => route.query.reason === 'session_replaced')
 const isGoogleSubmitting = ref(false)
 
 async function showToast(message: string, color: 'success' | 'danger' | 'warning' = 'danger') {
@@ -611,6 +616,7 @@ onUnmounted(() => {
 :global(html.ion-palette-dark) .input-label { color: #d1d5db; }
 :global(html.ion-palette-dark) .custom-input { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
 :global(html.ion-palette-dark) .custom-input::placeholder { color: #6b7280; }
+:global(html.ion-palette-dark) .banner-warning { background: #2a2208; border-color: #5c4a10; color: #fcd34d; }
 :global(html.ion-palette-dark) .google-btn { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
 :global(html.ion-palette-dark) .back-to-home { color: #9ca3af; }
 :global(html.ion-palette-dark) .dark-mode-toggle-row { color: #9ca3af; }

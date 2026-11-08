@@ -139,45 +139,8 @@ export default defineEventHandler(async (event) => {
 		const denom = resolvedAllTime + pendingAllTime + awaitingAllTime
 		const autoResolvedPct = denom === 0 ? 100 : Math.round((resolvedAllTime / denom) * 100)
 
-		// ── Possible duplicates: products sharing a canonical_key ─────────
-		const dupGroups = await prisma.product.groupBy({
-			by: ['canonical_key'],
-			where: { canonical_key: { not: null }, deleted_at: null },
-			_count: { _all: true },
-			having: { canonical_key: { _count: { gte: 2 } } },
-			take: 6,
-		})
-
+		// Duplicates tab was removed from the UI; keep the response shape stable.
 		const duplicates: Card[] = []
-		for (let i = 0; i < dupGroups.length; i++) {
-			const key = dupGroups[i].canonical_key
-			if (!key) continue
-			const products = await prisma.product.findMany({
-				where: { canonical_key: key, deleted_at: null },
-				select: {
-					id: true,
-					product_name: true,
-					image_base64: true,
-					_count: { select: { scan: true } },
-					scan: { select: { user_id: true } },
-				},
-			})
-			if (products.length === 0) continue
-			const rep = products[0]
-			const scanCount = products.reduce((sum, p) => sum + p._count.scan, 0)
-			const userIds = new Set<number>()
-			for (const p of products) for (const s of p.scan) userIds.add(s.user_id)
-			duplicates.push({
-				id: rep.id,
-				title: rep.product_name || `Possible duplicate #${i + 1}`,
-				scanCount,
-				productCount: products.length,
-				consumerCount: userIds.size,
-				examples: [...new Set(products.map((p) => p.product_name).filter(Boolean))].slice(0, 3),
-				thumb: toDataUri(rep.image_base64),
-				rawIds: [],
-			})
-		}
 
 		// ── Training corrections ──────────────────────────────────────────
 		const training: Card[] = corrections

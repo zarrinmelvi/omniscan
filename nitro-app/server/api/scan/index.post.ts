@@ -12,6 +12,12 @@ import { normalizeToDateStringOrNull } from '../../lib/date-parse'
 import { getAdminSettings } from '../../lib/admin-settings'
 import { sendNewFlagNotification } from '../../utils/email'
 import { logAuditEvent } from '../../lib/audit-logger'
+import { cropLogo, type LogoBox } from '../../lib/logo-crop'
+
+// A Halal logo that can't be identified is rejected for re-scan until this many
+// failed attempts (within the window) have been made; then it is flagged for admin review.
+const HALAL_MAX_ATTEMPTS = 3
+const HALAL_ATTEMPT_WINDOW_DAYS = 7
 
 // AI_OCR_CONFIDENCE_THRESHOLD is hardcoded per REQ-EPIC2 — must not be read from AdminSettings for backend enforcement
 const AI_OCR_CONFIDENCE_THRESHOLD = 0.90
@@ -52,6 +58,7 @@ interface ScanAiExtraction {
 	halal_logo_detected: boolean
 	certifying_body: string
 	halal_certifier_confidence: number  // 0.0–1.0, AI's own confidence in certifying_body
+	halal_logo_box: { image_index: number; box: LogoBox } | null  // box_2d [ymin, xmin, ymax, xmax], 0–1000
 	expiration_date: string | null
 	net_quantity: number | null
 	net_unit: string | null
@@ -81,7 +88,7 @@ function buildPrompt(): string {
 		'Respond with ONLY a single JSON object, no prose, no markdown code fences,',
 		'matching exactly this shape:',
 		'{"is_food_product": boolean, "is_real_photo": boolean, "front_image_index": number, "product_name": string, "brand": string, "ingredients_text": string,',
-		'"simplified_ingredients": string, "halal_logo_detected": boolean, "certifying_body": string,',
+		'"simplified_ingredients": string, "halal_logo_detected": boolean, "certifying_body": string, "halal_logo_box": {"image_index": number, "box": [ymin, xmin, ymax, xmax]} | null,',
 		'"expiration_date": string | null, "net_quantity": number | null, "net_unit": string | null, "food_category": string}.',
 		'"is_food_product" must be false for anything that is not meant for human consumption',
 		'(e.g. lotion, shampoo, shoes, electronics, toys, stationery) — when false, you may leave the',
@@ -100,6 +107,7 @@ function buildPrompt(): string {
 		'IFANCA). Do not infer Halal status from ingredients alone — this field is strictly about a visible logo/mark.',
 		'"certifying_body" should be the name or initials of the certifying body as printed near/on the logo, exactly as it appears, or an empty string if no logo was detected or the certifying body text is not legible. Known certifying bodies include: JAKIM, MUIS, ESMA, IFANCA, IDCP, NCMF, HDIP, MASLAHA, HICCIP, BPJPH — match against these if the printed text is similar.',
 		'"halal_certifier_confidence" should be a number between 0.0 and 1.0 representing your confidence that you have correctly identified the certifying body from the visible logo or text. Use 0.0 if no logo was detected, 0.5 if a logo is visible but the certifying body text is not clearly legible, and 0.9 or higher only if the certifying body name or initials are clearly and unambiguously visible on the packaging.',
+		'"halal_logo_box" locates the Halal logo/mark: "image_index" is 0 if it is in the 1st attached image or 1 if it is in the 2nd, and "box" is its tight bounding box as [ymin, xmin, ymax, xmax] with every value an integer normalized to the range 0-1000 relative to that image (0,0 is the top-left corner, 1000,1000 the bottom-right). Return null for halal_logo_box when no Halal logo is visible.',
 		'"expiration_date" should be any printed expiration date, best-before date, or use-by date visible on any part of the packaging — look for text labeled "EXP", "Expiry", "Best Before", "BB", "Use By", or similar.',
 		'Convert whatever format is printed (e.g. "31 DEC 2026", "12/31/2026", "2026.12.31")',
 		'into strict ISO format YYYY-MM-DD. If the printed date is ambiguous, partially obscured, or you are not',
@@ -128,6 +136,19 @@ function normalizeToString(value: unknown): string {
 	return ''
 }
 
+function normalizeLogoBox(value: unknown): ScanAiExtraction['halal_logo_box'] {
+	if (!value || typeof value !== 'object') return null
+	const candidate = value as Record<string, unknown>
+	const box = candidate.box
+	if (!Array.isArray(box) || box.length !== 4) return null
+	if (!box.every((n) => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 1000)) return null
+	const [ymin, xmin, ymax, xmax] = box as number[]
+	if (ymin >= ymax || xmin >= xmax) return null
+	const rawIndex = candidate.image_index
+	const imageIndex = typeof rawIndex === 'number' && rawIndex === 1 ? 1 : 0
+	return { image_index: imageIndex, box: [ymin, xmin, ymax, xmax] }
+}
+
 function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 	if (!value || typeof value !== 'object') return null
 	const candidate = value as Record<string, unknown>
@@ -145,6 +166,7 @@ function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 		halal_certifier_confidence: typeof candidate.halal_certifier_confidence === 'number'
 			? Math.max(0, Math.min(1, candidate.halal_certifier_confidence))
 			: 0,
+		halal_logo_box: normalizeToBoolean(candidate.halal_logo_detected) ? normalizeLogoBox(candidate.halal_logo_box) : null,
 		expiration_date: normalizeToDateStringOrNull(candidate.expiration_date),
 		net_quantity: typeof candidate.net_quantity === 'number' ? candidate.net_quantity : null,
 		net_unit: typeof candidate.net_unit === 'string' && candidate.net_unit.trim() ? candidate.net_unit.trim().toLowerCase() : null,
@@ -298,6 +320,7 @@ export default defineEventHandler(async (event) => {
 			halal_logo_detected: false,
 			certifying_body: '',
 			halal_certifier_confidence: 0,
+			halal_logo_box: null,
 			expiration_date: null,
 			net_quantity: null,
 			net_unit: null,
@@ -428,14 +451,43 @@ export default defineEventHandler(async (event) => {
 		matchedHalalLogos.length === 0 || !aiCertifierConfident
 	)
 
-	// If a Halal logo was detected but cannot be confidently identified, reject
-	// the scan immediately — do not store an ambiguous product record.
-	if (extraction.halal_logo_detected && !aiCertifierConfident && matchedHalalLogos.length === 0) {
-		throw createError({
-			statusCode: 422,
-			statusMessage: 'A Halal certification logo was detected but could not be identified with sufficient confidence. Please re-scan with a clearer view of the certification mark.',
-			data: { rescan_required: true, reason: 'halal_certifier_unidentified' },
+	// If a Halal logo was detected but not matched to a known certifier (whether the AI
+	// could not read it or read it confidently but it is not in the registry), reject
+	// the scan — do not store an ambiguous product record.
+	// The same product is re-scanned up to HALAL_MAX_ATTEMPTS times; only on the final
+	// failure is the scan saved and flagged for admin review instead of rejected.
+	const canonicalKey = buildCanonicalKey(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
+	let halalRescanExhausted = false
+
+	if (extraction.halal_logo_detected && matchedHalalLogos.length === 0) {
+		const windowStart = new Date(Date.now() - HALAL_ATTEMPT_WINDOW_DAYS * 24 * 60 * 60 * 1000)
+		const priorAttempts = await prisma.auditEvent.count({
+			where: {
+				event_type: 'HALAL_RESCAN_FAILED',
+				entity: 'Scan',
+				triggered_by_user_id: authUser.id,
+				created_at: { gte: windowStart },
+				metadata: { path: ['canonical_key'], equals: canonicalKey },
+			},
 		})
+		const attempt = priorAttempts + 1
+
+		if (attempt < HALAL_MAX_ATTEMPTS) {
+			await logAuditEvent({
+				event_type: 'HALAL_RESCAN_FAILED',
+				entity: 'Scan',
+				triggered_by_user_id: authUser.id,
+				summary: `User #${authUser.id} halal logo unidentified for ${canonicalKey} (attempt ${attempt}/${HALAL_MAX_ATTEMPTS})`,
+				metadata: { canonical_key: canonicalKey, attempt },
+			})
+			throw createError({
+				statusCode: 422,
+				statusMessage: 'A Halal certification logo was detected but could not be matched to a known certifier. Please re-scan with a clearer view of the certification mark.',
+				data: { rescan_required: true, reason: 'halal_certifier_unidentified', attempt, max_attempts: HALAL_MAX_ATTEMPTS },
+			})
+		}
+
+		halalRescanExhausted = true
 	}
 
 	// Ensure primary image saved to database is always the front packaging view
@@ -447,7 +499,6 @@ export default defineEventHandler(async (event) => {
 		secondaryProductImage = imageDataUri
 	}
 
-	const canonicalKey = buildCanonicalKey(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
 	const canonicalMatch = await findCanonicalProduct(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
 
 	try {
@@ -559,15 +610,25 @@ export default defineEventHandler(async (event) => {
 		if (shouldAutoFlag) {
 			const flagReasonParts: string[] = []
 			if (verdict === 'Red') flagReasonParts.push(`Red safety verdict: ${reasons.join(', ')}`)
-			if (halalUnverified) flagReasonParts.push('Halal logo detected on packaging but not matched to a known certifier.')
+			if (halalRescanExhausted) flagReasonParts.push(`Halal logo detected but not matched to a known certifier after ${HALAL_MAX_ATTEMPTS} re-scan attempts`)
 			if (belowReviewThreshold && verdict !== 'Red') flagReasonParts.push(`Low confidence scan (${confidencePct}%) — below review threshold of ${hardcodedThresholdPct}%.`)
 			if (aboveAutoFlagThreshold && verdict !== 'Red') flagReasonParts.push(`High confidence flag (${confidencePct}%) — auto-flagged above threshold of ${hardcodedThresholdPct}%.`)
+
+			// Crop the logo from the ORIGINAL uploaded image the model pointed at
+			// (index 0 = `image`, 1 = `image_back`; unaffected by the front/back swap above).
+			let logoCrop: string | null = null
+			const logoBox = extraction.halal_logo_box
+			if (halalRescanExhausted && extraction.halal_logo_detected && logoBox) {
+				const source = logoBox.image_index === 1 && hasBackImage ? imageBackField!.data : imageField.data
+				logoCrop = await cropLogo(source, logoBox.box)
+			}
 
 			await prisma.flaggedScan
 				.create({
 					data: {
 						flag_reason: flagReasonParts.join(' | '),
 						scan_id: scan.id,
+						logo_crop_base64: logoCrop,
 					},
 				})
 				.catch((err) => {

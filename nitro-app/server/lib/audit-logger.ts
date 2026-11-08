@@ -1,6 +1,6 @@
 import { prisma } from './prisma'
 
-export type AuditEventType = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'SCAN' | 'FLAG' | 'REVIEW'
+export type AuditEventType = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'SCAN' | 'FLAG' | 'REVIEW' | 'HALAL_RESCAN_FAILED'
 
 export interface AuditPayload {
 	event_type: AuditEventType

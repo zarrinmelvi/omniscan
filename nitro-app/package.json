@@ -27,6 +27,7 @@
 		"hyparquet": "^1.26.2",
 		"hyparquet-compressors": "^1.1.1",
 		"pg": "^8.21.0",
-		"resend": "^6.31.0"
+		"resend": "^6.31.0",
+		"sharp": "0.33.5"
 	}
 }

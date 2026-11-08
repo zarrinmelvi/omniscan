@@ -326,6 +326,7 @@ model Scan {
 }
 
 model FlaggedScan {
+	logo_crop_base64 String?
 	id Int @id @default(autoincrement())
 	flag_reason String
 	status String @default("pending")

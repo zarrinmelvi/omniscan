@@ -1,4 +1,4 @@
-import { defineEventHandler, createError } from 'h3'
+import { defineEventHandler, createError, getQuery } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAdminAuth } from '../../utils/requireAdminAuth'
 
@@ -33,6 +33,12 @@ function toDataUri(base64: string | null | undefined): string | null {
 export default defineEventHandler(async (event) => {
 	requireAdminAuth(event)
 
+	const query = getQuery(event)
+	const parsedPage = parseInt(String(query.page ?? ''), 10)
+	const parsedSize = parseInt(String(query.pageSize ?? ''), 10)
+	const page = Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1
+	const pageSize = Number.isFinite(parsedSize) ? Math.min(50, Math.max(1, parsedSize)) : 10
+
 	try {
 		const now = new Date()
 		const weekAgo = new Date(now)
@@ -55,6 +61,7 @@ export default defineEventHandler(async (event) => {
 				select: {
 					id: true,
 					flag_reason: true,
+					logo_crop_base64: true,
 					scan: {
 						select: {
 							user_id: true,
@@ -130,10 +137,15 @@ export default defineEventHandler(async (event) => {
 				productCount: productIds.size > 0 ? productIds.size : 1,
 				consumerCount: userIds.size,
 				examples: exampleNames,
-				thumb: toDataUri(first.scan?.product?.image_base64),
+				// Prefer the cropped logo; older flags have none, so fall back to the product photo.
+				thumb: toDataUri(rows.find((r) => r.logo_crop_base64)?.logo_crop_base64) ?? toDataUri(first.scan?.product?.image_base64),
 				rawIds: rows.map((r) => r.id),
 			})
 		}
+
+		const totalGroups = unmatched.length
+		const totalPages = Math.max(1, Math.ceil(totalGroups / pageSize))
+		const pagedUnmatched = unmatched.slice((page - 1) * pageSize, page * pageSize)
 
 		// ── auto_resolved_pct: real ratio of settled flags ────────────────
 		const denom = resolvedAllTime + pendingAllTime + awaitingAllTime
@@ -169,7 +181,8 @@ export default defineEventHandler(async (event) => {
 				awaiting_rescan: awaitingRescanCount,
 				resolved_this_week: resolvedThisWeek,
 			},
-			unmatched,
+			unmatched: pagedUnmatched,
+			pagination: { page, page_size: pageSize, total: totalGroups, total_pages: totalPages },
 			duplicates,
 			training,
 		}

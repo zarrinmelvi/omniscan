@@ -1,5 +1,5 @@
 <template>
-	<div class="vp-root">
+	<div class="vp-root" ref="rootEl">
 
 		<!-- ── Page Header ────────────────────────────────────────── -->
 		<div class="vp-header">
@@ -32,7 +32,7 @@
 				class="tab-btn"
 				:class="{ 'tab-btn--active': activeTab === 'unmatched' }"
 				@click="activeTab = 'unmatched'">
-				Unmatched logos · {{ unmatchedCards.length }}
+				Unmatched logos · {{ queueMetrics.needsDecision }}
 			</button>
 		</div>
 
@@ -122,6 +122,21 @@
 
 					</div>
 				</template>
+
+				<!-- Pagination -->
+				<div v-if="!isLoading && !errorMessage && totalPages > 1" class="pagination-bar">
+					<span class="pagination-count">{{ rangeLabel }}</span>
+					<button class="page-nav" :disabled="page <= 1" @click="goToPage(page - 1)" aria-label="Previous page">‹ Prev</button>
+					<template v-for="(item, i) in pageItems" :key="i">
+						<button
+							v-if="item !== '...'"
+							class="page-num"
+							:class="{ active: item === page }"
+							@click="goToPage(item as number)">{{ item }}</button>
+						<span v-else class="page-ellipsis">…</span>
+					</template>
+					<button class="page-nav" :disabled="page >= totalPages" @click="goToPage(page + 1)" aria-label="Next page">Next ›</button>
+				</div>
 			</div>
 
 		</div>
@@ -239,6 +254,11 @@ const router = useRouter()
 const adminStore = useAdminAuthStore()
 const adminName = computed(() => adminStore.admin?.full_name ?? 'Admin')
 
+const rootEl = ref<HTMLElement | null>(null)
+const page = ref(1)
+const PAGE_SIZE = 10
+const pagination = ref<{ page: number; page_size: number; total: number; total_pages: number } | null>(null)
+
 const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
 
@@ -266,7 +286,7 @@ const queueMetrics = computed(() => {
 	const needsDecisionScans = m?.needs_decision_scans ?? visibleUnmatched.reduce((sum, c) => sum + c.scanCount, 0)
 	return {
 		autoResolved: m?.auto_resolved_pct ?? 0,
-		needsDecision: visibleUnmatched.length,
+		needsDecision: m?.needs_decision ?? visibleUnmatched.length,
 		needsDecisionScans,
 		resolvedThisWeek: m?.resolved_this_week ?? 0,
 	}
@@ -300,6 +320,39 @@ const trainingCards = computed<QueueCard[]>(() =>
 )
 
 const activeTabCards = computed<QueueCard[]>(() => unmatchedCards.value)
+
+// ── Pagination ───────────────────────────────────────────────────────────
+const totalPages = computed(() => Math.max(1, pagination.value?.total_pages ?? 1))
+
+const rangeLabel = computed(() => {
+	const p = pagination.value
+	if (!p || p.total === 0) return ''
+	const start = (p.page - 1) * p.page_size + 1
+	const end = Math.min(p.page * p.page_size, p.total)
+	return `Showing ${start}–${end} of ${p.total}`
+})
+
+// First, last, current ±1, with '...' for gaps
+const pageItems = computed<(number | '...')[]>(() => {
+	const total = totalPages.value
+	const cur = page.value
+	const nums = new Set<number>([1, total, cur - 1, cur, cur + 1])
+	const sorted = [...nums].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b)
+	const items: (number | '...')[] = []
+	sorted.forEach((n, i) => {
+		if (i > 0 && n - sorted[i - 1] > 1) items.push('...')
+		items.push(n)
+	})
+	return items
+})
+
+async function goToPage(p: number): Promise<void> {
+	const target = Math.min(Math.max(1, Math.floor(p) || 1), totalPages.value)
+	page.value = target
+	expandedId.value = null
+	await fetchQueue()
+	rootEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 // ── Card expand / deep-link ──────────────────────────────────────────────
 function expandCard(id: number, _idx: number): void {
@@ -373,10 +426,23 @@ async function fetchQueue(): Promise<void> {
 			unmatched: ServerCard[]
 			duplicates: ServerCard[]
 			training: ServerCard[]
-		}>('/api/admin/verification-queue', { method: 'GET', isAdmin: true })
+			pagination?: { page: number; page_size: number; total: number; total_pages: number }
+		}>(`/api/admin/verification-queue?page=${page.value}&pageSize=${PAGE_SIZE}`, { method: 'GET', isAdmin: true })
 		metrics.value = data.metrics
 		unmatchedCardsData.value = data.unmatched
 		trainingCardsData.value = data.training
+		pagination.value = data.pagination ?? null
+		if (data.pagination) {
+			// Server may clamp the page (e.g. last page emptied)
+			page.value = data.pagination.page
+		}
+		// Current page became empty after resolutions: step back one page.
+		if (page.value > 1 && data.unmatched.length === 0) {
+			page.value -= 1
+			expandedId.value = null
+			await fetchQueue()
+			return
+		}
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load queue.'
 	} finally {
@@ -401,6 +467,13 @@ onMounted(async () => {
 			activeTab.value = 'unmatched'
 			expandedId.value = match.id
 		}
+	}
+})
+
+// Page emptied by optimistic removals (e.g. "Not a Halal certifier") → previous page
+watch(activeTabCards, (cards) => {
+	if (!isLoading.value && cards.length === 0 && page.value > 1) {
+		void goToPage(page.value - 1)
 	}
 })
 
@@ -541,7 +614,7 @@ watch(() => route.query, (q) => {
 	width: 52px;
 	height: 52px;
 	border-radius: 10px;
-	background: #f3f4f6;
+	background: #ffffff;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -551,7 +624,7 @@ watch(() => route.query, (q) => {
 	color: #9ca3af;
 	border: 1px solid #e5e7eb;
 }
-.logo-img { width: 100%; height: 100%; object-fit: cover; }
+.logo-img { width: 100%; height: 100%; object-fit: contain; }
 .logo-collapsed-info { flex: 1; min-width: 0; }
 .logo-card-title { font-size: 0.9rem; font-weight: 600; color: #111827; }
 .logo-card-meta { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
@@ -581,7 +654,7 @@ watch(() => route.query, (q) => {
 	width: 80px;
 	height: 80px;
 	border-radius: 12px;
-	background: #f3f4f6;
+	background: #ffffff;
 	border: 1px dashed #d1d5db;
 	display: flex;
 	align-items: center;
@@ -869,4 +942,60 @@ watch(() => route.query, (q) => {
 }
 .toast-fade-enter-active, .toast-fade-leave-active { transition: opacity 0.3s, transform 0.3s; }
 .toast-fade-enter-from, .toast-fade-leave-to { opacity: 0; transform: translateX(-50%) translateY(8px); }
+
+/* ── Pagination ───────────────────────────────────────── */
+.pagination-bar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 16px 20px;
+	border-top: 1px solid #f1f5f9;
+	flex-wrap: wrap;
+}
+.pagination-count {
+	font-size: 0.8rem;
+	color: #94a3b8;
+	font-weight: 500;
+	margin-right: 8px;
+}
+.page-num,
+.page-nav {
+	min-width: 34px;
+	height: 34px;
+	padding: 0 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid #e2e8f0;
+	background: #ffffff;
+	color: #334155;
+	border-radius: 8px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.page-num:hover:not(.active),
+.page-nav:hover:not(:disabled) {
+	background: #f1f5f9;
+	border-color: #cbd5e1;
+}
+.page-num.active {
+	background: #008744;
+	border-color: #008744;
+	color: #ffffff;
+	cursor: default;
+}
+.page-nav:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+.page-ellipsis {
+	min-width: 24px;
+	text-align: center;
+	color: #94a3b8;
+	font-weight: 600;
+	user-select: none;
+}
 </style>

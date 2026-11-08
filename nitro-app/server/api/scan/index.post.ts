@@ -635,11 +635,17 @@ export default defineEventHandler(async (event) => {
 					console.error('Failed to create FlaggedScan record:', err)
 				})
 
+			const flagSummary = halalRescanExhausted
+				? `Scan of ${product.product_name} sent to Verification Panel: unrecognized Halal logo`
+				: verdict === 'Red'
+					? `Scan of ${product.product_name} recorded: Red verdict`
+					: `Scan of ${product.product_name} recorded for audit`
+
 			await logAuditEvent({
 				event_type: 'FLAG',
 				entity: 'FlaggedScan',
 				triggered_by_user_id: authUser.id,
-				summary: `Scan of ${product.product_name} auto-flagged for review`,
+				summary: flagSummary,
 				metadata: { scan_id: scan.id, flag_reason: flagReasonParts.join(' | ') },
 			})
 

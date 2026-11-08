@@ -17,10 +17,10 @@ export default defineEventHandler(async (event) => {
 			if (result.count > 0) {
 				await logAuditEvent({
 					event_type: 'LOGOUT',
-					entity: 'user',
+					entity: 'User',
 					entity_id: session.accountId,
 					triggered_by_user_id: session.accountId,
-					summary: `User ${session.accountId} logged out`,
+					summary: `User #${session.accountId} logged out`,
 				})
 			}
 		}

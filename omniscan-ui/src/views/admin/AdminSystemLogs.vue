@@ -636,6 +636,8 @@ function toPlainEnglish(summary: string): string {
 	const lower = s.toLowerCase()
 	const username = extractUsername(s)
 
+	if (lower.includes('logged out') && lower.includes('admin')) return `${username} signed out of the Admin Portal`
+	if (lower.includes('logged out')) return 'Consumer signed out'
 	if (lower.includes('logged in') && lower.includes('admin')) return `${username} signed in to the Admin Portal`
 	if (lower.includes('logged in via google')) return 'Consumer signed in via Google'
 	if (lower.includes('logged in')) return 'Consumer signed in'

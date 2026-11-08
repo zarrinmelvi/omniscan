@@ -14,12 +14,16 @@ export default defineEventHandler(async (event) => {
 				data: { session_token: null },
 			})
 			if (result.count > 0) {
+				const admin = await prisma.admin.findUnique({
+					where: { id: session.accountId },
+					select: { username: true },
+				})
 				await logAuditEvent({
 					event_type: 'LOGOUT',
-					entity: 'admin',
+					entity: 'Admin',
 					entity_id: session.accountId,
 					triggered_by_admin_id: session.accountId,
-					summary: `Admin ${session.accountId} logged out`,
+					summary: `Admin ${admin?.username ?? session.accountId} logged out`,
 				})
 			}
 		}

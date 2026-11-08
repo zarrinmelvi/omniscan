@@ -10,13 +10,16 @@
 					need your review.
 				</p>
 			</div>
-			<div class="range-pills">
-				<button
-					v-for="r in ranges"
-					:key="r.value"
-					class="range-pill"
-					:class="{ 'range-pill--active': selectedRange === r.value }"
-					@click="setRange(r.value)">{{ r.label }}</button>
+			<div class="range-pills-wrap">
+				<span class="range-pills-label">Chart range</span>
+				<div class="range-pills">
+					<button
+						v-for="r in ranges"
+						:key="r.value"
+						class="range-pill"
+						:class="{ 'range-pill--active': selectedRange === r.value }"
+						@click="setRange(r.value)">{{ r.label }}</button>
+				</div>
 			</div>
 		</div>
 
@@ -385,6 +388,20 @@ const axisLabels = computed(() => {
 	background: #e5e7eb;
 	border-radius: 4px;
 	vertical-align: middle;
+}
+.range-pills-wrap {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 4px;
+	flex-shrink: 0;
+}
+.range-pills-label {
+	font-size: 0.7rem;
+	color: #9ca3af;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	font-weight: 500;
 }
 .range-pills {
 	display: flex;

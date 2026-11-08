@@ -2,6 +2,13 @@ import { defineEventHandler, createError, getQuery } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAdminAuth } from '../../utils/requireAdminAuth'
 
+const HALAL_KEYWORDS = ['halal', 'slaughter', 'certification', 'certif', 'stamp', 'logo', 'compliance']
+
+function isHalalReason(reason: string): boolean {
+	const lower = reason.toLowerCase()
+	return HALAL_KEYWORDS.some((k) => lower.includes(k))
+}
+
 export default defineEventHandler(async (event) => {
 	requireAdminAuth(event)
 
@@ -37,11 +44,11 @@ export default defineEventHandler(async (event) => {
 
 		const [
 			totalScans,
-			pendingFlags,
+			pendingFlagRows,
 			resolvedFlags,
 			activeConsumers,
 			priorScans,
-			priorPendingFlags,
+			priorPendingFlagRows,
 			priorConsumers,
 			allScans,
 			allFlaggedScans,
@@ -49,11 +56,11 @@ export default defineEventHandler(async (event) => {
 			attentionCertifiers,
 		] = await Promise.all([
 			prisma.scan.count(),
-			prisma.flaggedScan.count({ where: { status: 'pending' } }),
+			prisma.flaggedScan.findMany({ where: { status: 'pending' }, select: { flag_reason: true } }),
 			prisma.flaggedScan.count({ where: { status: { in: ['approved', 'dismissed'] } } }),
 			prisma.user.count({ where: { deleted_at: null } }),
 			prisma.scan.count({ where: { scan_time: { lt: periodStart } } }),
-			prisma.flaggedScan.count({ where: { status: 'pending', created_at: { lt: periodStart } } }),
+			prisma.flaggedScan.findMany({ where: { status: 'pending', created_at: { lt: periodStart } }, select: { flag_reason: true } }),
 			prisma.user.count({ where: { deleted_at: null, created_at: { lt: periodStart } } }),
 			// For scans over time + AI confidence distribution + verdict breakdown + sparklines
 			prisma.scan.findMany({
@@ -117,6 +124,9 @@ export default defineEventHandler(async (event) => {
 			}),
 		])
 
+		const pendingFlags = pendingFlagRows.filter((f) => isHalalReason(f.flag_reason)).length
+		const priorPendingFlags = priorPendingFlagRows.filter((f) => isHalalReason(f.flag_reason)).length
+
 		// ── Trend indicators ──────────────────────────────────────────────
 		function trendPct(current: number, prior: number): number {
 			if (prior === 0) return current > 0 ? 100 : 0
@@ -155,6 +165,7 @@ export default defineEventHandler(async (event) => {
 		// For pending flags sparkline: last 7 days of flag creation from allFlaggedScans
 		const sparkFlags: number[] = new Array(sparklineDays).fill(0)
 		for (const f of allFlaggedScans) {
+			if (!isHalalReason(f.flag_reason)) continue
 			const daysAgo = Math.floor((now.getTime() - new Date(f.created_at).getTime()) / 86400000)
 			const idx = sparklineDays - 1 - daysAgo
 			if (idx >= 0 && idx < sparklineDays) sparkFlags[idx]++

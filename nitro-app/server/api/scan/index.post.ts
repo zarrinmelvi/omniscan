@@ -13,6 +13,7 @@ import { getAdminSettings } from '../../lib/admin-settings'
 import { sendNewFlagNotification } from '../../utils/email'
 import { logAuditEvent } from '../../lib/audit-logger'
 import { cropLogo, type LogoBox } from '../../lib/logo-crop'
+import { normalizeFoodCategory } from '../../lib/food-category'
 
 // A Halal logo that can't be identified is rejected for re-scan until this many
 // failed attempts (within the window) have been made; then it is flagged for admin review.
@@ -170,7 +171,7 @@ function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 		expiration_date: normalizeToDateStringOrNull(candidate.expiration_date),
 		net_quantity: typeof candidate.net_quantity === 'number' ? candidate.net_quantity : null,
 		net_unit: typeof candidate.net_unit === 'string' && candidate.net_unit.trim() ? candidate.net_unit.trim().toLowerCase() : null,
-		food_category: normalizeToString(candidate.food_category),
+		food_category: normalizeFoodCategory(candidate.food_category),
 	}
 }
 

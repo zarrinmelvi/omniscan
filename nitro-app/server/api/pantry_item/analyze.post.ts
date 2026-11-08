@@ -6,6 +6,7 @@ import { normalizeToDateStringOrNull } from '../../lib/date-parse'
 import { prisma } from '../../lib/prisma'
 import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens } from '../../lib/allergen-matching'
 import { DIETARY_ALLERGEN_MAP } from '../../lib/dietary-map'
+import { normalizeFoodCategory } from '../../lib/food-category'
 
 interface OllamaChatMessage {
 	role: 'user' | 'assistant' | 'system'
@@ -36,6 +37,7 @@ interface UploadAiExtraction {
 	simplified_ingredients: string
 	net_quantity: number | null
 	net_unit: string | null
+	food_category: string
 }
 
 function buildAnalyzePrompt(): string {
@@ -43,7 +45,7 @@ function buildAnalyzePrompt(): string {
 		'You are a food-label analysis assistant.',
 		'Determine whether the attached photo shows a FOOD OR BEVERAGE product intended for human consumption.',
 		'Respond with ONLY a single JSON object, no prose, no markdown code fences, matching this shape exactly:',
-		'{"is_food_product": boolean, "is_real_photo": boolean, "product_name": string, "expiration_date": string | null, "ingredients_text": string, "simplified_ingredients": string, "net_quantity": number | null, "net_unit": string | null}.',
+		'{"is_food_product": boolean, "is_real_photo": boolean, "product_name": string, "expiration_date": string | null, "ingredients_text": string, "simplified_ingredients": string, "net_quantity": number | null, "net_unit": string | null, "food_category": string}.',
 		'Set is_food_product to false for any non-food item (cosmetics, cleaning supplies, electronics, clothing, etc.).',
 		'When is_food_product is false, set product_name and ingredients_text to "" and expiration_date to null.',
 		'When is_food_product is true:',
@@ -53,6 +55,9 @@ function buildAnalyzePrompt(): string {
 		'"simplified_ingredients" should restate the ingredient list as a comma-separated plain-language breakdown: (1) explain chemical names in parentheses e.g. "Carrageenan (seaweed thickener)", "Alpha-tocopherol (Vitamin E)"; (2) name hidden allergen derivatives e.g. "Casein (milk protein)", "Ovalbumin (egg white protein)"; (3) keep everyday names as-is; return "" if ingredients_text is empty.',
 		'"net_quantity" is the numeric net quantity on the label (e.g. 500 for "500ml"). Return only the number or null.',
 		'"net_unit" is the unit of measure as printed, lowercase (e.g. "ml", "g", "L", "kg", "oz"). Return null if absent.',
+		'"food_category" should classify the product into exactly one of these predefined pantry categories: ' +
+		'"Canned Goods", "Instant Noodles", "Condiments & Sauces", "Dairy", "Snacks", "Beverages", "Grains". ' +
+		'Choose the single best-fitting category based on the product type. If the category cannot be determined, return an empty string.',
 		'Do not invent information not visible on the packaging.',
 		'"is_real_photo" must be true for genuine real-world photographs AND for stock or marketing images of real food product packaging, even if the packaging contains cartoon mascots, illustrated characters, or graphic design elements. Set is_real_photo to false ONLY when the entire image is a cartoon, hand-drawn illustration, anime, digital art, painting, sketch, screenshot of an app, or contains no real food product packaging at all.',
 	].join(' ')
@@ -70,6 +75,7 @@ function coerceUploadExtraction(value: unknown): UploadAiExtraction | null {
 		simplified_ingredients: typeof c.simplified_ingredients === 'string' ? c.simplified_ingredients : '',
 		net_quantity: typeof c.net_quantity === 'number' ? c.net_quantity : null,
 		net_unit: typeof c.net_unit === 'string' && c.net_unit.trim() ? c.net_unit.trim().toLowerCase() : null,
+		food_category: normalizeFoodCategory(c.food_category),
 	}
 }
 
@@ -151,6 +157,7 @@ export default defineEventHandler(async (event) => {
 			ingredients_text: '',
 			net_quantity: null,
 			net_unit: null,
+			food_category: '',
 		}
 	}
 

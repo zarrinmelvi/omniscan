@@ -252,6 +252,7 @@ interface AnalyzeResult {
 	net_quantity: number | null
 	net_unit: string | null
 	matched_user_allergens: string[]
+	food_category?: string
 }
 
 const props = defineProps<{ isOpen: boolean }>()
@@ -279,6 +280,12 @@ const nonFoodMessage = ref('')
 const storageLocations = ['Fridge', 'Freezer', 'Cupboard'] as const
 const unitOptions = ['pcs', 'bottles', 'cans', 'packs', 'boxes', 'g', 'kg', 'ml', 'L']
 const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
+
+// Same mapping as ScanResultModal.storageForCategory (duplicated; not shared)
+function storageForCategory(cat: string): (typeof storageLocations)[number] {
+	const fridge = ['Dairy', 'Beverages']
+	return fridge.includes(cat) ? 'Fridge' : 'Cupboard'
+}
 
 const form = reactive({
 	productName: '',
@@ -434,6 +441,18 @@ async function goToStep2(): Promise<void> {
 		}
 		if (result.product_name) form.productName = result.product_name
 		if (result.expiration_date) form.expirationDate = result.expiration_date
+		if (
+			result.food_category &&
+			result.food_category !== 'Uncategorized' &&
+			categoryOptions.includes(result.food_category) &&
+			form.category === 'Uncategorized'
+		) {
+			form.category = result.food_category
+			// Mirror ScanResultModal's category -> storage mapping, only while storage is still the default
+			if (form.storageLocation === 'Cupboard') {
+				form.storageLocation = storageForCategory(result.food_category)
+			}
+		}
 		form.ingredientsText = result.ingredients_text || ''
 		form.simplifiedIngredientsText = result.simplified_ingredients || ''
 		matchedUserAllergens.value = result.matched_user_allergens ?? []

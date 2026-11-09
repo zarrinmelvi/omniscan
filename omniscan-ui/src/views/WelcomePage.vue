@@ -91,7 +91,7 @@
 import { ref } from 'vue'
 import { IonPage, IonContent, IonButton, IonIcon, IonModal } from '@ionic/vue'
 import { useRouter } from 'vue-router'
-import { moonOutline, sunnyOutline, closeOutline } from 'ionicons/icons'
+import { moonOutline, sunnyOutline } from 'ionicons/icons'
 import { useDarkMode } from '@/composables/useDarkMode'
 
 const router = useRouter()
@@ -128,6 +128,7 @@ function openDownloadModal() {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
+:global(html.ion-palette-dark) .welcome-content,
 :root.ion-palette-dark .welcome-content {
 	--background: #09130e;
 	--color: #eef4ed;
@@ -166,6 +167,7 @@ header {
 	letter-spacing: -0.5px;
 }
 
+:global(html.ion-palette-dark) .brand,
 :root.ion-palette-dark .brand {
 	color: #63cd77;
 }
@@ -176,7 +178,7 @@ header {
 	align-items: center;
 }
 
-/* Theme Toggle - matches AppHeader.vue design */
+/* Theme Toggle */
 .theme {
 	width: 38px;
 	height: 38px;
@@ -199,29 +201,33 @@ header {
 
 .theme ion-icon {
 	font-size: 1.15rem;
+	color: #334155 !important;
 }
 
+:global(html.ion-palette-dark) .theme,
 :root.ion-palette-dark .theme {
-	background: #334155;
-	color: #fbbf24;
+	background: #334155 !important;
 }
 
-:root.ion-palette-dark .theme:hover {
-	background: #475569;
+:global(html.ion-palette-dark) .theme ion-icon,
+:root.ion-palette-dark .theme ion-icon {
+	color: #fbbf24 !important;
 }
 
+:global(html.ion-palette-dark) header,
 :root.ion-palette-dark header {
 	background: rgba(9, 19, 14, 0.92);
 	backdrop-filter: blur(8px);
 }
 
 /* Pill Buttons */
-.pill {
+ion-button.pill {
+	background: transparent !important;
 	--border-radius: 30px;
-	--background: #34a853;
-	--background-hover: #2d9248;
-	--background-activated: #2d9248;
-	--color: #ffffff;
+	--background: #34a853 !important;
+	--background-hover: #2d9248 !important;
+	--background-activated: #2d9248 !important;
+	--color: #ffffff !important;
 	--padding-start: 22px;
 	--padding-end: 22px;
 	--padding-top: 10px;
@@ -233,33 +239,34 @@ header {
 	-webkit-tap-highlight-color: transparent;
 }
 
-.pill.secondary {
-	--background: #e8f5ec;
-	--background-hover: #d6ebd9;
-	--background-activated: #d6ebd9;
-	--color: #1f5e34;
+ion-button.pill.secondary {
+	background: transparent !important;
+	--background: #e8f5ec !important;
+	--background-hover: #d6ebd9 !important;
+	--background-activated: #d6ebd9 !important;
+	--color: #1f5e34 !important;
 	opacity: 1 !important;
 }
 
-.pill.cta-btn {
+ion-button.pill.cta-btn {
 	display: block;
 	width: fit-content;
 	margin: 16px auto 0;
 }
 
-/* Dark Mode Button Styles */
-:root.ion-palette-dark .pill {
-	--background: #34a853;
-	--background-hover: #2d9248;
-	--background-activated: #2d9248;
-	--color: #ffffff;
+/* Dark Mode Pill Button Overrides */
+:global(html.ion-palette-dark) ion-button.pill,
+:root.ion-palette-dark ion-button.pill {
+	background: transparent !important;
+	--background: #34a853 !important;
+	--color: #ffffff !important;
 }
 
-:root.ion-palette-dark .pill.secondary {
-	--background: #1a3322;
-	--background-hover: #234029;
-	--background-activated: #234029;
-	--color: #b8f5c8;
+:global(html.ion-palette-dark) ion-button.pill.secondary,
+:root.ion-palette-dark ion-button.pill.secondary {
+	background: transparent !important;
+	--background: #e8f5ec !important;
+	--color: #1f5e34 !important;
 }
 
 /* Hero Section */
@@ -281,6 +288,7 @@ header {
 	filter: blur(2px);
 }
 
+:global(html.ion-palette-dark) .hero::before,
 :root.ion-palette-dark .hero::before {
 	opacity: 0.12;
 }
@@ -293,6 +301,7 @@ header {
 	background: linear-gradient(180deg, rgba(244, 249, 245, 0.4) 0%, rgba(244, 249, 245, 0.85) 60%, #f4f9f5 100%);
 }
 
+:global(html.ion-palette-dark) .hero::after,
 :root.ion-palette-dark .hero::after {
 	background: linear-gradient(180deg, rgba(9, 19, 14, 0.7) 0%, rgba(9, 19, 14, 0.92) 60%, #09130e 100%);
 }
@@ -314,6 +323,7 @@ h1 {
 	margin: 20px 0;
 }
 
+:global(html.ion-palette-dark) h1,
 :root.ion-palette-dark h1 {
 	color: #eef4ed;
 }
@@ -325,6 +335,8 @@ h3 {
 	color: #0f2417;
 }
 
+:global(html.ion-palette-dark) h2,
+:global(html.ion-palette-dark) h3,
 :root.ion-palette-dark h2,
 :root.ion-palette-dark h3 {
 	color: #eef4ed;
@@ -341,6 +353,7 @@ p {
 	margin: 0;
 }
 
+:global(html.ion-palette-dark) p,
 :root.ion-palette-dark p {
 	color: #b8c8bc;
 }
@@ -352,6 +365,7 @@ p {
 	color: #334d3b;
 }
 
+:global(html.ion-palette-dark) .hero p,
 :root.ion-palette-dark .hero p {
 	color: #b8c8bc;
 }
@@ -374,6 +388,7 @@ p {
 	text-decoration: underline;
 }
 
+:global(html.ion-palette-dark) .download,
 :root.ion-palette-dark .download {
 	color: #63cd77;
 }
@@ -403,6 +418,7 @@ p {
 	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 }
 
+:global(html.ion-palette-dark) .dashboard,
 :root.ion-palette-dark .dashboard {
 	background: #0d1f13;
 	border: 1px solid #1a3322;
@@ -435,6 +451,7 @@ p {
 	border: 1px solid #e2efe5;
 }
 
+:global(html.ion-palette-dark) .card,
 :root.ion-palette-dark .card {
 	background: #0d1f13;
 	border: 1px solid #1a3322;
@@ -451,6 +468,7 @@ p {
 	line-height: 1.6;
 }
 
+:global(html.ion-palette-dark) .card p,
 :root.ion-palette-dark .card p {
 	color: #b8c8bc;
 }
@@ -496,6 +514,7 @@ p {
 	color: #486652;
 }
 
+:global(html.ion-palette-dark) .diet p,
 :root.ion-palette-dark .diet p {
 	color: #b8c8bc;
 }
@@ -509,6 +528,7 @@ footer {
 	font-size: 13px;
 }
 
+:global(html.ion-palette-dark) footer,
 :root.ion-palette-dark footer {
 	border-top-color: #1a3322;
 	color: #8ca899;
@@ -529,7 +549,7 @@ footer {
 		gap: 8px;
 	}
 
-	.pill {
+	ion-button.pill {
 		--padding-start: 14px;
 		--padding-end: 14px;
 		--padding-top: 8px;
@@ -588,6 +608,7 @@ ion-modal.download-modal {
 	color: #12291b;
 }
 
+:global(html.ion-palette-dark) .modal-dialog,
 :root.ion-palette-dark .modal-dialog {
 	background: #0d1f13;
 	border: 1px solid #1a3322;

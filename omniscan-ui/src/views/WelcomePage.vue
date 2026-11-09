@@ -176,34 +176,43 @@ header {
 	align-items: center;
 }
 
-/* Theme Toggle */
+/* Theme Toggle - matches AppHeader.vue design */
 .theme {
-	width: 48px;
-	height: 26px;
-	border-radius: 25px;
-	background: #34a853;
-	border: 0;
-	padding: 3px;
+	width: 38px;
+	height: 38px;
 	display: flex;
-	justify-content: flex-end;
 	align-items: center;
-	transition: background 0.2s ease;
+	justify-content: center;
+	border: none;
+	border-radius: 50%;
+	background: #f1f5f9;
+	color: #334155;
+	font-size: 1.15rem;
 	cursor: pointer;
+	transition: background 0.2s ease, color 0.2s ease;
 	-webkit-tap-highlight-color: transparent;
 }
 
+.theme:hover {
+	background: #e2e8f0;
+}
+
 .theme ion-icon {
-	color: #ffffff;
-	font-size: 16px;
+	font-size: 1.15rem;
 }
 
 :root.ion-palette-dark .theme {
-	background: #1c3d29;
-	justify-content: flex-start;
+	background: #334155;
+	color: #fbbf24;
+}
+
+:root.ion-palette-dark .theme:hover {
+	background: #475569;
 }
 
 :root.ion-palette-dark header {
-	background: #0b150edd;
+	background: rgba(9, 19, 14, 0.92);
+	backdrop-filter: blur(8px);
 }
 
 /* Pill Buttons */
@@ -258,7 +267,7 @@ header {
 }
 
 :root.ion-palette-dark .hero::before {
-	opacity: 0.8;
+	opacity: 0.12;
 }
 
 .hero::after {
@@ -270,7 +279,7 @@ header {
 }
 
 :root.ion-palette-dark .hero::after {
-	background: linear-gradient(#08140edb, #08140ee0 70%, #09130e);
+	background: linear-gradient(180deg, rgba(9, 19, 14, 0.7) 0%, rgba(9, 19, 14, 0.92) 60%, #09130e 100%);
 }
 
 .eyebrow {
@@ -376,8 +385,8 @@ p {
 }
 
 :root.ion-palette-dark .dashboard {
-	background: #173b27;
-	border: 0;
+	background: #0d1f13;
+	border: 1px solid #1a3322;
 }
 
 .dashboard p {
@@ -408,8 +417,8 @@ p {
 }
 
 :root.ion-palette-dark .card {
-	background: #173b27;
-	border: 0;
+	background: #0d1f13;
+	border: 1px solid #1a3322;
 }
 
 .card h3 {
@@ -479,6 +488,11 @@ footer {
 	display: flex;
 	justify-content: space-between;
 	font-size: 13px;
+}
+
+:root.ion-palette-dark footer {
+	border-top-color: #1a3322;
+	color: #8ca899;
 }
 
 /* Mobile Responsive */
@@ -556,8 +570,8 @@ ion-modal.download-modal {
 }
 
 :root.ion-palette-dark .modal-dialog {
-	background: #173b27;
-	border-color: #2d5a3f;
+	background: #0d1f13;
+	border: 1px solid #1a3322;
 	color: #eef4ed;
 }
 

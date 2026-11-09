@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 const DARK_MODE_KEY = 'omniscan_dark_mode'
 
 // Module-level singleton ref — shared across all component instances in the same page.
+// Default to Light Mode (false) on first visit
 const isDark = ref(localStorage.getItem(DARK_MODE_KEY) === 'true')
 
 // Apply the class immediately on module load (so the initial state is applied as early as possible).

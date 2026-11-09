@@ -34,10 +34,6 @@
 							<ion-icon :icon="chevronBackOutline" />
 							Back to home
 						</button>
-						<div class="dark-mode-toggle-row">
-							<span>Dark mode</span>
-							<ion-toggle :checked="isDark" @ion-change="toggleDarkMode" class="custom-toggle" />
-						</div>
 					</div>
 
 					<span class="brand-label">OmniScan</span>
@@ -135,17 +131,15 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToggle, toastController } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
-import { useDarkMode } from '@/composables/useDarkMode'
 
 const authStore = useAuthStore()
 const route = useRoute()
-const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 const googleCancelled = computed(() => route.query.google_cancelled === '1')
 const isGoogleSubmitting = ref(false)
@@ -316,13 +310,6 @@ onUnmounted(() => {
 	font-size: 0.85rem;
 	color: #6b7280;
 	padding: 0;
-}
-.dark-mode-toggle-row {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	font-size: 0.82rem;
-	color: #6b7280;
 }
 
 .brand-label {
@@ -614,7 +601,6 @@ onUnmounted(() => {
 :global(html.ion-palette-dark) .banner-warning { background: #2a2208; border-color: #5c4a10; color: #fcd34d; }
 :global(html.ion-palette-dark) .google-btn { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
 :global(html.ion-palette-dark) .back-to-home { color: #9ca3af; }
-:global(html.ion-palette-dark) .dark-mode-toggle-row { color: #9ca3af; }
 :global(html.ion-palette-dark) .switch-auth { color: #9ca3af; }
 :global(html.ion-palette-dark) .remember-label { color: #d1d5db; }
 :global(html.ion-palette-dark) .oauth-divider { color: #6b7280; }

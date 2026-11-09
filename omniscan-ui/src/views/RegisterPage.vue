@@ -36,10 +36,6 @@
 								<ion-icon :icon="chevronBackOutline" />
 								Back to home
 							</button>
-							<div class="dark-mode-toggle-row">
-								<span>Dark mode</span>
-								<ion-toggle :checked="isDark" @ion-change="toggleDarkMode" class="custom-toggle" />
-							</div>
 						</div>
 					</template>
 					<!-- Back button shown ONLY on Step 2 -->
@@ -342,12 +338,10 @@ import { Capacitor } from '@capacitor/core'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
-import { useDarkMode } from '@/composables/useDarkMode'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
-const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 const PREF_MAX = 5
 const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)
@@ -791,7 +785,6 @@ onUnmounted(() => {
 
 .auth-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .back-to-home { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 0.85rem; color: #6b7280; padding: 0; }
-.dark-mode-toggle-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #6b7280; }
 
 .progress-bar {
 	display: flex;
@@ -1217,7 +1210,6 @@ onUnmounted(() => {
 :global(html.ion-palette-dark) .halal-toggle-sub { color: #9ca3af; }
 :global(html.ion-palette-dark) .btn-back { border-color: #2d4a2d; color: #d1d5db; }
 :global(html.ion-palette-dark) .back-to-home { color: #9ca3af; }
-:global(html.ion-palette-dark) .dark-mode-toggle-row { color: #9ca3af; }
 :global(html.ion-palette-dark) .remember-label { color: #d1d5db; }
 :global(html.ion-palette-dark) .terms-sheet-modal { --background: #0b160b; }
 :global(html.ion-palette-dark) .terms-modal-header { background: #0f1f0f !important; border-bottom-color: #2d4a2d !important; }

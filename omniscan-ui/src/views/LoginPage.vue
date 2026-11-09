@@ -34,9 +34,6 @@
 							<ion-icon :icon="chevronBackOutline" />
 							Back to home
 						</button>
-						<button type="button" class="theme-toggle-btn" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" @click="toggleDarkMode">
-							<ion-icon :icon="isDark ? sunnyOutline : moonOutline" />
-						</button>
 					</div>
 
 					<span class="brand-label">OmniScan</span>
@@ -135,16 +132,14 @@
 import { ref, computed, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, toastController } from '@ionic/vue'
-import { chevronBackOutline, eyeOutline, eyeOffOutline, moonOutline, sunnyOutline } from 'ionicons/icons'
+import { chevronBackOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
-import { useDarkMode } from '@/composables/useDarkMode'
 
 const authStore = useAuthStore()
 const route = useRoute()
-const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 const googleCancelled = computed(() => route.query.google_cancelled === '1')
 const isGoogleSubmitting = ref(false)
@@ -315,29 +310,6 @@ onUnmounted(() => {
 	font-size: 0.85rem;
 	color: #6b7280;
 	padding: 0;
-}
-.theme-toggle-btn {
-	width: 38px;
-	height: 38px;
-	border-radius: 50%;
-	background: #f1f5f9;
-	border: 0;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	cursor: pointer;
-	-webkit-tap-highlight-color: transparent;
-	padding: 0;
-}
-.theme-toggle-btn ion-icon {
-	color: #334155;
-	font-size: 18px;
-}
-:global(html.ion-palette-dark) .theme-toggle-btn {
-	background: #334155;
-}
-:global(html.ion-palette-dark) .theme-toggle-btn ion-icon {
-	color: #fbbf24;
 }
 
 .brand-label {

@@ -36,9 +36,6 @@
 								<ion-icon :icon="chevronBackOutline" />
 								Back to home
 							</button>
-							<button type="button" class="theme-toggle-btn" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" @click="toggleDarkMode">
-								<ion-icon :icon="isDark ? sunnyOutline : moonOutline" />
-							</button>
 						</div>
 					</template>
 					<!-- Back button shown ONLY on Step 2 -->
@@ -336,17 +333,15 @@
 import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, IonFooter, IonToggle, toastController } from '@ionic/vue'
-import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, arrowDownOutline, moonOutline, sunnyOutline } from 'ionicons/icons'
+import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, arrowDownOutline } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
-import { useDarkMode } from '@/composables/useDarkMode'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
-const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 const PREF_MAX = 5
 const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)
@@ -790,29 +785,6 @@ onUnmounted(() => {
 
 .auth-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .back-to-home { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 0.85rem; color: #6b7280; padding: 0; }
-.theme-toggle-btn {
-	width: 38px;
-	height: 38px;
-	border-radius: 50%;
-	background: #f1f5f9;
-	border: 0;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	cursor: pointer;
-	-webkit-tap-highlight-color: transparent;
-	padding: 0;
-}
-.theme-toggle-btn ion-icon {
-	color: #334155;
-	font-size: 18px;
-}
-:global(html.ion-palette-dark) .theme-toggle-btn {
-	background: #334155;
-}
-:global(html.ion-palette-dark) .theme-toggle-btn ion-icon {
-	color: #fbbf24;
-}
 
 .progress-bar {
 	display: flex;

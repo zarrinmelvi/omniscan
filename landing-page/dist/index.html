@@ -390,12 +390,24 @@
     document.querySelector('#dialog-ok').onclick = () => d.close();
     d.onclick = e => { if (e.target === d) d.close(); };
 
-    // Theme toggle
+    // Theme toggle - synced with Vue app via localStorage
     function toggleTheme() {
       let isDark = document.body.classList.toggle('dark');
       const btn = document.querySelector('.theme');
       btn.setAttribute('aria-pressed', isDark);
+      // Save to localStorage for Vue app sync
+      localStorage.setItem('omniscan_dark_mode', isDark ? 'true' : 'false');
     }
+
+    // Initialize theme from localStorage on page load
+    (function initTheme() {
+      const savedTheme = localStorage.getItem('omniscan_dark_mode');
+      if (savedTheme === 'true') {
+        document.body.classList.add('dark');
+        const btn = document.querySelector('.theme');
+        if (btn) btn.setAttribute('aria-pressed', 'true');
+      }
+    })();
   </script>
 </body>
 </html>

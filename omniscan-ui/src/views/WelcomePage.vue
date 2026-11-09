@@ -125,6 +125,7 @@ function openDownloadModal() {
 .welcome-content {
 	--background: #f4f9f5;
 	--color: #12291b;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 :root.ion-palette-dark .welcome-content {

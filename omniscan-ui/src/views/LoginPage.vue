@@ -629,7 +629,6 @@ onUnmounted(() => {
 :global(html.ion-palette-dark) .banner-warning { background: #2a2208; border-color: #5c4a10; color: #fcd34d; }
 :global(html.ion-palette-dark) .google-btn { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
 :global(html.ion-palette-dark) .back-to-home { color: #9ca3af; }
-:global(html.ion-palette-dark) .dark-mode-toggle-row { color: #9ca3af; }
 :global(html.ion-palette-dark) .switch-auth { color: #9ca3af; }
 :global(html.ion-palette-dark) .remember-label { color: #d1d5db; }
 :global(html.ion-palette-dark) .oauth-divider { color: #6b7280; }

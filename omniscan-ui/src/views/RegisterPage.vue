@@ -335,7 +335,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, IonFooter, toastController } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, IonFooter, IonToggle, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, arrowDownOutline, moonOutline, sunnyOutline } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
@@ -1238,7 +1238,6 @@ onUnmounted(() => {
 :global(html.ion-palette-dark) .halal-toggle-sub { color: #9ca3af; }
 :global(html.ion-palette-dark) .btn-back { border-color: #2d4a2d; color: #d1d5db; }
 :global(html.ion-palette-dark) .back-to-home { color: #9ca3af; }
-:global(html.ion-palette-dark) .dark-mode-toggle-row { color: #9ca3af; }
 :global(html.ion-palette-dark) .remember-label { color: #d1d5db; }
 :global(html.ion-palette-dark) .terms-sheet-modal { --background: #0b160b; }
 :global(html.ion-palette-dark) .terms-modal-header { background: #0f1f0f !important; border-bottom-color: #2d4a2d !important; }

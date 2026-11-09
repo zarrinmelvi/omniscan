@@ -132,7 +132,7 @@ function openDownloadModal() {
 /* Force dark background directly on ion-content element and web component part */
 :global(html.ion-palette-dark) .welcome-content,
 :global(body.dark) .welcome-content,
-:global(:root.ion-palette-dark) .welcome-content {
+:global(html.ion-palette-dark) .welcome-content {
 	--background: #09130e !important;
 	--color: #eef4ed !important;
 	background: #09130e !important;
@@ -617,7 +617,7 @@ ion-modal.download-modal {
 
 :global(html.ion-palette-dark) .modal-dialog,
 :global(body.dark) .modal-dialog,
-:root.ion-palette-dark .modal-dialog {
+:global(html.ion-palette-dark) .modal-dialog {
 	background: #0d1f13 !important;
 	border: 1px solid #1a3322 !important;
 	color: #eef4ed !important;

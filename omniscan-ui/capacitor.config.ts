@@ -5,14 +5,13 @@ const config: CapacitorConfig = {
   appName: 'OmniScan',
   webDir: 'dist',
   server: {
-    url: 'https://omniscan.website',
     cleartext: true,
     androidScheme: 'https',
     allowNavigation: [
       'omniscan.website',
       '*.omniscan.website',
-      'accounts.google.com'
-    ]
+      'accounts.google.com',
+    ],
   },
   plugins: {
     CapacitorHttp: {
@@ -23,12 +22,11 @@ const config: CapacitorConfig = {
       style: 'LIGHT',
       backgroundColor: '#f8f9fa',
     },
-    GoogleAuth: {
+    GoogleSignIn: {
       scopes: ['profile', 'email'],
-      serverClientId: 'YOUR_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com',
-      forceCodeForRefreshToken: true,
-    }
-  }
+      serverClientId: '394571296954-s5pjiqq3fg7hhcsm0i0tn6l4mfs69s7m.apps.googleusercontent.com',
+    },
+  },
 };
 
 export default config;

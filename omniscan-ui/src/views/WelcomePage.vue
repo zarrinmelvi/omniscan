@@ -119,6 +119,7 @@ function openDownloadModal() {
 /* Base Styles */
 * {
 	box-sizing: border-box;
+	-webkit-tap-highlight-color: transparent;
 }
 
 .welcome-content {
@@ -140,6 +141,7 @@ ion-button {
 	text-transform: none;
 	font-weight: 600;
 	--box-shadow: none;
+	-webkit-tap-highlight-color: transparent;
 }
 
 /* Header */
@@ -186,6 +188,7 @@ header {
 	align-items: center;
 	transition: background 0.2s ease;
 	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
 }
 
 .theme ion-icon {
@@ -216,6 +219,8 @@ header {
 	font-size: 13px;
 	height: auto;
 	margin: 0;
+	opacity: 1 !important;
+	-webkit-tap-highlight-color: transparent;
 }
 
 .pill.secondary {
@@ -223,6 +228,7 @@ header {
 	--background-hover: #d6ebd9;
 	--background-activated: #d6ebd9;
 	--color: #1f5e34;
+	opacity: 1 !important;
 }
 
 .pill.cta-btn {
@@ -336,6 +342,7 @@ p {
 	background: none;
 	border: 0;
 	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
 }
 
 .download:hover {
@@ -563,6 +570,7 @@ ion-modal.download-modal {
 	line-height: 1;
 	padding: 0;
 	margin: -5px -5px 0 0;
+	-webkit-tap-highlight-color: transparent;
 }
 
 .modal-dialog h2 {

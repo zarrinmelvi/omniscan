@@ -177,14 +177,13 @@ header {
 
 /* Theme Toggle */
 .theme {
-	width: 48px;
-	height: 26px;
-	border-radius: 25px;
-	background: #34a853;
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	background: #f1f5f9;
 	border: 0;
-	padding: 3px;
 	display: flex;
-	justify-content: flex-end;
+	justify-content: center;
 	align-items: center;
 	transition: background 0.2s ease;
 	cursor: pointer;
@@ -192,13 +191,16 @@ header {
 }
 
 .theme ion-icon {
-	color: #ffffff;
-	font-size: 16px;
+	color: #334155;
+	font-size: 18px;
 }
 
 :root.ion-palette-dark .theme {
-	background: #1c3d29;
-	justify-content: flex-start;
+	background: #334155;
+}
+
+:root.ion-palette-dark .theme ion-icon {
+	color: #fbbf24;
 }
 
 :root.ion-palette-dark header {

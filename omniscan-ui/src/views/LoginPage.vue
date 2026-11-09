@@ -317,10 +317,10 @@ onUnmounted(() => {
 	padding: 0;
 }
 .theme-toggle-btn {
-	width: 48px;
-	height: 26px;
-	border-radius: 25px;
-	background: #34a853;
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	background: #f1f5f9;
 	border: 0;
 	display: flex;
 	justify-content: center;
@@ -330,11 +330,14 @@ onUnmounted(() => {
 	padding: 0;
 }
 .theme-toggle-btn ion-icon {
-	color: #ffffff;
-	font-size: 16px;
+	color: #334155;
+	font-size: 18px;
 }
 :global(html.ion-palette-dark) .theme-toggle-btn {
-	background: #1c3d29;
+	background: #334155;
+}
+:global(html.ion-palette-dark) .theme-toggle-btn ion-icon {
+	color: #fbbf24;
 }
 
 .brand-label {

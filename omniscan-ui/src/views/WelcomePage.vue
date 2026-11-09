@@ -6,6 +6,7 @@
 				<div class="brand">OmniScan</div>
 				<nav class="actions" aria-label="Account">
 					<button class="theme" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" :aria-pressed="isDark" @click="toggleTheme">
+						<!-- Moon icon shows in LIGHT mode; Sun icon shows in DARK mode -->
 						<ion-icon :icon="isDark ? sunnyOutline : moonOutline" />
 					</button>
 					<ion-button class="pill" @click="goToRegister">Sign up</ion-button>
@@ -128,16 +129,22 @@ function openDownloadModal() {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
+/* Force dark background directly on ion-content element and web component part */
 :global(html.ion-palette-dark) .welcome-content,
 :global(body.dark) .welcome-content,
 :global(:root.ion-palette-dark) .welcome-content {
 	--background: #09130e !important;
 	--color: #eef4ed !important;
+	background: #09130e !important;
 }
 
-/* Override Ionic defaults */
 .welcome-content::part(scroll) {
 	overflow-x: hidden;
+}
+
+:global(html.ion-palette-dark) .welcome-content::part(scroll),
+:global(body.dark) .welcome-content::part(scroll) {
+	background: #09130e !important;
 }
 
 ion-button {
@@ -169,8 +176,7 @@ header {
 }
 
 :global(html.ion-palette-dark) .brand,
-:global(body.dark) .brand,
-:global(:root.ion-palette-dark) .brand {
+:global(body.dark) .brand {
 	color: #63cd77 !important;
 }
 
@@ -207,20 +213,17 @@ header {
 }
 
 :global(html.ion-palette-dark) .theme,
-:global(body.dark) .theme,
-:global(:root.ion-palette-dark) .theme {
+:global(body.dark) .theme {
 	background: #334155 !important;
 }
 
 :global(html.ion-palette-dark) .theme ion-icon,
-:global(body.dark) .theme ion-icon,
-:global(:root.ion-palette-dark) .theme ion-icon {
+:global(body.dark) .theme ion-icon {
 	color: #fbbf24 !important;
 }
 
 :global(html.ion-palette-dark) header,
-:global(body.dark) header,
-:global(:root.ion-palette-dark) header {
+:global(body.dark) header {
 	background: rgba(9, 19, 14, 0.92) !important;
 	backdrop-filter: blur(8px);
 }
@@ -259,18 +262,15 @@ ion-button.pill.cta-btn {
 	margin: 16px auto 0;
 }
 
-/* Dark Mode Pill Button Overrides */
 :global(html.ion-palette-dark) ion-button.pill,
-:global(body.dark) ion-button.pill,
-:global(:root.ion-palette-dark) ion-button.pill {
+:global(body.dark) ion-button.pill {
 	background: transparent !important;
 	--background: #34a853 !important;
 	--color: #ffffff !important;
 }
 
 :global(html.ion-palette-dark) ion-button.pill.secondary,
-:global(body.dark) ion-button.pill.secondary,
-:global(:root.ion-palette-dark) ion-button.pill.secondary {
+:global(body.dark) ion-button.pill.secondary {
 	background: transparent !important;
 	--background: #e8f5ec !important;
 	--color: #1f5e34 !important;
@@ -296,8 +296,7 @@ ion-button.pill.cta-btn {
 }
 
 :global(html.ion-palette-dark) .hero::before,
-:global(body.dark) .hero::before,
-:global(:root.ion-palette-dark) .hero::before {
+:global(body.dark) .hero::before {
 	opacity: 0.12 !important;
 }
 
@@ -310,8 +309,7 @@ ion-button.pill.cta-btn {
 }
 
 :global(html.ion-palette-dark) .hero::after,
-:global(body.dark) .hero::after,
-:global(:root.ion-palette-dark) .hero::after {
+:global(body.dark) .hero::after {
 	background: linear-gradient(180deg, rgba(9, 19, 14, 0.7) 0%, rgba(9, 19, 14, 0.92) 60%, #09130e 100%) !important;
 }
 
@@ -333,8 +331,7 @@ h1 {
 }
 
 :global(html.ion-palette-dark) h1,
-:global(body.dark) h1,
-:global(:root.ion-palette-dark) h1 {
+:global(body.dark) h1 {
 	color: #eef4ed !important;
 }
 
@@ -348,9 +345,7 @@ h3 {
 :global(html.ion-palette-dark) h2,
 :global(html.ion-palette-dark) h3,
 :global(body.dark) h2,
-:global(body.dark) h3,
-:global(:root.ion-palette-dark) h2,
-:global(:root.ion-palette-dark) h3 {
+:global(body.dark) h3 {
 	color: #eef4ed !important;
 }
 
@@ -366,8 +361,7 @@ p {
 }
 
 :global(html.ion-palette-dark) p,
-:global(body.dark) p,
-:global(:root.ion-palette-dark) p {
+:global(body.dark) p {
 	color: #b8c8bc !important;
 }
 
@@ -379,8 +373,7 @@ p {
 }
 
 :global(html.ion-palette-dark) .hero p,
-:global(body.dark) .hero p,
-:global(:root.ion-palette-dark) .hero p {
+:global(body.dark) .hero p {
 	color: #b8c8bc !important;
 }
 
@@ -403,8 +396,7 @@ p {
 }
 
 :global(html.ion-palette-dark) .download,
-:global(body.dark) .download,
-:global(:root.ion-palette-dark) .download {
+:global(body.dark) .download {
 	color: #63cd77 !important;
 }
 
@@ -434,8 +426,7 @@ p {
 }
 
 :global(html.ion-palette-dark) .dashboard,
-:global(body.dark) .dashboard,
-:global(:root.ion-palette-dark) .dashboard {
+:global(body.dark) .dashboard {
 	background: #0d1f13 !important;
 	border: 1px solid #1a3322 !important;
 }
@@ -468,8 +459,7 @@ p {
 }
 
 :global(html.ion-palette-dark) .card,
-:global(body.dark) .card,
-:global(:root.ion-palette-dark) .card {
+:global(body.dark) .card {
 	background: #0d1f13 !important;
 	border: 1px solid #1a3322 !important;
 }
@@ -486,8 +476,7 @@ p {
 }
 
 :global(html.ion-palette-dark) .card p,
-:global(body.dark) .card p,
-:global(:root.ion-palette-dark) .card p {
+:global(body.dark) .card p {
 	color: #b8c8bc !important;
 }
 
@@ -533,8 +522,7 @@ p {
 }
 
 :global(html.ion-palette-dark) .diet p,
-:global(body.dark) .diet p,
-:global(:root.ion-palette-dark) .diet p {
+:global(body.dark) .diet p {
 	color: #b8c8bc !important;
 }
 
@@ -548,8 +536,7 @@ footer {
 }
 
 :global(html.ion-palette-dark) footer,
-:global(body.dark) footer,
-:global(:root.ion-palette-dark) footer {
+:global(body.dark) footer {
 	border-top-color: #1a3322 !important;
 	color: #8ca899 !important;
 }

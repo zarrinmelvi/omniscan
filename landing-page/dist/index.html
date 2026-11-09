@@ -72,16 +72,18 @@
       border: 0;
       padding: 3px;
       display: flex;
-      justify-content: flex-end;
+      justify-content: center;
       align-items: center;
       transition: background 0.2s ease;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
-    .theme span {
-      width: 20px;
-      height: 20px;
-      background: #ffffff;
-      border-radius: 100%;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    .theme-icon {
+      font-size: 16px;
+      transition: transform 0.3s ease;
+    }
+    body.dark .theme {
+      background: #1c3d29;
     }
 
     /* Hero Section */
@@ -250,7 +252,9 @@
   <header>
     <a class="brand" href="#">OmniScan</a>
     <nav class="actions" aria-label="Account">
-      <button class="theme" aria-label="Toggle theme" aria-pressed="false"><span></span></button>
+      <button class="theme" aria-label="Toggle theme" aria-pressed="false" onclick="toggleTheme()">
+        <span class="theme-icon">🌙</span>
+      </button>
       <a class="pill" href="signup.html" id="signup-btn">Sign up</a>
       <a class="pill secondary" href="signin.html" id="signin-btn">Sign in</a>
     </nav>
@@ -355,10 +359,13 @@
     d.onclick = e => { if (e.target === d) d.close(); };
 
     // Theme toggle
-    document.querySelector('.theme').onclick = function() {
+    function toggleTheme() {
       let isDark = document.body.classList.toggle('dark');
-      this.setAttribute('aria-pressed', isDark);
-    };
+      const btn = document.querySelector('.theme');
+      const icon = document.querySelector('.theme-icon');
+      btn.setAttribute('aria-pressed', isDark);
+      icon.textContent = isDark ? '☀' : '🌙';
+    }
   </script>
 </body>
 </html>

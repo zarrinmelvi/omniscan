@@ -34,10 +34,9 @@
 							<ion-icon :icon="chevronBackOutline" />
 							Back to home
 						</button>
-						<div class="dark-mode-toggle-row">
-							<span>Dark mode</span>
-							<ion-toggle :checked="isDark" @ion-change="toggleDarkMode" class="custom-toggle" />
-						</div>
+						<button type="button" class="theme-toggle-btn" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" @click="toggleDarkMode">
+							<ion-icon :icon="isDark ? sunnyOutline : moonOutline" />
+						</button>
 					</div>
 
 					<span class="brand-label">OmniScan</span>
@@ -135,8 +134,8 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonToggle, toastController } from '@ionic/vue'
-import { chevronBackOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, toastController } from '@ionic/vue'
+import { chevronBackOutline, eyeOutline, eyeOffOutline, moonOutline, sunnyOutline } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
@@ -317,12 +316,25 @@ onUnmounted(() => {
 	color: #6b7280;
 	padding: 0;
 }
-.dark-mode-toggle-row {
+.theme-toggle-btn {
+	width: 48px;
+	height: 26px;
+	border-radius: 25px;
+	background: #34a853;
+	border: 0;
 	display: flex;
+	justify-content: center;
 	align-items: center;
-	gap: 8px;
-	font-size: 0.82rem;
-	color: #6b7280;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	padding: 0;
+}
+.theme-toggle-btn ion-icon {
+	color: #ffffff;
+	font-size: 16px;
+}
+:global(html.ion-palette-dark) .theme-toggle-btn {
+	background: #1c3d29;
 }
 
 .brand-label {

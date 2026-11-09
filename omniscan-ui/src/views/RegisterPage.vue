@@ -72,7 +72,7 @@
 								</div>
 							</div>
 							<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
-								{{ showMiddleName ? 'âˆ’ Remove middle name' : '+ Add middle name (optional)' }}
+								{{ showMiddleName ? '- Remove middle name' : '+ Add middle name (optional)' }}
 							</button>
 							<div v-if="showMiddleName" class="form-group">
 								<input v-model="middleName" type="text" placeholder="Middle name" class="custom-input" />
@@ -102,7 +102,34 @@
 							</div>
 							</div>
 
+							<div class="form-group margin-top">
+								<label class="input-label">Gender</label>
+								<select 
+									v-model="gender" 
+									class="custom-input custom-select"
+									:class="{ 'input-error': fieldErrors.gender }"
+									@change="clearFieldError('gender')">
+									<option value="" disabled>Select gender</option>
+									<option value="Male">Male</option>
+									<option value="Female">Female</option>
+									<option value="Other">Other</option>
+									<option value="Prefer not to say">Prefer not to say</option>
+								</select>
+							</div>
+
 							<div class="form-group">
+								<label class="input-label">Birthday</label>
+								<input 
+									v-model="birthday" 
+									type="date"
+									:max="maxBirthdayDate"
+									class="custom-input"
+									:class="{ 'input-error': fieldErrors.birthday || ageError }"
+									@input="clearFieldError('birthday')" />
+								<div v-if="ageError" class="field-error-text">{{ ageError }}</div>
+							</div>
+
+							<div class="form-group margin-top">
 								<label class="input-label">Email Address</label>
 								<div class="custom-input-wrapper">
 									<input
@@ -135,23 +162,23 @@
 
 							<div v-if="!isGooglePending" class="pass-criteria-grid">
 								<div class="criteria-item" :class="{ valid: passCriteria.length }">
-									<span class="criteria-circle">{{ passCriteria.length ? 'âœ“' : '' }}</span>
+									<ion-icon :icon="passCriteria.length ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
 									At least 8 characters
 								</div>
 								<div class="criteria-item" :class="{ valid: passCriteria.upper }">
-									<span class="criteria-circle">{{ passCriteria.upper ? 'âœ“' : '' }}</span>
-									1 uppercase letter (Aâ€“Z)
+									<ion-icon :icon="passCriteria.upper ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+									1 uppercase letter (A-Z)
 								</div>
 								<div class="criteria-item" :class="{ valid: passCriteria.lower }">
-									<span class="criteria-circle">{{ passCriteria.lower ? 'âœ“' : '' }}</span>
-									1 lowercase letter (aâ€“z)
+									<ion-icon :icon="passCriteria.lower ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+									1 lowercase letter (a-z)
 								</div>
 								<div class="criteria-item" :class="{ valid: passCriteria.number }">
-									<span class="criteria-circle">{{ passCriteria.number ? 'âœ“' : '' }}</span>
-									1 number (0â€“9)
+									<ion-icon :icon="passCriteria.number ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+									1 number (0-9)
 								</div>
 								<div class="criteria-item" :class="{ valid: passCriteria.special }">
-									<span class="criteria-circle">{{ passCriteria.special ? 'âœ“' : '' }}</span>
+									<ion-icon :icon="passCriteria.special ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
 									1 special character (!@#$%^&*)
 								</div>
 							</div>
@@ -176,33 +203,6 @@
 							<div v-if="isGooglePending" class="google-password-message">
 								<ion-icon :icon="informationCircleOutline" />
 								<span>Password not required for Google accounts</span>
-							</div>
-
-							<div class="form-group margin-top">
-								<label class="input-label">Gender</label>
-								<select 
-									v-model="gender" 
-									class="custom-input custom-select"
-									:class="{ 'input-error': fieldErrors.gender }"
-									@change="clearFieldError('gender')">
-									<option value="" disabled>Select gender</option>
-									<option value="Male">Male</option>
-									<option value="Female">Female</option>
-									<option value="Other">Other</option>
-									<option value="Prefer not to say">Prefer not to say</option>
-								</select>
-							</div>
-
-							<div class="form-group">
-								<label class="input-label">Birthday</label>
-								<input 
-									v-model="birthday" 
-									type="date"
-									:max="maxBirthdayDate"
-									class="custom-input"
-									:class="{ 'input-error': fieldErrors.birthday || ageError }"
-									@input="clearFieldError('birthday')" />
-								<div v-if="ageError" class="field-error-text">{{ ageError }}</div>
 							</div>
 
 							<ion-button
@@ -271,7 +271,7 @@
 									class="allergen-chip"
 									:class="{ 'allergen-chip--selected': selectedAllergenIds.includes(allergen.id) }"
 									@click="toggleAllergen(allergen.id)">
-									<span v-if="selectedAllergenIds.includes(allergen.id)" class="chip-check">âœ“</span>
+									<ion-icon v-if="selectedAllergenIds.includes(allergen.id)" :icon="checkmarkCircle" class="chip-check-icon" />
 									{{ formatAllergenName(allergen.name) }}
 								</button>
 							</div>
@@ -1204,6 +1204,12 @@ onUnmounted(() => {
 	border: 1px solid #fecaca;
 }
 
+
+.custom-select,
+input[type="date"].custom-input {
+	color: #111827;
+}
+
 .custom-input::placeholder {
 	color: #9ca3af;
 }
@@ -1222,8 +1228,8 @@ onUnmounted(() => {
 .pass-criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-top: 10px; padding: 12px 14px; background: #f9fafb; border-radius: 10px; margin-bottom: 14px; }
 .criteria-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #9ca3af; }
 .criteria-item.valid { color: #15803d; }
-.criteria-circle { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #d1d5db; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.65rem; font-weight: 700; }
-.criteria-item.valid .criteria-circle { border-color: #15803d; color: #15803d; }
+.criteria-icon { width: 16px; height: 16px; flex-shrink: 0; color: #d1d5db; }
+.criteria-item.valid .criteria-icon { color: #15803d; }
 
 .submit-button {
 	--background: #05c450;
@@ -1326,7 +1332,7 @@ onUnmounted(() => {
 .allergen-chip { display: inline-flex; align-items: center; gap: 5px; padding: 8px 16px; border-radius: 9999px; border: 1.5px solid #d1d5db; background: transparent; color: #374151; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.15s; }
 .allergen-chip:hover:not(.allergen-chip--selected) { border-color: #15803d; color: #15803d; }
 .allergen-chip--selected { background: #15803d; border-color: #15803d; color: #fff; font-weight: 600; }
-.chip-check { font-size: 0.8rem; }
+.chip-check-icon { font-size: 16px; margin-right: -2px; }
 .allergen-limit-banner { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 10px; padding: 10px 14px; font-size: 0.82rem; margin-bottom: 14px; }
 
 .halal-toggle-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
@@ -1679,6 +1685,11 @@ input[type="date"].custom-input {
 .google-password-message ion-icon {
 	font-size: 20px;
 	flex-shrink: 0;
+}
+
+:global(html.ion-palette-dark) .custom-select,
+:global(html.ion-palette-dark) input[type="date"].custom-input {
+	color: #f9fafb;
 }
 
 :global(html.ion-palette-dark) .custom-select {

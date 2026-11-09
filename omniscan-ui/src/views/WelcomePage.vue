@@ -1,199 +1,86 @@
 <template>
 	<ion-page>
 		<ion-content :fullscreen="true" class="welcome-content">
-			<div class="welcome-bg">
-				<div class="welcome-overlay"></div>
+			<!-- Header -->
+			<header>
+				<div class="brand">OmniScan</div>
+				<nav class="actions" aria-label="Account">
+					<button class="theme" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" :aria-pressed="isDark" @click="toggleTheme">
+						<ion-icon :icon="isDark ? sunnyOutline : moonOutline" />
+					</button>
+					<ion-button class="pill" @click="goToRegister">Sign up</ion-button>
+					<ion-button class="pill secondary" @click="goToLogin">Sign in</ion-button>
+				</nav>
+			</header>
 
-				<div class="welcome-body">
-					<span class="brand-label">OmniScan</span>
+			<!-- Hero Section -->
+			<main>
+				<section class="hero" aria-label="Grocery store food products background">
+					<div class="eyebrow">Your everyday food companion</div>
+					<h1>Know your food.<br />Simplify your day.</h1>
+					<p>Scan food labels, understand your ingredients, and keep your pantry organized. One smarter routine, on your browser and in your pocket.</p>
+					<ion-button class="pill cta-btn" @click="goToRegister">Get started</ion-button>
+					<button class="download" @click="openDownloadModal">Download the mobile app</button>
+					<p class="small">One account. Your phone. Your browser.</p>
+				</section>
 
-					<h1 class="headline">Scan with<br />Confidence.<br />Live with<br />Intention.</h1>
+				<div class="wrap">
+					<!-- Dashboard Preview Section -->
+					<section class="dashboard" aria-labelledby="dashboard-title">
+						<h2 id="dashboard-title">Your kitchen, connected.</h2>
+						<p>A clear view of your pantry, expiration reminders, and recipes inspired by what you already have.</p>
+						<img src="/assets/dashboard.webp" alt="OmniScan dashboard preview showing pantry items, expiring food, and recent activities" width="728" height="339" />
+					</section>
 
-					<p class="subtext">Allergen &amp; Halal detection, smart pantry, and AI recommendations — all in one scan.</p>
+					<!-- Features Section -->
+					<section class="features" aria-label="OmniScan features">
+						<article class="card">
+							<div class="eyebrow">01 / SCAN</div>
+							<h3>Read beyond the label.</h3>
+							<p>Capture a product label with your phone or upload a photo. Explore ingredients and potential allergen or Halal-related concerns matched to your dietary profile.</p>
+						</article>
+						<article class="card">
+							<div class="eyebrow">02 / PANTRY</div>
+							<h3>Less forgotten food.</h3>
+							<p>Organize food by fridge, freezer, or cupboard. Record quantities and dates, receive expiration reminders, and archive consumed items.</p>
+						</article>
+						<article class="card">
+							<div class="eyebrow">03 / RECIPES</div>
+							<h3>Cook with what you have.</h3>
+							<p>Discover recipe suggestions based on your pantry and dietary preferences. Save favorites and keep a made-recipe history.</p>
+						</article>
+					</section>
 
-					<div class="actions">
-						<ion-button expand="block" class="get-started-btn" @click="goToRegister"> Get Started </ion-button>
-						<ion-button expand="block" fill="outline" class="sign-in-btn" @click="goToLogin"> Sign In </ion-button>
-					</div>
+					<!-- Mobile App Section -->
+					<section class="mobile" id="mobile">
+						<div class="eyebrow">POCKET-SIZED. DESKTOP-READY.</div>
+						<h2>A little scan. A smarter routine.</h2>
+						<p>Take your pantry with you. Scan on the go, review your food, and plan your next meal from the OmniScan mobile app.</p>
+						<img class="phone" src="/assets/phone.webp" alt="OmniScan mobile app preview with pantry status and recipe suggestions" width="220" height="438" loading="lazy" />
+					</section>
 
-					<p class="legal-text">
-						By continuing, you agree to OmniScan's
-						<a href="#" @click.prevent="openTermsModal">Terms and Conditions</a>.
-					</p>
+					<!-- Dietary Section -->
+					<section class="diet">
+						<h2>Built around your dietary needs.</h2>
+						<p>Set allergen sensitivities and Halal preferences in your profile. Review dietary alerts, customize reminders, and manage your display preferences.</p>
+						<p class="small">OmniScan is a decision-support tool, not a guarantee of allergen safety or Halal certification. Always verify packaging, ingredients, and certification with trusted sources before consumption.</p>
+					</section>
+
+					<!-- Footer -->
+					<footer>
+						<span class="brand" style="font-size: 18px">OmniScan</span>
+						<span>Your everyday food companion.</span>
+					</footer>
 				</div>
-			</div>
+			</main>
 
-			<!-- Terms and Conditions Modal Overlay -->
-			<ion-modal :is-open="isTermsOpen" class="terms-modal" @didDismiss="isTermsOpen = false">
-				<div class="terms-card">
-					<div class="terms-header">
-						<h2>OmniScan Terms and Conditions</h2>
-						<button type="button" class="close-icon-btn" aria-label="Close" @click="isTermsOpen = false">✕</button>
-					</div>
-
-					<div class="terms-scroll-area">
-						<div class="terms-content">
-							<p class="terms-date">Last Updated: September 7, 2026</p>
-
-							<p>Welcome to OmniScan, a cross-platform pantry management and food information system developed as part of a Bachelor of Science in Information Technology capstone project at STI College San Jose Del Monte.</p>
-							<p>These Terms &amp; Conditions (“Terms”) govern your access to and use of the OmniScan web application and mobile application (“Application” or “System”). By creating an account, accessing, or using OmniScan, you acknowledge that you have read, understood, and agreed to these Terms.</p>
-							<p>If you do not agree with any part of these Terms, please discontinue your use of the Application.</p>
-
-							<h4>1. Purpose of OmniScan</h4>
-							<p>OmniScan is designed to assist users in making more informed food purchasing and household food management decisions.</p>
-							<p>The Application provides features that may include:</p>
-							<ul>
-								<li>Food product scanning and image uploading;</li>
-								<li>Ingredient text extraction and interpretation;</li>
-								<li>Potential allergen detection;</li>
-								<li>Halal logo and dietary compliance checking;</li>
-								<li>Color-coded food safety alerts;</li>
-								<li>Alternative product recommendations;</li>
-								<li>Digital pantry management;</li>
-								<li>Expiration and best-before date reminders;</li>
-								<li>AI-generated recipe recommendations; and</li>
-								<li>Personalized dietary profiles.</li>
-							</ul>
-							<p>OmniScan uses technologies such as Optical Character Recognition (OCR), computer vision, artificial intelligence, and reference databases to provide these features.</p>
-
-							<h4>2. Eligibility and Account Registration</h4>
-							<p>Users may be required to create an account to access certain features of OmniScan.</p>
-							<p>When creating an account, you agree to:</p>
-							<ul>
-								<li>Provide accurate and truthful information;</li>
-								<li>Keep your account information up to date;</li>
-								<li>Keep your login credentials confidential;</li>
-								<li>Not share your account with unauthorized individuals; and</li>
-								<li>Notify the system administrators or support team of any suspected unauthorized access.</li>
-							</ul>
-							<p>You are responsible for activities performed through your account.</p>
-
-							<h4>3. Dietary Profile Information</h4>
-							<p>OmniScan allows users to create and manage personalized dietary profiles, including food allergies, allergen sensitivities, and Halal preferences.</p>
-							<p>The information provided in your dietary profile is used to personalize food analysis, safety alerts, filtering, and recommendations.</p>
-							<p>You are responsible for ensuring that the dietary information entered into your profile is complete and accurate. OmniScan cannot guarantee that every dietary restriction, allergy, ingredient, or certification will be identified.</p>
-
-							<h4>4. Food Scanning and AI Analysis</h4>
-							<p>OmniScan may analyze uploaded or scanned food product images using OCR, computer vision, artificial intelligence, and reference databases.</p>
-							<p>The results provided by OmniScan may include:</p>
-							<ul>
-								<li>Ingredient information;</li>
-								<li>Simplified ingredient explanations;</li>
-								<li>Potential allergen warnings;</li>
-								<li>Halal-related information;</li>
-								<li>Dietary suitability indicators;</li>
-								<li>Safety alerts; and</li>
-								<li>Alternative product recommendations.</li>
-							</ul>
-							<p>The color-coded results may be presented as:</p>
-							<ul>
-								<li><strong>Green</strong> – Safe</li>
-								<li><strong>Yellow</strong> – Caution</li>
-								<li><strong>Red</strong> – Unsafe/Unsuitable</li>
-							</ul>
-							<p>These results are intended only as informational and decision-support guidance.</p>
-
-							<h4>5. Food Safety Disclaimer</h4>
-							<p>OmniScan does not guarantee that a food product is completely safe, allergen-free, Halal-certified, or suitable for a particular individual.</p>
-							<p>Users must always verify the original product packaging, ingredient list, allergen statements, certification information, expiration or best-before dates, and other relevant product information before purchasing or consuming a food product.</p>
-							<p>OmniScan should not be used as the sole basis for making decisions involving food allergies, severe dietary restrictions, medical conditions, or religious dietary requirements.</p>
-							<p>If you have a serious food allergy or other health-related dietary concern, consult an appropriate qualified healthcare or dietary professional.</p>
-
-							<h4>6. Limitations of Detection</h4>
-							<p>OmniScan's detection and analysis capabilities are subject to the information available to the System.</p>
-							<p>The System may not detect:</p>
-							<ul>
-								<li>Rare or newly identified allergens;</li>
-								<li>Allergens not included in its reference database;</li>
-								<li>All international Halal certifications;</li>
-								<li>Newly released products not yet included in the product database;</li>
-								<li>Products with unclear, damaged, missing, or unreadable labels;</li>
-								<li>Products with unclear or absent Halal logos; or</li>
-								<li>Ingredients whose composition cannot be reliably determined from the available information.</li>
-							</ul>
-							<p>The accuracy of scanning may also be affected by image quality, packaging design, text readability, lighting, print resolution, and completeness of the product label.</p>
-
-							<h4>7. Halal Verification</h4>
-							<p>OmniScan may identify selected Halal certification logos and analyze ingredient information related to Halal compliance.</p>
-							<p>However, OmniScan does not represent itself as an official Halal certification authority.</p>
-							<p>The absence of a recognized Halal logo or an “unverified” result does not necessarily mean that a product is non-Halal, while the detection of a logo does not independently guarantee the current validity of a certification.</p>
-							<p>Users should verify certification information through the appropriate recognized Halal certification authority when necessary.</p>
-
-							<h4>8. Pantry Management and Expiration Dates</h4>
-							<p>OmniScan provides a digital pantry feature that allows users to store information about food products and monitor expiration or best-before dates.</p>
-							<p>Users are responsible for accurately entering product information, expiration dates, best-before dates, product quantities, portion sizes, and other required pantry information.</p>
-							<p>OmniScan provides reminders based on the information entered into the System. The Application does not guarantee that expiration dates are automatically or accurately identified from every product. Users are responsible for checking the actual date printed on the product packaging.</p>
-							<p>Users should also update their pantry inventory when products are consumed, removed, discarded, or otherwise no longer available.</p>
-
-							<h4>9. Recipe Recommendations</h4>
-							<p>OmniScan may generate recipe suggestions based on available pantry ingredients and the user's dietary profile.</p>
-							<p>Recipe recommendations may include suggested ingredients, quantities, portions, and preparation suggestions. AI-generated recipes are provided for informational and convenience purposes only.</p>
-							<p>Users are responsible for verifying ingredient suitability, allergen information, Halal compliance, food freshness, proper food handling, cooking requirements, and appropriate ingredient quantities.</p>
-							<p>Users should not rely solely on an AI-generated recipe to determine whether a meal is safe or suitable for them.</p>
-
-							<h4>10. User-Uploaded Images and Information</h4>
-							<p>Users may upload photographs of food products and related information for analysis.</p>
-							<p>Users agree to upload only images and information that they have the right to submit and that are relevant to the intended use of OmniScan. Users should avoid uploading unnecessary personal, confidential, or sensitive information.</p>
-							<p>OmniScan may process uploaded images and information to provide the System's scanning, analysis, and recommendation features.</p>
-
-							<h4>11. Notifications and Reminders</h4>
-							<p>OmniScan may send notifications regarding food items approaching their expiration dates, dietary warnings, recipe suggestions, account inactivity, and other system-related activities.</p>
-							<p>Notifications are provided as reminders and may not always be received, displayed, or delivered on time due to device settings, connectivity issues, system interruptions, or other technical circumstances.</p>
-
-							<h4>12. Account Inactivity and Deletion</h4>
-							<p>OmniScan may monitor account activity for system administration purposes.</p>
-							<p>An account that remains inactive for six (6) months may receive an email notification informing the user that the account is scheduled for deletion.</p>
-							<p>If the account remains inactive for one (1) additional week after the notification, the account may be permanently deleted in accordance with the System's account-management procedures.</p>
-
-							<h4>13. Acceptable Use</h4>
-							<p>Users agree not to use OmniScan for unlawful purposes, attempt unauthorized access, disrupt System operations, upload malicious files, or misuse features. Violation of these Terms may result in suspension or termination of access.</p>
-
-							<h4>14. System Availability</h4>
-							<p>The developers aim to maintain OmniScan's availability; however, continuous or uninterrupted access is not guaranteed due to updates, server issues, or technical circumstances beyond control.</p>
-
-							<h4>15. Accuracy of Information</h4>
-							<p>While reasonable efforts are made, OmniScan does not guarantee that all information, analyses, classifications, recommendations, or alerts will always be complete, accurate, or current. Product packaging and formulations change over time.</p>
-
-							<h4>16. Intellectual Property</h4>
-							<p>The OmniScan name, system design, user interface, software components, documentation, logos, and original materials belong to their respective owners. Unauthorized copying or reproduction is prohibited.</p>
-
-							<h4>17. Third-Party Services and Data Sources</h4>
-							<p>OmniScan may rely on third-party technologies, services, or databases. Their availability and accuracy are outside the direct control of the development team.</p>
-
-							<h4>18. Limitation of Liability</h4>
-							<p>To the extent permitted by law, the OmniScan development team shall not be responsible for losses, damages, injuries, dietary reactions, or food-related incidents resulting from reliance solely on outputs provided by the Application.</p>
-
-							<h4>19. User Responsibility</h4>
-							<p>By using OmniScan, users acknowledge that they remain responsible for their own food purchasing, preparation, storage, consumption, and dietary decisions.</p>
-
-							<h4>20. Privacy and Personal Information</h4>
-							<p>OmniScan may collect information necessary to provide its features. Personal information is collected, stored, and processed in accordance with applicable data protection requirements.</p>
-
-							<h4>21. Changes to These Terms</h4>
-							<p>The development team may update or modify these Terms when necessary. Continued use of OmniScan after updated Terms become effective constitutes acknowledgment of the revised Terms.</p>
-
-							<h4>22. Termination of Access</h4>
-							<p>Access may be suspended or terminated if a user violates these Terms or engages in harmful activity.</p>
-
-							<h4>23. Contact and Support</h4>
-							<p>Users may contact support regarding technical issues or questions through the Contact Support feature available within the Application.</p>
-
-							<h4>24. Acceptance of Terms</h4>
-							<p>By selecting “I Agree”, “Accept”, or by accessing and using OmniScan, you acknowledge that you have read, understood, and agreed to comply with these Terms &amp; Conditions.</p>
-
-							<div class="terms-footer-meta">
-								<p><strong>OmniScan</strong></p>
-								<p>A Cross-Platform Pantry Manager with Computer Vision for Allergen and Halal Detection and Artificial Intelligence Recommendations</p>
-								<p>Developed as a Capstone Project</p>
-								<p>STI College San Jose Del Monte</p>
-								<p>Bachelor of Science in Information Technology</p>
-							</div>
-						</div>
-					</div>
-
-					<div class="terms-action-bar">
-						<button type="button" class="btn-terms-agree" @click="agreeAndClose">I Agree</button>
-					</div>
+			<!-- Download Modal -->
+			<ion-modal :is-open="isDownloadModalOpen" @didDismiss="isDownloadModalOpen = false" class="download-modal">
+				<div class="modal-dialog">
+					<button class="close" aria-label="Close dialog" @click="isDownloadModalOpen = false">×</button>
+					<h2>Download the mobile app</h2>
+					<p>The Android app download will be available here once the OmniScan APK is connected.</p>
+					<ion-button class="pill" @click="isDownloadModalOpen = false" style="margin-top: 16px">Got it</ion-button>
 				</div>
 			</ion-modal>
 		</ion-content>
@@ -202,11 +89,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { IonPage, IonContent, IonButton, IonModal } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonModal } from '@ionic/vue'
 import { useRouter } from 'vue-router'
+import { moonOutline, sunnyOutline, closeOutline } from 'ionicons/icons'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const router = useRouter()
-const isTermsOpen = ref(false)
+const { isDark, toggle } = useDarkMode()
+const isDownloadModalOpen = ref(false)
 
 function goToRegister() {
 	router.push('/register')
@@ -216,305 +106,474 @@ function goToLogin() {
 	router.push('/login')
 }
 
-function openTermsModal() {
-	isTermsOpen.value = true
+function toggleTheme() {
+	toggle()
 }
 
-function agreeAndClose() {
-	isTermsOpen.value = false
+function openDownloadModal() {
+	isDownloadModalOpen.value = true
 }
 </script>
 
 <style scoped>
+/* Base Styles */
+* {
+	box-sizing: border-box;
+}
+
 .welcome-content {
-	--background: #10130f;
+	--background: #f4f9f5;
+	--color: #12291b;
 }
 
-.welcome-bg {
-	position: relative;
-	height: 100%;
-	min-height: 100dvh;
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-end;
-
-	background-image:
-		linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.5) 40%, rgba(0, 0, 0, 0.85) 100%),
-		linear-gradient(135deg, #2f3b28 0%, #1c2418 100%);
-	background-size: cover;
-	background-position: center;
+:root.ion-palette-dark .welcome-content {
+	--background: #09130e;
+	--color: #eef4ed;
 }
 
-.welcome-overlay {
-	position: absolute;
-	inset: 0;
-	background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.75) 100%);
-	pointer-events: none;
+/* Override Ionic defaults */
+.welcome-content::part(scroll) {
+	overflow-x: hidden;
 }
 
-.welcome-body {
-	position: relative;
-	z-index: 1;
-	padding: 0 28px calc(32px + env(safe-area-inset-bottom, 0px));
-}
-
-.brand-label {
-	display: block;
-	color: #10b981;
+ion-button {
+	text-transform: none;
 	font-weight: 600;
-	font-size: 0.85rem;
-	margin-bottom: 6px;
+	--box-shadow: none;
 }
 
-.headline {
-	color: #ffffff;
-	font-size: 2.3rem;
-	font-weight: 700;
-	line-height: 1.15;
-	letter-spacing: -0.02em;
-	margin: 0 0 14px;
+/* Header */
+header {
+	position: relative;
+	z-index: 10;
+	max-width: 1200px;
+	margin: 0 auto;
+	height: 76px;
+	padding: 0 32px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background: transparent;
 }
 
-.subtext {
-	color: #d1d5db;
-	font-size: 0.9rem;
-	line-height: 1.4;
-	margin: 0 0 28px;
-	max-width: 320px;
+.brand {
+	font-size: 24px;
+	font-weight: 800;
+	color: #278846;
+	letter-spacing: -0.5px;
+}
+
+:root.ion-palette-dark .brand {
+	color: #63cd77;
 }
 
 .actions {
 	display: flex;
-	flex-direction: column;
 	gap: 12px;
-	margin-bottom: 20px;
+	align-items: center;
 }
 
-.get-started-btn {
-	--background: #05c450;
-	--background-activated: #04ab45;
-	--border-radius: 9999px;
-	--box-shadow: none;
-	--color: #ffffff;
-	font-weight: 600;
-	font-size: 0.95rem;
-	height: 48px;
-	text-transform: none;
-}
-
-.sign-in-btn {
-	--border-color: rgba(255, 255, 255, 0.6);
-	--border-width: 1px;
-	--border-radius: 9999px;
-	--color: #ffffff;
-	font-weight: 600;
-	font-size: 0.95rem;
-	height: 48px;
-	text-transform: none;
-}
-
-.legal-text {
-	color: #9ca3af;
-	font-size: 0.75rem;
-	line-height: 1.4;
-	text-align: center;
-	margin: 0;
-	padding: 0 8px;
-}
-
-.legal-text a {
-	color: #ffffff;
-	text-decoration: underline;
+/* Theme Toggle */
+.theme {
+	width: 48px;
+	height: 26px;
+	border-radius: 25px;
+	background: #34a853;
+	border: 0;
+	padding: 3px;
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	transition: background 0.2s ease;
 	cursor: pointer;
 }
 
-/* ============================================================
-   TABLET (>=768px): constrain content, larger headline,
-   more bottom padding. Hero background unchanged.
-   ============================================================ */
-@media (min-width: 768px) {
-	.welcome-body {
-		max-width: 520px;
-		padding: 0 40px calc(56px + env(safe-area-inset-bottom, 0px));
-	}
-
-	.headline {
-		font-size: 2.9rem;
-	}
-
-	.subtext {
-		font-size: 1rem;
-		max-width: 420px;
-		margin-bottom: 32px;
-	}
-
-	.actions {
-		max-width: 460px;
-	}
+.theme ion-icon {
+	color: #ffffff;
+	font-size: 16px;
 }
 
-/* ============================================================
-   DESKTOP (>=1024px): real landing page. Hero fills viewport,
-   copy vertically centered and left-aligned, inline buttons.
-   ============================================================ */
-@media (min-width: 1024px) {
-	.welcome-bg {
-		justify-content: center;
-		align-items: flex-start;
+:root.ion-palette-dark .theme {
+	background: #1c3d29;
+	justify-content: flex-start;
+}
+
+:root.ion-palette-dark header {
+	background: #0b150edd;
+}
+
+/* Pill Buttons */
+.pill {
+	--border-radius: 30px;
+	--background: #34a853;
+	--background-hover: #2d9248;
+	--background-activated: #2d9248;
+	--color: #ffffff;
+	--padding-start: 22px;
+	--padding-end: 22px;
+	--padding-top: 10px;
+	--padding-bottom: 10px;
+	font-size: 13px;
+	height: auto;
+	margin: 0;
+}
+
+.pill.secondary {
+	--background: #e8f5ec;
+	--background-hover: #d6ebd9;
+	--background-activated: #d6ebd9;
+	--color: #1f5e34;
+}
+
+.pill.cta-btn {
+	display: block;
+	width: fit-content;
+	margin: 16px auto 0;
+}
+
+/* Hero Section */
+.hero {
+	position: relative;
+	text-align: center;
+	padding: 54px 20px 140px;
+	isolation: isolate;
+	overflow: hidden;
+}
+
+.hero::before {
+	content: '';
+	position: absolute;
+	inset: -76px 0 0;
+	z-index: -2;
+	background: url('/assets/hero.webp') center/cover no-repeat;
+	opacity: 0.18;
+	filter: blur(2px);
+}
+
+:root.ion-palette-dark .hero::before {
+	opacity: 0.8;
+}
+
+.hero::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background: linear-gradient(180deg, rgba(244, 249, 245, 0.4) 0%, rgba(244, 249, 245, 0.85) 60%, #f4f9f5 100%);
+}
+
+:root.ion-palette-dark .hero::after {
+	background: linear-gradient(#08140edb, #08140ee0 70%, #09130e);
+}
+
+.eyebrow {
+	font-size: 11px;
+	color: #278846;
+	text-transform: uppercase;
+	font-weight: 700;
+	letter-spacing: 0.8px;
+}
+
+h1 {
+	font-size: clamp(38px, 5.5vw, 62px);
+	line-height: 1.05;
+	letter-spacing: -2px;
+	color: #0f2417;
+	font-weight: 800;
+	margin: 20px 0;
+}
+
+:root.ion-palette-dark h1 {
+	color: #eef4ed;
+}
+
+h2,
+h3 {
+	line-height: 1.2;
+	letter-spacing: -0.8px;
+	color: #0f2417;
+}
+
+:root.ion-palette-dark h2,
+:root.ion-palette-dark h3 {
+	color: #eef4ed;
+}
+
+h2 {
+	font-size: 28px;
+	margin: 0 0 12px;
+	font-weight: 700;
+}
+
+p {
+	color: #3d5946;
+	margin: 0;
+}
+
+:root.ion-palette-dark p {
+	color: #b8c8bc;
+}
+
+.hero p {
+	max-width: 580px;
+	margin: 20px auto;
+	font-size: 15px;
+	color: #334d3b;
+}
+
+:root.ion-palette-dark .hero p {
+	color: #b8c8bc;
+}
+
+.download {
+	display: block;
+	width: fit-content;
+	margin: 16px auto;
+	color: #278846;
+	text-decoration: none;
+	font-size: 13px;
+	font-weight: 600;
+	background: none;
+	border: 0;
+	cursor: pointer;
+}
+
+.download:hover {
+	text-decoration: underline;
+}
+
+.small {
+	font-size: 12px;
+	color: #627d6b;
+}
+
+.hero .small {
+	margin: 16px auto 0;
+}
+
+/* Layout & Cards */
+.wrap {
+	max-width: 1120px;
+	margin: auto;
+	padding: 0 26px;
+}
+
+.dashboard {
+	position: relative;
+	margin-top: -85px;
+	background: #d8eadc;
+	border-radius: 20px;
+	padding: 32px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+:root.ion-palette-dark .dashboard {
+	background: #173b27;
+	border: 0;
+}
+
+.dashboard p {
+	margin: 0 0 24px;
+}
+
+.dashboard img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border-radius: 12px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.features {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 24px;
+	margin-top: 28px;
+}
+
+.card {
+	background: #ffffff;
+	padding: 32px;
+	border-radius: 20px;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+	border: 1px solid #e2efe5;
+}
+
+:root.ion-palette-dark .card {
+	background: #173b27;
+	border: 0;
+}
+
+.card h3 {
+	font-size: 25px;
+	margin: 16px 0 12px;
+	font-weight: 700;
+}
+
+.card p {
+	color: #486652;
+	line-height: 1.6;
+}
+
+:root.ion-palette-dark .card p {
+	color: #b8c8bc;
+}
+
+/* Mobile Preview Section */
+.mobile {
+	text-align: center;
+	padding: 90px 20px 70px;
+}
+
+.mobile h2 {
+	margin-top: 14px;
+	font-size: 32px;
+	font-weight: 700;
+}
+
+.mobile p {
+	max-width: 530px;
+	margin: 16px auto 36px;
+}
+
+.phone {
+	width: 220px;
+	display: block;
+	margin: 0 auto;
+	border-radius: 28px;
+	box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+}
+
+/* Dietary Section & Footer */
+.diet {
+	padding: 20px 0 60px;
+}
+
+.diet h2 {
+	font-size: 28px;
+	font-weight: 700;
+}
+
+.diet p {
+	margin: 14px 0;
+	max-width: 860px;
+	color: #486652;
+}
+
+:root.ion-palette-dark .diet p {
+	color: #b8c8bc;
+}
+
+footer {
+	border-top: 1px solid #d4e5d8;
+	padding: 28px 0;
+	color: #627d6b;
+	display: flex;
+	justify-content: space-between;
+	font-size: 13px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 650px) {
+	header {
+		height: 64px;
+		padding: 0 18px;
 	}
 
-	.welcome-body {
-		max-width: 560px;
-		text-align: left;
-		padding: 0 64px 0 72px;
-	}
-
-	.headline {
-		font-size: 3.5rem;
-		margin-bottom: 20px;
-	}
-
-	.subtext {
-		font-size: 1.1rem;
-		max-width: 480px;
-		margin-bottom: 36px;
+	.brand {
+		font-size: 20px;
 	}
 
 	.actions {
-		flex-direction: row;
-		flex-wrap: wrap;
-		max-width: 420px;
+		gap: 8px;
+	}
+
+	.pill {
+		--padding-start: 14px;
+		--padding-end: 14px;
+		--padding-top: 8px;
+		--padding-bottom: 8px;
+		font-size: 12px;
+	}
+
+	.hero {
+		padding: 40px 18px 100px;
+	}
+
+	h1 {
+		font-size: 38px;
+	}
+
+	.wrap {
+		padding: 0 18px;
+	}
+
+	.dashboard {
+		margin-top: -60px;
+		padding: 20px;
+	}
+
+	.features {
+		grid-template-columns: 1fr;
 		gap: 16px;
 	}
 
-	.get-started-btn,
-	.sign-in-btn {
-		flex: 1 1 0;
-		min-width: 180px;
+	.phone {
+		width: 190px;
 	}
 
-	.legal-text {
-		text-align: left;
-		padding: 0;
-		max-width: 420px;
+	footer {
+		flex-direction: column;
+		gap: 8px;
 	}
 }
 </style>
 
-<!-- Global CSS Overrides for Terms & Conditions Modal Popup -->
+<!-- Global CSS for Modal -->
 <style>
-ion-modal.terms-modal {
-	--height: 85%;
-	--width: 92%;
-	--max-width: 440px;
+ion-modal.download-modal {
+	--height: auto;
+	--width: min(420px, 90vw);
 	--border-radius: 20px;
 	--background: transparent;
-	--box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+	--box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
 }
 
-.terms-card {
+.modal-dialog {
 	background: #ffffff;
+	border: 1px solid #c8decb;
 	border-radius: 20px;
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-	overflow: hidden;
-	box-sizing: border-box;
+	padding: 30px;
+	color: #12291b;
 }
 
-.terms-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 18px 20px 14px;
-	border-bottom: 1px solid #e2e8f0;
+:root.ion-palette-dark .modal-dialog {
+	background: #173b27;
+	border-color: #2d5a3f;
+	color: #eef4ed;
 }
 
-.terms-header h2 {
-	margin: 0;
-	font-size: 1.1rem;
-	font-weight: 700;
-	color: #0f172a;
-}
-
-.close-icon-btn {
-	background: transparent;
-	border: none;
-	font-size: 1.15rem;
-	color: #64748b;
+.modal-dialog .close {
+	float: right;
+	background: none;
+	border: 0;
+	color: inherit;
+	font-size: 24px;
 	cursor: pointer;
-	padding: 4px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	line-height: 1;
+	padding: 0;
+	margin: -5px -5px 0 0;
 }
 
-.terms-scroll-area {
-	flex: 1;
-	overflow-y: auto;
-	padding: 16px 20px;
-}
-
-.terms-date {
-	font-size: 0.78rem;
-	color: #64748b;
-	margin: 0 0 16px;
-	font-weight: 500;
-}
-
-.terms-content h4 {
-	font-size: 0.88rem;
-	font-weight: 700;
-	color: #1e293b;
-	margin: 16px 0 6px;
-}
-
-.terms-content p {
-	font-size: 0.82rem;
-	line-height: 1.45;
-	color: #334155;
-	margin: 0 0 10px;
-}
-
-.terms-content ul {
+.modal-dialog h2 {
+	font-size: 22px;
 	margin: 0 0 12px;
-	padding-left: 20px;
+	clear: both;
 }
 
-.terms-content li {
-	font-size: 0.82rem;
-	line-height: 1.4;
-	color: #334155;
-	margin-bottom: 4px;
-}
-
-.terms-footer-meta {
-	margin-top: 20px;
-	padding-top: 14px;
-	border-top: 1px dashed #cbd5e1;
-}
-
-.terms-footer-meta p {
-	font-size: 0.75rem;
-	color: #64748b;
-	margin: 2px 0;
-}
-
-.terms-action-bar {
-	padding: 12px 20px 18px;
-	border-top: 1px solid #e2e8f0;
-	background: #ffffff;
-}
-
-.btn-terms-agree {
-	width: 100%;
-	height: 44px;
-	background: #05c450;
-	border: none;
-	border-radius: 9999px;
-	color: #ffffff;
-	font-weight: 600;
-	font-size: 0.95rem;
-	cursor: pointer;
+.modal-dialog p {
+	font-size: 14px;
+	line-height: 1.5;
+	margin: 0;
 }
 </style>

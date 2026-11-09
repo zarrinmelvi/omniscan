@@ -13,8 +13,8 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid request body.' })
 	}
 
-	const { first_name, last_name, username, email, password } = body as {
-		first_name?: string; last_name?: string; username?: string; email?: string; password?: string
+	const { first_name, last_name, username, email, password, gender, birthday } = body as {
+		first_name?: string; last_name?: string; username?: string; email?: string; password?: string; gender?: string; birthday?: string
 	}
 
 	if (!first_name || typeof first_name !== 'string' || !first_name.trim()) {
@@ -36,6 +36,27 @@ export default defineEventHandler(async (event) => {
 	}
 	if (!password || typeof password !== 'string' || password.length < 6) {
 		throw createError({ statusCode: 400, statusMessage: 'Password must be at least 6 characters.' })
+	}
+	// Validate gender
+	if (!gender || typeof gender !== 'string' || !gender.trim()) {
+		throw createError({ statusCode: 400, statusMessage: 'Gender is required.' })
+	}
+	const validGenders = ['Male', 'Female', 'Other', 'Prefer not to say']
+	if (!validGenders.includes(gender)) {
+		throw createError({ statusCode: 400, statusMessage: 'Invalid gender value.' })
+	}
+	// Validate birthday
+	if (!birthday || typeof birthday !== 'string' || !birthday.trim()) {
+		throw createError({ statusCode: 400, statusMessage: 'Birthday is required.' })
+	}
+	const birthdayDate = new Date(birthday)
+	if (isNaN(birthdayDate.getTime())) {
+		throw createError({ statusCode: 400, statusMessage: 'Invalid birthday format.' })
+	}
+	// Calculate age
+	const age = (Date.now() - birthdayDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25)
+	if (age < 16) {
+		throw createError({ statusCode: 400, statusMessage: 'You must be at least 16 years old to register.' })
 	}
 
 	const fullName = `${first_name.trim()} ${last_name.trim()}`
@@ -129,6 +150,8 @@ export default defineEventHandler(async (event) => {
 					username: normalizedUsername,
 					email,
 					password: hashedPassword,
+					gender,
+					birthday: birthdayDate,
 					status: 'ACTIVE',
 					last_active: new Date(),
 					email_verified: false,

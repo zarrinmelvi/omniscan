@@ -58,6 +58,9 @@ model User {
   // password is nullable now because OAuth accounts have no local password.
   email String  @unique 
   password String?
+  // User demographics - nullable for existing users
+  gender    String?
+  birthday  DateTime?
   last_active DateTime
   status String
   avatar_base64 String? 

@@ -1,4 +1,4 @@
-# OmniScan — To-Do List
+![alt text](image.png)# OmniScan — To-Do List
 
 Last updated: November 2026
 
@@ -15,7 +15,7 @@ This file tracks all pending work across the OmniScan project. Items are grouped
 - [ ] Scanned modal slide-down: dismissal shows "unsaved item" alert; tapping "Keep editing" does not reopen the modal — fix so the modal comes back
 
 ### Registration / Profile
-- [ ] Registration form text boxes — replace combined "Full name" field with separate First name, Middle name (optional), and Last name fields
+- [x] **Registration form enhanced with Gender & Birthday fields + Google Sign-Up Terms Gate** — Added required Gender dropdown (Male/Female/Other/Prefer not to say) and Birthday date picker with 16+ age validation; Google OAuth now redirects to registration page for new users to complete profile before account creation; Terms modal appears on Continue for both password and Google flows; account only created after Terms acceptance; implemented full state management and validation
 
 ### Pantry / Scan Result
 - [ ] Auto-detect storage location based on food category (e.g. Dairy → Fridge, Canned Goods → Cupboard, Ice cream → Freezer)

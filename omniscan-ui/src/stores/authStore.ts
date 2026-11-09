@@ -33,12 +33,20 @@ interface MeResponse {
 interface AuthState {
 	user: AuthUser | null
 	token: string | null
+	pendingGoogleData: {
+		email: string
+		firstName: string
+		lastName: string
+		googleId: string
+		username: string
+	} | null
 }
 
 export const useAuthStore = defineStore('auth', {
 	state: (): AuthState => ({
 		user: null,
 		token: null,
+		pendingGoogleData: null,
 	}),
 
 	getters: {
@@ -75,12 +83,45 @@ export const useAuthStore = defineStore('auth', {
 			return response
 		},
 
-		async register(firstName: string, lastName: string, username: string, email: string, password: string): Promise<RegisterResponse> {
+		async register(firstName: string, lastName: string, username: string, email: string, password: string, gender: string, birthday: string): Promise<RegisterResponse> {
 			const response = await apiFetch<RegisterResponse>('/api/auth/register', {
 				method: 'POST',
-				body: { first_name: firstName, last_name: lastName, username, email, password },
+				body: { first_name: firstName, last_name: lastName, username, email, password, gender, birthday },
 				skipAuth: true,
 			})
+			return response
+		},
+
+		setPendingGoogleData(data: { email: string; firstName: string; lastName: string; googleId: string; username: string }): void {
+			this.pendingGoogleData = data
+		},
+
+		clearPendingGoogleData(): void {
+			this.pendingGoogleData = null
+		},
+
+		async createGoogleAccount(username: string, gender: string, birthday: string): Promise<{ token: string; user: AuthUser }> {
+			const pending = this.pendingGoogleData
+			if (!pending) {
+				throw new Error('No pending Google data')
+			}
+
+			const response = await apiFetch<{ token: string; user: AuthUser }>('/api/auth/google/register', {
+				method: 'POST',
+				body: {
+					email: pending.email,
+					firstName: pending.firstName,
+					lastName: pending.lastName,
+					googleId: pending.googleId,
+					username,
+					gender,
+					birthday,
+				},
+				skipAuth: true,
+			})
+
+			await this.loginWithOAuthToken(response.token)
+			this.clearPendingGoogleData()
 			return response
 		},
 

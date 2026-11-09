@@ -61,51 +61,31 @@ export default defineEventHandler(async (event) => {
         const lastName = profile.family_name?.trim() || profile.name?.split(' ').slice(1).join(' ') || ''
         const fullName = `${firstName} ${lastName}`.trim()
 
-        // 3. Find or create the user
+        // 3. Find existing user
         let user = await prisma.user.findUnique({ where: { email } })
 
         if (!user) {
-            // Derive a unique username from the email local-part
-            const base = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 15) || 'user'
-            let candidate = base
-            let suffix = 0
-            // Ensure uniqueness
-            while (await prisma.user.findUnique({ where: { username: candidate }, select: { id: true } })) {
-                suffix += 1
-                candidate = `${base}${suffix}`.slice(0, 20)
-            }
+            // New user - create temporary token and redirect to registration
+            const tempToken = jwt.sign(
+                {
+                    type: 'google_pending',
+                    email: profile.email,
+                    firstName,
+                    lastName,
+                    googleId: profile.id,
+                },
+                JWT_SECRET,
+                { expiresIn: '10m' }
+            )
 
-            user = await prisma.$transaction(async (tx) => {
-                const created = await tx.user.create({
-                    data: {
-                        name: fullName,
-                        first_name: firstName,
-                        last_name: lastName,
-                        username: candidate,
-                        email,
-                        password: null,
-                        status: 'ACTIVE',
-                        last_active: new Date(),
-                        email_verified: true, // Google already verified the email
-                        oauth_provider: 'google',
-                        oauth_provider_id: profile.id,
-                        avatar_base64: null,
-                    },
-                })
-                await tx.dietaryProfile.create({ data: { user_id: created.id, halal_pref: false } })
-                return created
-            })
+            const FRONTEND_URL = process.env.FRONTEND_URL || 'https://app.omniscan.website'
+            return sendRedirect(event, `${FRONTEND_URL}/register?oauth_pending=${encodeURIComponent(tempToken)}`)
+        }
 
-            await logAuditEvent({
-                event_type: 'CREATE',
-                entity: 'User',
-                entity_id: user.id,
-                triggered_by_user_id: user.id,
-                summary: `New user ${email} registered via Google OAuth`,
-            })
-        } else {
-            // Link the Google identity if this account was previously password-only
-            if (!user.oauth_provider) {
+        // Existing user - proceed with login
+        // Existing user - proceed with login
+        // Link the Google identity if this account was previously password-only
+        if (!user.oauth_provider) {
                 await prisma.user.update({
                     where: { id: user.id },
                     data: { oauth_provider: 'google', oauth_provider_id: profile.id, email_verified: true },

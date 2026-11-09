@@ -111,11 +111,12 @@
 										placeholder="your@email.com"
 										class="custom-input"
 										:class="{ 'input-error': fieldErrors.email }"
+										:disabled="isGooglePending"
 										@input="clearFieldError('email')" />
 								</div>
 							</div>
 
-							<div class="form-group">
+							<div v-if="!isGooglePending" class="form-group">
 								<label class="input-label">Password</label>
 								<div class="custom-input-wrapper">
 									<input
@@ -132,7 +133,7 @@
 								</div>
 							</div>
 
-							<div class="pass-criteria-grid">
+							<div v-if="!isGooglePending" class="pass-criteria-grid">
 								<div class="criteria-item" :class="{ valid: passCriteria.length }">
 									<span class="criteria-circle">{{ passCriteria.length ? 'âœ“' : '' }}</span>
 									At least 8 characters
@@ -155,7 +156,7 @@
 								</div>
 							</div>
 
-							<div class="form-group margin-top">
+							<div v-if="!isGooglePending" class="form-group margin-top">
 								<label class="input-label">Confirm Password</label>
 								<div class="custom-input-wrapper">
 									<input
@@ -172,11 +173,47 @@
 								</div>
 							</div>
 
+							<div v-if="isGooglePending" class="google-password-message">
+								<ion-icon :icon="informationCircleOutline" />
+								<span>Password not required for Google accounts</span>
+							</div>
+
+							<div class="form-group margin-top">
+								<label class="input-label">Gender</label>
+								<select 
+									v-model="gender" 
+									class="custom-input custom-select"
+									:class="{ 'input-error': fieldErrors.gender }"
+									@change="clearFieldError('gender')">
+									<option value="" disabled>Select gender</option>
+									<option value="Male">Male</option>
+									<option value="Female">Female</option>
+									<option value="Other">Other</option>
+									<option value="Prefer not to say">Prefer not to say</option>
+								</select>
+							</div>
+
+							<div class="form-group">
+								<label class="input-label">Birthday</label>
+								<input 
+									v-model="birthday" 
+									type="date"
+									:max="maxBirthdayDate"
+									class="custom-input"
+									:class="{ 'input-error': fieldErrors.birthday || ageError }"
+									@input="clearFieldError('birthday')" />
+								<div v-if="ageError" class="field-error-text">{{ ageError }}</div>
+							</div>
+
 							<ion-button
 								expand="block"
 								type="submit"
 								class="submit-button"
-							:disabled="isSubmitting || !isPasswordValid || password !== confirmPassword || usernameValidation.isAvailable !== true">
+							:disabled="isSubmitting || 
+									(!isGooglePending && (!isPasswordValid || password !== confirmPassword)) ||
+									usernameValidation.isAvailable !== true || 
+									!gender || 
+									!isBirthdayValid">
 								<ion-spinner v-if="isSubmitting" name="crescent" class="btn-spinner" />
 								<span v-else>Continue</span>
 							</ion-button>
@@ -344,7 +381,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, IonFooter, IonToggle, toastController } from '@ionic/vue'
-import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, arrowDownOutline } from 'ionicons/icons'
+import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, arrowDownOutline, informationCircleOutline } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
@@ -386,19 +423,46 @@ async function handleGoogleSignIn(): Promise<void> {
 				throw new Error('No ID Token returned from Google Sign-In')
 			}
 
-			await apiFetch('/api/auth/google/verify', {
+			const verifyResponse = await apiFetch<{
+				success: boolean
+				token?: string
+				pendingToken?: string
+				requiresRegistration: boolean
+			}>('/api/auth/google/verify', {
 				method: 'POST',
 				body: { idToken },
 				skipAuth: true,
 			})
 
-			await authStore.checkAuth()
-			step.value = 2
-			fetchAllergenCatalog()
-			router.replace({ path: '/register', query: { step: '2' } })
+			if (verifyResponse.requiresRegistration && verifyResponse.pendingToken) {
+				// New user - pre-fill form
+				const payload = JSON.parse(atob(verifyResponse.pendingToken.split('.')[1]))
+				const username = payload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 15) || 'user'
+
+				authStore.setPendingGoogleData({
+					email: payload.email,
+					firstName: payload.firstName,
+					lastName: payload.lastName,
+					googleId: payload.googleId,
+					username
+				})
+
+				isGooglePending.value = true
+				firstName.value = payload.firstName
+				lastName.value = payload.lastName
+				email.value = payload.email
+				username.value = username
+
+				await checkUsernameAvailability(username)
+				await showToast('Please complete your registration', 'success')
+			} else if (verifyResponse.token) {
+				// Existing user - log in directly
+				await authStore.loginWithOAuthToken(verifyResponse.token)
+				router.push('/tabs/home')
+			}
 		} catch (error: any) {
-			console.error('Native Google Sign-Up failed:', error)
-			const errMsg = error?.message || 'Google sign-up failed. Please try again.'
+			console.error('Native Google Sign-In failed:', error)
+			const errMsg = error?.message || 'Google sign-in failed. Please try again.'
 			void showToast(errMsg, 'danger')
 		} finally {
 			isGoogleSubmitting.value = false
@@ -426,6 +490,9 @@ const username = ref('')
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
+const gender = ref('')
+const birthday = ref('')
+const isGooglePending = ref(false)
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const showMiddleName = ref(false)
@@ -504,6 +571,20 @@ const isPasswordValid = computed(() => {
 	return c.length && c.upper && c.lower && c.number && c.special
 })
 
+const maxBirthdayDate = computed(() => {
+	const date = new Date()
+	date.setFullYear(date.getFullYear() - 16)
+	return date.toISOString().split('T')[0]
+})
+
+const ageError = computed(() => {
+	if (!birthday.value) return ''
+	const age = (Date.now() - new Date(birthday.value).getTime()) / (1000 * 60 * 60 * 24 * 365.25)
+	return age < 16 ? 'You must be at least 16 years old to register' : ''
+})
+
+const isBirthdayValid = computed(() => birthday.value && !ageError.value)
+
 const fieldErrors = reactive({
 	firstName: false,
 	lastName: false,
@@ -511,6 +592,8 @@ const fieldErrors = reactive({
 	email: false,
 	password: false,
 	confirmPassword: false,
+	gender: false,
+	birthday: false,
 })
 
 function clearFieldError(field: keyof typeof fieldErrors) {
@@ -650,14 +733,25 @@ async function handleRegister(): Promise<void> {
 	fieldErrors.email = false
 	fieldErrors.password = false
 	fieldErrors.confirmPassword = false
+	fieldErrors.gender = false
+	fieldErrors.birthday = false
 
 	let hasEmptyField = false
 	if (!firstName.value.trim()) { fieldErrors.firstName = true; hasEmptyField = true }
 	if (!lastName.value.trim()) { fieldErrors.lastName = true; hasEmptyField = true }
 	if (!username.value.trim()) { fieldErrors.username = true; hasEmptyField = true }
 	if (!email.value.trim()) { fieldErrors.email = true; hasEmptyField = true }
-	if (!password.value) { fieldErrors.password = true; hasEmptyField = true }
-	if (!confirmPassword.value) { fieldErrors.confirmPassword = true; hasEmptyField = true }
+	
+	// Only validate password if not Google sign-up
+	if (!isGooglePending.value) {
+		if (!password.value) { fieldErrors.password = true; hasEmptyField = true }
+		if (!confirmPassword.value) { fieldErrors.confirmPassword = true; hasEmptyField = true }
+	}
+	
+	// Always validate gender and birthday
+	if (!gender.value) { fieldErrors.gender = true; hasEmptyField = true }
+	if (!birthday.value) { fieldErrors.birthday = true; hasEmptyField = true }
+	
 	if (hasEmptyField) {
 		errorMessage.value = 'Please fill in all required fields.'
 		return
@@ -676,16 +770,26 @@ async function handleRegister(): Promise<void> {
 		return
 	}
 
-	if (!isPasswordValid.value) {
-		fieldErrors.password = true
-		errorMessage.value = 'Please ensure your password meets all safety criteria.'
-		return
+	// Only validate password if not Google sign-up
+	if (!isGooglePending.value) {
+		if (!isPasswordValid.value) {
+			fieldErrors.password = true
+			errorMessage.value = 'Please ensure your password meets all safety criteria.'
+			return
+		}
+
+		if (password.value !== confirmPassword.value) {
+			fieldErrors.password = true
+			fieldErrors.confirmPassword = true
+			errorMessage.value = 'Passwords do not match.'
+			return
+		}
 	}
 
-	if (password.value !== confirmPassword.value) {
-		fieldErrors.password = true
-		fieldErrors.confirmPassword = true
-		errorMessage.value = 'Passwords do not match.'
+	// Validate birthday age
+	if (ageError.value) {
+		fieldErrors.birthday = true
+		errorMessage.value = ageError.value
 		return
 	}
 
@@ -696,6 +800,35 @@ async function acceptTerms(): Promise<void> {
 	isTermsOpen.value = false
 	termsAccepted.value = true
 
+	if (isGooglePending.value) {
+		await completeGoogleRegistration()
+	} else {
+		await submitPasswordRegistration()
+	}
+}
+
+async function completeGoogleRegistration(): Promise<void> {
+	isSubmitting.value = true
+	try {
+		await authStore.createGoogleAccount(
+			username.value.trim(),
+			gender.value,
+			birthday.value
+		)
+
+		await showToast('Account created successfully!', 'success')
+
+		step.value = 2
+		fetchAllergenCatalog()
+		router.replace({ path: '/register', query: { step: '2' } })
+	} catch (err: any) {
+		errorMessage.value = err?.message || 'Failed to create account. Please try again.'
+	} finally {
+		isSubmitting.value = false
+	}
+}
+
+async function submitPasswordRegistration(): Promise<void> {
 	if (await redirectIfAlreadyAuthenticated()) {
 		return
 	}
@@ -708,6 +841,8 @@ async function acceptTerms(): Promise<void> {
 			username.value.trim(),
 			email.value,
 			password.value,
+			gender.value,
+			birthday.value
 		)
 
 		if (response.requiresVerification) {
@@ -739,6 +874,39 @@ async function acceptTerms(): Promise<void> {
 
 function disagreeTerms(): void {
 	isTermsOpen.value = false
+	
+	if (isGooglePending.value) {
+		handleGoogleSignUpCancellation()
+	}
+}
+
+async function handleGoogleSignUpCancellation(): Promise<void> {
+	try {
+		const isNative = Capacitor.isNativePlatform()
+		if (isNative) {
+			await GoogleSignIn.signOut()
+		}
+		// For web, Google session expires naturally
+
+		authStore.clearPendingGoogleData()
+
+		// Clear all form fields
+		firstName.value = ''
+		middleName.value = ''
+		lastName.value = ''
+		username.value = ''
+		email.value = ''
+		gender.value = ''
+		birthday.value = ''
+		password.value = ''
+		confirmPassword.value = ''
+
+		isGooglePending.value = false
+
+		await showToast('Google sign-up cancelled', 'warning')
+	} catch (err) {
+		console.error('Error cancelling Google sign-up:', err)
+	}
 }
 
 async function fetchAllergenCatalog(): Promise<void> {
@@ -814,6 +982,36 @@ function onWindowFocus(): void {
 }
 
 onMounted(async () => {
+	// Check for oauth_pending token from Google OAuth
+	const pendingToken = route.query.oauth_pending as string
+	if (pendingToken) {
+		try {
+			const payload = JSON.parse(atob(pendingToken.split('.')[1]))
+			if (payload.type !== 'google_pending') throw new Error('Invalid token')
+
+			const username = payload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 15) || 'user'
+			authStore.setPendingGoogleData({
+				email: payload.email,
+				firstName: payload.firstName,
+				lastName: payload.lastName,
+				googleId: payload.googleId,
+				username
+			})
+
+			isGooglePending.value = true
+			firstName.value = payload.firstName
+			lastName.value = payload.lastName
+			email.value = payload.email
+			username.value = username
+
+			await checkUsernameAvailability(username)
+			router.replace({ path: '/register', query: {} })
+		} catch (err) {
+			console.error('Failed to decode pending token:', err)
+			await showToast('Google sign-up session expired. Please try again.', 'danger')
+		}
+	}
+
 	if (step.value === 2) {
 		await authStore.checkAuth()
 		fetchAllergenCatalog()
@@ -1436,5 +1634,62 @@ onUnmounted(() => {
 	.auth-card .back-button {
 		display: none;
 	}
+}
+
+.custom-select {
+	appearance: none;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 12px center;
+	background-size: 12px;
+	padding-right: 40px;
+	cursor: pointer;
+}
+
+.custom-select:disabled, input[type="date"].custom-input:disabled {
+	background-color: #f3f4f6;
+	cursor: not-allowed;
+	color: #9ca3af;
+}
+
+input[type="date"].custom-input {
+	cursor: pointer;
+}
+
+.field-error-text {
+	color: #b91c1c;
+	font-size: 0.75rem;
+	margin-top: 4px;
+	display: block;
+}
+
+.google-password-message {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px;
+	background-color: #e8f5e9;
+	border: 1px solid #4caf50;
+	border-radius: 8px;
+	color: #2e7d32;
+	font-size: 0.875rem;
+	margin-bottom: 16px;
+}
+
+.google-password-message ion-icon {
+	font-size: 20px;
+	flex-shrink: 0;
+}
+
+:global(html.ion-palette-dark) .custom-select {
+	background-color: #1f2937;
+	color: #e5e7eb;
+	border-color: #374151;
+}
+
+:global(html.ion-palette-dark) .google-password-message {
+	background-color: #1b5e20;
+	border-color: #4caf50;
+	color: #a5d6a7;
 }
 </style>

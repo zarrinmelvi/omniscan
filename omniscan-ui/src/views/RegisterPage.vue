@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<ion-page>
 		<ion-content class="auth-content" :scroll-y="true">
 			<div class="auth-layout">
@@ -72,7 +72,7 @@
 								</div>
 							</div>
 							<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
-								{{ showMiddleName ? '− Remove middle name' : '+ Add middle name (optional)' }}
+								{{ showMiddleName ? 'âˆ’ Remove middle name' : '+ Add middle name (optional)' }}
 							</button>
 							<div v-if="showMiddleName" class="form-group">
 								<input v-model="middleName" type="text" placeholder="Middle name" class="custom-input" />
@@ -81,14 +81,25 @@
 							<div class="form-group">
 								<label class="input-label">Username</label>
 								<div class="custom-input-wrapper">
-									<input
-										v-model="username"
-										type="text"
-										placeholder="Choose a username"
-										class="custom-input"
-										:class="{ 'input-error': fieldErrors.username }"
-										@input="clearFieldError('username')" />
+							<input
+								v-model="username"
+								type="text"
+								placeholder="Choose a username"
+								class="custom-input"
+								:class="{ 
+									'input-error': fieldErrors.username || (usernameValidation.isAvailable === false && username.trim()),
+									'input-success': usernameValidation.isAvailable === true && username.trim()
+								}"
+								@input="handleUsernameInput" />
+							<ion-spinner v-if="usernameValidation.isChecking" name="crescent" class="username-spinner" />
 								</div>
+							<div v-if="username.trim() && usernameValidation.message" class="username-feedback" :class="{
+								'username-feedback--checking': usernameValidation.isChecking,
+								'username-feedback--success': usernameValidation.isAvailable === true,
+								'username-feedback--error': usernameValidation.isAvailable === false
+							}">
+								{{ usernameValidation.message }}
+							</div>
 							</div>
 
 							<div class="form-group">
@@ -123,23 +134,23 @@
 
 							<div class="pass-criteria-grid">
 								<div class="criteria-item" :class="{ valid: passCriteria.length }">
-									<span class="criteria-circle">{{ passCriteria.length ? '✓' : '' }}</span>
+									<span class="criteria-circle">{{ passCriteria.length ? 'âœ“' : '' }}</span>
 									At least 8 characters
 								</div>
 								<div class="criteria-item" :class="{ valid: passCriteria.upper }">
-									<span class="criteria-circle">{{ passCriteria.upper ? '✓' : '' }}</span>
-									1 uppercase letter (A–Z)
+									<span class="criteria-circle">{{ passCriteria.upper ? 'âœ“' : '' }}</span>
+									1 uppercase letter (Aâ€“Z)
 								</div>
 								<div class="criteria-item" :class="{ valid: passCriteria.lower }">
-									<span class="criteria-circle">{{ passCriteria.lower ? '✓' : '' }}</span>
-									1 lowercase letter (a–z)
+									<span class="criteria-circle">{{ passCriteria.lower ? 'âœ“' : '' }}</span>
+									1 lowercase letter (aâ€“z)
 								</div>
 								<div class="criteria-item" :class="{ valid: passCriteria.number }">
-									<span class="criteria-circle">{{ passCriteria.number ? '✓' : '' }}</span>
-									1 number (0–9)
+									<span class="criteria-circle">{{ passCriteria.number ? 'âœ“' : '' }}</span>
+									1 number (0â€“9)
 								</div>
 								<div class="criteria-item" :class="{ valid: passCriteria.special }">
-									<span class="criteria-circle">{{ passCriteria.special ? '✓' : '' }}</span>
+									<span class="criteria-circle">{{ passCriteria.special ? 'âœ“' : '' }}</span>
 									1 special character (!@#$%^&*)
 								</div>
 							</div>
@@ -165,7 +176,7 @@
 								expand="block"
 								type="submit"
 								class="submit-button"
-								:disabled="isSubmitting || !isPasswordValid || password !== confirmPassword">
+							:disabled="isSubmitting || !isPasswordValid || password !== confirmPassword || usernameValidation.isAvailable !== true">
 								<ion-spinner v-if="isSubmitting" name="crescent" class="btn-spinner" />
 								<span v-else>Continue</span>
 							</ion-button>
@@ -193,7 +204,7 @@
 
 					<!-- STEP 2: Allergens / Dietary Preferences -->
 					<template v-else>
-						<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! 🎉' : 'Almost There!' }}</span>
+						<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! ðŸŽ‰' : 'Almost There!' }}</span>
 						<h1 class="auth-title">Your allergens</h1>
 						<p class="auth-subtitle">Choose up to 5. We flag them on every scan. You can change them later in your profile.</p>
 
@@ -223,7 +234,7 @@
 									class="allergen-chip"
 									:class="{ 'allergen-chip--selected': selectedAllergenIds.includes(allergen.id) }"
 									@click="toggleAllergen(allergen.id)">
-									<span v-if="selectedAllergenIds.includes(allergen.id)" class="chip-check">✓</span>
+									<span v-if="selectedAllergenIds.includes(allergen.id)" class="chip-check">âœ“</span>
 									{{ formatAllergenName(allergen.name) }}
 								</button>
 							</div>
@@ -423,6 +434,21 @@ const isTermsOpen = ref(false)
 const termsAccepted = ref(false)
 const errorMessage = ref<string | null>(null)
 
+// Username validation state
+const usernameValidation = ref<{
+	isChecking: boolean
+	isAvailable: boolean | null
+	message: string
+	lastChecked: string
+}>({
+	isChecking: false,
+	isAvailable: null,
+	message: '',
+	lastChecked: ''
+})
+
+let usernameCheckTimeout: ReturnType<typeof setTimeout> | null = null
+
 const termsContentRef = ref<any>(null)
 const termsScrolledToBottom = ref(false)
 
@@ -489,6 +515,70 @@ const fieldErrors = reactive({
 
 function clearFieldError(field: keyof typeof fieldErrors) {
 	fieldErrors[field] = false
+}
+
+function handleUsernameInput() {
+	clearFieldError('username')
+	checkUsernameAvailability(username.value)
+}
+
+// Debounced username availability check
+async function checkUsernameAvailability(value: string) {
+	const trimmedUsername = value.trim()
+	
+	// Clear previous timeout
+	if (usernameCheckTimeout) {
+		clearTimeout(usernameCheckTimeout)
+	}
+	
+	// Reset validation state if empty
+	if (!trimmedUsername) {
+		usernameValidation.value = {
+			isChecking: false,
+			isAvailable: null,
+			message: '',
+			lastChecked: ''
+		}
+		return
+	}
+	
+	// Check if already checked this username
+	if (usernameValidation.value.lastChecked === trimmedUsername && usernameValidation.value.isAvailable !== null) {
+		return
+	}
+	
+	// Set checking state immediately
+	usernameValidation.value.isChecking = true
+	usernameValidation.value.message = 'Checking availability...'
+	
+	// Debounce the actual API call
+	usernameCheckTimeout = setTimeout(async () => {
+		try {
+			const response = await apiFetch<{
+				available: boolean
+				message: string
+				isFormatError: boolean
+			}>('/api/auth/check-username', {
+				method: 'POST',
+				body: { username: trimmedUsername },
+				skipAuth: true,
+			})
+			
+			usernameValidation.value = {
+				isChecking: false,
+				isAvailable: response.available,
+				message: response.message,
+				lastChecked: trimmedUsername
+			}
+		} catch (error: any) {
+			usernameValidation.value = {
+				isChecking: false,
+				isAvailable: false,
+				message: error?.message || 'Could not check username availability',
+				lastChecked: trimmedUsername
+			}
+		}
+	}, 500) // 500ms debounce
 }
 
 const ALLOWED_DOMAINS = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com']
@@ -879,6 +969,43 @@ onUnmounted(() => {
 	border-color: #ef4444 !important;
 }
 
+.custom-input.input-success {
+	border-color: #15803d !important;
+}
+
+.username-spinner {
+	position: absolute;
+	right: 14px;
+	width: 18px;
+	height: 18px;
+	color: #6b7280;
+}
+
+.username-feedback {
+	font-size: 0.8rem;
+	margin-top: 6px;
+	padding: 6px 10px;
+	border-radius: 6px;
+	line-height: 1.3;
+}
+
+.username-feedback--checking {
+	color: #6b7280;
+	background: #f3f4f6;
+}
+
+.username-feedback--success {
+	color: #15803d;
+	background: #f0fdf4;
+	border: 1px solid #bbf7d0;
+}
+
+.username-feedback--error {
+	color: #b91c1c;
+	background: #fee2e2;
+	border: 1px solid #fecaca;
+}
+
 .custom-input::placeholder {
 	color: #9ca3af;
 }
@@ -1201,6 +1328,20 @@ onUnmounted(() => {
 :global(html.ion-palette-dark) .input-label { color: #d1d5db; }
 :global(html.ion-palette-dark) .custom-input { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
 :global(html.ion-palette-dark) .custom-input::placeholder { color: #6b7280; }
+:global(html.ion-palette-dark) .username-feedback--checking {
+	background: #1f2937;
+	color: #9ca3af;
+}
+:global(html.ion-palette-dark) .username-feedback--success {
+	background: #14532d;
+	color: #86efac;
+	border-color: #166534;
+}
+:global(html.ion-palette-dark) .username-feedback--error {
+	background: #450a0a;
+	color: #fca5a5;
+	border-color: #7f1d1d;
+}
 :global(html.ion-palette-dark) .pass-criteria-grid { background: #172617; }
 :global(html.ion-palette-dark) .criteria-item { color: #6b7280; }
 :global(html.ion-palette-dark) .allergen-chip { border-color: #2d4a2d; color: #d1d5db; }

@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { IonApp, IonRouterOutlet } from '@ionic/vue'
 import { Capacitor } from '@capacitor/core'
@@ -32,13 +32,11 @@ import DesktopNav from '@/components/DesktopNav.vue'
 import AdminToast from '@/components/admin/AdminToast.vue'
 import { startSessionWatcher } from '@/composables/useSessionWatcher'
 import { useAuthStore } from '@/stores/authStore'
-import { useDarkMode } from '@/composables/useDarkMode'
 
 const route = useRoute()
 const router = useRouter()
 const { isDesktop } = useBreakpoint()
 const authStore = useAuthStore()
-const { isDark } = useDarkMode()
 
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 const isTabsRoute = computed(() => route.path.startsWith('/tabs/'))
@@ -59,8 +57,7 @@ onMounted(async () => {
 
 	if (Capacitor.isNativePlatform()) {
 		await StatusBar.show()
-		// Set overlay to false so web layout does NOT overlap system status bar icons
-		await StatusBar.setOverlaysWebView({ overlay: false })
+		await StatusBar.setOverlaysWebView({ overlay: true })
 		await updateStatusBar(darkModeEnabled)
 
 		// Listen for deep link redirects back to the app (OAuth / custom scheme callbacks)

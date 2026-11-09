@@ -177,32 +177,28 @@ header {
 
 /* Theme Toggle */
 .theme {
-	width: 38px;
-	height: 38px;
-	border-radius: 50%;
-	background: #f1f5f9 !important;
+	width: 48px;
+	height: 26px;
+	border-radius: 25px;
+	background: #34a853;
 	border: 0;
+	padding: 3px;
 	display: flex;
-	justify-content: center;
+	justify-content: flex-end;
 	align-items: center;
 	transition: background 0.2s ease;
 	cursor: pointer;
 	-webkit-tap-highlight-color: transparent;
-	opacity: 1 !important;
 }
 
 .theme ion-icon {
-	color: #334155 !important;
-	font-size: 18px;
-	opacity: 1 !important;
+	color: #ffffff;
+	font-size: 16px;
 }
 
 :root.ion-palette-dark .theme {
-	background: #334155 !important;
-}
-
-:root.ion-palette-dark .theme ion-icon {
-	color: #fbbf24 !important;
+	background: #1c3d29;
+	justify-content: flex-start;
 }
 
 :root.ion-palette-dark header {

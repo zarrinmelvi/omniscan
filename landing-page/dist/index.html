@@ -65,46 +65,23 @@
     
     /* Theme Toggle */
     .theme {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: #f1f5f9;
+      width: 48px;
+      height: 26px;
+      border-radius: 25px;
+      background: #34a853;
       border: 0;
+      padding: 3px;
       display: flex;
-      justify-content: center;
+      justify-content: flex-end;
       align-items: center;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
       transition: background 0.2s ease;
-      padding: 0;
-      flex-shrink: 0;
     }
-    .theme svg {
-      width: 18px;
-      height: 18px;
-      background: transparent !important;
-      fill: none;
-      border: none;
-      box-shadow: none;
-      border-radius: 0;
-    }
-    .theme .icon-moon {
-      display: block;
-      color: #334155;
-    }
-    .theme .icon-sun {
-      display: none;
-      color: #fbbf24;
-    }
-    body.dark .theme {
-      background: #334155;
-    }
-    body.dark .theme .icon-moon {
-      display: none;
-    }
-    body.dark .theme .icon-sun {
-      display: block;
-      color: #fbbf24;
+    .theme span {
+      width: 20px;
+      height: 20px;
+      background: #ffffff;
+      border-radius: 100%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
 
     /* Hero Section */
@@ -250,6 +227,8 @@
     body.dark h1, body.dark h2, body.dark h3 { color: #eef4ed; }
     body.dark p { color: #b8c8bc; }
     body.dark .dashboard, body.dark .card { background: #173b27; border: 0; }
+    body.dark .theme { background: #1c3d29; justify-content: flex-start; }
+    body.dark .theme span { background: #65ce78; }
 
     @media (max-width: 650px) {
       header { height: 64px; padding: 0 18px; }
@@ -271,22 +250,7 @@
   <header>
     <a class="brand" href="#">OmniScan</a>
     <nav class="actions" aria-label="Account">
-      <button class="theme" aria-label="Toggle theme" aria-pressed="false" onclick="toggleTheme()">
-        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
-        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5"></circle>
-          <line x1="12" y1="1" x2="12" y2="3"></line>
-          <line x1="12" y1="21" x2="12" y2="23"></line>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-          <line x1="1" y1="12" x2="3" y2="12"></line>
-          <line x1="21" y1="12" x2="23" y2="12"></line>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-        </svg>
-      </button>
+      <button class="theme" aria-label="Toggle theme" aria-pressed="false"><span></span></button>
       <a class="pill" href="signup.html" id="signup-btn">Sign up</a>
       <a class="pill secondary" href="signin.html" id="signin-btn">Sign in</a>
     </nav>
@@ -390,24 +354,11 @@
     document.querySelector('#dialog-ok').onclick = () => d.close();
     d.onclick = e => { if (e.target === d) d.close(); };
 
-    // Theme toggle - synced with Vue app via localStorage
-    function toggleTheme() {
+    // Theme toggle
+    document.querySelector('.theme').onclick = function() {
       let isDark = document.body.classList.toggle('dark');
-      const btn = document.querySelector('.theme');
-      btn.setAttribute('aria-pressed', isDark);
-      // Save to localStorage for Vue app sync
-      localStorage.setItem('omniscan_dark_mode', isDark ? 'true' : 'false');
-    }
-
-    // Initialize theme from localStorage on page load
-    (function initTheme() {
-      const savedTheme = localStorage.getItem('omniscan_dark_mode');
-      if (savedTheme === 'true') {
-        document.body.classList.add('dark');
-        const btn = document.querySelector('.theme');
-        if (btn) btn.setAttribute('aria-pressed', 'true');
-      }
-    })();
+      this.setAttribute('aria-pressed', isDark);
+    };
   </script>
 </body>
 </html>

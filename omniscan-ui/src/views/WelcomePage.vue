@@ -247,6 +247,21 @@ header {
 	margin: 16px auto 0;
 }
 
+/* Dark Mode Button Styles */
+:root.ion-palette-dark .pill {
+	--background: #34a853;
+	--background-hover: #2d9248;
+	--background-activated: #2d9248;
+	--color: #ffffff;
+}
+
+:root.ion-palette-dark .pill.secondary {
+	--background: #1a3322;
+	--background-hover: #234029;
+	--background-activated: #234029;
+	--color: #b8f5c8;
+}
+
 /* Hero Section */
 .hero {
 	position: relative;
@@ -357,6 +372,10 @@ p {
 
 .download:hover {
 	text-decoration: underline;
+}
+
+:root.ion-palette-dark .download {
+	color: #63cd77;
 }
 
 .small {

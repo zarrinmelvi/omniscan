@@ -337,11 +337,13 @@ import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, arro
 import { Capacitor } from '@capacitor/core'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
+import { useDarkMode } from '@/composables/useDarkMode'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+useDarkMode() // Initialize dark mode from localStorage
 
 const PREF_MAX = 5
 const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)

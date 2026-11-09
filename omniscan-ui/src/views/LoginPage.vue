@@ -136,9 +136,11 @@ import { chevronBackOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
+import { useDarkMode } from '@/composables/useDarkMode'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
 
 const authStore = useAuthStore()
+useDarkMode() // Initialize dark mode from localStorage
 const route = useRoute()
 
 const googleCancelled = computed(() => route.query.google_cancelled === '1')

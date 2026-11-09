@@ -33,3 +33,14 @@ npm-debug.log*
 
 .vercel
 .env*
+
+# Android build artifacts
+android/.gradle/
+android/.idea/
+android/build/
+android/app/build/
+android/app/src/main/assets/
+android/app/src/main/res/values/
+android/app/src/main/res/xml/
+android/capacitor-cordova-android-plugins/
+android/local.properties

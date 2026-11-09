@@ -381,7 +381,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, IonModal, IonHeader, IonFooter, IonToggle, toastController } from '@ionic/vue'
-import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, arrowDownOutline, informationCircleOutline } from 'ionicons/icons'
+import { chevronBackOutline, eyeOutline, eyeOffOutline, alertCircleOutline, arrowDownOutline, informationCircleOutline, checkmarkCircle, ellipseOutline } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'

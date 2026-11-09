@@ -179,3 +179,18 @@ ion-modal.responsive-upload-modal .light-content {
 	height: 100%;
 	max-width: 100%;
 }
+
+/* Global Ionic Palette Dark Mode Overrides */
+html.ion-palette-dark,
+body.dark,
+:root.ion-palette-dark {
+	--ion-background-color: #09130e;
+	--ion-background-color-rgb: 9, 19, 14;
+
+	--ion-text-color: #eef4ed;
+	--ion-text-color-rgb: 238, 244, 237;
+
+	--ion-card-background: #0d1f13;
+	--ion-item-background: #0d1f13;
+	--ion-toolbar-background: #09130e;
+}

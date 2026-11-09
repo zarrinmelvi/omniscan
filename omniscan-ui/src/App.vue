@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { IonApp, IonRouterOutlet } from '@ionic/vue'
 import { Capacitor } from '@capacitor/core'
@@ -32,33 +32,37 @@ import DesktopNav from '@/components/DesktopNav.vue'
 import AdminToast from '@/components/admin/AdminToast.vue'
 import { startSessionWatcher } from '@/composables/useSessionWatcher'
 import { useAuthStore } from '@/stores/authStore'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const route = useRoute()
 const router = useRouter()
 const { isDesktop } = useBreakpoint()
 const authStore = useAuthStore()
+const { isDark } = useDarkMode()
 
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 const isTabsRoute = computed(() => route.path.startsWith('/tabs/'))
 
 // Helper to update native status bar icons and background color based on dark mode state
-async function updateStatusBar(isDark: boolean) {
+async function updateStatusBar(dark: boolean) {
 	if (Capacitor.isNativePlatform()) {
-		// Style.Dark = Light icons for dark background (#121212)
+		// Style.Dark = Light icons for dark background (#09130e)
 		// Style.Light = Dark icons for light background (#f8f9fa)
-		await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light })
-		await StatusBar.setBackgroundColor({ color: isDark ? '#121212' : '#f8f9fa' })
+		await StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light })
+		await StatusBar.setBackgroundColor({ color: dark ? '#09130e' : '#f8f9fa' })
 	}
 }
 
-onMounted(async () => {
-	const darkModeEnabled = localStorage.getItem('omniscan_dark_mode') === 'true'
-	document.documentElement.classList.toggle('ion-palette-dark', darkModeEnabled)
+// Dynamically watch for dark mode changes across the entire app
+watch(isDark, (dark) => {
+	updateStatusBar(dark)
+})
 
+onMounted(async () => {
 	if (Capacitor.isNativePlatform()) {
 		await StatusBar.show()
 		await StatusBar.setOverlaysWebView({ overlay: true })
-		await updateStatusBar(darkModeEnabled)
+		await updateStatusBar(isDark.value)
 
 		// Listen for deep link redirects back to the app (OAuth / custom scheme callbacks)
 		await App.addListener('appUrlOpen', (event) => {
@@ -71,10 +75,7 @@ onMounted(async () => {
 		})
 	}
 
-	// Watch the consumer session in the background so a server-side invalidation
-	// (newer login elsewhere, or an admin login in the same browser) auto-logs
-	// the consumer out within a few seconds, without needing a manual refresh.
-	// No-ops while unauthenticated, so it's safe to call unconditionally here.
+	// Watch the consumer session in the background
 	startSessionWatcher()
 })
 </script>

@@ -129,9 +129,10 @@ function openDownloadModal() {
 }
 
 :global(html.ion-palette-dark) .welcome-content,
-:root.ion-palette-dark .welcome-content {
-	--background: #09130e;
-	--color: #eef4ed;
+:global(body.dark) .welcome-content,
+:global(:root.ion-palette-dark) .welcome-content {
+	--background: #09130e !important;
+	--color: #eef4ed !important;
 }
 
 /* Override Ionic defaults */
@@ -168,8 +169,9 @@ header {
 }
 
 :global(html.ion-palette-dark) .brand,
-:root.ion-palette-dark .brand {
-	color: #63cd77;
+:global(body.dark) .brand,
+:global(:root.ion-palette-dark) .brand {
+	color: #63cd77 !important;
 }
 
 .actions {
@@ -205,18 +207,21 @@ header {
 }
 
 :global(html.ion-palette-dark) .theme,
-:root.ion-palette-dark .theme {
+:global(body.dark) .theme,
+:global(:root.ion-palette-dark) .theme {
 	background: #334155 !important;
 }
 
 :global(html.ion-palette-dark) .theme ion-icon,
-:root.ion-palette-dark .theme ion-icon {
+:global(body.dark) .theme ion-icon,
+:global(:root.ion-palette-dark) .theme ion-icon {
 	color: #fbbf24 !important;
 }
 
 :global(html.ion-palette-dark) header,
-:root.ion-palette-dark header {
-	background: rgba(9, 19, 14, 0.92);
+:global(body.dark) header,
+:global(:root.ion-palette-dark) header {
+	background: rgba(9, 19, 14, 0.92) !important;
 	backdrop-filter: blur(8px);
 }
 
@@ -256,14 +261,16 @@ ion-button.pill.cta-btn {
 
 /* Dark Mode Pill Button Overrides */
 :global(html.ion-palette-dark) ion-button.pill,
-:root.ion-palette-dark ion-button.pill {
+:global(body.dark) ion-button.pill,
+:global(:root.ion-palette-dark) ion-button.pill {
 	background: transparent !important;
 	--background: #34a853 !important;
 	--color: #ffffff !important;
 }
 
 :global(html.ion-palette-dark) ion-button.pill.secondary,
-:root.ion-palette-dark ion-button.pill.secondary {
+:global(body.dark) ion-button.pill.secondary,
+:global(:root.ion-palette-dark) ion-button.pill.secondary {
 	background: transparent !important;
 	--background: #e8f5ec !important;
 	--color: #1f5e34 !important;
@@ -289,8 +296,9 @@ ion-button.pill.cta-btn {
 }
 
 :global(html.ion-palette-dark) .hero::before,
-:root.ion-palette-dark .hero::before {
-	opacity: 0.12;
+:global(body.dark) .hero::before,
+:global(:root.ion-palette-dark) .hero::before {
+	opacity: 0.12 !important;
 }
 
 .hero::after {
@@ -302,8 +310,9 @@ ion-button.pill.cta-btn {
 }
 
 :global(html.ion-palette-dark) .hero::after,
-:root.ion-palette-dark .hero::after {
-	background: linear-gradient(180deg, rgba(9, 19, 14, 0.7) 0%, rgba(9, 19, 14, 0.92) 60%, #09130e 100%);
+:global(body.dark) .hero::after,
+:global(:root.ion-palette-dark) .hero::after {
+	background: linear-gradient(180deg, rgba(9, 19, 14, 0.7) 0%, rgba(9, 19, 14, 0.92) 60%, #09130e 100%) !important;
 }
 
 .eyebrow {
@@ -324,8 +333,9 @@ h1 {
 }
 
 :global(html.ion-palette-dark) h1,
-:root.ion-palette-dark h1 {
-	color: #eef4ed;
+:global(body.dark) h1,
+:global(:root.ion-palette-dark) h1 {
+	color: #eef4ed !important;
 }
 
 h2,
@@ -337,9 +347,11 @@ h3 {
 
 :global(html.ion-palette-dark) h2,
 :global(html.ion-palette-dark) h3,
-:root.ion-palette-dark h2,
-:root.ion-palette-dark h3 {
-	color: #eef4ed;
+:global(body.dark) h2,
+:global(body.dark) h3,
+:global(:root.ion-palette-dark) h2,
+:global(:root.ion-palette-dark) h3 {
+	color: #eef4ed !important;
 }
 
 h2 {
@@ -354,8 +366,9 @@ p {
 }
 
 :global(html.ion-palette-dark) p,
-:root.ion-palette-dark p {
-	color: #b8c8bc;
+:global(body.dark) p,
+:global(:root.ion-palette-dark) p {
+	color: #b8c8bc !important;
 }
 
 .hero p {
@@ -366,8 +379,9 @@ p {
 }
 
 :global(html.ion-palette-dark) .hero p,
-:root.ion-palette-dark .hero p {
-	color: #b8c8bc;
+:global(body.dark) .hero p,
+:global(:root.ion-palette-dark) .hero p {
+	color: #b8c8bc !important;
 }
 
 .download {
@@ -389,8 +403,9 @@ p {
 }
 
 :global(html.ion-palette-dark) .download,
-:root.ion-palette-dark .download {
-	color: #63cd77;
+:global(body.dark) .download,
+:global(:root.ion-palette-dark) .download {
+	color: #63cd77 !important;
 }
 
 .small {
@@ -419,9 +434,10 @@ p {
 }
 
 :global(html.ion-palette-dark) .dashboard,
-:root.ion-palette-dark .dashboard {
-	background: #0d1f13;
-	border: 1px solid #1a3322;
+:global(body.dark) .dashboard,
+:global(:root.ion-palette-dark) .dashboard {
+	background: #0d1f13 !important;
+	border: 1px solid #1a3322 !important;
 }
 
 .dashboard p {
@@ -452,9 +468,10 @@ p {
 }
 
 :global(html.ion-palette-dark) .card,
-:root.ion-palette-dark .card {
-	background: #0d1f13;
-	border: 1px solid #1a3322;
+:global(body.dark) .card,
+:global(:root.ion-palette-dark) .card {
+	background: #0d1f13 !important;
+	border: 1px solid #1a3322 !important;
 }
 
 .card h3 {
@@ -469,8 +486,9 @@ p {
 }
 
 :global(html.ion-palette-dark) .card p,
-:root.ion-palette-dark .card p {
-	color: #b8c8bc;
+:global(body.dark) .card p,
+:global(:root.ion-palette-dark) .card p {
+	color: #b8c8bc !important;
 }
 
 /* Mobile Preview Section */
@@ -515,8 +533,9 @@ p {
 }
 
 :global(html.ion-palette-dark) .diet p,
-:root.ion-palette-dark .diet p {
-	color: #b8c8bc;
+:global(body.dark) .diet p,
+:global(:root.ion-palette-dark) .diet p {
+	color: #b8c8bc !important;
 }
 
 footer {
@@ -529,9 +548,10 @@ footer {
 }
 
 :global(html.ion-palette-dark) footer,
-:root.ion-palette-dark footer {
-	border-top-color: #1a3322;
-	color: #8ca899;
+:global(body.dark) footer,
+:global(:root.ion-palette-dark) footer {
+	border-top-color: #1a3322 !important;
+	color: #8ca899 !important;
 }
 
 /* Mobile Responsive */
@@ -609,10 +629,11 @@ ion-modal.download-modal {
 }
 
 :global(html.ion-palette-dark) .modal-dialog,
+:global(body.dark) .modal-dialog,
 :root.ion-palette-dark .modal-dialog {
-	background: #0d1f13;
-	border: 1px solid #1a3322;
-	color: #eef4ed;
+	background: #0d1f13 !important;
+	border: 1px solid #1a3322 !important;
+	color: #eef4ed !important;
 }
 
 .modal-dialog .close {

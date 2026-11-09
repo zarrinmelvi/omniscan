@@ -83,16 +83,14 @@ export default defineEventHandler(async (event) => {
         }
 
         // Existing user - proceed with login
-        // Existing user - proceed with login
         // Link the Google identity if this account was previously password-only
         if (!user.oauth_provider) {
-                await prisma.user.update({
-                    where: { id: user.id },
-                    data: { oauth_provider: 'google', oauth_provider_id: profile.id, email_verified: true },
-                })
-            }
-            await prisma.user.update({ where: { id: user.id }, data: { last_active: new Date(), inactivity_warning_sent_at: null } }).catch(() => {})
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { oauth_provider: 'google', oauth_provider_id: profile.id, email_verified: true },
+            })
         }
+        await prisma.user.update({ where: { id: user.id }, data: { last_active: new Date(), inactivity_warning_sent_at: null } }).catch(() => {})
 
         await logAuditEvent({
             event_type: 'LOGIN',

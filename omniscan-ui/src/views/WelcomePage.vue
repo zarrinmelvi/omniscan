@@ -180,7 +180,7 @@ header {
 	width: 38px;
 	height: 38px;
 	border-radius: 50%;
-	background: #f1f5f9;
+	background: #f1f5f9 !important;
 	border: 0;
 	display: flex;
 	justify-content: center;
@@ -188,19 +188,21 @@ header {
 	transition: background 0.2s ease;
 	cursor: pointer;
 	-webkit-tap-highlight-color: transparent;
+	opacity: 1 !important;
 }
 
 .theme ion-icon {
-	color: #334155;
+	color: #334155 !important;
 	font-size: 18px;
+	opacity: 1 !important;
 }
 
 :root.ion-palette-dark .theme {
-	background: #334155;
+	background: #334155 !important;
 }
 
 :root.ion-palette-dark .theme ion-icon {
-	color: #fbbf24;
+	color: #fbbf24 !important;
 }
 
 :root.ion-palette-dark header {

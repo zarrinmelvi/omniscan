@@ -20,8 +20,14 @@
 					<div class="eyebrow">Your everyday food companion</div>
 					<h1>Know your food.<br />Simplify your day.</h1>
 					<p>Scan food labels, understand your ingredients, and keep your pantry organized. One smarter routine, on your browser and in your pocket.</p>
-					<ion-button class="pill cta-btn" @click="goToRegister">Get started</ion-button>
-					<button class="download" @click="openDownloadModal">Download the mobile app</button>
+					<ion-button class="pill cta-btn download-app-btn" @click="openDownloadModal">
+						<ion-icon :icon="downloadOutline" slot="start" />
+						Download OmniScan App v1.0
+					</ion-button>
+					<p class="android-only">
+						<ion-icon :icon="logoAndroid" />
+						Application is for Android only
+					</p>
 					<p class="small">One account. Your phone. Your browser.</p>
 				</section>
 
@@ -92,20 +98,12 @@
 import { ref } from 'vue'
 import { IonPage, IonContent, IonButton, IonIcon, IonModal } from '@ionic/vue'
 import { useRouter } from 'vue-router'
-import { moonOutline, sunnyOutline } from 'ionicons/icons'
+import { moonOutline, sunnyOutline, downloadOutline, logoAndroid } from 'ionicons/icons'
 import { useDarkMode } from '@/composables/useDarkMode'
 
 const router = useRouter()
 const { isDark, toggle } = useDarkMode()
 const isDownloadModalOpen = ref(false)
-
-function goToRegister() {
-	router.push('/register')
-}
-
-function goToLogin() {
-	router.push('/login')
-}
 
 function toggleTheme() {
 	toggle()
@@ -255,7 +253,31 @@ ion-button.pill.cta-btn {
 	margin: 16px auto 0;
 }
 
+/* Download App Button - Brand Green */
+ion-button.pill.download-app-btn {
+	display: block;
+	width: fit-content;
+	margin: 16px auto 8px;
+	background: transparent !important;
+	--background: #34a853 !important;
+	--background-hover: #2d9248 !important;
+	--background-activated: #2d9248 !important;
+	--color: #ffffff !important;
+	--padding-start: 24px;
+	--padding-end: 24px;
+	--padding-top: 12px;
+	--padding-bottom: 12px;
+	font-size: 14px;
+	font-weight: 600;
+}
+
 html.ion-palette-dark ion-button.pill {
+	background: transparent !important;
+	--background: #34a853 !important;
+	--color: #ffffff !important;
+}
+
+html.ion-palette-dark ion-button.pill.download-app-btn {
 	background: transparent !important;
 	--background: #34a853 !important;
 	--color: #ffffff !important;
@@ -363,25 +385,28 @@ html.ion-palette-dark .hero p {
 	color: #b8c8bc !important;
 }
 
-.download {
-	display: block;
-	width: fit-content;
-	margin: 16px auto;
-	color: #278846;
-	text-decoration: none;
+/* Android Only Text */
+.android-only {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	margin: 12px auto 16px;
 	font-size: 13px;
-	font-weight: 600;
-	background: none;
-	border: 0;
-	cursor: pointer;
-	-webkit-tap-highlight-color: transparent;
+	font-weight: 500;
+	color: #627d6b;
 }
 
-.download:hover {
-	text-decoration: underline;
+.android-only ion-icon {
+	font-size: 18px;
+	color: #34a853;
 }
 
-html.ion-palette-dark .download {
+html.ion-palette-dark .android-only {
+	color: #8ca899 !important;
+}
+
+html.ion-palette-dark .android-only ion-icon {
 	color: #63cd77 !important;
 }
 

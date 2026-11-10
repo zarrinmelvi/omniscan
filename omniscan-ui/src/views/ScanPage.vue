@@ -129,11 +129,15 @@ import { onBeforeRouteLeave } from 'vue-router'
 
 import { API_BASE_URL } from '@/utils/api'
 import { cameraOutline, closeOutline, scanOutline } from 'ionicons/icons'
+import { useCameraPermission } from '@/composables/useCameraPermission'
 import ScanResultModal from '../components/ScanResultModal.vue'
 import PhotoPantryUploadModal from '../components/PhotoPantryUploadModal.vue'
 import AppHeader from '@/components/AppHeader.vue'
 
 const TOKEN_KEY = 'omniscan_token'
+
+const { hasPermission: cameraPermissionGranted, requestPermission } = useCameraPermission()
+const isRequestingPermission = ref(false)
 
 const isPhotoModalOpen = ref(false)
 const isRouteAlertOpen = ref(false)
@@ -562,8 +566,21 @@ let brightnessCanvas: HTMLCanvasElement | null = null
 let brightnessCtx: CanvasRenderingContext2D | null = null
 
 async function openCamera(): Promise<void> {
-	if (isCoolingDown.value || isUploading.value) {
+	if (isCoolingDown.value || isUploading.value || isCameraOpen.value || isRequestingPermission.value) {
 		return
+	}
+
+	// Check if permission was previously denied
+	if (!cameraPermissionGranted.value) {
+		isRequestingPermission.value = true
+		const granted = await requestPermission()
+		isRequestingPermission.value = false
+		
+		if (!granted) {
+			// Permission denied - show error
+			cameraError.value = 'Camera permission was denied. Please allow camera access in your browser settings and try again.'
+			return
+		}
 	}
 
 	cameraError.value = null

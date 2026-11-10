@@ -385,6 +385,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useCameraPermission } from '@/composables/useCameraPermission'
 import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import {
@@ -435,10 +436,9 @@ function goBackToProfile() {
 	}
 }
 
-const CAMERA_PREF_KEY = 'omniscan_pref_camera'
+const { hasPermission: cameraPermission, setPermission } = useCameraPermission()
 const NOTIF_PREF_KEY = 'omniscan_pref_notifications'
 
-const cameraPermission = ref(true)
 const notificationsPermission = ref(true)
 const darkMode = ref(isDarkSingleton.value)
 
@@ -490,41 +490,12 @@ const faqs = [
 ]
 
 function savePrefs() {
-	localStorage.setItem(CAMERA_PREF_KEY, String(cameraPermission.value))
 	localStorage.setItem(NOTIF_PREF_KEY, String(notificationsPermission.value))
 }
 
-async function onCameraToggleChange(): Promise<void> {
-	savePrefs()
-	if (cameraPermission.value) {
-		// User turned camera ON — trigger the browser permission prompt
-		try {
-			const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-			// Permission granted — stop the stream immediately (we just needed the prompt)
-			stream.getTracks().forEach((track) => track.stop())
-		} catch (err: any) {
-			const name = err?.name ?? ''
-			if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
-				// Permission denied — revert the toggle
-				cameraPermission.value = false
-				savePrefs()
-				// Show a toast or alert
-				const { toastController } = await import('@ionic/vue')
-				const toast = await toastController.create({
-					message: 'Camera permission was denied. Please allow it in your browser settings.',
-					duration: 3500,
-					color: 'danger',
-					position: 'top',
-				})
-				await toast.present()
-			} else if (name === 'NotFoundError') {
-				// No camera on device — disable toggle
-				cameraPermission.value = false
-				savePrefs()
-			}
-			// Other errors (NotReadableError etc) — permission may still be granted, don't revert
-		}
-	}
+function onCameraToggleChange(event: CustomEvent) {
+	const isEnabled = event.detail.checked
+	setPermission(isEnabled)
 }
 
 async function updateNativeStatusBar(isDark: boolean) {
@@ -545,7 +516,7 @@ function contactSupport() {
 }
 
 onMounted(async () => {
-	cameraPermission.value = localStorage.getItem(CAMERA_PREF_KEY) !== 'false'
+	// cameraPermission is now managed by useCameraPermission composable
 	notificationsPermission.value = localStorage.getItem(NOTIF_PREF_KEY) !== 'false'
 	darkMode.value = isDarkSingleton.value
 

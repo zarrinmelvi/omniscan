@@ -9,8 +9,8 @@
 						<!-- Moon icon shows in LIGHT mode; Sun icon shows in DARK mode -->
 						<ion-icon :icon="isDark ? sunnyOutline : moonOutline" />
 					</button>
-					<ion-button class="pill" @click="goToRegister">Sign up</ion-button>
-					<ion-button class="pill secondary" @click="goToLogin">Sign in</ion-button>
+					<ion-button class="pill" @click="router.push('/register')">Sign up</ion-button>
+					<ion-button class="pill secondary" @click="router.push('/login')">Sign in</ion-button>
 				</nav>
 			</header>
 

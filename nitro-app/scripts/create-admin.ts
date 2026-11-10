@@ -4,23 +4,22 @@
 // get created.
 //
 // Usage:
-//   bun scripts/create-admin.ts <username> <password> "<Full Name>" [role] [email]
+//   bun scripts/create-admin.ts <username> <password> "<Full Name>"
 //
-// Examples:
-//   bun scripts/create-admin.ts zarrin supersecret123 "Zarrin Delos Santos" superadmin zarrin@example.com
+// Example:
 //   bun scripts/create-admin.ts zarrin supersecret123 "Zarrin Delos Santos"
 //
-// role defaults to "admin" if omitted.
-// email is optional — used for notification delivery (Settings → Notifications).
+// All admins are created with role "admin" and email "omniscan.official@gmail.com".
+// The shared email is used for notification delivery (Settings → Notifications).
 
 import bcrypt from 'bcrypt'
 import { prisma } from '../server/lib/prisma'
 
 async function main() {
-const [username, password, fullName, role, email] = process.argv.slice(2)
+const [username, password, fullName] = process.argv.slice(2)
 
 if (!username || !password || !fullName) {
-console.error('Usage: bun scripts/create-admin.ts <username> <password> "<Full Name>" [role] [email]')
+console.error('Usage: bun scripts/create-admin.ts <username> <password> "<Full Name>"')
 process.exit(1)
 }
 
@@ -38,12 +37,12 @@ data: {
 username,
 password: hashedPassword,
 full_name: fullName,
-role: role || 'admin',
-...(email ? { email: email.trim() } : {}),
+role: 'admin',
+email: 'omniscan.official@gmail.com',
 },
 })
 
-console.log(`Created admin "${admin.username}" (id ${admin.id}, role "${admin.role}"${admin.email ? `, email "${admin.email}"` : ''}).`)
+console.log(`Created admin "${admin.username}" (id ${admin.id}, role "${admin.role}", email "${admin.email}").`)
 console.log('You can now log in at /admin/login with this username and the password you just entered.')
 
 await prisma.$disconnect()

@@ -3,7 +3,6 @@
 		<!-- Brand header -->
 		<div class="nav-brand">
 			<span class="nav-brand__name">OmniScan</span>
-			<span class="nav-brand__sub">Smart Pantry</span>
 		</div>
 
 		<!-- Navigation items -->
@@ -121,13 +120,6 @@ const navItems = [
 	font-weight: 700;
 	color: #111827;
 	letter-spacing: -0.01em;
-}
-
-.nav-brand__sub {
-	display: block;
-	font-size: 0.75rem;
-	color: #9ca3af;
-	margin-top: 2px;
 }
 
 /* ── Nav menu ── */

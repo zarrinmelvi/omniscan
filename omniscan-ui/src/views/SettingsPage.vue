@@ -40,21 +40,6 @@
 					</div>
 				</div>
 
-				<!-- Appearance -->
-				<p class="section-label section-label--top">APPEARANCE</p>
-				<div class="settings-card">
-					<div class="settings-row">
-						<div class="icon-wrapper icon-purple">
-							<ion-icon :icon="moonOutline" class="row-icon" />
-						</div>
-						<div class="row-text">
-							<p class="row-title">Dark Mode</p>
-							<p class="row-subtitle">Switch to a darker interface</p>
-						</div>
-						<ion-toggle v-model="darkMode" @ion-change="onDarkModeToggle" class="custom-toggle" />
-					</div>
-				</div>
-
 				<!-- Help & Support -->
 				<p class="section-label section-label--top">HELP &amp; SUPPORT</p>
 				<div class="settings-card">

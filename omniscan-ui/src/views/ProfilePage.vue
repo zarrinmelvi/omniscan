@@ -17,13 +17,15 @@
 
 			<template v-else>
 				<div class="profile-inner">
+				<!-- VIEW MODE -->
+				<div v-if="!isEditing" class="profile-view-mode">
 					<!-- Top Header Area -->
 					<div class="header-section">
 						<div class="profile-header-top">
 							<div class="avatar-wrap">
 								<img v-if="user.avatar_base64" :src="user.avatar_base64" alt="Profile photo" class="avatar-image" />
 								<span v-else class="avatar-initial">{{ user.name.charAt(0) }}</span>
-								<div class="avatar-camera-badge" @click="openEditModal">
+								<div class="avatar-camera-badge" @click="startEditing">
 									<ion-icon :icon="cameraOutline" />
 								</div>
 							</div>
@@ -31,7 +33,7 @@
 								<h1 class="user-name">{{ user.name }}</h1>
 								<p class="user-email">{{ user.email }}</p>
 							</div>
-							<button type="button" class="edit-profile-btn" @click="openEditModal">
+							<button type="button" class="edit-profile-btn" @click="startEditing">
 								Edit Profile
 								<ion-icon :icon="pencilOutline" class="edit-profile-btn__icon" />
 							</button>
@@ -50,6 +52,25 @@
 							<p class="section-label">Allergens / Allergy List:</p>
 							<div class="chip-row">
 								<span v-for="pref in displayPreferences" :key="pref" class="pref-chip">{{ pref }}</span>
+							</div>
+						</div>
+					</div>
+
+					<!-- Account Information Section -->
+					<div class="account-info-section">
+						<p class="section-label">ACCOUNT INFORMATION</p>
+						<div class="info-grid">
+							<div class="info-item">
+								<span class="info-label">Username</span>
+								<span class="info-value">@{{ user.username || 'Not set' }}</span>
+							</div>
+							<div class="info-item">
+								<span class="info-label">Gender</span>
+								<span class="info-value">{{ user.gender || 'Not specified' }}</span>
+							</div>
+							<div class="info-item">
+								<span class="info-label">Birthday</span>
+								<span class="info-value">{{ formatBirthday(user.birthday) }}</span>
 							</div>
 						</div>
 					</div>
@@ -76,72 +97,97 @@
 						</div>
 					</div>
 				</div>
-			</template>
+				<!-- End VIEW MODE -->
 
-			<ion-toast
-				:is-open="showSuccessToast"
-				message="Profile updated successfully."
-				:duration="2000"
-				color="success"
-				@didDismiss="showSuccessToast = false" />
-
-			<!-- Floating Edit Profile Modal -->
-			<ion-modal
-				:is-open="isEditModalOpen"
-				:backdrop-dismiss="false"
-				class="custom-edit-modal"
-				@didDismiss="handleModalDismiss">
-				<div class="modal-card">
-					<!-- Modal Header -->
-					<div class="modal-header-sticky">
-						<div class="modal-header">
-							<h2 class="modal-title">Edit Profile</h2>
-							<button type="button" class="modal-close-btn" @click="attemptCloseModal">
+				<!-- EDIT MODE -->
+				<div v-else class="profile-edit-mode">
+					<div class="edit-form-container">
+						<!-- Header with Cancel button -->
+						<div class="edit-form-header">
+							<h2 class="edit-form-title">Edit Profile</h2>
+							<button type="button" class="edit-cancel-btn" @click="cancelEditing">
 								<ion-icon :icon="closeOutline" />
 							</button>
 						</div>
-					</div>
 
-					<!-- Scrollable Body -->
-					<div class="modal-scroll-body">
 						<div v-if="saveError" class="form-error">{{ saveError }}</div>
 
 						<!-- Avatar Edit -->
-						<div class="avatar-edit-wrap">
-							<img v-if="form.avatarBase64" :src="form.avatarBase64" alt="Profile photo" class="avatar-image-large" />
-							<span v-else class="avatar-initial avatar-initial--large">{{ form.name.charAt(0) || '?' }}</span>
+						<div class="avatar-edit-section">
+							<div class="avatar-edit-wrap">
+								<img v-if="form.avatarBase64" :src="form.avatarBase64" alt="Profile photo" class="avatar-image-large" />
+								<span v-else class="avatar-initial avatar-initial--large">{{ (form.firstName || form.lastName || '?').charAt(0) }}</span>
 
-							<!-- Red Remove Photo Icon -->
-							<button
-								v-if="form.avatarBase64"
-								type="button"
-								class="avatar-remove-btn"
-								aria-label="Remove photo"
-								@click="form.avatarBase64 = null">
-								<ion-icon :icon="closeOutline" />
-							</button>
+								<!-- Red Remove Photo Icon -->
+								<button
+									v-if="form.avatarBase64"
+									type="button"
+									class="avatar-remove-btn"
+									aria-label="Remove photo"
+									@click="form.avatarBase64 = null">
+									<ion-icon :icon="closeOutline" />
+								</button>
 
-							<!-- Green Camera Upload Icon -->
-							<button type="button" class="avatar-upload-btn" aria-label="Upload photo" @click="avatarInputRef?.click()">
-								<ion-icon :icon="cameraOutline" />
-							</button>
+								<!-- Green Camera Upload Icon -->
+								<button type="button" class="avatar-upload-btn" aria-label="Upload photo" @click="avatarInputRef?.click()">
+									<ion-icon :icon="cameraOutline" />
+								</button>
 
-							<input ref="avatarInputRef" type="file" accept="image/*" class="hidden-input" @change="onAvatarSelected" />
-						</div>
-						<p v-if="avatarError" class="form-error">{{ avatarError }}</p>
-
-						<!-- Form Fields -->
-						<div class="input-group">
-							<label class="input-label">Name</label>
-							<input v-model="form.name" type="text" placeholder="Your name" class="custom-input" />
+								<input ref="avatarInputRef" type="file" accept="image/*" class="hidden-input" @change="onAvatarSelected" />
+							</div>
+							<p v-if="avatarError" class="form-error">{{ avatarError }}</p>
 						</div>
 
-						<div class="input-group">
+						<!-- Name Fields (side by side) -->
+						<div class="name-row">
+							<div class="form-group">
+								<label class="input-label">First Name</label>
+								<input v-model="form.firstName" type="text" placeholder="First name" class="custom-input" />
+							</div>
+							<div class="form-group">
+								<label class="input-label">Last Name</label>
+								<input v-model="form.lastName" type="text" placeholder="Last name" class="custom-input" />
+							</div>
+						</div>
+
+						<!-- Username -->
+						<div class="form-group">
+							<label class="input-label">Username</label>
+							<input v-model="form.username" type="text" placeholder="Choose a username" class="custom-input" />
+						</div>
+
+						<!-- Gender -->
+						<div class="form-group">
+							<label class="input-label">Gender</label>
+							<select v-model="form.gender" class="custom-input custom-select">
+								<option value="" disabled>Select gender</option>
+								<option value="Male">Male</option>
+								<option value="Female">Female</option>
+								<option value="Other">Other</option>
+								<option value="Prefer not to say">Prefer not to say</option>
+							</select>
+						</div>
+
+						<!-- Birthday -->
+						<div class="form-group">
+							<label class="input-label">Birthday</label>
+							<input v-model="form.birthday" type="date" :max="maxBirthdayDate" class="custom-input" />
+						</div>
+
+						<!-- Email (disabled) -->
+						<div class="form-group">
 							<label class="input-label">Email</label>
 							<input :value="form.email" type="email" disabled class="custom-input custom-input--disabled" />
 						</div>
 
-						<!-- Dietary Preferences Edit -->
+						<!-- Password (disabled, masked) -->
+						<div class="form-group">
+							<label class="input-label">Password</label>
+							<input type="password" value="••••••••" disabled class="custom-input custom-input--disabled" />
+							<p class="input-helper">Password cannot be changed from this screen</p>
+						</div>
+
+						<!-- Halal Toggle -->
 						<div class="halal-toggle-row">
 							<div class="halal-toggle-label-block">
 								<span class="halal-toggle-label">Halal</span>
@@ -150,36 +196,52 @@
 							<IonToggle v-model="form.halalPref" />
 						</div>
 
-						<label class="input-label allergen-heading" style="margin-top: 16px;">
-							Allergens / Allergy List
-							<span v-if="isAtAllergenLimit" class="allergen-max-hint">(Max 5)</span>
-						</label>
-						<p v-if="isAtAllergenLimit" class="allergen-inline-helper">
-							Maximum limit of 5 allergens reached. Uncheck an item to select another.
-						</p>
-						<div class="who-allergen-list">
-							<label
-								v-for="allergen in WHO_ALLERGENS"
-								:key="allergen.value"
-								class="who-allergen-item"
-								:class="{ 'who-allergen-item--disabled': isAtAllergenLimit && !form.customPreferences.includes(allergen.value) }">
-								<input
-									type="checkbox"
-									class="who-allergen-checkbox"
-									:checked="form.customPreferences.includes(allergen.value)"
-									:disabled="isAtAllergenLimit && !form.customPreferences.includes(allergen.value)"
-									@change="toggleWhoAllergen(allergen.value)" />
-								<span>{{ allergen.label }}</span>
+						<!-- Allergen List -->
+						<div class="allergen-section">
+							<label class="input-label allergen-heading">
+								Allergens / Allergy List
+								<span v-if="isAtAllergenLimit" class="allergen-max-hint">(Max 5)</span>
 							</label>
+							<p v-if="isAtAllergenLimit" class="allergen-inline-helper">
+								Maximum limit of 5 allergens reached. Uncheck an item to select another.
+							</p>
+							<div class="who-allergen-list">
+								<label
+									v-for="allergen in WHO_ALLERGENS"
+									:key="allergen.value"
+									class="who-allergen-item"
+									:class="{ 'who-allergen-item--disabled': isAtAllergenLimit && !form.customPreferences.includes(allergen.value) }">
+									<input
+										type="checkbox"
+										class="who-allergen-checkbox"
+										:checked="form.customPreferences.includes(allergen.value)"
+										:disabled="isAtAllergenLimit && !form.customPreferences.includes(allergen.value)"
+										@change="toggleWhoAllergen(allergen.value)" />
+									<span>{{ allergen.label }}</span>
+								</label>
+							</div>
 						</div>
 
+						<!-- Save Button at Bottom -->
 						<button type="button" class="save-changes-btn" :disabled="isSaving || isExceedingLimit" @click="saveProfile">
 							<ion-spinner v-if="isSaving" name="crescent" />
 							<span>{{ isSaving ? 'Saving…' : 'Save Changes' }}</span>
 						</button>
 					</div>
 				</div>
-			</ion-modal>
+				<!-- End EDIT MODE -->
+			</div>
+		</template>
+
+		
+
+			<ion-toast :is-open="showSuccessToast"
+				message="Profile updated successfully."
+				:duration="2000"
+				color="success"
+				@didDismiss="showSuccessToast = false" />
+
+			
 		</ion-content>
 	</ion-page>
 </template>
@@ -264,6 +326,14 @@ function formatAllergenName(name: string): string {
 	return name.replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
+function formatBirthday(birthday: string | null | undefined): string {
+	if (!birthday) return 'Not set'
+	// Birthday is expected in YYYY-MM-DD format
+	const date = new Date(birthday)
+	if (isNaN(date.getTime())) return birthday // Return as-is if invalid
+	return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
 interface Allergen {
 	id: number
 	name: string
@@ -279,6 +349,9 @@ interface DietaryProfileDto {
 interface UserDto {
 	id: number
 	name: string
+	username: string
+	gender: string
+	birthday: string
 	email: string
 	avatar_base64: string | null
 	dietary_prof: DietaryProfileDto[]
@@ -293,14 +366,14 @@ interface ProfileResponse {
 const isLoading = ref(true)
 const loadError = ref('')
 const isSaving = ref(false)
+const isEditing = ref(false)
 const saveError = ref('')
 const showSuccessToast = ref(false)
 
 const allergenCatalog = ref<Allergen[]>([])
 
-const user = ref<UserDto>({ id: 0, name: '', email: '', avatar_base64: null, dietary_prof: [], allergens: [] })
+const user = ref<UserDto>({ id: 0, name: '', username: '', gender: '', birthday: '', email: '', avatar_base64: null, dietary_prof: [], allergens: [] })
 
-const isEditModalOpen = ref(false)
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 const avatarError = ref('')
 
@@ -317,8 +390,18 @@ const displayPreferences = computed(() => {
 const isExceedingLimit = computed(() => form.customPreferences.length > PREF_MAX)
 const isAtAllergenLimit = computed(() => form.customPreferences.length >= PREF_MAX)
 
+const maxBirthdayDate = computed(() => {
+	const date = new Date()
+	date.setFullYear(date.getFullYear() - 16)
+	return date.toISOString().split('T')[0]
+})
+
 const form = reactive({
-	name: '',
+	firstName: '',
+	lastName: '',
+	username: '',
+	gender: '',
+	birthday: '',
 	email: '',
 	halalPref: false,
 	customPreferences: [] as string[],
@@ -326,7 +409,11 @@ const form = reactive({
 })
 
 const initialForm = reactive({
-	name: '',
+	firstName: '',
+	lastName: '',
+	username: '',
+	gender: '',
+	birthday: '',
 	email: '',
 	halalPref: false,
 	customPreferences: [] as string[],
@@ -335,8 +422,11 @@ const initialForm = reactive({
 
 const hasUnsavedChanges = computed(() => {
 	return (
-		form.name !== initialForm.name ||
-		form.email !== initialForm.email ||
+		form.firstName !== initialForm.firstName ||
+		form.lastName !== initialForm.lastName ||
+		form.username !== initialForm.username ||
+		form.gender !== initialForm.gender ||
+		form.birthday !== initialForm.birthday ||
 		form.halalPref !== initialForm.halalPref ||
 		JSON.stringify(form.customPreferences) !== JSON.stringify(initialForm.customPreferences) ||
 		form.avatarBase64 !== initialForm.avatarBase64
@@ -365,25 +455,36 @@ async function fetchAllergens() {
 	}
 }
 
-function openEditModal() {
-	form.name = user.value.name
+function startEditing() {
+	// Split full name into first and last
+	const nameParts = (user.value.name || '').trim().split(' ')
+	form.firstName = nameParts[0] || ''
+	form.lastName = nameParts.slice(1).join(' ') || ''
+	
+	form.username = user.value.username || ''
 	form.email = user.value.email
+	form.gender = user.value.gender || ''
+	form.birthday = user.value.birthday || ''
 	form.halalPref = halalPref.value
 	form.customPreferences = [...displayPreferences.value]
 	form.avatarBase64 = user.value.avatar_base64
 	avatarError.value = ''
 	saveError.value = ''
 
-	initialForm.name = form.name
+	initialForm.firstName = form.firstName
+	initialForm.lastName = form.lastName
+	initialForm.username = form.username
 	initialForm.email = form.email
+	initialForm.gender = form.gender
+	initialForm.birthday = form.birthday
 	initialForm.halalPref = form.halalPref
 	initialForm.customPreferences = [...form.customPreferences]
 	initialForm.avatarBase64 = form.avatarBase64
 
-	isEditModalOpen.value = true
+	isEditing.value = true
 }
 
-async function attemptCloseModal() {
+async function cancelEditing() {
 	if (hasUnsavedChanges.value) {
 		const alert = await alertController.create({
 			header: 'Unsaved Changes',
@@ -395,20 +496,14 @@ async function attemptCloseModal() {
 					text: 'Discard Changes',
 					cssClass: 'alert-button-danger',
 					handler: () => {
-						isEditModalOpen.value = false
+						isEditing.value = false
 					},
 				},
 			],
 		})
 		await alert.present()
 	} else {
-		isEditModalOpen.value = false
-	}
-}
-
-function handleModalDismiss() {
-	if (isEditModalOpen.value) {
-		attemptCloseModal()
+		isEditing.value = false
 	}
 }
 
@@ -462,7 +557,10 @@ async function saveProfile() {
 		const data = await apiFetch<ProfileResponse>('/api/users', {
 			method: 'PUT',
 			body: {
-				name: form.name,
+				name: `${form.firstName} ${form.lastName}`.trim(),
+				username: form.username,
+				gender: form.gender,
+				birthday: form.birthday,
 				halal_pref: form.halalPref,
 				custom_preferences: form.customPreferences,
 				allergen_ids: deriveAllergenIds(form.customPreferences, allergenCatalog.value),
@@ -471,7 +569,7 @@ async function saveProfile() {
 		})
 
 		user.value = data.user
-		isEditModalOpen.value = false
+		isEditing.value = false
 		showSuccessToast.value = true
 	} catch (err) {
 		saveError.value = err instanceof ApiError ? err.message : 'Something went wrong while saving.'
@@ -752,6 +850,382 @@ onIonViewWillEnter(() => {
 .action-row .chevron {
 	color: #94a3b8;
 	font-size: 1rem;
+}
+
+/* Account Info Section */
+.account-info-section {
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
+	border-radius: 16px;
+	padding: 20px;
+	margin-bottom: 20px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.info-grid {
+	display: grid;
+	gap: 12px;
+	margin-top: 12px;
+}
+
+.info-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px 0;
+	border-bottom: 1px solid #f3f4f6;
+}
+
+.info-item:last-child {
+	border-bottom: none;
+}
+
+.info-label {
+	font-size: 0.875rem;
+	color: #64748b;
+	font-weight: 500;
+}
+
+.info-value {
+	font-size: 0.875rem;
+	color: #0f172a;
+	font-weight: 600;
+	text-align: right;
+}
+
+/* Edit Mode Styles */
+.profile-edit-mode {
+	width: 100%;
+}
+
+.edit-form-container {
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
+	border-radius: 16px;
+	padding: 24px;
+	max-width: 600px;
+	margin: 0 auto;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.edit-form-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 24px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid #e5e7eb;
+}
+
+.edit-form-title {
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: #0f172a;
+	margin: 0;
+}
+
+.edit-cancel-btn {
+	background: transparent;
+	border: none;
+	font-size: 1.5rem;
+	color: #64748b;
+	cursor: pointer;
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	transition: color 0.2s;
+}
+
+.edit-cancel-btn:hover {
+	color: #0f172a;
+}
+
+.avatar-edit-section {
+	text-align: center;
+	margin-bottom: 24px;
+}
+
+.avatar-edit-wrap {
+	position: relative;
+	width: 100px;
+	height: 100px;
+	margin: 0 auto 16px;
+}
+
+.avatar-image-large {
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	object-fit: cover;
+}
+
+.avatar-initial--large {
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	background: #f3f4f6;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 2.5rem;
+	font-weight: 700;
+	color: #9ca3af;
+}
+
+.avatar-remove-btn {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: #ef4444;
+	color: #ffffff;
+	border: 2px solid #ffffff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 0.9rem;
+	z-index: 2;
+}
+
+.avatar-upload-btn {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: #10b981;
+	color: #ffffff;
+	border: 2px solid #ffffff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	z-index: 1;
+}
+
+.hidden-input {
+	display: none;
+}
+
+.name-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+.form-group {
+	margin-bottom: 16px;
+}
+
+.input-label {
+	display: block;
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: #475569;
+	margin-bottom: 6px;
+}
+
+.custom-input {
+	width: 100%;
+	height: 46px;
+	background-color: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 0 14px;
+	font-size: 0.95rem;
+	color: #0f172a;
+	outline: none;
+	box-sizing: border-box;
+	transition: border-color 0.2s;
+}
+
+.custom-input:focus {
+	border-color: #10b981;
+}
+
+.custom-input::placeholder {
+	color: #94a3b8;
+}
+
+.custom-input--disabled {
+	background-color: #f9fafb;
+	color: #64748b;
+	cursor: not-allowed;
+}
+
+.custom-select {
+	appearance: none;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 14px center;
+	background-size: 12px;
+	padding-right: 40px;
+	cursor: pointer;
+}
+
+.input-helper {
+	font-size: 0.75rem;
+	color: #64748b;
+	margin: 6px 0 0;
+}
+
+.halal-toggle-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 0;
+	border-top: 1px solid #e2e8f0;
+	border-bottom: 1px solid #e2e8f0;
+	margin-bottom: 20px;
+}
+
+.halal-toggle-label-block {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.halal-toggle-label {
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: #1e293b;
+}
+
+.halal-toggle-sublabel {
+	font-size: 0.8rem;
+	color: #64748b;
+}
+
+.allergen-section {
+	margin-bottom: 24px;
+}
+
+.allergen-heading {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+.allergen-max-hint {
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: #d97706;
+	background: #fef3c7;
+	padding: 2px 10px;
+	border-radius: 9999px;
+}
+
+.allergen-inline-helper {
+	font-size: 0.8rem;
+	color: #92400e;
+	background: #fffbeb;
+	border: 1px solid #fde68a;
+	border-radius: 8px;
+	padding: 10px 12px;
+	margin: 8px 0 16px;
+	line-height: 1.4;
+}
+
+.who-allergen-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.who-allergen-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 0.875rem;
+	color: #334155;
+	cursor: pointer;
+	padding: 8px 12px;
+	border-radius: 8px;
+	transition: background-color 0.15s;
+}
+
+.who-allergen-item:hover:not(.who-allergen-item--disabled) {
+	background-color: #f9fafb;
+}
+
+.who-allergen-checkbox {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 20px;
+	height: 20px;
+	border: 2px solid #cbd5e1;
+	border-radius: 5px;
+	background-color: #ffffff;
+	outline: none;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	transition: all 0.2s;
+}
+
+.who-allergen-checkbox:checked {
+	background-color: #00b050;
+	border-color: #00b050;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+	background-size: 14px 14px;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+.who-allergen-item--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.who-allergen-checkbox:disabled {
+	cursor: not-allowed;
+	background-color: #f1f5f9;
+	border-color: #e2e8f0;
+}
+
+.save-changes-btn {
+	width: 100%;
+	height: 50px;
+	background: #00b050;
+	color: #ffffff;
+	border: none;
+	border-radius: 12px;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	transition: background 0.2s;
+}
+
+.save-changes-btn:hover:not(:disabled) {
+	background: #009944;
+}
+
+.save-changes-btn:disabled {
+	background: #9ca3af;
+	cursor: not-allowed;
+	opacity: 0.7;
+}
+
+.form-error {
+	background: #fee2e2;
+	color: #b91c1c;
+	border-radius: 8px;
+	padding: 10px 14px;
+	margin-bottom: 16px;
+	font-size: 0.875rem;
+	line-height: 1.4;
 }
 
 @media (min-width: 768px) {

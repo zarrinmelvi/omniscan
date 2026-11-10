@@ -657,6 +657,14 @@ onIonViewWillEnter(() => {
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
+@media (prefers-color-scheme: dark) {
+	.header-section {
+		background: #1e293b;
+		border-color: #334155;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	}
+}
+
 .profile-header-top {
 	display: flex;
 	align-items: center;
@@ -670,6 +678,12 @@ onIonViewWillEnter(() => {
 	border-radius: 50%;
 	background: #f3f4f6;
 	flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+	.avatar-wrap {
+		background: #334155;
+	}
 }
 
 .avatar-image {
@@ -690,6 +704,12 @@ onIonViewWillEnter(() => {
 	color: #9ca3af;
 }
 
+@media (prefers-color-scheme: dark) {
+	.avatar-initial {
+		color: #64748b;
+	}
+}
+
 .avatar-camera-badge {
 	position: absolute;
 	bottom: 0;
@@ -707,6 +727,12 @@ onIonViewWillEnter(() => {
 	cursor: pointer;
 }
 
+@media (prefers-color-scheme: dark) {
+	.avatar-camera-badge {
+		border-color: #1e293b;
+	}
+}
+
 .header-info {
 	flex: 1;
 	min-width: 0;
@@ -720,6 +746,12 @@ onIonViewWillEnter(() => {
 	margin: 0;
 }
 
+@media (prefers-color-scheme: dark) {
+	.user-name {
+		color: #f8fafc;
+	}
+}
+
 .user-email {
 	font-size: 0.85rem;
 	color: #64748b;
@@ -727,6 +759,12 @@ onIonViewWillEnter(() => {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+@media (prefers-color-scheme: dark) {
+	.user-email {
+		color: #94a3b8;
+	}
 }
 
 .edit-profile-btn {
@@ -745,6 +783,17 @@ onIonViewWillEnter(() => {
 	flex-shrink: 0;
 }
 
+@media (prefers-color-scheme: dark) {
+	.edit-profile-btn {
+		color: #f8fafc;
+		border-color: #475569;
+	}
+	
+	.edit-profile-btn:hover {
+		background-color: rgba(71, 85, 105, 0.2);
+	}
+}
+
 .edit-profile-btn__icon {
 	color: #10b981;
 	font-size: 1rem;
@@ -759,6 +808,12 @@ onIonViewWillEnter(() => {
 	color: #64748b;
 	margin: 0 0 10px;
 	font-weight: 500;
+}
+
+@media (prefers-color-scheme: dark) {
+	.section-label {
+		color: #94a3b8;
+	}
 }
 
 .chip-row {
@@ -797,6 +852,14 @@ onIonViewWillEnter(() => {
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
+@media (prefers-color-scheme: dark) {
+	.action-card {
+		background: #1e293b;
+		border-color: #334155;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	}
+}
+
 .action-row {
 	display: flex;
 	align-items: center;
@@ -823,6 +886,11 @@ onIonViewWillEnter(() => {
 }
 
 @media (prefers-color-scheme: dark) {
+	.action-row {
+		color: #f8fafc;
+		border-bottom-color: #334155;
+	}
+	
 	.action-row:hover {
 		background-color: #334155;
 	}
@@ -839,6 +907,12 @@ onIonViewWillEnter(() => {
 	color: #334155;
 }
 
+@media (prefers-color-scheme: dark) {
+	.action-icon {
+		color: #94a3b8;
+	}
+}
+
 .action-row--danger {
 	color: #ef4444;
 }
@@ -852,6 +926,12 @@ onIonViewWillEnter(() => {
 	font-size: 1rem;
 }
 
+@media (prefers-color-scheme: dark) {
+	.action-row .chevron {
+		color: #64748b;
+	}
+}
+
 /* Account Info Section */
 .account-info-section {
 	background: #ffffff;
@@ -860,6 +940,14 @@ onIonViewWillEnter(() => {
 	padding: 20px;
 	margin-bottom: 20px;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+@media (prefers-color-scheme: dark) {
+	.account-info-section {
+		background: #1e293b;
+		border-color: #334155;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	}
 }
 
 .info-grid {
@@ -880,10 +968,22 @@ onIonViewWillEnter(() => {
 	border-bottom: none;
 }
 
+@media (prefers-color-scheme: dark) {
+	.info-item {
+		border-bottom-color: #334155;
+	}
+}
+
 .info-label {
 	font-size: 0.875rem;
 	color: #64748b;
 	font-weight: 500;
+}
+
+@media (prefers-color-scheme: dark) {
+	.info-label {
+		color: #94a3b8;
+	}
 }
 
 .info-value {
@@ -891,6 +991,12 @@ onIonViewWillEnter(() => {
 	color: #0f172a;
 	font-weight: 600;
 	text-align: right;
+}
+
+@media (prefers-color-scheme: dark) {
+	.info-value {
+		color: #f8fafc;
+	}
 }
 
 /* Edit Mode Styles */
@@ -908,6 +1014,14 @@ onIonViewWillEnter(() => {
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
+@media (prefers-color-scheme: dark) {
+	.edit-form-container {
+		background: #1e293b;
+		border-color: #334155;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	}
+}
+
 .edit-form-header {
 	display: flex;
 	justify-content: space-between;
@@ -917,11 +1031,23 @@ onIonViewWillEnter(() => {
 	border-bottom: 1px solid #e5e7eb;
 }
 
+@media (prefers-color-scheme: dark) {
+	.edit-form-header {
+		border-bottom-color: #334155;
+	}
+}
+
 .edit-form-title {
 	font-size: 1.5rem;
 	font-weight: 700;
 	color: #0f172a;
 	margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+	.edit-form-title {
+		color: #f8fafc;
+	}
 }
 
 .edit-cancel-btn {
@@ -938,6 +1064,16 @@ onIonViewWillEnter(() => {
 
 .edit-cancel-btn:hover {
 	color: #0f172a;
+}
+
+@media (prefers-color-scheme: dark) {
+	.edit-cancel-btn {
+		color: #94a3b8;
+	}
+	
+	.edit-cancel-btn:hover {
+		color: #f8fafc;
+	}
 }
 
 .avatar-edit-section {
@@ -972,6 +1108,13 @@ onIonViewWillEnter(() => {
 	color: #9ca3af;
 }
 
+@media (prefers-color-scheme: dark) {
+	.avatar-initial--large {
+		background: #334155;
+		color: #64748b;
+	}
+}
+
 .avatar-remove-btn {
 	position: absolute;
 	top: 0;
@@ -990,6 +1133,12 @@ onIonViewWillEnter(() => {
 	z-index: 2;
 }
 
+@media (prefers-color-scheme: dark) {
+	.avatar-remove-btn {
+		border-color: #1e293b;
+	}
+}
+
 .avatar-upload-btn {
 	position: absolute;
 	bottom: 0;
@@ -1005,6 +1154,12 @@ onIonViewWillEnter(() => {
 	justify-content: center;
 	cursor: pointer;
 	z-index: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+	.avatar-upload-btn {
+		border-color: #1e293b;
+	}
 }
 
 .hidden-input {
@@ -1030,6 +1185,12 @@ onIonViewWillEnter(() => {
 	margin-bottom: 6px;
 }
 
+@media (prefers-color-scheme: dark) {
+	.input-label {
+		color: #94a3b8;
+	}
+}
+
 .custom-input {
 	width: 100%;
 	height: 46px;
@@ -1052,10 +1213,34 @@ onIonViewWillEnter(() => {
 	color: #94a3b8;
 }
 
+@media (prefers-color-scheme: dark) {
+	.custom-input {
+		background-color: #0f172a;
+		border-color: #334155;
+		color: #f8fafc;
+	}
+	
+	.custom-input:focus {
+		border-color: #10b981;
+	}
+	
+	.custom-input::placeholder {
+		color: #64748b;
+	}
+}
+
 .custom-input--disabled {
 	background-color: #f9fafb;
 	color: #64748b;
 	cursor: not-allowed;
+}
+
+@media (prefers-color-scheme: dark) {
+	.custom-input--disabled {
+		background-color: #1e293b;
+		color: #64748b;
+		border-color: #334155;
+	}
 }
 
 .custom-select {
@@ -1068,10 +1253,22 @@ onIonViewWillEnter(() => {
 	cursor: pointer;
 }
 
+@media (prefers-color-scheme: dark) {
+	.custom-select {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+	}
+}
+
 .input-helper {
 	font-size: 0.75rem;
 	color: #64748b;
 	margin: 6px 0 0;
+}
+
+@media (prefers-color-scheme: dark) {
+	.input-helper {
+		color: #94a3b8;
+	}
 }
 
 .halal-toggle-row {
@@ -1082,6 +1279,13 @@ onIonViewWillEnter(() => {
 	border-top: 1px solid #e2e8f0;
 	border-bottom: 1px solid #e2e8f0;
 	margin-bottom: 20px;
+}
+
+@media (prefers-color-scheme: dark) {
+	.halal-toggle-row {
+		border-top-color: #334155;
+		border-bottom-color: #334155;
+	}
 }
 
 .halal-toggle-label-block {
@@ -1096,9 +1300,21 @@ onIonViewWillEnter(() => {
 	color: #1e293b;
 }
 
+@media (prefers-color-scheme: dark) {
+	.halal-toggle-label {
+		color: #f8fafc;
+	}
+}
+
 .halal-toggle-sublabel {
 	font-size: 0.8rem;
 	color: #64748b;
+}
+
+@media (prefers-color-scheme: dark) {
+	.halal-toggle-sublabel {
+		color: #94a3b8;
+	}
 }
 
 .allergen-section {
@@ -1132,6 +1348,14 @@ onIonViewWillEnter(() => {
 	line-height: 1.4;
 }
 
+@media (prefers-color-scheme: dark) {
+	.allergen-inline-helper {
+		color: #fbbf24;
+		background: rgba(217, 119, 6, 0.1);
+		border-color: rgba(217, 119, 6, 0.3);
+	}
+}
+
 .who-allergen-list {
 	display: flex;
 	flex-direction: column;
@@ -1152,6 +1376,16 @@ onIonViewWillEnter(() => {
 
 .who-allergen-item:hover:not(.who-allergen-item--disabled) {
 	background-color: #f9fafb;
+}
+
+@media (prefers-color-scheme: dark) {
+	.who-allergen-item {
+		color: #f8fafc;
+	}
+	
+	.who-allergen-item:hover:not(.who-allergen-item--disabled) {
+		background-color: rgba(51, 65, 85, 0.5);
+	}
 }
 
 .who-allergen-checkbox {
@@ -1191,6 +1425,18 @@ onIonViewWillEnter(() => {
 	border-color: #e2e8f0;
 }
 
+@media (prefers-color-scheme: dark) {
+	.who-allergen-checkbox {
+		background-color: #0f172a;
+		border-color: #475569;
+	}
+	
+	.who-allergen-checkbox:disabled {
+		background-color: #1e293b;
+		border-color: #334155;
+	}
+}
+
 .save-changes-btn {
 	width: 100%;
 	height: 50px;
@@ -1226,6 +1472,14 @@ onIonViewWillEnter(() => {
 	margin-bottom: 16px;
 	font-size: 0.875rem;
 	line-height: 1.4;
+}
+
+@media (prefers-color-scheme: dark) {
+	.form-error {
+		background: rgba(239, 68, 68, 0.1);
+		color: #fca5a5;
+		border: 1px solid rgba(239, 68, 68, 0.3);
+	}
 }
 
 @media (min-width: 768px) {

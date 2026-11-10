@@ -292,21 +292,10 @@
 						<div v-if="prefsError" class="form-error">{{ prefsError }}</div>
 						<div v-if="setupError" class="form-error">{{ setupError }}</div>
 
-						<div class="terms-check-row">
-							<label class="checkbox-container">
-								<input v-model="termsAccepted" type="checkbox" class="custom-checkbox-input" />
-								<span class="custom-checkbox-box"></span>
-								<span class="remember-label">I agree to the <button type="button" class="terms-inline-btn" @click="isTermsOpen = true">Terms and Conditions</button></span>
-							</label>
-						</div>
-
-						<div class="step2-actions">
-							<button type="button" class="btn-back" @click="step = 1">Back</button>
-							<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs || !termsAccepted" @click="completeSetup">
-								<ion-spinner v-if="isSavingPrefs" name="crescent" class="btn-spinner" />
-								<span v-else>Create account</span>
-							</ion-button>
-						</div>
+						<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs" @click="completeSetup">
+							<ion-spinner v-if="isSavingPrefs" name="crescent" class="btn-spinner" />
+							<span v-else>Finish</span>
+						</ion-button>
 					</template>
 				</div>
 			</div>
@@ -498,7 +487,6 @@ const showConfirmPassword = ref(false)
 const showMiddleName = ref(false)
 const isSubmitting = ref(false)
 const isTermsOpen = ref(false)
-const termsAccepted = ref(false)
 const errorMessage = ref<string | null>(null)
 
 // Username validation state
@@ -798,7 +786,6 @@ async function handleRegister(): Promise<void> {
 
 async function acceptTerms(): Promise<void> {
 	isTermsOpen.value = false
-	termsAccepted.value = true
 
 	if (isGooglePending.value) {
 		await completeGoogleRegistration()
@@ -1340,8 +1327,6 @@ input[type="date"].custom-input {
 .halal-toggle-label { font-size: 0.9rem; font-weight: 600; color: #111827; margin: 0 0 2px; }
 .halal-toggle-sub { font-size: 0.78rem; color: #6b7280; margin: 0; line-height: 1.4; }
 
-.terms-check-row { margin-bottom: 16px; }
-.terms-inline-btn { background: none; border: none; color: #05c450; font-weight: 600; cursor: pointer; font-size: inherit; padding: 0; }
 
 .checkbox-container {
 	position: relative;
@@ -1402,9 +1387,6 @@ input[type="date"].custom-input {
 	color: #374151;
 	margin-left: 8px;
 }
-
-.step2-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-top: 8px; }
-.btn-back { height: 48px; border: 1.5px solid #d1d5db; border-radius: 9999px; background: transparent; color: #374151; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
 
 .brand-features { list-style: none; padding: 0; margin: 28px 0 0; display: flex; flex-direction: column; gap: 16px; }
 .brand-features li { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; opacity: 0.9; }
@@ -1559,7 +1541,6 @@ html.ion-palette-dark .allergen-chip--selected { background: #15803d; border-col
 html.ion-palette-dark .halal-toggle-card { background: #172617; border-color: #2d4a2d; }
 html.ion-palette-dark .halal-toggle-label { color: #f9fafb; }
 html.ion-palette-dark .halal-toggle-sub { color: #9ca3af; }
-html.ion-palette-dark .btn-back { border-color: #2d4a2d; color: #d1d5db; }
 html.ion-palette-dark .back-to-home { color: #9ca3af; }
 html.ion-palette-dark .remember-label { color: #d1d5db !important; }
 html.ion-palette-dark .custom-input:focus { border-color: #05c450 !important; }

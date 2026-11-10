@@ -42,11 +42,10 @@
 						<span class="brand-label">OmniScan</span>
 						<h1 class="auth-title">Email Verified!</h1>
 						<p class="auth-subtitle">
-							Your account is active. Please continue in the tab where you opened the
-							verification link to finish setting up your profile.
+						Your account is now active. Proceed with step 2 to finish setting up your profile.
 						</p>
-						<ion-button expand="block" class="resend-button" router-link="/login">
-							Sign In
+					<ion-button expand="block" class="resend-button" @click="goToStep2">
+						Continue to Setup
 						</ion-button>
 					</template>
 
@@ -206,6 +205,10 @@ async function handleResend() {
 	} finally {
 		isResending.value = false
 	}
+}
+
+function goToStep2() {
+	window.location.href = '/register?step=2'
 }
 
 function handleVisibilityChange() {

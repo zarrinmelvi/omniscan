@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<ion-page>
 		<ion-content class="auth-content" :scroll-y="true">
 			<div class="auth-layout">
@@ -14,7 +14,7 @@
 						<div class="state-icon-wrapper">
 							<ion-spinner name="crescent" class="verify-spinner" />
 						</div>
-						<h1 class="auth-title">Verifying your email…</h1>
+						<h1 class="auth-title">Verifying your emailâ€¦</h1>
 						<p class="auth-subtitle">Please wait a moment.</p>
 					</template>
 
@@ -32,9 +32,6 @@
 							<ion-icon :icon="informationCircleOutline" />
 							<p>If you opened this link in an email app, please close this window and return to your original browser or the OmniScan app to continue.</p>
 						</div>
-						<ion-button expand="block" class="submit-button" @click="goToSetup">
-							Continue to Setup
-						</ion-button>
 					</template>
 
 					<!-- Already verified state -->
@@ -44,7 +41,7 @@
 						</div>
 						<span class="brand-label">OmniScan</span>
 						<h1 class="auth-title">Already Verified</h1>
-						<p class="auth-subtitle">This email address is already verified. Redirecting to login…</p>
+						<p class="auth-subtitle">This email address is already verified. Redirecting to loginâ€¦</p>
 						<ion-button expand="block" class="submit-button" @click="() => router.push('/login')">
 							Go to Login
 						</ion-button>

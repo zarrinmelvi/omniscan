@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<ion-page>
 		<ion-content class="auth-content" :scroll-y="true">
 			<div class="auth-layout">
@@ -238,7 +238,7 @@
 
 					<!-- STEP 2: Allergens / Dietary Preferences -->
 					<template v-else>
-						<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! 🎉' : 'Almost There!' }}</span>
+						<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! ðŸŽ‰' : 'Almost There!' }}</span>
 						<h1 class="auth-title">Your allergens</h1>
 						<p class="auth-subtitle">Choose up to 5. We flag them on every scan. You can change them later in your profile.</p>
 
@@ -363,9 +363,9 @@
 					</ul>
 					<p>The color-coded results may be presented as:</p>
 					<ul>
-						<li>Green – Safe</li>
-						<li>Yellow – Caution</li>
-						<li>Red – Unsafe/Unsuitable</li>
+						<li>Green â€“ Safe</li>
+						<li>Yellow â€“ Caution</li>
+						<li>Red â€“ Unsafe/Unsuitable</li>
 					</ul>
 					<p>These results are intended only as informational and decision-support guidance.</p>
 
@@ -540,12 +540,12 @@
 					</div>
 				</div>
 			</ion-content>
+			<div v-if="!termsScrolledToBottom" class="terms-scroll-floating">
+				<button class="terms-scroll-capsule" @click="scrollTermsToBottom">
+					Scroll to bottom ↓
+				</button>
+			</div>
 			<ion-footer class="ion-no-border terms-modal-footer">
-				<div v-if="!termsScrolledToBottom" class="terms-scroll-hint">
-					<button class="terms-scroll-capsule" @click="scrollTermsToBottom">
-						Scroll to bottom ↓
-					</button>
-				</div>
 				<div class="terms-action-row">
 					<ion-button expand="block" class="terms-agree-btn" :disabled="!termsScrolledToBottom" @click="acceptTerms">
 						I Agree
@@ -1717,10 +1717,11 @@ input[type="date"].custom-input {
 	margin-bottom: 4px;
 }
 
-.terms-scroll-hint {
-	display: flex;
-	justify-content: center;
-	margin: 8px 0 4px;
+.terms-scroll-floating {
+	position: absolute;
+	bottom: 90px;
+	right: 20px;
+	z-index: 10;
 }
 
 .terms-scroll-capsule {

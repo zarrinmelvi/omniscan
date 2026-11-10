@@ -300,6 +300,7 @@
 
 		<!-- Terms & Conditions Sheet Modal -->
 		<ion-modal :is-open="isTermsOpen" @didDismiss="isTermsOpen = false" class="terms-sheet-modal">
+			<div class="terms-modal-wrapper">
 			<ion-header class="ion-no-border terms-modal-header">
 				<div class="terms-modal-header-flex">
 					<h2 class="terms-modal-title">Terms &amp; Conditions</h2>
@@ -555,6 +556,7 @@
 					</ion-button>
 				</div>
 			</ion-footer>
+			</div>
 		</ion-modal>
 	</ion-page>
 </template>
@@ -1715,6 +1717,13 @@ input[type="date"].custom-input {
 	line-height: 1.4;
 	color: #334155;
 	margin-bottom: 4px;
+}
+
+.terms-modal-wrapper {
+	position: relative;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
 }
 
 .terms-scroll-floating {

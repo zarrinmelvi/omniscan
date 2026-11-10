@@ -657,7 +657,7 @@ onIonViewWillEnter(() => {
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.header-section {
 		background: #1e293b;
 		border-color: #334155;
@@ -680,7 +680,7 @@ onIonViewWillEnter(() => {
 	flex-shrink: 0;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.avatar-wrap {
 		background: #334155;
 	}
@@ -704,7 +704,7 @@ onIonViewWillEnter(() => {
 	color: #9ca3af;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.avatar-initial {
 		color: #64748b;
 	}
@@ -727,7 +727,7 @@ onIonViewWillEnter(() => {
 	cursor: pointer;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.avatar-camera-badge {
 		border-color: #1e293b;
 	}
@@ -746,7 +746,7 @@ onIonViewWillEnter(() => {
 	margin: 0;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.user-name {
 		color: #f8fafc;
 	}
@@ -761,7 +761,7 @@ onIonViewWillEnter(() => {
 	text-overflow: ellipsis;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.user-email {
 		color: #94a3b8;
 	}
@@ -783,7 +783,7 @@ onIonViewWillEnter(() => {
 	flex-shrink: 0;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.edit-profile-btn {
 		color: #f8fafc;
 		border-color: #475569;
@@ -810,7 +810,7 @@ onIonViewWillEnter(() => {
 	font-weight: 500;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.section-label {
 		color: #94a3b8;
 	}
@@ -852,7 +852,7 @@ onIonViewWillEnter(() => {
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.action-card {
 		background: #1e293b;
 		border-color: #334155;
@@ -885,7 +885,7 @@ onIonViewWillEnter(() => {
 	background-color: #f9fafb;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.action-row {
 		color: #f8fafc;
 		border-bottom-color: #334155;
@@ -907,7 +907,7 @@ onIonViewWillEnter(() => {
 	color: #334155;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.action-icon {
 		color: #94a3b8;
 	}
@@ -926,7 +926,7 @@ onIonViewWillEnter(() => {
 	font-size: 1rem;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.action-row .chevron {
 		color: #64748b;
 	}
@@ -942,7 +942,7 @@ onIonViewWillEnter(() => {
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.account-info-section {
 		background: #1e293b;
 		border-color: #334155;
@@ -968,7 +968,7 @@ onIonViewWillEnter(() => {
 	border-bottom: none;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.info-item {
 		border-bottom-color: #334155;
 	}
@@ -980,7 +980,7 @@ onIonViewWillEnter(() => {
 	font-weight: 500;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.info-label {
 		color: #94a3b8;
 	}
@@ -993,7 +993,7 @@ onIonViewWillEnter(() => {
 	text-align: right;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.info-value {
 		color: #f8fafc;
 	}
@@ -1014,7 +1014,7 @@ onIonViewWillEnter(() => {
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.edit-form-container {
 		background: #1e293b;
 		border-color: #334155;
@@ -1031,7 +1031,7 @@ onIonViewWillEnter(() => {
 	border-bottom: 1px solid #e5e7eb;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.edit-form-header {
 		border-bottom-color: #334155;
 	}
@@ -1044,7 +1044,7 @@ onIonViewWillEnter(() => {
 	margin: 0;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.edit-form-title {
 		color: #f8fafc;
 	}
@@ -1066,7 +1066,7 @@ onIonViewWillEnter(() => {
 	color: #0f172a;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.edit-cancel-btn {
 		color: #94a3b8;
 	}
@@ -1108,7 +1108,7 @@ onIonViewWillEnter(() => {
 	color: #9ca3af;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.avatar-initial--large {
 		background: #334155;
 		color: #64748b;
@@ -1133,7 +1133,7 @@ onIonViewWillEnter(() => {
 	z-index: 2;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.avatar-remove-btn {
 		border-color: #1e293b;
 	}
@@ -1156,7 +1156,7 @@ onIonViewWillEnter(() => {
 	z-index: 1;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.avatar-upload-btn {
 		border-color: #1e293b;
 	}
@@ -1185,7 +1185,7 @@ onIonViewWillEnter(() => {
 	margin-bottom: 6px;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.input-label {
 		color: #94a3b8;
 	}
@@ -1213,7 +1213,7 @@ onIonViewWillEnter(() => {
 	color: #94a3b8;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.custom-input {
 		background-color: #0f172a;
 		border-color: #334155;
@@ -1235,7 +1235,7 @@ onIonViewWillEnter(() => {
 	cursor: not-allowed;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.custom-input--disabled {
 		background-color: #1e293b;
 		color: #64748b;
@@ -1253,7 +1253,7 @@ onIonViewWillEnter(() => {
 	cursor: pointer;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.custom-select {
 		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
 	}
@@ -1265,7 +1265,7 @@ onIonViewWillEnter(() => {
 	margin: 6px 0 0;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.input-helper {
 		color: #94a3b8;
 	}
@@ -1281,7 +1281,7 @@ onIonViewWillEnter(() => {
 	margin-bottom: 20px;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.halal-toggle-row {
 		border-top-color: #334155;
 		border-bottom-color: #334155;
@@ -1300,7 +1300,7 @@ onIonViewWillEnter(() => {
 	color: #1e293b;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.halal-toggle-label {
 		color: #f8fafc;
 	}
@@ -1311,7 +1311,7 @@ onIonViewWillEnter(() => {
 	color: #64748b;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.halal-toggle-sublabel {
 		color: #94a3b8;
 	}
@@ -1348,7 +1348,7 @@ onIonViewWillEnter(() => {
 	line-height: 1.4;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.allergen-inline-helper {
 		color: #fbbf24;
 		background: rgba(217, 119, 6, 0.1);
@@ -1378,7 +1378,7 @@ onIonViewWillEnter(() => {
 	background-color: #f9fafb;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.who-allergen-item {
 		color: #f8fafc;
 	}
@@ -1425,7 +1425,7 @@ onIonViewWillEnter(() => {
 	border-color: #e2e8f0;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.who-allergen-checkbox {
 		background-color: #0f172a;
 		border-color: #475569;
@@ -1474,7 +1474,7 @@ onIonViewWillEnter(() => {
 	line-height: 1.4;
 }
 
-@media (prefers-color-scheme: dark) {
+:global(body.dark) {
 	.form-error {
 		background: rgba(239, 68, 68, 0.1);
 		color: #fca5a5;

@@ -125,7 +125,8 @@
 									:max="maxBirthdayDate"
 									class="custom-input"
 									:class="{ 'input-error': fieldErrors.birthday || ageError }"
-									@input="clearFieldError('birthday')" />
+									@input="clearFieldError('birthday')"
+									@change="clearFieldError('birthday')" />
 								<div v-if="ageError" class="field-error-text">{{ ageError }}</div>
 							</div>
 
@@ -209,11 +210,7 @@
 								expand="block"
 								type="submit"
 								class="submit-button"
-							:disabled="isSubmitting || 
-									(!isGooglePending && (!isPasswordValid || password !== confirmPassword)) ||
-									usernameValidation.isAvailable !== true || 
-									!gender || 
-									!isBirthdayValid">
+							:disabled="isSubmitting">
 								<ion-spinner v-if="isSubmitting" name="crescent" class="btn-spinner" />
 								<span v-else>Continue</span>
 							</ion-button>
@@ -722,6 +719,11 @@ async function redirectIfAlreadyAuthenticated(): Promise<boolean> {
 	return false
 }
 
+async function revealError() {
+	await nextTick()
+	document.querySelector('.auth-card .form-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
 async function handleRegister(): Promise<void> {
 	errorMessage.value = null
 	fieldErrors.firstName = false
@@ -750,7 +752,19 @@ async function handleRegister(): Promise<void> {
 	if (!birthday.value) { fieldErrors.birthday = true; hasEmptyField = true }
 	
 	if (hasEmptyField) {
-		errorMessage.value = 'Please fill in all required fields.'
+		const onlyGenderBirthdayMissing =
+			!fieldErrors.firstName && !fieldErrors.lastName && !fieldErrors.username &&
+			!fieldErrors.email && !fieldErrors.password && !fieldErrors.confirmPassword
+		if (onlyGenderBirthdayMissing && fieldErrors.gender && fieldErrors.birthday) {
+			errorMessage.value = 'Please select your gender and birthday.'
+		} else if (onlyGenderBirthdayMissing && fieldErrors.gender) {
+			errorMessage.value = 'Please select your gender.'
+		} else if (onlyGenderBirthdayMissing && fieldErrors.birthday) {
+			errorMessage.value = 'Please enter your birthday.'
+		} else {
+			errorMessage.value = 'Please fill in all required fields.'
+		}
+		void revealError()
 		return
 	}
 
@@ -758,12 +772,34 @@ async function handleRegister(): Promise<void> {
 	if (!USERNAME_RE.test(username.value.trim())) {
 		fieldErrors.username = true
 		errorMessage.value = 'Username must be 3-20 characters, letters, numbers, and underscores only.'
+		void revealError()
+		return
+	}
+
+	// Username availability
+	if (usernameValidation.value.isAvailable === null && !usernameValidation.value.isChecking) {
+		void checkUsernameAvailability(username.value)
+	}
+	if (usernameValidation.value.isChecking) {
+		fieldErrors.username = true
+		errorMessage.value = 'Still checking if that username is available. Please wait a moment and try again.'
+		void revealError()
+		return
+	}
+	if (usernameValidation.value.isAvailable !== true) {
+		fieldErrors.username = true
+		errorMessage.value =
+			usernameValidation.value.message && usernameValidation.value.isAvailable === false
+				? usernameValidation.value.message
+				: 'Please choose a different username.'
+		void revealError()
 		return
 	}
 
 	if (!EMAIL_RE.test(email.value) || !isAllowedEmailDomain(email.value)) {
 		fieldErrors.email = true
 		errorMessage.value = 'Only @gmail.com, @outlook.com, @hotmail.com, and @yahoo.com emails are accepted.'
+		void revealError()
 		return
 	}
 
@@ -772,6 +808,7 @@ async function handleRegister(): Promise<void> {
 		if (!isPasswordValid.value) {
 			fieldErrors.password = true
 			errorMessage.value = 'Please ensure your password meets all safety criteria.'
+			void revealError()
 			return
 		}
 
@@ -779,6 +816,7 @@ async function handleRegister(): Promise<void> {
 			fieldErrors.password = true
 			fieldErrors.confirmPassword = true
 			errorMessage.value = 'Passwords do not match.'
+			void revealError()
 			return
 		}
 	}
@@ -787,6 +825,7 @@ async function handleRegister(): Promise<void> {
 	if (ageError.value) {
 		fieldErrors.birthday = true
 		errorMessage.value = ageError.value
+		void revealError()
 		return
 	}
 

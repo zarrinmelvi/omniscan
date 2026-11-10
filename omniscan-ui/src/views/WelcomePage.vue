@@ -130,7 +130,7 @@ function openDownloadModal() {
 }
 
 /* Force dark background directly on ion-content element and web component part */
-:global(body.dark) .welcome-content {
+:global(html.ion-palette-dark) :global(body.dark) .welcome-content {
 	--background: #09130e !important;
 	--color: #eef4ed !important;
 	background: #09130e !important;
@@ -140,7 +140,7 @@ function openDownloadModal() {
 	overflow-x: hidden;
 }
 
-:global(body.dark) .welcome-content::part(scroll) {
+:global(html.ion-palette-dark) :global(body.dark) .welcome-content::part(scroll) {
 	background: #09130e !important;
 }
 
@@ -172,7 +172,7 @@ header {
 	letter-spacing: -0.5px;
 }
 
-:global(body.dark) .brand {
+:global(html.ion-palette-dark) :global(body.dark) .brand {
 	color: #63cd77 !important;
 }
 
@@ -208,15 +208,15 @@ header {
 	color: #334155 !important;
 }
 
-:global(body.dark) .theme {
+:global(html.ion-palette-dark) :global(body.dark) .theme {
 	background: #334155 !important;
 }
 
-:global(body.dark) .theme ion-icon {
+:global(html.ion-palette-dark) :global(body.dark) .theme ion-icon {
 	color: #fbbf24 !important;
 }
 
-:global(body.dark) header {
+:global(html.ion-palette-dark) :global(body.dark) header {
 	background: rgba(9, 19, 14, 0.92) !important;
 	backdrop-filter: blur(8px);
 }
@@ -255,13 +255,13 @@ ion-button.pill.cta-btn {
 	margin: 16px auto 0;
 }
 
-:global(body.dark) ion-button.pill {
+:global(html.ion-palette-dark) :global(body.dark) ion-button.pill {
 	background: transparent !important;
 	--background: #34a853 !important;
 	--color: #ffffff !important;
 }
 
-:global(body.dark) ion-button.pill.secondary {
+:global(html.ion-palette-dark) :global(body.dark) ion-button.pill.secondary {
 	background: transparent !important;
 	--background: #e8f5ec !important;
 	--color: #1f5e34 !important;
@@ -286,7 +286,7 @@ ion-button.pill.cta-btn {
 	filter: blur(2px);
 }
 
-:global(body.dark) .hero::before {
+:global(html.ion-palette-dark) :global(body.dark) .hero::before {
 	opacity: 0.12 !important;
 }
 
@@ -298,7 +298,7 @@ ion-button.pill.cta-btn {
 	background: linear-gradient(180deg, rgba(244, 249, 245, 0.4) 0%, rgba(244, 249, 245, 0.85) 60%, #f4f9f5 100%);
 }
 
-:global(body.dark) .hero::after {
+:global(html.ion-palette-dark) :global(body.dark) .hero::after {
 	background: linear-gradient(180deg, rgba(9, 19, 14, 0.7) 0%, rgba(9, 19, 14, 0.92) 60%, #09130e 100%) !important;
 }
 
@@ -319,7 +319,7 @@ h1 {
 	margin: 20px 0;
 }
 
-:global(body.dark) h1 {
+:global(html.ion-palette-dark) :global(body.dark) h1 {
 	color: #eef4ed !important;
 }
 
@@ -330,7 +330,7 @@ h3 {
 	color: #0f2417;
 }
 
-:global(body.dark) h2, :global(body.dark) h3 {
+:global(html.ion-palette-dark) :global(body.dark) h2, :global(html.ion-palette-dark) :global(body.dark) h3 {
 	color: #eef4ed !important;
 }
 
@@ -345,7 +345,7 @@ p {
 	margin: 0;
 }
 
-:global(body.dark) p {
+:global(html.ion-palette-dark) :global(body.dark) p {
 	color: #b8c8bc !important;
 }
 
@@ -356,7 +356,7 @@ p {
 	color: #334d3b;
 }
 
-:global(body.dark) .hero p {
+:global(html.ion-palette-dark) :global(body.dark) .hero p {
 	color: #b8c8bc !important;
 }
 
@@ -378,7 +378,7 @@ p {
 	text-decoration: underline;
 }
 
-:global(body.dark) .download {
+:global(html.ion-palette-dark) :global(body.dark) .download {
 	color: #63cd77 !important;
 }
 
@@ -407,7 +407,7 @@ p {
 	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 }
 
-:global(body.dark) .dashboard {
+:global(html.ion-palette-dark) :global(body.dark) .dashboard {
 	background: #0d1f13 !important;
 	border: 1px solid #1a3322 !important;
 }
@@ -439,7 +439,7 @@ p {
 	border: 1px solid #e2efe5;
 }
 
-:global(body.dark) .card {
+:global(html.ion-palette-dark) :global(body.dark) .card {
 	background: #0d1f13 !important;
 	border: 1px solid #1a3322 !important;
 }
@@ -455,7 +455,7 @@ p {
 	line-height: 1.6;
 }
 
-:global(body.dark) .card p {
+:global(html.ion-palette-dark) :global(body.dark) .card p {
 	color: #b8c8bc !important;
 }
 
@@ -500,7 +500,7 @@ p {
 	color: #486652;
 }
 
-:global(body.dark) .diet p {
+:global(html.ion-palette-dark) :global(body.dark) .diet p {
 	color: #b8c8bc !important;
 }
 
@@ -513,7 +513,7 @@ footer {
 	font-size: 13px;
 }
 
-:global(body.dark) footer {
+:global(html.ion-palette-dark) :global(body.dark) footer {
 	border-top-color: #1a3322 !important;
 	color: #8ca899 !important;
 }
@@ -592,7 +592,7 @@ ion-modal.download-modal {
 	color: #12291b;
 }
 
-:global(body.dark) .modal-dialog {
+:global(html.ion-palette-dark) :global(body.dark) .modal-dialog {
 	background: #0d1f13 !important;
 	border: 1px solid #1a3322 !important;
 	color: #eef4ed !important;

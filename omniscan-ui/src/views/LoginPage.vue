@@ -591,19 +591,19 @@ onUnmounted(() => {
 	flex-shrink: 0;
 }
 
-:global(html.ion-palette-dark) .auth-content { --background: #0b160b; }
-:global(html.ion-palette-dark) .auth-card { background: #0b160b; }
-:global(html.ion-palette-dark) .auth-title { color: #f9fafb; }
-:global(html.ion-palette-dark) .auth-subtitle { color: #9ca3af; }
-:global(html.ion-palette-dark) .input-label { color: #d1d5db; }
-:global(html.ion-palette-dark) .custom-input { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
-:global(html.ion-palette-dark) .custom-input::placeholder { color: #6b7280; }
-:global(html.ion-palette-dark) .banner-warning { background: #2a2208; border-color: #5c4a10; color: #fcd34d; }
-:global(html.ion-palette-dark) .google-btn { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
-:global(html.ion-palette-dark) .back-to-home { color: #9ca3af; }
-:global(html.ion-palette-dark) .switch-auth { color: #9ca3af; }
-:global(html.ion-palette-dark) .remember-label { color: #d1d5db; }
-:global(html.ion-palette-dark) .oauth-divider { color: #6b7280; }
+:global(html.ion-palette-dark), :global(body.dark) .auth-content { --background: #0b160b; }
+:global(html.ion-palette-dark), :global(body.dark) .auth-card { background: #0b160b; }
+:global(html.ion-palette-dark), :global(body.dark) .auth-title { color: #f9fafb; }
+:global(html.ion-palette-dark), :global(body.dark) .auth-subtitle { color: #9ca3af; }
+:global(html.ion-palette-dark), :global(body.dark) .input-label { color: #d1d5db; }
+:global(html.ion-palette-dark), :global(body.dark) .custom-input { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
+:global(html.ion-palette-dark), :global(body.dark) .custom-input::placeholder { color: #6b7280; }
+:global(html.ion-palette-dark), :global(body.dark) .banner-warning { background: #2a2208; border-color: #5c4a10; color: #fcd34d; }
+:global(html.ion-palette-dark), :global(body.dark) .google-btn { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
+:global(html.ion-palette-dark), :global(body.dark) .back-to-home { color: #9ca3af; }
+:global(html.ion-palette-dark), :global(body.dark) .switch-auth { color: #9ca3af; }
+:global(html.ion-palette-dark), :global(body.dark) .remember-label { color: #d1d5db; }
+:global(html.ion-palette-dark), :global(body.dark) .oauth-divider { color: #6b7280; }
 
 @media (min-width: 768px) {
 	.auth-layout {

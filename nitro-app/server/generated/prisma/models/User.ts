@@ -55,6 +55,7 @@ export type UserMinAggregateOutputType = {
   last_verification_sent_at: Date | null
   session_token: string | null
   inactivity_warning_sent_at: Date | null
+  archived_at: Date | null
   created_at: Date | null
   updated_at: Date | null
   deleted_at: Date | null
@@ -81,6 +82,7 @@ export type UserMaxAggregateOutputType = {
   last_verification_sent_at: Date | null
   session_token: string | null
   inactivity_warning_sent_at: Date | null
+  archived_at: Date | null
   created_at: Date | null
   updated_at: Date | null
   deleted_at: Date | null
@@ -107,6 +109,7 @@ export type UserCountAggregateOutputType = {
   last_verification_sent_at: number
   session_token: number
   inactivity_warning_sent_at: number
+  archived_at: number
   created_at: number
   updated_at: number
   deleted_at: number
@@ -143,6 +146,7 @@ export type UserMinAggregateInputType = {
   last_verification_sent_at?: true
   session_token?: true
   inactivity_warning_sent_at?: true
+  archived_at?: true
   created_at?: true
   updated_at?: true
   deleted_at?: true
@@ -169,6 +173,7 @@ export type UserMaxAggregateInputType = {
   last_verification_sent_at?: true
   session_token?: true
   inactivity_warning_sent_at?: true
+  archived_at?: true
   created_at?: true
   updated_at?: true
   deleted_at?: true
@@ -195,6 +200,7 @@ export type UserCountAggregateInputType = {
   last_verification_sent_at?: true
   session_token?: true
   inactivity_warning_sent_at?: true
+  archived_at?: true
   created_at?: true
   updated_at?: true
   deleted_at?: true
@@ -308,6 +314,7 @@ export type UserGroupByOutputType = {
   last_verification_sent_at: Date | null
   session_token: string | null
   inactivity_warning_sent_at: Date | null
+  archived_at: Date | null
   created_at: Date
   updated_at: Date
   deleted_at: Date | null
@@ -357,6 +364,7 @@ export type UserWhereInput = {
   last_verification_sent_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   session_token?: Prisma.StringNullableFilter<"User"> | string | null
   inactivity_warning_sent_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  archived_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"User"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"User"> | Date | string
   deleted_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -390,6 +398,7 @@ export type UserOrderByWithRelationInput = {
   last_verification_sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
   session_token?: Prisma.SortOrderInput | Prisma.SortOrder
   inactivity_warning_sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  archived_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   deleted_at?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -426,6 +435,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   last_verification_sent_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   session_token?: Prisma.StringNullableFilter<"User"> | string | null
   inactivity_warning_sent_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  archived_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"User"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"User"> | Date | string
   deleted_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -459,6 +469,7 @@ export type UserOrderByWithAggregationInput = {
   last_verification_sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
   session_token?: Prisma.SortOrderInput | Prisma.SortOrder
   inactivity_warning_sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  archived_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   deleted_at?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -493,6 +504,7 @@ export type UserScalarWhereWithAggregatesInput = {
   last_verification_sent_at?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   session_token?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   inactivity_warning_sent_at?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  archived_at?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   deleted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
@@ -518,6 +530,7 @@ export type UserCreateInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -551,6 +564,7 @@ export type UserUncheckedCreateInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -583,6 +597,7 @@ export type UserUpdateInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -616,6 +631,7 @@ export type UserUncheckedUpdateInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -649,6 +665,7 @@ export type UserCreateManyInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -674,6 +691,7 @@ export type UserUpdateManyMutationInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -700,6 +718,7 @@ export type UserUncheckedUpdateManyInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -731,6 +750,7 @@ export type UserCountOrderByAggregateInput = {
   last_verification_sent_at?: Prisma.SortOrder
   session_token?: Prisma.SortOrder
   inactivity_warning_sent_at?: Prisma.SortOrder
+  archived_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   deleted_at?: Prisma.SortOrder
@@ -761,6 +781,7 @@ export type UserMaxOrderByAggregateInput = {
   last_verification_sent_at?: Prisma.SortOrder
   session_token?: Prisma.SortOrder
   inactivity_warning_sent_at?: Prisma.SortOrder
+  archived_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   deleted_at?: Prisma.SortOrder
@@ -787,6 +808,7 @@ export type UserMinOrderByAggregateInput = {
   last_verification_sent_at?: Prisma.SortOrder
   session_token?: Prisma.SortOrder
   inactivity_warning_sent_at?: Prisma.SortOrder
+  archived_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   deleted_at?: Prisma.SortOrder
@@ -956,6 +978,7 @@ export type UserCreateWithoutActivityLogInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -988,6 +1011,7 @@ export type UserUncheckedCreateWithoutActivityLogInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1035,6 +1059,7 @@ export type UserUpdateWithoutActivityLogInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1067,6 +1092,7 @@ export type UserUncheckedUpdateWithoutActivityLogInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1098,6 +1124,7 @@ export type UserCreateWithoutDietary_profInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1130,6 +1157,7 @@ export type UserUncheckedCreateWithoutDietary_profInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1177,6 +1205,7 @@ export type UserUpdateWithoutDietary_profInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1209,6 +1238,7 @@ export type UserUncheckedUpdateWithoutDietary_profInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1240,6 +1270,7 @@ export type UserCreateWithoutNotificationsInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1272,6 +1303,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1319,6 +1351,7 @@ export type UserUpdateWithoutNotificationsInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1351,6 +1384,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1382,6 +1416,7 @@ export type UserCreateWithoutAllergensInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1414,6 +1449,7 @@ export type UserUncheckedCreateWithoutAllergensInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1470,6 +1506,7 @@ export type UserScalarWhereInput = {
   last_verification_sent_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   session_token?: Prisma.StringNullableFilter<"User"> | string | null
   inactivity_warning_sent_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  archived_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"User"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"User"> | Date | string
   deleted_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -1495,6 +1532,7 @@ export type UserCreateWithoutRecipe_interactionsInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1527,6 +1565,7 @@ export type UserUncheckedCreateWithoutRecipe_interactionsInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1574,6 +1613,7 @@ export type UserUpdateWithoutRecipe_interactionsInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1606,6 +1646,7 @@ export type UserUncheckedUpdateWithoutRecipe_interactionsInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1637,6 +1678,7 @@ export type UserCreateWithoutPantry_itemInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1669,6 +1711,7 @@ export type UserUncheckedCreateWithoutPantry_itemInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1716,6 +1759,7 @@ export type UserUpdateWithoutPantry_itemInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1748,6 +1792,7 @@ export type UserUncheckedUpdateWithoutPantry_itemInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1779,6 +1824,7 @@ export type UserCreateWithoutScanInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1811,6 +1857,7 @@ export type UserUncheckedCreateWithoutScanInput = {
   last_verification_sent_at?: Date | string | null
   session_token?: string | null
   inactivity_warning_sent_at?: Date | string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   deleted_at?: Date | string | null
@@ -1858,6 +1905,7 @@ export type UserUpdateWithoutScanInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1890,6 +1938,7 @@ export type UserUncheckedUpdateWithoutScanInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1921,6 +1970,7 @@ export type UserUpdateWithoutAllergensInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1953,6 +2003,7 @@ export type UserUncheckedUpdateWithoutAllergensInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1985,6 +2036,7 @@ export type UserUncheckedUpdateManyWithoutAllergensInput = {
   last_verification_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inactivity_warning_sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2096,6 +2148,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   last_verification_sent_at?: boolean
   session_token?: boolean
   inactivity_warning_sent_at?: boolean
+  archived_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   deleted_at?: boolean
@@ -2130,6 +2183,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   last_verification_sent_at?: boolean
   session_token?: boolean
   inactivity_warning_sent_at?: boolean
+  archived_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   deleted_at?: boolean
@@ -2156,6 +2210,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   last_verification_sent_at?: boolean
   session_token?: boolean
   inactivity_warning_sent_at?: boolean
+  archived_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   deleted_at?: boolean
@@ -2182,12 +2237,13 @@ export type UserSelectScalar = {
   last_verification_sent_at?: boolean
   session_token?: boolean
   inactivity_warning_sent_at?: boolean
+  archived_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   deleted_at?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "first_name" | "last_name" | "username" | "oauth_provider" | "oauth_provider_id" | "email" | "password" | "gender" | "birthday" | "last_active" | "status" | "avatar_base64" | "email_verified" | "verification_token" | "verification_token_expires_at" | "last_verification_sent_at" | "session_token" | "inactivity_warning_sent_at" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "first_name" | "last_name" | "username" | "oauth_provider" | "oauth_provider_id" | "email" | "password" | "gender" | "birthday" | "last_active" | "status" | "avatar_base64" | "email_verified" | "verification_token" | "verification_token_expires_at" | "last_verification_sent_at" | "session_token" | "inactivity_warning_sent_at" | "archived_at" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   dietary_prof?: boolean | Prisma.User$dietary_profArgs<ExtArgs>
@@ -2233,6 +2289,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     last_verification_sent_at: Date | null
     session_token: string | null
     inactivity_warning_sent_at: Date | null
+    archived_at: Date | null
     created_at: Date
     updated_at: Date
     deleted_at: Date | null
@@ -2686,6 +2743,7 @@ export interface UserFieldRefs {
   readonly last_verification_sent_at: Prisma.FieldRef<"User", 'DateTime'>
   readonly session_token: Prisma.FieldRef<"User", 'String'>
   readonly inactivity_warning_sent_at: Prisma.FieldRef<"User", 'DateTime'>
+  readonly archived_at: Prisma.FieldRef<"User", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"User", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"User", 'DateTime'>
   readonly deleted_at: Prisma.FieldRef<"User", 'DateTime'>

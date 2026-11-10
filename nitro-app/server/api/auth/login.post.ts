@@ -70,6 +70,14 @@ export default defineEventHandler(async (event) => {
 			.update({ where: { id: user.id }, data: { last_active: new Date(), inactivity_warning_sent_at: null, session_token: sessionToken } })
 			.catch((err) => console.error('Failed to update last_active:', err))
 
+		// Restore ARCHIVED users who return within the grace period
+		await prisma.user
+			.updateMany({
+				where: { id: user.id, status: 'ARCHIVED' },
+				data: { status: 'ACTIVE', archived_at: null, inactivity_warning_sent_at: null, last_active: new Date() },
+			})
+			.catch((err) => console.error('Failed to restore archived user:', err))
+
 		await logAuditEvent({
 			event_type: 'LOGIN',
 			entity: 'User',

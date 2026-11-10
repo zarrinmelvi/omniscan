@@ -143,6 +143,7 @@ export const UserScalarFieldEnum = {
   last_verification_sent_at: 'last_verification_sent_at',
   session_token: 'session_token',
   inactivity_warning_sent_at: 'inactivity_warning_sent_at',
+  archived_at: 'archived_at',
   created_at: 'created_at',
   updated_at: 'updated_at',
   deleted_at: 'deleted_at'

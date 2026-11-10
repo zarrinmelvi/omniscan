@@ -112,7 +112,7 @@ export async function sendAccountArchivedEmail(email: string, name: string): Pro
 		const { error } = await resend.emails.send({
 			from: EMAIL_FROM,
 			to: email,
-			subject: 'Your OmniScan account has been archived due to inactivity',
+			subject: 'Your OmniScan account will be removed in 7 days - log in to keep it',
 			html: buildAccountArchivedEmailHtml(name, loginUrl),
 		})
 
@@ -129,37 +129,37 @@ export async function sendAccountArchivedEmail(email: string, name: string): Pro
 	}
 }
 
-export async function sendInactivityWarningEmail(email: string, name: string): Promise<EmailResult> {
-	const loginUrl = `${FRONTEND_URL}/login`
+export async function sendAccountDeletedEmail(email: string, name: string): Promise<EmailResult> {
+	const signupUrl = `${FRONTEND_URL}/register`
 
 	try {
 		const { error } = await resend.emails.send({
 			from: EMAIL_FROM,
 			to: email,
-			subject: 'We miss you at OmniScan — sign in to keep your account active',
-			html: buildInactivityWarningEmailHtml(name, loginUrl),
+			subject: 'Your OmniScan account has been deleted',
+			html: buildAccountDeletedEmailHtml(name, signupUrl),
 		})
 
 		if (error) {
-			console.error('[email] Resend API error (inactivity warning):', error)
+			console.error('[email] Resend API error (account deleted):', error)
 			return { success: false, error: error.message }
 		}
 
-		console.log(`[email] Inactivity warning email sent to ${email}`)
+		console.log(`[email] Account deleted email sent to ${email}`)
 		return { success: true }
 	} catch (err: any) {
-		console.error('[email] Failed to send inactivity warning email:', err)
+		console.error('[email] Failed to send account deleted email:', err)
 		return { success: false, error: err?.message ?? 'Unknown error' }
 	}
 }
 
-function buildInactivityWarningEmailHtml(name: string, loginUrl: string): string {
+export function buildAccountDeletedEmailHtml(name: string, signupUrl: string): string {
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>We miss you at OmniScan</title>
+  <title>Your OmniScan account has been deleted</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -170,8 +170,8 @@ function buildInactivityWarningEmailHtml(name: string, loginUrl: string): string
 
           <!-- Header -->
           <tr>
-            <td style="padding:32px 40px;border-bottom:3px solid #4CAF50;text-align:center;">
-              <h1 style="margin:0;font-size:24px;color:#333333;">We miss you at OmniScan 👋</h1>
+            <td style="padding:32px 40px;border-bottom:3px solid #E53935;text-align:center;">
+              <h1 style="margin:0;font-size:24px;color:#333333;">OmniScan Account Deleted</h1>
             </td>
           </tr>
 
@@ -180,35 +180,24 @@ function buildInactivityWarningEmailHtml(name: string, loginUrl: string): string
             <td style="padding:40px;">
               <p style="margin:0 0 16px;font-size:18px;color:#333333;">Hi ${name},</p>
               <p style="margin:0 0 20px;font-size:15px;color:#555555;line-height:1.6;">
-                It's been about <strong>30 days</strong> since you last signed in to OmniScan. We just wanted to check in!
+                Your OmniScan account was not accessed within 7 days of being archived, so it and your associated personal data have now been <strong>permanently deleted</strong> in compliance with PDPA / GDPR.
               </p>
-
-              <div style="background-color:#E8F5E9;border-left:4px solid #4CAF50;padding:16px;border-radius:4px;margin-bottom:24px;">
-                <p style="margin:0;font-size:14px;color:#2E7D32;line-height:1.5;">
-                  ✅ Good news — nothing has been deleted. Your pantry, scans, and preferences are all still here, right where you left them.
-                </p>
-              </div>
-
               <p style="margin:0 0 24px;font-size:15px;color:#555555;line-height:1.6;">
-                Just sign back in to pick up where you left off. Accounts that stay inactive for an extended period may eventually be archived, so a quick sign-in keeps everything active.
+                You are always welcome back. You can create a new account at any time.
               </p>
 
               <!-- CTA -->
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
                 <tr>
                   <td>
-                    <a href="${loginUrl}"
+                    <a href="${signupUrl}"
                        style="display:inline-block;padding:14px 36px;background-color:#4CAF50;color:#ffffff;
                               text-decoration:none;border-radius:6px;font-size:16px;font-weight:bold;">
-                      Sign In to OmniScan
+                      Sign Up Again
                     </a>
                   </td>
                 </tr>
               </table>
-
-              <p style="margin:0;padding-top:24px;border-top:1px solid #eeeeee;font-size:13px;color:#999999;line-height:1.6;">
-                If you no longer wish to use OmniScan, you can simply ignore this email.
-              </p>
             </td>
           </tr>
 
@@ -483,7 +472,7 @@ function buildAccountArchivedEmailHtml(name: string, loginUrl: string): string {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Account Inactivity Archive Notice</title>
+  <title>Your OmniScan account will be removed in 7 days</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -504,12 +493,12 @@ function buildAccountArchivedEmailHtml(name: string, loginUrl: string): string {
             <td style="padding:40px;">
               <p style="margin:0 0 16px;font-size:18px;color:#333333;">Hi ${name},</p>
               <p style="margin:0 0 20px;font-size:15px;color:#555555;line-height:1.6;">
-                Your OmniScan account has been inactive for <strong>6 months (180 days)</strong> and has been moved to <strong>Archive</strong>.
+                Your OmniScan account has been inactive for <strong>6 months (180 days)</strong> and has been moved to <strong>Archive</strong>. It is about to be removed.
               </p>
 
               <div style="background-color:#FFEBEE;border-left:4px solid #E53935;padding:16px;border-radius:4px;margin-bottom:24px;">
                 <p style="margin:0;font-size:14px;color:#C62828;line-height:1.5;font-weight:bold;">
-                  ⚠️ You have 7 days (1 week) to log back in before your account and personal data are permanently deleted in compliance with PDPA / GDPR.
+                  ⚠️ Your account is about to be removed. Log in within 7 days (1 week) to keep it; otherwise your account and personal data will be permanently deleted in compliance with PDPA / GDPR.
                 </p>
               </div>
 

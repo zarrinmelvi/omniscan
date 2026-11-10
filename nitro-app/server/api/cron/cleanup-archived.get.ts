@@ -7,7 +7,7 @@
 
 import { defineEventHandler, createError, getHeader } from 'h3'
 import { prisma } from '../../lib/prisma'
-import { sendAccountArchivedEmail } from '../../utils/email'
+import { sendAccountArchivedEmail, sendAccountDeletedEmail } from '../../utils/email'
 
 const ARCHIVED_RETENTION_DAYS = 7
 const INACTIVE_ARCHIVE_DAYS = 180
@@ -62,14 +62,20 @@ export default defineEventHandler(async (event) => {
 
 	let archivedUsersCount = 0
 	for (const user of usersToArchive) {
-		await prisma.user.update({
-			where: { id: user.id },
-			data: { status: 'ARCHIVED' },
+		// Conditional update guards against double-archiving (and duplicate emails)
+		const result = await prisma.user.updateMany({
+			where: { id: user.id, status: 'ACTIVE' },
+			data: { status: 'ARCHIVED', archived_at: now },
 		})
+		if (result.count !== 1) continue
 		archivedUsersCount++
 
 		// Send warning email (1-week grace period to log back in)
-		await sendAccountArchivedEmail(user.email, user.name)
+		try {
+			await sendAccountArchivedEmail(user.email, user.name)
+		} catch (err) {
+			console.error('[cleanup-archived] Failed to send archive email:', err)
+		}
 	}
 
 	if (archivedUsersCount > 0) {
@@ -82,14 +88,16 @@ export default defineEventHandler(async (event) => {
 	const deleteUserCutoff = new Date()
 	deleteUserCutoff.setDate(deleteUserCutoff.getDate() - ARCHIVED_RETENTION_DAYS)
 
-	// Finds users whose status is ARCHIVED and were updated 7+ days ago
+	// Finds users archived 7+ days ago (null archived_at never matches)
 	const usersToDelete = await prisma.user.findMany({
 		where: {
 			status: 'ARCHIVED',
-			updated_at: { lt: deleteUserCutoff },
+			archived_at: { lt: deleteUserCutoff },
 		},
-		select: { id: true, email: true },
+		select: { id: true, name: true, email: true },
 	})
+	// Capture recipients before the rows are removed
+	const deletedRecipients = usersToDelete.map((u) => ({ email: u.email, name: u.name }))
 
 	let deletedUsersCount = 0
 	if (usersToDelete.length > 0) {
@@ -124,6 +132,15 @@ export default defineEventHandler(async (event) => {
 		})
 
 		console.log(`[cleanup-archived] Permanently deleted ${deletedUsersCount} archived user account(s).`)
+
+		// Transaction committed: notify each deleted user (failures are isolated)
+		for (const recipient of deletedRecipients) {
+			try {
+				await sendAccountDeletedEmail(recipient.email, recipient.name)
+			} catch (err) {
+				console.error('[cleanup-archived] Failed to send deletion email:', err)
+			}
+		}
 	}
 
 	return {

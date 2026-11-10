@@ -82,6 +82,17 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
+		// Restore ARCHIVED users who return within the grace period
+		await prisma.user.updateMany({
+			where: { id: user.id, status: 'ARCHIVED' },
+			data: {
+				status: 'ACTIVE',
+				archived_at: null,
+				inactivity_warning_sent_at: null,
+				last_active: new Date(),
+			},
+		}).catch(() => {})
+
 		// Update last active and reset inactivity warning
 		await prisma.user.update({
 			where: { id: user.id },

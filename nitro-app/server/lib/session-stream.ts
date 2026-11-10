@@ -161,6 +161,17 @@ export async function handleSessionStream(event: H3Event, kind: SessionKind) {
 			if (kind !== 'user' || !sid) return
 			lastTouchAt = Date.now()
 			try {
+				// A returning ARCHIVED user is restored to ACTIVE. The session_token
+				// guard means a stale/mismatched session restores nothing.
+				await prisma.user.updateMany({
+					where: { id: accountId, session_token: sid, status: 'ARCHIVED' },
+					data: {
+						status: 'ACTIVE',
+						archived_at: null,
+						inactivity_warning_sent_at: null,
+						last_active: new Date(),
+					},
+				})
 				await prisma.user.updateMany({
 					where: { id: accountId, session_token: sid },
 					data: { last_active: new Date(), inactivity_warning_sent_at: null },

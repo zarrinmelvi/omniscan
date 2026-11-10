@@ -1,5 +1,10 @@
 # Epic 7 — Automated Inactivity Warning
 
+> **Update:** The 30-day inactivity warning described below was removed (account-lifecycle-emails-fix).
+> The `/api/cron/inactivity-warning` cron, its task and the warning email no longer exist. The
+> `inactivity_warning_sent_at` column is kept. Only the 180-day archive and +7-day deletion flow remains.
+> The rest of this document is historical.
+
 A 30-day inactivity warning that gives users an **early heads-up** before the
 existing 180-day archive lifecycle kicks in. The warning is purely informational:
 the account **stays ACTIVE**, and nothing is deleted or archived by this feature.

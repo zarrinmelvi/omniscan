@@ -1,0 +1,94 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Write bug condition exploration test": [
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300243743
+      },
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300252935
+      }
+    ],
+    "2. Write preservation property tests (BEFORE implementing fix)": [
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300243823
+      }
+    ],
+    "3.1 Add `archived_at` to the schema and write the migration": [
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300243877
+      }
+    ],
+    "3.2 Add `sendAccountDeletedEmail` and reword the archive email": [
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300243936
+      }
+    ],
+    "3.3 Update `cleanup-archived.get.ts`": [
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300243983
+      }
+    ],
+    "3.4 Restore ARCHIVED users on email/password login": [
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300244031
+      }
+    ],
+    "3.5 Restore ARCHIVED users in Google callback": [
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300244083
+      }
+    ],
+    "3.6 Restore ARCHIVED users in Google verify": [
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300244149
+      }
+    ],
+    "3.7 Restore ARCHIVED users on session-stream heartbeat": [
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300244193
+      }
+    ],
+    "3.8 Verify bug condition exploration test now passes": [
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300244241
+      }
+    ],
+    "3.9 Verify preservation tests still pass": [
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300244288
+      }
+    ],
+    "4. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "fc76bd4a-398e-40c2-8ab2-85bd8d32cdfb",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794300244337
+      }
+    ]
+  }
+}

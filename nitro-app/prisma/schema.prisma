@@ -75,6 +75,9 @@ model User {
   // warning fires. Reset to null on login so a fresh inactivity cycle can warn
   // again. Prevents the daily cron from re-sending the same warning.
   inactivity_warning_sent_at    DateTime?
+  // Stable archival timestamp. Set when status becomes ARCHIVED, null otherwise.
+  // The 7-day deletion grace period is measured from this value.
+  archived_at                   DateTime?
 
   notifications Notification[]
   dietary_prof DietaryProfile[]

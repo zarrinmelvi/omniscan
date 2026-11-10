@@ -50,7 +50,7 @@
 						<div class="chart-title">Allergens listed by Consumers</div>
 						<div class="chart-sub">Aggregate counts · max 5 per profile</div>
 					</div>
-					<router-link to="/admin/usersprofile" class="view-all-link">View all</router-link>
+					<router-link to="/admin/systemlogs?tab=flag-audit" class="view-all-link">View all</router-link>
 				</div>
 				<div v-if="isLoading" class="sk-bars">
 					<div v-for="n in 8" :key="n" class="sk-bar-row">

@@ -4,42 +4,7 @@
 		<p class="gs-subtitle">Your preferences for the Admin Portal. Changes save automatically.</p>
 
 		<div class="gs-single-col">
-			<!-- LEFT COLUMN: Appearance + Notifications -->
-				<!-- Appearance -->
-				<section class="gs-card">
-					<h2 class="gs-section-head">Appearance</h2>
-
-					<template v-if="!isLoaded">
-						<div class="gs-sk-row shimmer" v-for="n in 2" :key="n"></div>
-					</template>
-					<template v-else>
-					<div class="gs-row">
-						<div class="gs-row-info">
-							<div class="gs-row-label">Theme</div>
-							<div class="gs-row-sub">Also available from the moon icon in the header.</div>
-						</div>
-						<div class="theme-seg">
-							<button
-								type="button"
-								class="theme-seg__btn"
-								:class="{ 'theme-seg__btn--active': !form.darkMode }"
-								@click="form.darkMode = false"
-							>
-								Light
-							</button>
-							<button
-								type="button"
-								class="theme-seg__btn"
-								:class="{ 'theme-seg__btn--active': form.darkMode }"
-								@click="form.darkMode = true"
-							>
-								Dark
-							</button>
-						</div>
-					</div>
-					</template>
-				</section>
-
+			<!-- LEFT COLUMN: Notifications -->
 				<!-- Notifications -->
 				<section class="gs-card">
 					<h2 class="gs-section-head">Notifications</h2>
@@ -114,9 +79,6 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
 import { useAdminAuthStore } from '@/stores/adminAuthStore'
-import { useDarkMode } from '@/composables/useDarkMode'
-
-const { isDark: globalIsDark, set: setDarkMode } = useDarkMode()
 
 const adminAuthStore = useAdminAuthStore()
 
@@ -132,7 +94,6 @@ const signInTime = new Date().toLocaleTimeString('en-US', {
 // live via its own watcher below; every field auto-saves (debounced) to the
 // shared /api/admin/settings endpoint.
 const form = reactive({
-	darkMode: globalIsDark.value,
 	emailOnSystemError: true,
 	dailySummaryReport: true,
 	monthlyLogoReminder: true,
@@ -165,10 +126,6 @@ function showToast(message: string): void {
 }
 
 async function fetchSettings(): Promise<void> {
-	// The singleton composable is the source of truth for the live theme; a
-	// stale/absent backend value must never downgrade it.
-	const localDarkMode = globalIsDark.value
-
 	try {
 		const data = await apiFetch<Record<string, unknown>>('/api/admin/settings', {
 			method: 'GET',
@@ -179,8 +136,6 @@ async function fetchSettings(): Promise<void> {
 		if (typeof data.emailOnSystemError === 'boolean') form.emailOnSystemError = data.emailOnSystemError
 		if (typeof data.dailySummaryReport === 'boolean') form.dailySummaryReport = data.dailySummaryReport
 		if (typeof data.monthlyLogoReminder === 'boolean') form.monthlyLogoReminder = data.monthlyLogoReminder
-		// The composable wins over the backend for the live theme.
-		form.darkMode = localDarkMode
 	} catch (err) {
 		// Endpoint absent or unreachable — keep local default state.
 		console.warn('Could not load remote settings, using default state:', err)
@@ -217,20 +172,6 @@ watch(
 	{ deep: true, immediate: false },
 )
 
-// Live-apply the theme the instant the toggle flips so the change is visible
-// immediately (persistence to the backend still happens via the auto-save).
-watch(
-	() => form.darkMode,
-	(enabled) => setDarkMode(enabled),
-)
-
-// Sync the header button → Settings toggle direction: when the header button
-// changes globalIsDark, reflect it back into the form so the segmented control
-// stays in sync.
-watch(globalIsDark, (val) => {
-	form.darkMode = val
-})
-
 async function saveProfile(): Promise<void> {
 	try {
 		const res = await apiFetch<{ success: boolean; admin: { id: number; full_name: string; email: string | null } }>(
@@ -264,8 +205,6 @@ async function saveProfile(): Promise<void> {
 }
 
 onMounted(() => {
-	// Seed the toggle from the singleton composable before the backend settings load.
-	form.darkMode = globalIsDark.value
 	fetchSettings().then(() => {
 		isLoaded.value = true
 		// Cancel any auto-save that may have been scheduled while seeding the

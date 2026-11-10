@@ -11,6 +11,7 @@
 			</slot>
 		</div>
 		<div class="app-header__actions">
+			<span class="app-header__datetime">{{ philippineTime }}</span>
 			<slot name="actions" />
 			<button type="button" class="app-header__theme" @click="toggleDarkMode" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
 				<ion-icon :icon="isDark ? sunnyOutline : moonOutline" />
@@ -26,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IonIcon } from '@ionic/vue'
 import { notificationsOutline, moonOutline, sunnyOutline } from 'ionicons/icons'
@@ -42,6 +43,8 @@ const { isDark, toggle: toggleDarkMode } = useDarkMode()
 const props = defineProps<{ pageName?: string }>()
 
 const unreadNotifCount = ref(0)
+const philippineTime = ref('')
+let timeInterval: ReturnType<typeof setInterval> | undefined
 
 const breadcrumbLabel = computed(() => {
 	if (props.pageName) return props.pageName
@@ -56,6 +59,33 @@ const breadcrumbLabel = computed(() => {
 	}
 	return map[route.path] ?? route.meta?.breadcrumb as string ?? ''
 })
+
+function updatePhilippineTime(): void {
+	const now = new Date()
+	const options: Intl.DateTimeFormatOptions = {
+		timeZone: 'Asia/Manila',
+		weekday: 'long',
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: '2-digit',
+		hour12: true
+	}
+	const formatter = new Intl.DateTimeFormat('en-US', options)
+	const parts = formatter.formatToParts(now)
+	
+	// Extract and reconstruct as "Weekday, Month Day, Year - Time AM/PM PHT"
+	const weekday = parts.find(p => p.type === 'weekday')?.value
+	const month = parts.find(p => p.type === 'month')?.value
+	const day = parts.find(p => p.type === 'day')?.value
+	const year = parts.find(p => p.type === 'year')?.value
+	const hour = parts.find(p => p.type === 'hour')?.value
+	const minute = parts.find(p => p.type === 'minute')?.value
+	const dayPeriod = parts.find(p => p.type === 'dayPeriod')?.value
+	
+	philippineTime.value = `${weekday}, ${month} ${day}, ${year} - ${hour}:${minute} ${dayPeriod} PHT`
+}
 
 async function fetchUnreadNotifs(): Promise<void> {
 	try {
@@ -75,6 +105,12 @@ defineExpose({ fetchUnreadNotifs })
 
 onMounted(() => {
 	fetchUnreadNotifs()
+	updatePhilippineTime()
+	timeInterval = setInterval(updatePhilippineTime, 60000)
+})
+
+onUnmounted(() => {
+	if (timeInterval) clearInterval(timeInterval)
 })
 </script>
 
@@ -120,6 +156,13 @@ onMounted(() => {
 	align-items: center;
 	gap: 10px;
 	margin-left: auto;
+}
+.app-header__datetime {
+	font-size: 0.78rem;
+	color: #64748b;
+	white-space: nowrap;
+	margin-right: 16px;
+	font-weight: 500;
 }
 .app-header__theme {
 	width: 38px;
@@ -172,6 +215,10 @@ onMounted(() => {
 :global(body.dark) .app-header {
 	background: #1e293b;
 	border-bottom-color: #334155;
+}
+.dark .app-header__datetime,
+:global(body.dark) .app-header__datetime {
+	color: #94a3b8;
 }
 .dark .app-header__bell {
 	background: #334155;

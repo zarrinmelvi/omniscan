@@ -64,6 +64,8 @@ interface ScanAiExtraction {
 	net_quantity: number | null
 	net_unit: string | null
 	food_category: string
+	image_quality_issue: string | null  // "blurry", "dark", "glare", "low_resolution", or null
+	non_food_category: string | null  // for analytics/logging only
 }
 
 interface HalalLogoRecord {
@@ -90,11 +92,12 @@ function buildPrompt(): string {
 		'matching exactly this shape:',
 		'{"is_food_product": boolean, "is_real_photo": boolean, "front_image_index": number, "product_name": string, "brand": string, "ingredients_text": string,',
 		'"simplified_ingredients": string, "halal_logo_detected": boolean, "certifying_body": string, "halal_logo_box": {"image_index": number, "box": [ymin, xmin, ymax, xmax]} | null,',
-		'"expiration_date": string | null, "net_quantity": number | null, "net_unit": string | null, "food_category": string}.',
+		'"expiration_date": string | null, "net_quantity": number | null, "net_unit": string | null, "food_category": string, "image_quality_issue": string | null, "non_food_category": string | null}.',
 		'"is_food_product" must be false for anything that is not meant for human consumption',
-		'(e.g. lotion, shampoo, shoes, electronics, toys, stationery) — when false, you may leave the',
+		'(e.g. lotion, shampoo, cosmetics, household cleaners, detergent, toothpaste, deodorant, electronics, toys, stationery, clothing, footwear) — when false, you may leave the',
 		'other string fields as empty strings, halal_logo_detected as false, front_image_index as 0, and expiration_date as null,',
 		'since ingredient extraction does not apply to a non-food item.',
+		'"non_food_category" should classify non-food products into one of: "personal_care" (shampoo, lotion, cosmetics), "household_cleaner" (detergent, disinfectant), "hygiene" (toothpaste, deodorant), "electronics", "clothing", "toys", "stationery", "other", or null if is_food_product is true.',
 		'When is_food_product is true, extract the remaining fields as follows:',
 		'"front_image_index" should be 0 if the 1st attached image contains the primary front packaging/product name/brand logo, or 1 if the 2nd attached image contains the front packaging/brand logo instead. If only 1 image is attached, return 0.',
 		'"product_name" and "brand" should be extracted from whichever image contains the branding or primary product title.',
@@ -109,16 +112,20 @@ function buildPrompt(): string {
 		'"certifying_body" should be the name or initials of the certifying body as printed near/on the logo, exactly as it appears, or an empty string if no logo was detected or the certifying body text is not legible. Known certifying bodies include: JAKIM, MUIS, ESMA, IFANCA, IDCP, NCMF, HDIP, MASLAHA, HICCIP, BPJPH — match against these if the printed text is similar.',
 		'"halal_certifier_confidence" should be a number between 0.0 and 1.0 representing your confidence that you have correctly identified the certifying body from the visible logo or text. Use 0.0 if no logo was detected, 0.5 if a logo is visible but the certifying body text is not clearly legible, and 0.9 or higher only if the certifying body name or initials are clearly and unambiguously visible on the packaging.',
 		'"halal_logo_box" locates the Halal logo/mark: "image_index" is 0 if it is in the 1st attached image or 1 if it is in the 2nd, and "box" is its tight bounding box as [ymin, xmin, ymax, xmax] with every value an integer normalized to the range 0-1000 relative to that image (0,0 is the top-left corner, 1000,1000 the bottom-right). Return null for halal_logo_box when no Halal logo is visible.',
-		'"expiration_date" should be any printed expiration date, best-before date, or use-by date visible on any part of the packaging — look for text labeled "EXP", "Expiry", "Best Before", "BB", "Use By", or similar.',
-		'Convert whatever format is printed (e.g. "31 DEC 2026", "12/31/2026", "2026.12.31")',
-		'into strict ISO format YYYY-MM-DD. If the printed date is ambiguous, partially obscured, or you are not',
+		'"expiration_date" should be any printed expiration date, best-before date, or use-by date visible on any part of the packaging — look for text labeled "EXP", "Expiry", "Best Before", "BB", "Use By", or similar. IMPORTANT: If both MFG (manufacturing date) and EXP (expiration date) are visible, use the EXP date only — ignore MFG.',
+		'Convert whatever format is printed into strict ISO format YYYY-MM-DD. Supported formats include:',
+		'English: "31 DEC 2026", "12/31/2026", "2026-12-31", "31.12.2026";',
+		'Asian: "26.12.31" (YY.MM.DD), "2026.12.31", "2026年12月31日" (Japanese/Chinese);',
+		'Ambiguous formats: If day and month are ambiguous (e.g. "06/12/2026" could be June 12 or Dec 6), prefer the interpretation that results in a later expiration date.',
+		'If the printed date is ambiguous, partially obscured, or you are not',
 		'confident you have read it correctly, return null rather than guessing — a wrong date is worse than no date.',
 		'If no date is visible on the packaging at all, return null.',
 		'If a field cannot be read from the image(s), use an empty string (or false for the boolean field, or null for expiration_date).',
 		'"net_quantity" should be the numeric net quantity printed on the label (e.g. 500 for "500ml", 1 for "1L", 250 for "250g"). Return only the number, not the unit. If no net quantity is visible, return null.',
 		'"net_unit" should be the unit of measure as printed (e.g. "ml", "L", "g", "kg", "oz", "fl oz", "pcs", "pack"). Return only the unit string, lowercase. If no unit is visible or net_quantity is null, return null.',
 		'Do not invent ingredients, certifications, product identity, or a date that are not visibly present.',
-		'"is_real_photo" MUST be true for genuine photographs AND commercial stock or e-commerce marketing images of real packaged food products, even if the packaging features cartoon mascots, anime/illustrated characters (e.g., Buldak Hochi mascot), animated graphics, or studio backgrounds. ONLY set is_real_photo to false when the entire uploaded image itself is a hand-drawn cartoon sketch, anime drawing, artwork, digital painting, meme, screenshot of an app/text, or contains no physical food packaging whatsoever.',
+		'"is_real_photo" MUST be true for genuine photographs AND commercial stock or e-commerce marketing images of real packaged food products, even if the packaging features cartoon mascots, anime/illustrated characters (e.g., Buldak Hochi mascot), animated graphics, or studio backgrounds. ONLY set is_real_photo to false when the entire uploaded image itself is a hand-drawn cartoon sketch, anime drawing, artwork, digital painting, meme, screenshot of an app/text/website, photo of a person\'s face or body, landscape/scenery photo, or contains no physical product packaging whatsoever.',
+		'"image_quality_issue" should assess whether the photo is clear enough to reliably read text. Return null if the image quality is acceptable. Otherwise return one of these values: "blurry" if the image is out of focus or motion-blurred, "dark" if the image is too dark or underexposed to read labels clearly, "glare" if excessive reflection or glare obscures critical text on the packaging, "low_resolution" if the image resolution is too low to read ingredient text. If multiple quality issues exist, return the most severe one that prevents accurate text reading.',
 		'"food_category" should classify the product into exactly one of these predefined pantry categories: ' +
 		'"Canned Goods", "Instant Noodles", "Condiments & Sauces", "Dairy", "Snacks", "Beverages", "Grains". ' +
 		'Choose the single best-fitting category based on the product type. If the category cannot be determined, return an empty string.',
@@ -172,6 +179,13 @@ function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 		net_quantity: typeof candidate.net_quantity === 'number' ? candidate.net_quantity : null,
 		net_unit: typeof candidate.net_unit === 'string' && candidate.net_unit.trim() ? candidate.net_unit.trim().toLowerCase() : null,
 		food_category: normalizeFoodCategory(candidate.food_category),
+		image_quality_issue: typeof candidate.image_quality_issue === 'string' 
+			&& ['blurry', 'dark', 'glare', 'low_resolution'].includes(candidate.image_quality_issue)
+			? candidate.image_quality_issue 
+			: null,
+		non_food_category: typeof candidate.non_food_category === 'string' && candidate.non_food_category.trim()
+			? candidate.non_food_category.trim().toLowerCase()
+			: null,
 	}
 }
 
@@ -326,10 +340,32 @@ export default defineEventHandler(async (event) => {
 			net_quantity: null,
 			net_unit: null,
 			food_category: '',
+			image_quality_issue: null,
+			non_food_category: null,
 		}
 	} else {
 		const imagesForAi = base64RawBack ? [base64Raw, base64RawBack] : [base64Raw]
 		extraction = await extractProductInfoFromImage(imagesForAi)
+	}
+
+	// Image quality gate - reject before food product check
+	if (extraction.image_quality_issue) {
+		const qualityMessages: Record<string, string> = {
+			blurry: 'The photo is too blurry. Hold the camera steady and ensure the label is in focus.',
+			dark: 'The photo is too dark to read the label. Move to a brighter area or turn on more lights.',
+			glare: "There's too much glare on the label. Adjust the angle or lighting to reduce reflections.",
+			low_resolution: 'The photo quality is too low. Move closer to the product or clean your camera lens.',
+		}
+
+		throw createError({
+			statusCode: 422,
+			statusMessage: qualityMessages[extraction.image_quality_issue] || 'Image quality is too poor to scan. Please try again with better lighting and focus.',
+			data: { 
+				rescan_required: true, 
+				reason: 'image_quality',
+				quality_issue: extraction.image_quality_issue,
+			},
+		})
 	}
 
 	if (!extraction.is_food_product) {

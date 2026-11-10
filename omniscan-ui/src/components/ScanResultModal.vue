@@ -15,7 +15,7 @@
 		:is-open="isOpen"
 		:breakpoints="[0, 0.5, 0.95]"
 		:initial-breakpoint="0.95"
-		:backdrop-dismiss="!submitting"
+		:backdrop-dismiss="false"
 		@didDismiss="handleDismiss"
 	>
 		<ion-content class="sheet-ion-content" :scroll-y="true">

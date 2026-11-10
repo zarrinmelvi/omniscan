@@ -380,6 +380,14 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
+function decodeJwtPayload<T = Record<string, unknown>>(token: string): T {
+	const part = token.split('.')[1]
+	if (!part) throw new Error('Malformed token')
+	const b64 = part.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(part.length / 4) * 4, '=')
+	const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))
+	return JSON.parse(new TextDecoder().decode(bytes)) as T
+}
+
 const PREF_MAX = 5
 const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)
 const isGoogleSubmitting = ref(false)
@@ -425,24 +433,24 @@ async function handleGoogleSignIn(): Promise<void> {
 
 			if (verifyResponse.requiresRegistration && verifyResponse.pendingToken) {
 				// New user - pre-fill form
-				const payload = JSON.parse(atob(verifyResponse.pendingToken.split('.')[1]))
-				const username = payload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 15) || 'user'
+				const payload = decodeJwtPayload<any>(verifyResponse.pendingToken)
+				const suggestedUsername = payload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 15) || 'user'
 
 				authStore.setPendingGoogleData({
 					email: payload.email,
 					firstName: payload.firstName,
 					lastName: payload.lastName,
 					googleId: payload.googleId,
-					username
+					username: suggestedUsername
 				})
 
 				isGooglePending.value = true
 				firstName.value = payload.firstName
 				lastName.value = payload.lastName
 				email.value = payload.email
-				username.value = username
+				username.value = suggestedUsername
 
-				await checkUsernameAvailability(username)
+				await checkUsernameAvailability(suggestedUsername)
 				await showToast('Please complete your registration', 'success')
 			} else if (verifyResponse.token) {
 				// Existing user - log in directly
@@ -451,6 +459,7 @@ async function handleGoogleSignIn(): Promise<void> {
 			}
 		} catch (error: any) {
 			console.error('Native Google Sign-In failed:', error)
+			isGooglePending.value = false
 			const errMsg = error?.message || 'Google sign-in failed. Please try again.'
 			void showToast(errMsg, 'danger')
 		} finally {
@@ -973,29 +982,43 @@ onMounted(async () => {
 	const pendingToken = route.query.oauth_pending as string
 	if (pendingToken) {
 		try {
-			const payload = JSON.parse(atob(pendingToken.split('.')[1]))
+			const payload = decodeJwtPayload<any>(pendingToken)
 			if (payload.type !== 'google_pending') throw new Error('Invalid token')
 
-			const username = payload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 15) || 'user'
-			authStore.setPendingGoogleData({
-				email: payload.email,
-				firstName: payload.firstName,
-				lastName: payload.lastName,
-				googleId: payload.googleId,
-				username
-			})
+			if (payload.exp && payload.exp * 1000 < Date.now()) {
+				isGooglePending.value = false
+				await showToast('Google sign-up session expired. Please try again.', 'danger')
+			} else {
+				const suggestedUsername = payload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 15) || 'user'
+				authStore.setPendingGoogleData({
+					email: payload.email,
+					firstName: payload.firstName,
+					lastName: payload.lastName,
+					googleId: payload.googleId,
+					username: suggestedUsername
+				})
 
-			isGooglePending.value = true
-			firstName.value = payload.firstName
-			lastName.value = payload.lastName
-			email.value = payload.email
-			username.value = username
+				isGooglePending.value = true
+				firstName.value = payload.firstName
+				lastName.value = payload.lastName
+				email.value = payload.email
+				username.value = suggestedUsername
 
-			await checkUsernameAvailability(username)
-			router.replace({ path: '/register', query: {} })
+				await checkUsernameAvailability(suggestedUsername)
+				router.replace({ path: '/register', query: {} })
+			}
 		} catch (err) {
-			console.error('Failed to decode pending token:', err)
-			await showToast('Google sign-up session expired. Please try again.', 'danger')
+			console.error('Failed to load Google pending token:', err)
+			isGooglePending.value = false
+			const isTokenProblem = err instanceof Error && (err.message === 'Invalid token' || err.message === 'Malformed token')
+				|| err instanceof SyntaxError
+				|| (typeof DOMException !== 'undefined' && err instanceof DOMException)
+			await showToast(
+				isTokenProblem
+					? 'Google sign-up session expired. Please try again.'
+					: "Couldn't load your Google details. Please try again.",
+				'danger'
+			)
 		}
 	}
 

@@ -263,8 +263,11 @@ html.ion-palette-dark ion-button.pill {
 
 html.ion-palette-dark ion-button.pill.secondary {
 	background: transparent !important;
-	--background: #e8f5ec !important;
-	--color: #1f5e34 !important;
+	--background: #173723 !important;
+	--background-hover: #1e4a2e !important;
+	--background-activated: #1e4a2e !important;
+	--color: #75d786 !important;
+	color: #75d786 !important;
 }
 
 /* Hero Section */

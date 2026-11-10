@@ -1525,48 +1525,78 @@ input[type="date"].custom-input {
 	text-transform: none;
 }
 
-:global(html.ion-palette-dark), :global(body.dark) .auth-content { --background: #0b160b; }
-:global(html.ion-palette-dark), :global(body.dark) .auth-card { background: #0b160b; }
-:global(html.ion-palette-dark), :global(body.dark) .auth-title { color: #f9fafb; }
-:global(html.ion-palette-dark), :global(body.dark) .auth-subtitle { color: #9ca3af; }
-:global(html.ion-palette-dark), :global(body.dark) .input-label { color: #d1d5db; }
-:global(html.ion-palette-dark), :global(body.dark) .custom-input { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
-:global(html.ion-palette-dark), :global(body.dark) .custom-input::placeholder { color: #6b7280; }
-:global(html.ion-palette-dark), :global(body.dark) .username-feedback--checking {
+html.ion-palette-dark .auth-content { --background: #0b160b; }
+html.ion-palette-dark .auth-card { background: #0b160b; }
+html.ion-palette-dark .auth-title { color: #f9fafb; }
+html.ion-palette-dark .auth-subtitle { color: #9ca3af; }
+html.ion-palette-dark .input-label { color: #d1d5db; }
+html.ion-palette-dark .custom-input {
+	background: #172617 !important;
+	background-color: #172617 !important;
+	border-color: #2d4a2d !important;
+	color: #f9fafb !important;
+	-webkit-text-fill-color: #f9fafb !important;
+}
+html.ion-palette-dark .custom-input::placeholder { color: #6b7280 !important; }
+html.ion-palette-dark .username-feedback--checking {
 	background: #1f2937;
 	color: #9ca3af;
 }
-:global(html.ion-palette-dark), :global(body.dark) .username-feedback--success {
+html.ion-palette-dark .username-feedback--success {
 	background: #14532d;
 	color: #86efac;
 	border-color: #166534;
 }
-:global(html.ion-palette-dark), :global(body.dark) .username-feedback--error {
+html.ion-palette-dark .username-feedback--error {
 	background: #450a0a;
 	color: #fca5a5;
 	border-color: #7f1d1d;
 }
-:global(html.ion-palette-dark), :global(body.dark) .pass-criteria-grid { background: #172617; }
-:global(html.ion-palette-dark), :global(body.dark) .criteria-item { color: #6b7280; }
-:global(html.ion-palette-dark), :global(body.dark) .allergen-chip { border-color: #2d4a2d; color: #d1d5db; }
-:global(html.ion-palette-dark), :global(body.dark) .allergen-chip--selected { background: #15803d; border-color: #15803d; color: #fff; }
-:global(html.ion-palette-dark), :global(body.dark) .halal-toggle-card { background: #172617; border-color: #2d4a2d; }
-:global(html.ion-palette-dark), :global(body.dark) .halal-toggle-label { color: #f9fafb; }
-:global(html.ion-palette-dark), :global(body.dark) .halal-toggle-sub { color: #9ca3af; }
-:global(html.ion-palette-dark), :global(body.dark) .btn-back { border-color: #2d4a2d; color: #d1d5db; }
-:global(html.ion-palette-dark), :global(body.dark) .back-to-home { color: #9ca3af; }
-:global(html.ion-palette-dark), :global(body.dark) .remember-label { color: #d1d5db; }
-html.ion-palette-dark .terms-sheet-modal { --background: var(--dm-bg-card); }
-html.ion-palette-dark .terms-modal-header { background: var(--dm-bg-card) !important; border-bottom-color: var(--dm-border) !important; }
-html.ion-palette-dark .terms-modal-title { color: var(--dm-text-primary) !important; }
-html.ion-palette-dark .terms-modal-content { --background: var(--dm-bg-card); --color: var(--dm-text-primary); }
-html.ion-palette-dark .terms-modal-body { background: var(--dm-bg-card) !important; color: var(--dm-text-secondary) !important; }
-html.ion-palette-dark .terms-modal-body h4 { color: var(--dm-text-primary) !important; }
-html.ion-palette-dark .terms-modal-body p, html.ion-palette-dark .terms-modal-body li { color: var(--dm-text-secondary) !important; }
-html.ion-palette-dark .terms-updated, html.ion-palette-dark .terms-footer-meta p { color: var(--dm-text-secondary) !important; }
-html.ion-palette-dark .terms-footer-meta { border-top-color: var(--dm-border) !important; }
-html.ion-palette-dark .terms-modal-footer { background: var(--dm-bg-card) !important; border-top-color: var(--dm-border) !important; }
-html.ion-palette-dark .terms-disagree-btn { --border-color: var(--dm-border); --color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .pass-criteria-grid { background: #172617; }
+html.ion-palette-dark .criteria-item { color: #6b7280; }
+html.ion-palette-dark .allergen-chip { border-color: #2d4a2d; color: #d1d5db; }
+html.ion-palette-dark .allergen-chip--selected { background: #15803d; border-color: #15803d; color: #fff; }
+html.ion-palette-dark .halal-toggle-card { background: #172617; border-color: #2d4a2d; }
+html.ion-palette-dark .halal-toggle-label { color: #f9fafb; }
+html.ion-palette-dark .halal-toggle-sub { color: #9ca3af; }
+html.ion-palette-dark .btn-back { border-color: #2d4a2d; color: #d1d5db; }
+html.ion-palette-dark .back-to-home { color: #9ca3af; }
+html.ion-palette-dark .remember-label { color: #d1d5db !important; }
+html.ion-palette-dark .custom-input:focus { border-color: #05c450 !important; }
+html.ion-palette-dark .custom-input.input-error { border-color: #ef4444 !important; }
+html.ion-palette-dark .custom-input:-webkit-autofill,
+html.ion-palette-dark .custom-input:-webkit-autofill:hover,
+html.ion-palette-dark .custom-input:-webkit-autofill:focus {
+-webkit-box-shadow: 0 0 0 1000px #172617 inset !important;
+-webkit-text-fill-color: #f9fafb !important;
+}
+html.ion-palette-dark .custom-checkbox-box { background-color: #172617 !important; border-color: #2d4a2d !important; }
+html.ion-palette-dark .custom-checkbox-input:checked ~ .custom-checkbox-box { background-color: #05c450 !important; border-color: #05c450 !important; }
+html.ion-palette-dark .google-btn { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
+html.ion-palette-dark .google-btn:hover { background: #1e3a24; border-color: #3a5f3a; }
+html.ion-palette-dark .oauth-divider { color: #6b7280; }
+html.ion-palette-dark .oauth-divider::before, html.ion-palette-dark .oauth-divider::after { border-bottom-color: #2d4a2d; }
+html.ion-palette-dark .switch-auth { color: #9ca3af; }
+html.ion-palette-dark .password-toggle { color: #9ca3af; }
+html.ion-palette-dark .step-label { color: #9ca3af; }
+html.ion-palette-dark .progress-segment { background: #2d4a2d; }
+html.ion-palette-dark .progress-segment--filled { background: #05c450; }
+html.ion-palette-dark .criteria-item.valid { color: #4ade80; }
+html.ion-palette-dark .allergen-count-text { color: #d1d5db; }
+html.ion-palette-dark .allergen-dot { background: #2d4a2d; }
+html.ion-palette-dark .allergen-dot--filled { background: #4ade80; }
+html.ion-palette-dark .back-button { color: #f9fafb !important; }
+html.ion-palette-dark .terms-sheet-modal { --background: #0d1f13; }
+html.ion-palette-dark .terms-modal-header { background: #0d1f13 !important; border-bottom-color: #1a3322 !important; }
+html.ion-palette-dark .terms-modal-title { color: #eef4ed !important; }
+html.ion-palette-dark .terms-modal-content { --background: #0d1f13; --color: #eef4ed; }
+html.ion-palette-dark .terms-modal-body { background: #0d1f13 !important; color: #b8c8bc !important; }
+html.ion-palette-dark .terms-modal-body h4 { color: #eef4ed !important; }
+html.ion-palette-dark .terms-modal-body p, html.ion-palette-dark .terms-modal-body li { color: #b8c8bc !important; }
+html.ion-palette-dark .terms-updated, html.ion-palette-dark .terms-footer-meta p { color: #b8c8bc !important; }
+html.ion-palette-dark .terms-footer-meta { border-top-color: #1a3322 !important; }
+html.ion-palette-dark .terms-modal-footer { background: #0d1f13 !important; border-top-color: #1a3322 !important; }
+html.ion-palette-dark .terms-disagree-btn { --border-color: #1a3322; --color: #eef4ed !important; }
 
 @media (min-width: 768px) {
 	.auth-layout {
@@ -1687,18 +1717,18 @@ input[type="date"].custom-input {
 	flex-shrink: 0;
 }
 
-:global(html.ion-palette-dark), :global(body.dark) .custom-select,
-:global(html.ion-palette-dark), :global(body.dark) input[type="date"].custom-input {
+html.ion-palette-dark .custom-select,
+html.ion-palette-dark input[type="date"].custom-input {
 	color: #f9fafb;
 }
 
-:global(html.ion-palette-dark), :global(body.dark) .custom-select {
+html.ion-palette-dark .custom-select {
 	background-color: #1f2937;
 	color: #e5e7eb;
 	border-color: #374151;
 }
 
-:global(html.ion-palette-dark), :global(body.dark) .google-password-message {
+html.ion-palette-dark .google-password-message {
 	background-color: #1b5e20;
 	border-color: #4caf50;
 	color: #a5d6a7;

@@ -1556,17 +1556,17 @@ input[type="date"].custom-input {
 :global(html.ion-palette-dark), :global(body.dark) .btn-back { border-color: #2d4a2d; color: #d1d5db; }
 :global(html.ion-palette-dark), :global(body.dark) .back-to-home { color: #9ca3af; }
 :global(html.ion-palette-dark), :global(body.dark) .remember-label { color: #d1d5db; }
-:global(html.ion-palette-dark), :global(body.dark) .terms-sheet-modal { --background: #0b160b; }
-:global(html.ion-palette-dark), :global(body.dark) .terms-modal-header { background: #0f1f0f !important; border-bottom-color: #2d4a2d !important; }
-:global(html.ion-palette-dark), :global(body.dark) .terms-modal-title { color: #f9fafb !important; }
-:global(html.ion-palette-dark), :global(body.dark) .terms-modal-content { --background: #0b160b; --color: #e2e8f0; }
-:global(html.ion-palette-dark), :global(body.dark) .terms-modal-body { background: #0b160b !important; color: #d1d5db !important; }
-:global(html.ion-palette-dark), :global(body.dark) .terms-modal-body h4 { color: #f9fafb !important; }
-:global(html.ion-palette-dark), :global(body.dark) .terms-modal-body p { color: #9ca3af !important; }
-:global(html.ion-palette-dark), :global(body.dark) .terms-modal-body li { color: #9ca3af !important; }
-:global(html.ion-palette-dark), :global(body.dark) .terms-updated { color: #6b7280 !important; }
-:global(html.ion-palette-dark), :global(body.dark) .terms-modal-footer { background: #0f1f0f !important; border-top-color: #2d4a2d !important; }
-:global(html.ion-palette-dark), :global(body.dark) .terms-disagree-btn { --border-color: #2d4a2d; --color: #d1d5db !important; }
+html.ion-palette-dark .terms-sheet-modal { --background: var(--dm-bg-card); }
+html.ion-palette-dark .terms-modal-header { background: var(--dm-bg-card) !important; border-bottom-color: var(--dm-border) !important; }
+html.ion-palette-dark .terms-modal-title { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .terms-modal-content { --background: var(--dm-bg-card); --color: var(--dm-text-primary); }
+html.ion-palette-dark .terms-modal-body { background: var(--dm-bg-card) !important; color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .terms-modal-body h4 { color: var(--dm-text-primary) !important; }
+html.ion-palette-dark .terms-modal-body p, html.ion-palette-dark .terms-modal-body li { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .terms-updated, html.ion-palette-dark .terms-footer-meta p { color: var(--dm-text-secondary) !important; }
+html.ion-palette-dark .terms-footer-meta { border-top-color: var(--dm-border) !important; }
+html.ion-palette-dark .terms-modal-footer { background: var(--dm-bg-card) !important; border-top-color: var(--dm-border) !important; }
+html.ion-palette-dark .terms-disagree-btn { --border-color: var(--dm-border); --color: var(--dm-text-primary) !important; }
 
 @media (min-width: 768px) {
 	.auth-layout {

@@ -62,12 +62,12 @@ import { adminToastState, hideAdminToast } from '@/composables/useAdminToast'
 }
 .admin-toast-close:hover { background: rgba(255, 255, 255, 0.15); }
 
-:global(html.ion-palette-dark) .admin-toast {
+html.ion-palette-dark .admin-toast {
 	background: var(--dm-bg-card);
 	color: var(--dm-text-primary);
 	border: 1px solid var(--dm-border);
 }
-:global(html.ion-palette-dark) .admin-toast--warning { border-color: #fcd34d; }
+html.ion-palette-dark .admin-toast--warning { border-color: #fcd34d; }
 
 .admin-toast-fade-enter-active, .admin-toast-fade-leave-active { transition: opacity 0.3s, transform 0.3s; }
 .admin-toast-fade-enter-from, .admin-toast-fade-leave-to { opacity: 0; transform: translateX(-50%) translateY(-8px); }

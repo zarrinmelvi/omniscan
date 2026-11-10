@@ -347,20 +347,20 @@ const navItems = [
 	background: #b91c1c;
 }
 
-:global(html.ion-palette-dark) .logout-confirm-modal {
+html.ion-palette-dark .logout-confirm-modal {
 	background: #1e293b;
 }
-:global(html.ion-palette-dark) .logout-confirm-title {
+html.ion-palette-dark .logout-confirm-title {
 	color: #f9fafb;
 }
-:global(html.ion-palette-dark) .logout-confirm-msg {
+html.ion-palette-dark .logout-confirm-msg {
 	color: #9ca3af;
 }
-:global(html.ion-palette-dark) .logout-btn-cancel {
+html.ion-palette-dark .logout-btn-cancel {
 	border-color: #334155;
 	color: #d1d5db;
 }
-:global(html.ion-palette-dark) .nav-footer__user-btn:hover {
+html.ion-palette-dark .nav-footer__user-btn:hover {
 	background: rgba(255, 255, 255, 0.06);
 }
 </style>

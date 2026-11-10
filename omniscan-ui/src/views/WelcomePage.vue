@@ -130,9 +130,9 @@ function openDownloadModal() {
 }
 
 /* Force dark background directly on ion-content element and web component part */
-:global(html.ion-palette-dark) .welcome-content,
+.welcome-content,
 :global(body.dark) .welcome-content,
-:global(html.ion-palette-dark) .welcome-content {
+.welcome-content {
 	--background: #09130e !important;
 	--color: #eef4ed !important;
 	background: #09130e !important;
@@ -142,7 +142,7 @@ function openDownloadModal() {
 	overflow-x: hidden;
 }
 
-:global(html.ion-palette-dark) .welcome-content::part(scroll),
+.welcome-content::part(scroll),
 :global(body.dark) .welcome-content::part(scroll) {
 	background: #09130e !important;
 }
@@ -175,7 +175,7 @@ header {
 	letter-spacing: -0.5px;
 }
 
-:global(html.ion-palette-dark) .brand,
+.brand,
 :global(body.dark) .brand {
 	color: #63cd77 !important;
 }
@@ -212,17 +212,17 @@ header {
 	color: #334155 !important;
 }
 
-:global(html.ion-palette-dark) .theme,
+.theme,
 :global(body.dark) .theme {
 	background: #334155 !important;
 }
 
-:global(html.ion-palette-dark) .theme ion-icon,
+.theme ion-icon,
 :global(body.dark) .theme ion-icon {
 	color: #fbbf24 !important;
 }
 
-:global(html.ion-palette-dark) header,
+header,
 :global(body.dark) header {
 	background: rgba(9, 19, 14, 0.92) !important;
 	backdrop-filter: blur(8px);
@@ -262,14 +262,14 @@ ion-button.pill.cta-btn {
 	margin: 16px auto 0;
 }
 
-:global(html.ion-palette-dark) ion-button.pill,
+ion-button.pill,
 :global(body.dark) ion-button.pill {
 	background: transparent !important;
 	--background: #34a853 !important;
 	--color: #ffffff !important;
 }
 
-:global(html.ion-palette-dark) ion-button.pill.secondary,
+ion-button.pill.secondary,
 :global(body.dark) ion-button.pill.secondary {
 	background: transparent !important;
 	--background: #e8f5ec !important;
@@ -295,7 +295,7 @@ ion-button.pill.cta-btn {
 	filter: blur(2px);
 }
 
-:global(html.ion-palette-dark) .hero::before,
+.hero::before,
 :global(body.dark) .hero::before {
 	opacity: 0.12 !important;
 }
@@ -308,7 +308,7 @@ ion-button.pill.cta-btn {
 	background: linear-gradient(180deg, rgba(244, 249, 245, 0.4) 0%, rgba(244, 249, 245, 0.85) 60%, #f4f9f5 100%);
 }
 
-:global(html.ion-palette-dark) .hero::after,
+.hero::after,
 :global(body.dark) .hero::after {
 	background: linear-gradient(180deg, rgba(9, 19, 14, 0.7) 0%, rgba(9, 19, 14, 0.92) 60%, #09130e 100%) !important;
 }
@@ -330,7 +330,7 @@ h1 {
 	margin: 20px 0;
 }
 
-:global(html.ion-palette-dark) h1,
+h1,
 :global(body.dark) h1 {
 	color: #eef4ed !important;
 }
@@ -342,8 +342,8 @@ h3 {
 	color: #0f2417;
 }
 
-:global(html.ion-palette-dark) h2,
-:global(html.ion-palette-dark) h3,
+h2,
+h3,
 :global(body.dark) h2,
 :global(body.dark) h3 {
 	color: #eef4ed !important;
@@ -360,7 +360,7 @@ p {
 	margin: 0;
 }
 
-:global(html.ion-palette-dark) p,
+p,
 :global(body.dark) p {
 	color: #b8c8bc !important;
 }
@@ -372,7 +372,7 @@ p {
 	color: #334d3b;
 }
 
-:global(html.ion-palette-dark) .hero p,
+.hero p,
 :global(body.dark) .hero p {
 	color: #b8c8bc !important;
 }
@@ -395,7 +395,7 @@ p {
 	text-decoration: underline;
 }
 
-:global(html.ion-palette-dark) .download,
+.download,
 :global(body.dark) .download {
 	color: #63cd77 !important;
 }
@@ -425,7 +425,7 @@ p {
 	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 }
 
-:global(html.ion-palette-dark) .dashboard,
+.dashboard,
 :global(body.dark) .dashboard {
 	background: #0d1f13 !important;
 	border: 1px solid #1a3322 !important;
@@ -458,7 +458,7 @@ p {
 	border: 1px solid #e2efe5;
 }
 
-:global(html.ion-palette-dark) .card,
+.card,
 :global(body.dark) .card {
 	background: #0d1f13 !important;
 	border: 1px solid #1a3322 !important;
@@ -475,7 +475,7 @@ p {
 	line-height: 1.6;
 }
 
-:global(html.ion-palette-dark) .card p,
+.card p,
 :global(body.dark) .card p {
 	color: #b8c8bc !important;
 }
@@ -521,7 +521,7 @@ p {
 	color: #486652;
 }
 
-:global(html.ion-palette-dark) .diet p,
+.diet p,
 :global(body.dark) .diet p {
 	color: #b8c8bc !important;
 }
@@ -535,7 +535,7 @@ footer {
 	font-size: 13px;
 }
 
-:global(html.ion-palette-dark) footer,
+footer,
 :global(body.dark) footer {
 	border-top-color: #1a3322 !important;
 	color: #8ca899 !important;
@@ -615,9 +615,9 @@ ion-modal.download-modal {
 	color: #12291b;
 }
 
-:global(html.ion-palette-dark) .modal-dialog,
+.modal-dialog,
 :global(body.dark) .modal-dialog,
-:global(html.ion-palette-dark) .modal-dialog {
+.modal-dialog {
 	background: #0d1f13 !important;
 	border: 1px solid #1a3322 !important;
 	color: #eef4ed !important;

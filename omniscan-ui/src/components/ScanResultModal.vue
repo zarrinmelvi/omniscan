@@ -493,8 +493,8 @@ function onBestBeforeDateChange() {
 
 const isFormValid = computed(
 	() =>
-		quantity.value > 0 &&
-		!!unit.value &&
+		piecesCount.value >= 1 &&
+		piecesCount.value <= 99 &&
 		!!storageLocation.value &&
 		(!!expirationDate.value || !!bestBeforeDate.value) &&
 		!(!!expirationDate.value && !!bestBeforeDate.value)

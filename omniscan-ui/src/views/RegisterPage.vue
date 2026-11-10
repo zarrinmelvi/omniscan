@@ -289,7 +289,7 @@
 						<div v-if="prefsError" class="form-error">{{ prefsError }}</div>
 						<div v-if="setupError" class="form-error">{{ setupError }}</div>
 
-						<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs" @click="completeSetup">
+						<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs || !hasValidSelection" @click="completeSetup">
 							<ion-spinner v-if="isSavingPrefs" name="crescent" class="btn-spinner" />
 							<span v-else>Finish</span>
 						</ion-button>
@@ -307,8 +307,7 @@
 			</ion-header>
 			<ion-content class="terms-modal-content" ref="termsContentRef" :scroll-events="true" @ionScroll="onTermsScroll">
 				<div class="terms-modal-body">
-					<h4 style="text-align: center; font-size: 1.1rem; margin-bottom: 8px;">OMNISCAN TERMS &amp; CONDITIONS</h4>
-					<p class="terms-updated">Last Updated: September 7, 2026</p>
+					<p style="font-size: 0.75rem; color: #6b7280; font-weight: 600; margin-bottom: 16px;">Last Updated: September 7, 2026</p>
 
 					<p>Welcome to OmniScan, a cross-platform pantry management and food information system developed as part of a Bachelor of Science in Information Technology capstone project at STI College San Jose Del Monte.</p>
 					
@@ -543,10 +542,9 @@
 			</ion-content>
 			<ion-footer class="ion-no-border terms-modal-footer">
 				<div v-if="!termsScrolledToBottom" class="terms-scroll-hint">
-					<ion-button fill="clear" size="small" class="terms-scroll-btn" @click="scrollTermsToBottom">
-						<ion-icon :icon="arrowDownOutline" slot="start" />
-						Scroll to Bottom
-					</ion-button>
+					<button class="terms-scroll-capsule" @click="scrollTermsToBottom">
+						Scroll to bottom ↓
+					</button>
 				</div>
 				<div class="terms-action-row">
 					<ion-button expand="block" class="terms-agree-btn" :disabled="!termsScrolledToBottom" @click="acceptTerms">
@@ -891,6 +889,10 @@ const setupError = ref('')
 const prefLimitWarning = ref(false)
 
 const allergenCount = computed(() => selectedAllergenIds.value.length)
+
+const hasValidSelection = computed(() => {
+	return selectedAllergenIds.value.length > 0 || halalSelected.value
+})
 
 function formatAllergenName(name: string): string {
 	return name.replace(/\b\w/g, (char) => char.toUpperCase())
@@ -1721,10 +1723,24 @@ input[type="date"].custom-input {
 	margin: 8px 0 4px;
 }
 
-.terms-scroll-btn {
-	--color: #05c450;
-	font-size: 0.82rem;
-	text-transform: none;
+.terms-scroll-capsule {
+	background: #f3f4f6;
+	border: 1px solid #d1d5db;
+	border-radius: 20px;
+	padding: 8px 20px;
+	font-size: 0.875rem;
+	color: #4b5563;
+	cursor: pointer;
+	transition: all 0.2s;
+	font-family: inherit;
+}
+
+.terms-scroll-capsule:hover {
+	background: #e5e7eb;
+}
+
+.terms-scroll-capsule:active {
+	transform: scale(0.98);
 }
 
 .terms-agree-btn[disabled] {

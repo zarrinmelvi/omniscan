@@ -26,9 +26,12 @@
 						<span class="brand-label">OmniScan</span>
 						<h1 class="auth-title">Email Verified!</h1>
 						<p class="auth-subtitle">
-							Your account is now active. Setting up your profile
-							<span v-if="redirectCountdown > 0"> in {{ redirectCountdown }}s</span>…
+							Your account is now active. Please return to your browser or app to complete the setup process.
 						</p>
+						<div class="info-box">
+							<ion-icon :icon="informationCircleOutline" />
+							<p>If you opened this link in an email app, please close this window and return to your original browser or the OmniScan app to continue.</p>
+						</div>
 						<ion-button expand="block" class="submit-button" @click="goToSetup">
 							Continue to Setup
 						</ion-button>
@@ -121,6 +124,7 @@ import {
 	alertCircleOutline,
 	closeCircleOutline,
 	timeOutline,
+	informationCircleOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 import { useAuthStore } from '@/stores/authStore'
@@ -188,7 +192,7 @@ async function verifyToken() {
 		}
 
 		state.value = 'success'
-		startRedirect()
+		// Don't auto-redirect - let user manually continue to avoid embedded browser session issues
 	} catch (err) {
 		if (err instanceof ApiError) {
 			const msg = err.message.toLowerCase()
@@ -322,6 +326,31 @@ onUnmounted(() => {
 	line-height: 1.5;
 	margin: 0 0 24px;
 	text-align: center;
+}
+
+.info-box {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 14px 16px;
+	border-radius: 12px;
+	background: #eff6ff;
+	border: 1px solid #bfdbfe;
+	margin-bottom: 20px;
+}
+
+.info-box ion-icon {
+	font-size: 1.25rem;
+	color: #3b82f6;
+	flex-shrink: 0;
+	margin-top: 2px;
+}
+
+.info-box p {
+	margin: 0;
+	font-size: 0.85rem;
+	line-height: 1.5;
+	color: #1e40af;
 }
 
 .feedback-banner {

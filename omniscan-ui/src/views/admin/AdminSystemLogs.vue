@@ -461,7 +461,6 @@ const auditCategories = [
 	{ value: 'accounts', label: 'Accounts' },
 	{ value: 'product-data', label: 'Product data' },
 	{ value: 'halal-registry', label: 'Halal registry' },
-	{ value: 'settings', label: 'Settings' },
 ]
 
 // ─── Computed from API data ───────────────────────────────────────────────────

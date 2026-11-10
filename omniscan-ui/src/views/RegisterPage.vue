@@ -699,11 +699,7 @@ function formatAllergenName(name: string): string {
 }
 
 function handleBack(): void {
-	if (window.history.length <= 1) {
-		router.replace('/')
-	} else {
-		router.back()
-	}
+	window.location.href = 'https://omniscan.website'
 }
 
 async function redirectIfAlreadyAuthenticated(): Promise<boolean> {

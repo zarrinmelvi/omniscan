@@ -1,4 +1,4 @@
-﻿<template>
+<template>
 	<ion-page>
 		<ion-content class="auth-content" :scroll-y="true">
 			<div class="auth-layout">
@@ -300,7 +300,6 @@
 
 		<!-- Terms & Conditions Sheet Modal -->
 		<ion-modal :is-open="isTermsOpen" @didDismiss="isTermsOpen = false" class="terms-sheet-modal">
-			<div class="terms-modal-wrapper">
 			<ion-header class="ion-no-border terms-modal-header">
 				<div class="terms-modal-header-flex">
 					<h2 class="terms-modal-title">Terms &amp; Conditions</h2>
@@ -541,12 +540,12 @@
 					</div>
 				</div>
 			</ion-content>
-			<div v-if="!termsScrolledToBottom" class="terms-scroll-floating">
-				<button class="terms-scroll-capsule" @click="scrollTermsToBottom">
-					Scroll to bottom ↓
-				</button>
-			</div>
 			<ion-footer class="ion-no-border terms-modal-footer">
+				<div v-if="!termsScrolledToBottom" class="terms-scroll-prompt">
+					<button class="terms-scroll-link" @click="scrollTermsToBottom">
+						↓ Scroll to Bottom
+					</button>
+				</div>
 				<div class="terms-action-row">
 					<ion-button expand="block" class="terms-agree-btn" :disabled="!termsScrolledToBottom" @click="acceptTerms">
 						I Agree
@@ -556,7 +555,6 @@
 					</ion-button>
 				</div>
 			</ion-footer>
-			</div>
 		</ion-modal>
 	</ion-page>
 </template>
@@ -1719,39 +1717,8 @@ input[type="date"].custom-input {
 	margin-bottom: 4px;
 }
 
-.terms-modal-wrapper {
-	position: relative;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-}
 
-.terms-scroll-floating {
-	position: absolute;
-	bottom: 90px;
-	right: 20px;
-	z-index: 10;
-}
 
-.terms-scroll-capsule {
-	background: #f3f4f6;
-	border: 1px solid #d1d5db;
-	border-radius: 20px;
-	padding: 8px 20px;
-	font-size: 0.875rem;
-	color: #4b5563;
-	cursor: pointer;
-	transition: all 0.2s;
-	font-family: inherit;
-}
-
-.terms-scroll-capsule:hover {
-	background: #e5e7eb;
-}
-
-.terms-scroll-capsule:active {
-	transform: scale(0.98);
-}
 
 .terms-agree-btn[disabled] {
 	opacity: 0.5;
@@ -1762,6 +1729,27 @@ input[type="date"].custom-input {
 	flex-direction: column;
 	gap: 10px;
 	margin-top: 0;
+}
+
+.terms-scroll-prompt {
+	text-align: center;
+	margin-bottom: 12px;
+}
+
+.terms-scroll-link {
+	background: none;
+	border: none;
+	color: #05c450;
+	font-size: 0.9rem;
+	font-weight: 600;
+	cursor: pointer;
+	padding: 8px 12px;
+	transition: opacity 0.2s;
+	font-family: inherit;
+}
+
+.terms-scroll-link:hover {
+	opacity: 0.8;
 }
 
 .terms-modal-footer {

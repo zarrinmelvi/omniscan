@@ -103,24 +103,27 @@
 					<span class="breadcrumb-slash">/</span>
 					<span>{{ currentPageTitle }}</span>
 				</div>
-				<button type="button" class="theme-toggle-btn" @click="toggleDarkMode" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
-					<!-- Moon icon (shown in light mode — click to go dark) -->
-					<svg v-if="!isDark" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-					</svg>
-					<!-- Sun icon (shown in dark mode — click to go light) -->
-					<svg v-else viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<circle cx="12" cy="12" r="5"></circle>
-						<line x1="12" y1="1" x2="12" y2="3"></line>
-						<line x1="12" y1="21" x2="12" y2="23"></line>
-						<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-						<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-						<line x1="1" y1="12" x2="3" y2="12"></line>
-						<line x1="21" y1="12" x2="23" y2="12"></line>
-						<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-						<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-					</svg>
-				</button>
+				<div class="top-bar-right">
+					<span class="ph-datetime">{{ philippineTime }}</span>
+					<button type="button" class="theme-toggle-btn" @click="toggleDarkMode" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+						<!-- Moon icon (shown in light mode — click to go dark) -->
+						<svg v-if="!isDark" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+						</svg>
+						<!-- Sun icon (shown in dark mode — click to go light) -->
+						<svg v-else viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<circle cx="12" cy="12" r="5"></circle>
+							<line x1="12" y1="1" x2="12" y2="3"></line>
+							<line x1="12" y1="21" x2="12" y2="23"></line>
+							<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+							<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+							<line x1="1" y1="12" x2="3" y2="12"></line>
+							<line x1="21" y1="12" x2="23" y2="12"></line>
+							<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+							<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+						</svg>
+					</button>
+				</div>
 			</header>
 
 			<div class="page-body">
@@ -147,6 +150,9 @@ const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 const showLogoutConfirm = ref(false)
 const isOffline = ref(!navigator.onLine)
+const philippineTime = ref('')
+let timeInterval: ReturnType<typeof setInterval> | undefined
+
 function handleOnline() { isOffline.value = false }
 function handleOffline() { isOffline.value = true }
 
@@ -175,6 +181,33 @@ const initials = computed(() => {
 	)
 })
 
+function updatePhilippineTime(): void {
+	const now = new Date()
+	const options: Intl.DateTimeFormatOptions = {
+		timeZone: 'Asia/Manila',
+		weekday: 'long',
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: '2-digit',
+		hour12: true
+	}
+	const formatter = new Intl.DateTimeFormat('en-US', options)
+	const parts = formatter.formatToParts(now)
+	
+	// Extract and reconstruct as "Weekday, Month Day, Year - Time AM/PM PHT"
+	const weekday = parts.find(p => p.type === 'weekday')?.value
+	const month = parts.find(p => p.type === 'month')?.value
+	const day = parts.find(p => p.type === 'day')?.value
+	const year = parts.find(p => p.type === 'year')?.value
+	const hour = parts.find(p => p.type === 'hour')?.value
+	const minute = parts.find(p => p.type === 'minute')?.value
+	const dayPeriod = parts.find(p => p.type === 'dayPeriod')?.value
+	
+	philippineTime.value = `${weekday}, ${month} ${day}, ${year} - ${hour}:${minute} ${dayPeriod} PHT`
+}
+
 async function confirmLogout(): Promise<void> {
 	showLogoutConfirm.value = false
 	// Clears the local session first (stops the stream), then notifies the server.
@@ -194,6 +227,8 @@ onMounted(() => {
 	// Watches adminAuthStore.isAuthenticated: the stream starts while an admin is
 	// signed in and stops synchronously on logout (before any redirect/request).
 	stopAdminWatcher = startAdminSessionWatcher()
+	updatePhilippineTime()
+	timeInterval = setInterval(updatePhilippineTime, 60000)
 })
 
 onUnmounted(() => {
@@ -201,6 +236,7 @@ onUnmounted(() => {
 	stopAdminWatcher = null
 	window.removeEventListener('online', handleOnline)
 	window.removeEventListener('offline', handleOffline)
+	if (timeInterval) clearInterval(timeInterval)
 })
 </script>
 
@@ -424,6 +460,20 @@ onUnmounted(() => {
 	text-decoration: underline;
 }
 
+.top-bar-right {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.ph-datetime {
+	font-size: 0.78rem;
+	color: #64748b;
+	font-weight: 500;
+	white-space: nowrap;
+	margin-right: 12px;
+}
+
 .theme-toggle-btn {
 	width: 36px;
 	height: 36px;
@@ -451,4 +501,79 @@ onUnmounted(() => {
 /* Offline banner */
 .offline-banner { display:flex; align-items:center; gap:10px; padding:10px 36px; background:#fefce8; border-bottom:1px solid #fde047; color:#854d0e; font-size:0.84rem; font-weight:500; flex-shrink:0; }
 .offline-banner svg { flex-shrink:0; color:#a16207; }
+
+/* Dark mode styles */
+:global(body.dark) .admin-layout {
+	background: #0f172a;
+}
+
+:global(body.dark) .sidebar {
+	background: #1e293b;
+	border-right-color: #334155;
+}
+
+:global(body.dark) .brand-name {
+	color: #f1f5f9;
+}
+
+:global(body.dark) .brand-sub {
+	color: #94a3b8;
+}
+
+:global(body.dark) .nav-item {
+	color: #cbd5e1;
+}
+
+:global(body.dark) .nav-item:hover {
+	background: #334155;
+	color: #f1f5f9;
+}
+
+:global(body.dark) .sidebar-footer {
+	border-top-color: #334155;
+}
+
+:global(body.dark) .admin-name {
+	color: #f1f5f9;
+}
+
+:global(body.dark) .admin-email {
+	color: #94a3b8;
+}
+
+:global(body.dark) .admin-main {
+	background: #0f172a;
+}
+
+:global(body.dark) .top-bar {
+	background: #1e293b;
+	border-bottom-color: #334155;
+}
+
+:global(body.dark) .breadcrumb,
+:global(body.dark) .breadcrumb-home {
+	color: #cbd5e1;
+}
+
+:global(body.dark) .breadcrumb-slash {
+	color: #64748b;
+}
+
+:global(body.dark) .ph-datetime {
+	color: #94a3b8;
+}
+
+:global(body.dark) .theme-toggle-btn {
+	background: #334155;
+	color: #fbbf24;
+}
+
+:global(body.dark) .theme-toggle-btn:hover {
+	background: #475569;
+	color: #fcd34d;
+}
+
+:global(body.dark) .page-body {
+	background: #0f172a;
+}
 </style>

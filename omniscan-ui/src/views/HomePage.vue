@@ -698,6 +698,13 @@ onIonViewWillEnter(() => {
 	color: #8e8e93;
 }
 
+/* Desktop already has Profile in the sidebar; keep the shortcut on mobile/tablet */
+@media (min-width: 1024px) {
+	.header-actions {
+		display: none;
+	}
+}
+
 .inline-error {
 	display: flex;
 	align-items: center;

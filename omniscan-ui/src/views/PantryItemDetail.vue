@@ -138,8 +138,8 @@
 					<div class="info-card">
 						<h3 class="info-card__title">Product Information</h3>
 						<div class="info-row">
-							<span>Category:</span>
-							<strong>{{ item.category || 'Uncategorized' }}</strong>
+							<span>Storage Location:</span>
+							<strong>{{ item.storage_location || '—' }}</strong>
 						</div>
 						<div class="info-row">
 							<span>Days until expiry:</span>
@@ -203,11 +203,20 @@
 		</ion-content>
 
 		<!-- Edit Details Modal -->
-		<ion-modal :is-open="isEditModalOpen" @didDismiss="isEditModalOpen = false" class="edit-item-modal">
+		<ion-modal
+			:is-open="isEditModalOpen"
+			:breakpoints="[0, 0.5, 0.95]"
+			:initial-breakpoint="0.95"
+			:can-dismiss="canDismissEdit"
+			@didDismiss="onEditDidDismiss"
+			class="edit-item-modal">
+			<ion-content class="edit-sheet-content" :scroll-y="true">
 			<div class="edit-modal-card">
 				<div class="edit-modal-header">
 					<h2 class="edit-modal-title">Edit Details</h2>
-					<button type="button" class="edit-modal-close" @click="isEditModalOpen = false">✕</button>
+					<button type="button" class="edit-modal-close" aria-label="Close" :disabled="isSaving" @click="requestCloseEdit">
+						<ion-icon :icon="closeOutline" />
+					</button>
 				</div>
 
 				<div class="edit-modal-body">
@@ -290,6 +299,7 @@
 					</button>
 				</div>
 			</div>
+			</ion-content>
 		</ion-modal>
 	</ion-page>
 </template>
@@ -311,6 +321,7 @@ import {
 	IonModal,
 	onIonViewWillEnter,
 	toastController,
+	alertController,
 } from '@ionic/vue'
 import AppHeader from '@/components/AppHeader.vue'
 import { useBreakpoint } from '@/utils/useBreakpoint'
@@ -325,6 +336,7 @@ import {
 	chevronUpOutline,
 	chevronDownOutline,
 	createOutline,
+	closeOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
@@ -392,6 +404,10 @@ const editForm = reactive({
   expiration_date: '',
   best_before_date: '',
 })
+
+const editSnapshot = ref('')
+let bypassEditGuard = false
+let isDiscardAlertOpen = false
 
 const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
 
@@ -524,7 +540,85 @@ function openEditModal(): void {
     ? item.value.best_before_date.split('T')[0]
     : ''
   editError.value = ''
+  editSnapshot.value = editFingerprint()
+  bypassEditGuard = false
   isEditModalOpen.value = true
+}
+
+// Normalised view of the form so '' and null (blank net content) compare equal
+function editFingerprint(): string {
+  const nc = editForm.net_content as number | null | ''
+  return JSON.stringify({
+    storage_location: editForm.storage_location,
+    net_content: nc === '' || nc === null || nc === undefined ? null : Number(nc),
+    net_unit: editForm.net_content ? editForm.net_unit : null,
+    pieces_count: Number(editForm.pieces_count),
+    category: editForm.category,
+    expiration_date: editForm.expiration_date || '',
+    best_before_date: editForm.best_before_date || '',
+  })
+}
+
+const isEditDirty = computed(() => isEditModalOpen.value && editFingerprint() !== editSnapshot.value)
+
+function resetEditForm(): void {
+  if (!editSnapshot.value) return
+  const s = JSON.parse(editSnapshot.value)
+  editForm.storage_location = s.storage_location
+  editForm.net_content = s.net_content
+  editForm.net_unit = item.value?.net_unit || 'g'
+  editForm.pieces_count = s.pieces_count
+  editForm.category = s.category
+  editForm.expiration_date = s.expiration_date
+  editForm.best_before_date = s.best_before_date
+  editError.value = ''
+}
+
+// Resolves true if the user chose to discard
+async function confirmDiscardEdit(): Promise<boolean> {
+  if (isDiscardAlertOpen) return false
+  isDiscardAlertOpen = true
+  try {
+    const alert = await alertController.create({
+      header: 'Discard changes?',
+      message: 'You have unsaved changes. Are you sure you want to close without saving?',
+      cssClass: 'custom-make-alert',
+      buttons: [
+        { text: 'Keep Editing', role: 'cancel', cssClass: 'alert-button-cancel' },
+        { text: 'Discard Changes', role: 'confirm', cssClass: 'alert-button-danger' },
+      ],
+    })
+    await alert.present()
+    const { role } = await alert.onDidDismiss()
+    return role === 'confirm'
+  } finally {
+    isDiscardAlertOpen = false
+  }
+}
+
+// Used by ion-modal for swipe-down and backdrop taps
+async function canDismissEdit(): Promise<boolean> {
+  if (bypassEditGuard || isSaving.value || !isEditDirty.value) return true
+  const discard = await confirmDiscardEdit()
+  if (discard) resetEditForm()
+  return discard
+}
+
+// Used by the X button
+async function requestCloseEdit(): Promise<void> {
+  if (isSaving.value) return
+  if (isEditDirty.value) {
+    const discard = await confirmDiscardEdit()
+    if (!discard) return
+    resetEditForm()
+  }
+  bypassEditGuard = true
+  isEditModalOpen.value = false
+}
+
+function onEditDidDismiss(): void {
+  isEditModalOpen.value = false
+  bypassEditGuard = false
 }
 
 async function saveEdit(): Promise<void> {
@@ -540,14 +634,16 @@ async function saveEdit(): Promise<void> {
         net_unit: editForm.net_content && editForm.net_content > 0 ? editForm.net_unit : null,
         pieces_count: editForm.pieces_count,
         category: editForm.category,
-        expiration_date: editForm.expiration_date || undefined,
-        best_before_date: editForm.best_before_date || undefined,
+        // Explicit null clears the other date so only one stays active
+        expiration_date: editForm.expiration_date || null,
+        best_before_date: editForm.best_before_date || null,
       },
     })
 
     // Silent re-fetch (no spinner) so the view reflects changes immediately
     await fetchItem(true)
 
+    bypassEditGuard = true
     isEditModalOpen.value = false
     const toast = await toastController.create({
       message: 'Pantry item updated successfully',
@@ -933,26 +1029,29 @@ onIonViewWillEnter(() => fetchItem())
 }
 
 .edit-item-modal {
-  --height: auto;
   --border-radius: 20px 20px 0 0;
-  --background: transparent;
   --backdrop-opacity: 0.5;
-  align-items: flex-end;
 }
 
-.edit-item-modal::part(content) {
-  background: transparent;
-  box-shadow: none;
+.edit-sheet-content {
+  --background: #ffffff;
+  --padding-bottom: 24px;
 }
 
 .edit-modal-card {
-  background: var(--ion-card-background, #ffffff);
-  border-radius: 20px 20px 0 0;
+  background: #ffffff;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
+/* Header stays visible while the form scrolls so the X is always reachable */
 .edit-modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -970,10 +1069,20 @@ onIonViewWillEnter(() => fetchItem())
 .edit-modal-close {
   background: none;
   border: none;
-  font-size: 1.1rem;
-  color: #64748b;
+  font-size: 1.5rem;
+  color: #475569;
   cursor: pointer;
-  padding: 4px 8px;
+  width: 44px;
+  height: 44px;
+  margin-right: -10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.edit-modal-close:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .edit-modal-body {

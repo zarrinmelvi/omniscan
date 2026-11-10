@@ -7,8 +7,8 @@ interface UpdatePantryItemBody {
 	net_content?: number | null
 	net_unit?: string | null
 	pieces_count?: number
-	expiration_date?: string
-	best_before_date?: string
+	expiration_date?: string | null
+	best_before_date?: string | null
 	storage_location?: string
 	category?: string
 	is_archived?: boolean
@@ -67,8 +67,16 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'storage_location must be one of: Fridge, Freezer, Cupboard.' })
 	}
 
-	let parsedExpirationDate: Date | undefined
-	if (expiration_date !== undefined) {
+	// An item holds only one active date: reject requests that set both.
+	if (expiration_date && best_before_date) {
+		throw createError({ statusCode: 400, statusMessage: 'Provide either expiration_date or best_before_date, not both.' })
+	}
+
+	// undefined = leave unchanged, null = clear, Date = set
+	let parsedExpirationDate: Date | null | undefined
+	if (expiration_date === null) {
+		parsedExpirationDate = null
+	} else if (expiration_date !== undefined) {
 		if (typeof expiration_date !== 'string') {
 			throw createError({ statusCode: 400, statusMessage: 'expiration_date must be a string.' })
 		}
@@ -78,8 +86,10 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	let parsedBestBeforeDate: Date | undefined
-	if (best_before_date !== undefined) {
+	let parsedBestBeforeDate: Date | null | undefined
+	if (best_before_date === null) {
+		parsedBestBeforeDate = null
+	} else if (best_before_date !== undefined) {
 		if (typeof best_before_date !== 'string') {
 			throw createError({ statusCode: 400, statusMessage: 'best_before_date must be a string.' })
 		}
@@ -129,6 +139,9 @@ export default defineEventHandler(async (event) => {
 				}),
 				...(parsedExpirationDate !== undefined && { expiration_date: parsedExpirationDate }),
 				...(parsedBestBeforeDate !== undefined && { best_before_date: parsedBestBeforeDate }),
+				// Setting one date clears the other so only one stays active
+				...(parsedExpirationDate instanceof Date && parsedBestBeforeDate === undefined && { best_before_date: null }),
+				...(parsedBestBeforeDate instanceof Date && parsedExpirationDate === undefined && { expiration_date: null }),
 				...(storage_location !== undefined && { storage_location }),
 				...(category !== undefined && { category }),
 				...(is_archived !== undefined && { is_archived }),

@@ -96,6 +96,7 @@ html.ion-palette-dark .field-hint {
 }
 
 html.ion-palette-dark .quantity-input,
+html.ion-palette-dark .pieces-input,
 html.ion-palette-dark .unit-select {
   color: var(--dm-text-primary) !important;
 }
@@ -105,6 +106,7 @@ html.ion-palette-dark .custom-input,
 html.ion-palette-dark .native-text-input,
 html.ion-palette-dark .date-input,
 html.ion-palette-dark .quantity-input,
+html.ion-palette-dark .pieces-input,
 html.ion-palette-dark .unit-select,
 html.ion-palette-dark .sort-text-select {
   background: var(--dm-bg-input) !important;
@@ -850,9 +852,11 @@ html.ion-palette-dark .custom-edit-modal .who-allergen-checkbox {
   border-color: var(--dm-border) !important;
 }
 
-html.ion-palette-dark .custom-edit-modal .who-allergen-checkbox:checked {
-  background-color: #05c450 !important;
-  border-color: #05c450 !important;
+html.ion-palette-dark .custom-edit-modal .who-allergen-checkbox:checked,
+html.ion-palette-dark .who-allergen-checkbox:checked {
+  background-color: #00b050 !important;
+  border-color: #00b050 !important;
+  accent-color: #00b050;
 }
 
 /* === Sort dropdown dark mode === */
@@ -918,6 +922,7 @@ html.ion-palette-dark .storage-option-btn--active {
 }
 
 html.ion-palette-dark .edit-qty-input,
+html.ion-palette-dark .edit-pieces-input,
 html.ion-palette-dark .edit-unit-select,
 html.ion-palette-dark .edit-date-input {
   background-color: var(--dm-bg-input) !important;

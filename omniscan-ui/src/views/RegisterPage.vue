@@ -1652,7 +1652,7 @@ input[type="date"].custom-input {
 
 .terms-sheet-modal {
 	--height: 85%;
-	--border-radius: 20px 20px 0 0;
+	--border-radius: 20px;
 }
 
 .terms-modal-header {

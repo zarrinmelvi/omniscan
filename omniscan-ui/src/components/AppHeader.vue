@@ -4,6 +4,10 @@
 			<div v-if="isDesktop" class="app-header__breadcrumb">
 				<span class="app-header__breadcrumb-root">OmniScan</span>
 				<span class="app-header__breadcrumb-sep"> / </span>
+				<template v-if="parentLabel">
+					<a class="app-header__breadcrumb-link" href="#" @click.prevent="router.push(parentPath || '/tabs/home')">{{ parentLabel }}</a>
+					<span class="app-header__breadcrumb-sep"> / </span>
+				</template>
 				<span class="app-header__breadcrumb-page">{{ breadcrumbLabel }}</span>
 			</div>
 			<slot v-else name="title">
@@ -39,7 +43,7 @@ const route = useRoute()
 const { isDesktop } = useBreakpoint()
 const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
-const props = defineProps<{ pageName?: string }>()
+const props = defineProps<{ pageName?: string; parentLabel?: string; parentPath?: string }>()
 
 const unreadNotifCount = ref(0)
 
@@ -108,6 +112,18 @@ onMounted(() => {
 .app-header__breadcrumb-page {
 	color: #111827;
 	font-weight: 700;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 40vw;
+}
+.app-header__breadcrumb-link {
+	color: #94a3b8;
+	text-decoration: none;
+}
+.app-header__breadcrumb-link:hover {
+	color: #05c450;
 }
 .app-header__brand {
 	font-size: 1.05rem;

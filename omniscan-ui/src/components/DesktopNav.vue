@@ -8,7 +8,7 @@
 		<!-- Navigation items -->
 		<ul class="nav-menu">
 			<li v-for="item in navItems" :key="item.path">
-				<router-link :to="item.path" class="nav-item" active-class="nav-item--active">
+				<router-link :to="item.path" class="nav-item" :class="{ 'nav-item--active': isActive(item.path) }">
 					<ion-icon :icon="item.icon" />
 					<span>{{ item.label }}</span>
 				</router-link>
@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { IonIcon } from '@ionic/vue'
 import {
 	homeOutline,
@@ -66,7 +66,13 @@ defineProps<{
 }>()
 
 const router = useRouter()
+const route = useRoute()
 const showLogoutConfirm = ref(false)
+
+// Active for the section root and any drill-down (e.g. /tabs/pantry/151)
+function isActive(path: string): boolean {
+	return route.path === path || route.path.startsWith(path + '/')
+}
 
 async function confirmLogout(): Promise<void> {
 	try {

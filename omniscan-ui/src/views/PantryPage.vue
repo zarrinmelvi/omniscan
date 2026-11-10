@@ -519,7 +519,7 @@ function deleteInLabel(item: PantryItemDto): string {
 }
 
 function formatQuantity(item: PantryItemDto): string {
-	return `${item.pieces_count} pcs`
+	return `${item.pieces_count ?? 1} pcs`
 }
 
 async function fetchPantryItems(): Promise<void> {

@@ -1,9 +1,12 @@
 <template>
 	<ion-page>
-		<AppHeader v-if="isDesktop" :pageName="item?.product?.product_name ?? 'Item Detail'" />
+		<!-- Top bar: brand/breadcrumb + theme toggle + notifications (desktop and mobile) -->
+		<ion-header class="app-header-shell">
+			<AppHeader :pageName="item?.product?.product_name ?? 'Item Detail'" :parentLabel="isDesktop ? 'Pantry' : undefined" parentPath="/tabs/pantry" />
+		</ion-header>
 
-		<!-- Header with Title Left-Aligned Next to Back Arrow -->
-		<ion-header v-if="!isDesktop" class="ion-no-border">
+		<!-- Drill-down bar: back arrow, item name, edit icon (desktop and mobile) -->
+		<ion-header class="ion-no-border detail-header" :class="{ 'detail-header--desktop': isDesktop }">
 			<ion-toolbar class="detail-toolbar">
 				<ion-buttons slot="start">
 					<ion-back-button default-href="/tabs/pantry" text="" class="back-btn"></ion-back-button>
@@ -25,7 +28,7 @@
 			<div v-else-if="loadError" class="state-block">
 				<ion-icon :icon="alertCircleOutline" size="large" color="danger" />
 				<p>{{ loadError }}</p>
-				<ion-button @click="fetchItem">Try again</ion-button>
+				<ion-button @click="fetchItem()">Try again</ion-button>
 			</div>
 
 			<div v-else-if="item" class="detail-wrap">
@@ -148,7 +151,7 @@
 						</div>
 						<div class="info-row">
 							<span>Quantity:</span>
-							<strong>{{ item.pieces_count }} pcs</strong>
+							<strong>{{ item.pieces_count ?? 1 }} pcs</strong>
 						</div>
 					</div>
 				</template>
@@ -501,7 +504,9 @@ const isEditFormValid = computed(() => {
   const hasExp = !!editForm.expiration_date
   const hasBbd = !!editForm.best_before_date
   const validPiecesCount = editForm.pieces_count >= 1 && editForm.pieces_count <= 99
-  const validNetContent = editForm.net_content === null || (editForm.net_content > 0 && !!editForm.net_unit)
+  // Net content is optional: blank ('' from v-model.number) or null is valid
+  const nc = editForm.net_content as number | null | ''
+  const validNetContent = nc === null || nc === '' || nc === undefined || (Number(nc) > 0 && !!editForm.net_unit)
   return validPiecesCount && validNetContent && !!editForm.storage_location && (hasExp || hasBbd) && !(hasExp && hasBbd)
 })
 
@@ -540,8 +545,8 @@ async function saveEdit(): Promise<void> {
       },
     })
 
-    // Re-fetch full item details to update view immediately without crashing
-    await fetchItem()
+    // Silent re-fetch (no spinner) so the view reflects changes immediately
+    await fetchItem(true)
 
     isEditModalOpen.value = false
     const toast = await toastController.create({
@@ -558,8 +563,8 @@ async function saveEdit(): Promise<void> {
   }
 }
 
-async function fetchItem(): Promise<void> {
-	isLoading.value = true
+async function fetchItem(silent = false): Promise<void> {
+	if (!silent) isLoading.value = true
 	loadError.value = ''
 
 	try {
@@ -575,7 +580,7 @@ async function fetchItem(): Promise<void> {
 	}
 }
 
-onIonViewWillEnter(fetchItem)
+onIonViewWillEnter(() => fetchItem())
 </script>
 
 <style scoped>
@@ -594,6 +599,20 @@ onIonViewWillEnter(fetchItem)
 	--padding-start: 0px;
 	padding: 4px 4px 4px 0;
 	border-bottom: 1px solid #f1f5f9;
+}
+.app-header-shell {
+	--background: #ffffff;
+}
+.app-header-shell::after {
+	display: none;
+}
+/* The shared header above already handles the status-bar safe area */
+.detail-header .detail-toolbar {
+	padding-top: 0;
+}
+.detail-header--desktop .detail-toolbar {
+	padding-left: 8px;
+	padding-right: 8px;
 }
 .detail-title {
 	font-size: 1.15rem;

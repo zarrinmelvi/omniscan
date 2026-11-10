@@ -1435,6 +1435,13 @@ onIonViewWillEnter(() => {
 		background-color: #1e293b;
 		border-color: #334155;
 	}
+
+	/* Keep brand green when checked in dark mode (must come after the dark default above) */
+	.who-allergen-checkbox:checked,
+	.who-allergen-checkbox:checked:disabled {
+		background-color: #00b050 !important;
+		border-color: #00b050 !important;
+	}
 }
 
 .save-changes-btn {

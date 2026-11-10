@@ -1020,7 +1020,7 @@ onBeforeUnmount(() => {
 }
 
 .bracket-bl {
-	bottom: 30%;
+	bottom: 22%;
 	left: 12%;
 	border-bottom-width: 4px;
 	border-left-width: 4px;
@@ -1028,7 +1028,7 @@ onBeforeUnmount(() => {
 }
 
 .bracket-br {
-	bottom: 30%;
+	bottom: 22%;
 	right: 12%;
 	border-bottom-width: 4px;
 	border-right-width: 4px;

@@ -1,7 +1,7 @@
-// Count-based + weight/volume units supported by the pantry.
+// Weight/volume units supported by the pantry (net content only).
+// Pieces count is tracked separately and always uses 'pcs' internally.
 export const PANTRY_UNITS = [
-	'pcs', 'bottles', 'cans', 'packs', 'boxes', // count-based
-	'g', 'kg', 'ml', 'L',                       // weight / volume
+	'g', 'kg', 'ml', 'L', 'oz', // weight / volume
 ] as const
 export type PantryUnit = (typeof PANTRY_UNITS)[number]
 

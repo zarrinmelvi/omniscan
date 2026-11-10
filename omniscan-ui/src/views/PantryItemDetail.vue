@@ -143,8 +143,12 @@
 							<strong>{{ daysUntilExpiryLabel }}</strong>
 						</div>
 						<div class="info-row">
+							<span>Net Content / Package Size:</span>
+							<strong>{{ item.net_content && item.net_unit ? `${item.net_content}${item.net_unit}` : '—' }}</strong>
+						</div>
+						<div class="info-row">
 							<span>Quantity:</span>
-							<strong>{{ item.quantity }}{{ item.portion_unit }}</strong>
+							<strong>{{ item.pieces_count }} pcs</strong>
 						</div>
 					</div>
 				</template>
@@ -220,19 +224,32 @@
 						</button>
 					</div>
 
-					<!-- Quantity & Unit -->
-					<label class="field-label-brown">Quantity &amp; Unit</label>
+					<!-- Net Content / Package Size (optional) -->
+					<label class="field-label-brown">Net Content / Package Size (optional)</label>
+					<span class="field-hint">Package size printed on label (e.g. 500ml, 1kg)</span>
 					<div class="edit-qty-row">
 						<input
-							v-model.number="editForm.quantity"
+							v-model.number="editForm.net_content"
 							type="number"
-							min="0.01"
+							min="0"
 							step="any"
-							class="edit-qty-input" />
-						<select v-model="editForm.unit" class="edit-unit-select">
-							<option v-for="u in ['pcs', 'bottles', 'cans', 'packs', 'boxes', 'g', 'kg', 'ml', 'L']" :key="u" :value="u">{{ u }}</option>
+							class="edit-qty-input"
+							placeholder="500" />
+						<select v-model="editForm.net_unit" class="edit-unit-select">
+							<option v-for="u in ['g', 'kg', 'ml', 'L', 'oz']" :key="u" :value="u">{{ u }}</option>
 						</select>
 					</div>
+
+					<!-- Quantity / Count (pcs) -->
+					<label class="field-label-brown">Quantity (pcs) *</label>
+					<span class="field-hint">How many pieces do you have?</span>
+					<input
+						v-model.number="editForm.pieces_count"
+						type="number"
+						min="1"
+						max="99"
+						class="edit-pieces-input"
+						required />
 
 					<!-- Category -->
 					<label class="field-label-brown">Category</label>
@@ -320,6 +337,9 @@ interface PantryItemDetailDto {
 	id: number
 	quantity: number
 	portion_unit: string
+	pieces_count: number
+	net_content: number | null
+	net_unit: string | null
 	storage_location: string
 	category: string | null
 	expiration_date: string | null
@@ -362,8 +382,9 @@ const isSaving = ref(false)
 const editError = ref('')
 const editForm = reactive({
   storage_location: '',
-  quantity: 1,
-  unit: '',
+  net_content: null as number | null,
+  net_unit: 'g',
+  pieces_count: 1,
   category: 'Uncategorized',
   expiration_date: '',
   best_before_date: '',
@@ -479,14 +500,17 @@ function onBestBeforeDateChange() {
 const isEditFormValid = computed(() => {
   const hasExp = !!editForm.expiration_date
   const hasBbd = !!editForm.best_before_date
-  return editForm.quantity > 0 && !!editForm.unit && !!editForm.storage_location && (hasExp || hasBbd) && !(hasExp && hasBbd)
+  const validPiecesCount = editForm.pieces_count >= 1 && editForm.pieces_count <= 99
+  const validNetContent = editForm.net_content === null || (editForm.net_content > 0 && !!editForm.net_unit)
+  return validPiecesCount && validNetContent && !!editForm.storage_location && (hasExp || hasBbd) && !(hasExp && hasBbd)
 })
 
 function openEditModal(): void {
   if (!item.value) return
   editForm.storage_location = item.value.storage_location
-  editForm.quantity = item.value.quantity
-  editForm.unit = item.value.portion_unit
+  editForm.net_content = item.value.net_content
+  editForm.net_unit = item.value.net_unit || 'g'
+  editForm.pieces_count = item.value.pieces_count
   editForm.category = item.value.category ?? 'Uncategorized'
   editForm.expiration_date = item.value.expiration_date
     ? item.value.expiration_date.split('T')[0]
@@ -507,8 +531,9 @@ async function saveEdit(): Promise<void> {
       method: 'PUT',
       body: {
         storage_location: editForm.storage_location,
-        quantity: editForm.quantity,
-        unit: editForm.unit,
+        net_content: editForm.net_content || null,
+        net_unit: editForm.net_content && editForm.net_content > 0 ? editForm.net_unit : null,
+        pieces_count: editForm.pieces_count,
         category: editForm.category,
         expiration_date: editForm.expiration_date || undefined,
         best_before_date: editForm.best_before_date || undefined,
@@ -520,7 +545,7 @@ async function saveEdit(): Promise<void> {
 
     isEditModalOpen.value = false
     const toast = await toastController.create({
-      message: 'Item updated.',
+      message: 'Pantry item updated successfully',
       duration: 2000,
       color: 'success',
       position: 'top',
@@ -1002,6 +1027,35 @@ onIonViewWillEnter(fetchItem)
 .edit-qty-input::-webkit-inner-spin-button {
   appearance: none;
   -webkit-appearance: none;
+}
+
+.edit-pieces-input {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: transparent;
+  appearance: textfield;
+  -moz-appearance: textfield;
+  margin-bottom: 14px;
+}
+
+.edit-pieces-input::-webkit-outer-spin-button,
+.edit-pieces-input::-webkit-inner-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.field-hint {
+  display: block;
+  font-weight: 400;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  margin-top: 2px;
+  margin-bottom: 6px;
 }
 
 .edit-unit-select {

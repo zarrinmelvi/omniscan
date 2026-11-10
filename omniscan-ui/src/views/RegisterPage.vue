@@ -238,7 +238,7 @@
 
 					<!-- STEP 2: Allergens / Dietary Preferences -->
 					<template v-else>
-						<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! ðŸŽ‰' : 'Almost There!' }}</span>
+						<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! \u1F389' : 'Almost There!' }}</span>
 						<h1 class="auth-title">Your allergens</h1>
 						<p class="auth-subtitle">Choose up to 5. We flag them on every scan. You can change them later in your profile.</p>
 

@@ -123,13 +123,18 @@
 				<div class="pantry-section">
 					<h3 class="section-title">Add to Pantry</h3>
 
-					<label class="field-label">Quantity &amp; Unit</label>
+					<label class="field-label">Net Content / Package Size (optional)</label>
+					<span class="field-hint">Package size printed on label (e.g. 500ml, 1kg)</span>
 					<div class="quantity-row">
-						<input type="number" min="0.01" step="any" class="quantity-input" v-model.number="quantity" :disabled="submitting" />
-						<select class="unit-select" v-model="unit" :disabled="submitting">
+						<input type="number" min="0" step="any" class="quantity-input" v-model.number="netContent" :disabled="submitting" placeholder="500" />
+						<select class="unit-select" v-model="netUnit" :disabled="submitting">
 							<option v-for="opt in unitOptions" :key="opt" :value="opt">{{ opt }}</option>
 						</select>
 					</div>
+
+					<label class="field-label">Quantity / Count (pcs) *</label>
+					<span class="field-hint">How many pieces do you have?</span>
+					<input type="number" min="1" max="99" class="pieces-input" v-model.number="piecesCount" :disabled="submitting" required />
 
 					<label class="field-label">Category</label>
 					<select class="category-select" v-model="category" :disabled="submitting">
@@ -336,7 +341,7 @@ watch(
 	},
 )
 
-const unitOptions = ['pcs', 'bottles', 'cans', 'packs', 'boxes', 'g', 'kg', 'ml', 'L']
+const unitOptions = ['g', 'kg', 'ml', 'L', 'oz']
 const storageOptions = ['Fridge', 'Freezer', 'Cupboard']
 const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
 
@@ -346,8 +351,9 @@ const detectedFoodCategory = computed(() => {
 	return typeof cat === 'string' && cat && categoryOptions.includes(cat) ? cat : ''
 })
 
-const quantity = ref(1)
-const unit = ref('L')
+const netContent = ref<number | null>(null)
+const netUnit = ref('g')
+const piecesCount = ref(1)
 const storageLocation = ref('Fridge')
 const category = ref('Uncategorized')
 const expirationDate = ref('')
@@ -416,13 +422,21 @@ function storageForCategory(cat: string): string {
 
 function resetPantryForm() {
 	const detectedQty = product.value?.net_quantity_detected
-	quantity.value = typeof detectedQty === 'number' && detectedQty > 0 ? detectedQty : 1
+	netContent.value = typeof detectedQty === 'number' && detectedQty > 0 ? detectedQty : null
 
 	const detectedUnit = product.value?.net_unit_detected
-	const UNIT_OPTIONS = ['pcs', 'bottles', 'cans', 'packs', 'boxes', 'g', 'kg', 'ml', 'L']
-	const unitMap: Record<string, string> = { pc: 'pcs', piece: 'pcs', pieces: 'pcs', pcs: 'pcs', bottle: 'bottles', bottles: 'bottles', can: 'cans', cans: 'cans', pack: 'packs', packs: 'packs', box: 'boxes', boxes: 'boxes', liter: 'L', litre: 'L', liters: 'L', litres: 'L', gram: 'g', grams: 'g', kilogram: 'kg', kilograms: 'kg', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml', ounce: 'oz', ounces: 'oz', 'fl oz': 'ml' }
-	const normalizedUnit = typeof detectedUnit === 'string' ? (unitMap[detectedUnit] ?? detectedUnit) : null
-	unit.value = normalizedUnit && UNIT_OPTIONS.includes(normalizedUnit) ? normalizedUnit : 'pcs'
+	const UNIT_OPTIONS = ['g', 'kg', 'ml', 'L', 'oz']
+	const unitMap: Record<string, string> = { 
+		gram: 'g', grams: 'g', g: 'g',
+		kilogram: 'kg', kilograms: 'kg', kg: 'kg',
+		milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml', ml: 'ml',
+		liter: 'L', litre: 'L', liters: 'L', litres: 'L', L: 'L',
+		ounce: 'oz', ounces: 'oz', oz: 'oz'
+	}
+	const normalizedUnit = typeof detectedUnit === 'string' ? (unitMap[detectedUnit.toLowerCase()] ?? detectedUnit) : null
+	netUnit.value = normalizedUnit && UNIT_OPTIONS.includes(normalizedUnit) ? normalizedUnit : 'g'
+	
+	piecesCount.value = 1
 
 	const detectedCat = product.value?.food_category
 	category.value =
@@ -430,8 +444,15 @@ function resetPantryForm() {
 			? detectedCat
 			: 'Uncategorized'
 
-	const catForStorage = typeof detectedCat === 'string' && detectedCat && categoryOptions.includes(detectedCat) ? detectedCat : ''
-	storageLocation.value = storageForCategory(catForStorage)
+	// Use AI-detected storage_location if available, otherwise fall back to category-based logic
+	const detectedStorage = product.value?.storage_location
+	if (detectedStorage && ['Fridge', 'Freezer', 'Cupboard'].includes(detectedStorage)) {
+		storageLocation.value = detectedStorage
+	} else {
+		const catForStorage = typeof detectedCat === 'string' && detectedCat && categoryOptions.includes(detectedCat) ? detectedCat : ''
+		storageLocation.value = storageForCategory(catForStorage)
+	}
+	
 	const detected = normalizeDetectedDate(product.value?.expiration_date_detected)
 	expirationDate.value = detected ?? ''
 	bestBeforeDate.value = ''
@@ -523,8 +544,9 @@ async function submitAddToPantry() {
 			method: 'POST',
 			body: {
 				product_id: product.value.id,
-				quantity: quantity.value,
-				unit: unit.value,
+				net_content: netContent.value || null,
+				net_unit: netContent.value && netContent.value > 0 ? netUnit.value : null,
+				pieces_count: piecesCount.value,
 				storage_location: storageLocation.value,
 				category: category.value,
 				expiration_date: expirationDate.value || undefined,
@@ -965,6 +987,28 @@ function forceDismiss() {
 
 .quantity-input::-webkit-outer-spin-button,
 .quantity-input::-webkit-inner-spin-button {
+	appearance: none;
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.pieces-input {
+	width: 100%;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	padding: 10px 12px;
+	font-size: 0.95rem;
+	color: #3b5bfd;
+	font-weight: 500;
+	background-color: #ffffff !important;
+	color-scheme: light;
+	appearance: textfield;
+	-moz-appearance: textfield;
+	margin-bottom: 14px;
+}
+
+.pieces-input::-webkit-outer-spin-button,
+.pieces-input::-webkit-inner-spin-button {
 	appearance: none;
 	-webkit-appearance: none;
 	margin: 0;

@@ -15,8 +15,9 @@ interface CreatePantryItemBody {
 	expiration_date?: string
 	best_before_date?: string
 	storage_location?: string
-	quantity?: number
-	unit?: string
+	net_content?: number | null
+	net_unit?: string | null
+	pieces_count?: number
 	category?: string
 	saved_alternatives?: { name: string; descriptor: string; tags: string[] }[]
 }
@@ -57,7 +58,7 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid request body.' })
 	}
 
-	const { product_name, image_base64, ingredient_text, simplified_ingredients, expiration_date, best_before_date, storage_location, quantity, unit, category } = body
+	const { product_name, image_base64, ingredient_text, simplified_ingredients, expiration_date, best_before_date, storage_location, net_content, net_unit, pieces_count, category } = body
 
 	if (body.product_id === undefined) {
 		const startOfToday = new Date()
@@ -110,12 +111,27 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	if (quantity === undefined || typeof quantity !== 'number' || quantity <= 0) {
-		throw createError({ statusCode: 400, statusMessage: 'quantity must be a positive number.' })
+	// Validate pieces_count (required, 1-99)
+	const piecesCountValue = pieces_count ?? 1
+	if (typeof piecesCountValue !== 'number' || piecesCountValue < 1 || piecesCountValue > 99 || !Number.isInteger(piecesCountValue)) {
+		throw createError({ statusCode: 400, statusMessage: 'pieces_count must be an integer between 1 and 99.' })
 	}
-	if (!unit || !isValidPantryUnit(unit)) {
-		throw createError({ statusCode: 400, statusMessage: 'unit must be one of: pcs, bottles, cans, packs, boxes, g, kg, ml, L.' })
+
+	// Validate net_content and net_unit (optional, but if net_content provided, net_unit required)
+	if (net_content !== undefined && net_content !== null) {
+		if (typeof net_content !== 'number' || net_content <= 0) {
+			throw createError({ statusCode: 400, statusMessage: 'net_content must be a positive number.' })
+		}
+		if (!net_unit || !isValidPantryUnit(net_unit)) {
+			throw createError({ statusCode: 400, statusMessage: 'net_unit must be one of: g, kg, ml, L, oz.' })
+		}
 	}
+
+	// Validate storage_location (required)
+	if (!storage_location || !['Fridge', 'Freezer', 'Cupboard'].includes(storage_location)) {
+		throw createError({ statusCode: 400, statusMessage: 'storage_location must be one of: Fridge, Freezer, Cupboard.' })
+	}
+
 	if (category !== undefined && category !== null && !isValidPantryCategory(category)) {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid category.' })
 	}
@@ -171,10 +187,14 @@ export default defineEventHandler(async (event) => {
 				user_id: authUser.id,
 				expiration_date: parsedExpirationDate,
 				best_before_date: parsedBestBeforeDate,
-				quantity,
-				portion_unit: unit,
+				net_content: net_content ?? null,
+				net_unit: net_content && net_content > 0 ? net_unit : null,
+				pieces_count: piecesCountValue,
+				// Keep old fields for backward compatibility during transition
+				quantity: piecesCountValue,
+				portion_unit: 'pcs',
 				category: resolvedCategory,
-				storage_location: storage_location?.trim() || 'Unspecified',
+				storage_location: storage_location,
 				added_date: new Date(),
 				is_archived: false,
 				saved_alternatives: coerceSavedAlternatives(body.saved_alternatives),

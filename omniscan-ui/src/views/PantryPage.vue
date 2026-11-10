@@ -300,6 +300,9 @@ interface PantryItemDto {
 	id: number
 	quantity: number
 	portion_unit: string
+	pieces_count: number
+	net_content: number | null
+	net_unit: string | null
 	storage_location: string
 	category: string | null
 	expiration_date: string | null
@@ -516,7 +519,7 @@ function deleteInLabel(item: PantryItemDto): string {
 }
 
 function formatQuantity(item: PantryItemDto): string {
-	return `${item.quantity}${item.portion_unit}`
+	return `${item.pieces_count} pcs`
 }
 
 async function fetchPantryItems(): Promise<void> {

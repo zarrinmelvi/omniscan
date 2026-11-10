@@ -4,11 +4,12 @@ import { requireAuth } from '../../utils/requireAuth'
 import { isValidPantryUnit, isValidPantryCategory } from '../../lib/pantry-taxonomy'
 
 interface UpdatePantryItemBody {
-	quantity?: number
+	net_content?: number | null
+	net_unit?: string | null
+	pieces_count?: number
 	expiration_date?: string
 	best_before_date?: string
 	storage_location?: string
-	unit?: string
 	category?: string
 	is_archived?: boolean
 	is_auto_archived?: boolean // Optional explicit flag for cron/automated jobs
@@ -30,32 +31,40 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid request body.' })
 	}
 
-	const { quantity, expiration_date, best_before_date, storage_location, unit, category, is_archived, is_auto_archived } = body
+	const { net_content, net_unit, pieces_count, expiration_date, best_before_date, storage_location, category, is_archived, is_auto_archived } = body
 
-	if (quantity === undefined && expiration_date === undefined && best_before_date === undefined && storage_location === undefined && unit === undefined && is_archived === undefined && category === undefined) {
+	if (net_content === undefined && net_unit === undefined && pieces_count === undefined && expiration_date === undefined && best_before_date === undefined && storage_location === undefined && is_archived === undefined && category === undefined) {
 		throw createError({
 			statusCode: 400,
-			statusMessage: 'At least one of quantity, expiration_date, or is_archived must be provided.',
+			statusMessage: 'At least one field must be provided to update.',
 		})
 	}
 
-	if (quantity !== undefined && (typeof quantity !== 'number' || quantity <= 0)) {
-		throw createError({ statusCode: 400, statusMessage: 'quantity must be a positive number.' })
+	// Validate pieces_count if provided
+	if (pieces_count !== undefined && (typeof pieces_count !== 'number' || pieces_count < 1 || pieces_count > 99 || !Number.isInteger(pieces_count))) {
+		throw createError({ statusCode: 400, statusMessage: 'pieces_count must be an integer between 1 and 99.' })
+	}
+
+	// Validate net_content and net_unit
+	if (net_content !== undefined && net_content !== null) {
+		if (typeof net_content !== 'number' || net_content <= 0) {
+			throw createError({ statusCode: 400, statusMessage: 'net_content must be a positive number.' })
+		}
+		if (!net_unit || !isValidPantryUnit(net_unit)) {
+			throw createError({ statusCode: 400, statusMessage: 'net_unit must be one of: g, kg, ml, L, oz.' })
+		}
 	}
 
 	if (is_archived !== undefined && typeof is_archived !== 'boolean') {
 		throw createError({ statusCode: 400, statusMessage: 'is_archived must be a boolean.' })
 	}
 
-	if (unit !== undefined && !isValidPantryUnit(unit)) {
-		throw createError({ statusCode: 400, statusMessage: 'unit must be one of: pcs, bottles, cans, packs, boxes, g, kg, ml, L.' })
-	}
 	if (category !== undefined && !isValidPantryCategory(category)) {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid category.' })
 	}
 
-	if (storage_location !== undefined && typeof storage_location !== 'string') {
-		throw createError({ statusCode: 400, statusMessage: 'storage_location must be a string.' })
+	if (storage_location !== undefined && (!storage_location || !['Fridge', 'Freezer', 'Cupboard'].includes(storage_location))) {
+		throw createError({ statusCode: 400, statusMessage: 'storage_location must be one of: Fridge, Freezer, Cupboard.' })
 	}
 
 	let parsedExpirationDate: Date | undefined
@@ -96,10 +105,10 @@ export default defineEventHandler(async (event) => {
 
 		const isNewlyConsumed = is_archived === true && !existingItem.is_archived
 
-		// Zero-quantity restore guard: cannot restore items with 0 quantity
+		// Zero-pieces restore guard: cannot restore items with 0 pieces_count
 		if (is_archived === false && existingItem.is_archived) {
-			const currentQty = Number(existingItem.quantity)
-			if (currentQty <= 0) {
+			const currentPieces = Number(existingItem.pieces_count)
+			if (currentPieces <= 0) {
 				throw createError({
 					statusCode: 409,
 					statusMessage: 'Cannot restore this item because its quantity is 0. It has been fully used.',
@@ -110,11 +119,17 @@ export default defineEventHandler(async (event) => {
 		const updatedItem = await prisma.pantryItem.update({
 			where: { id: itemId },
 			data: {
-				...(quantity !== undefined && { quantity }),
+				...(net_content !== undefined && { net_content }),
+				...(net_unit !== undefined && { net_unit }),
+				...(pieces_count !== undefined && { 
+					pieces_count,
+					// Also update old fields for backward compatibility
+					quantity: pieces_count,
+					portion_unit: 'pcs'
+				}),
 				...(parsedExpirationDate !== undefined && { expiration_date: parsedExpirationDate }),
 				...(parsedBestBeforeDate !== undefined && { best_before_date: parsedBestBeforeDate }),
-				...(storage_location !== undefined && { storage_location: storage_location.trim() }),
-				...(unit !== undefined && { portion_unit: unit }),
+				...(storage_location !== undefined && { storage_location }),
 				...(category !== undefined && { category }),
 				...(is_archived !== undefined && { is_archived }),
 				...(is_archived === false && { deleted_at: null }),
@@ -150,8 +165,11 @@ export default defineEventHandler(async (event) => {
 			success: true,
 			item: {
 				id: updatedItem.id,
-				quantity: Number(updatedItem.quantity),
-				portion_unit: updatedItem.portion_unit,
+				net_content: updatedItem.net_content ? Number(updatedItem.net_content) : null,
+				net_unit: updatedItem.net_unit,
+				pieces_count: updatedItem.pieces_count,
+				quantity: Number(updatedItem.quantity), // Keep for backward compatibility
+				portion_unit: updatedItem.portion_unit, // Keep for backward compatibility
 				category: updatedItem.category,
 				storage_location: updatedItem.storage_location,
 				expiration_date: updatedItem.expiration_date ? updatedItem.expiration_date.toISOString() : null,

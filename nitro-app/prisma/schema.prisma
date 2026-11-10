@@ -286,6 +286,12 @@ model PantryItem {
 	storage_location String
 	quantity Decimal
 	portion_unit String
+	// New fields for net content/pieces separation (Epic cleanup)
+	// Net content represents package size (e.g., 500ml, 1kg) - optional
+	net_content Decimal?
+	net_unit String? // One of: g, kg, ml, L, oz
+	// Pieces count represents how many units the user has (required, 1-99)
+	pieces_count Int @default(1)
 	// Epic 8: user-assigned food category (see PANTRY_CATEGORIES in
 	// server/lib/pantry-taxonomy.ts). Nullable for legacy rows; defaults to
 	// 'Uncategorized' at the API layer when omitted.
@@ -463,7 +469,7 @@ model Admin {
 	id Int @id @default(autoincrement())
 	full_name String
 	username String @unique
-	email String? @unique
+	email String?
 	password String
 	role String
 	session_token String?

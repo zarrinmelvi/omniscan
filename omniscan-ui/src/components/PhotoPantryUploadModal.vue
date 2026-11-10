@@ -185,19 +185,32 @@
 						</button>
 					</div>
 
-					<label class="field-label-brown">Quantity &amp; Unit</label>
+					<label class="field-label-brown">Net Content / Package Size (optional)</label>
+					<span class="field-hint">Package size printed on label (e.g. 500ml, 1kg)</span>
 					<div class="quantity-row">
 						<input
 							type="number"
-							min="0.01"
+							min="0"
 							step="any"
 							class="quantity-input"
-							v-model.number="form.quantity"
-							:disabled="isSubmitting" />
-						<select class="unit-select" v-model="form.unit" :disabled="isSubmitting">
+							v-model.number="form.netContent"
+							:disabled="isSubmitting"
+							placeholder="500" />
+						<select class="unit-select" v-model="form.netUnit" :disabled="isSubmitting">
 							<option v-for="opt in unitOptions" :key="opt" :value="opt">{{ opt }}</option>
 						</select>
 					</div>
+
+					<label class="field-label-brown">Quantity / Count (pcs) *</label>
+					<span class="field-hint">How many pieces do you have?</span>
+					<input
+						type="number"
+						min="1"
+						max="99"
+						class="pieces-input"
+						v-model.number="form.piecesCount"
+						:disabled="isSubmitting"
+						required />
 
 					<label class="field-label-brown">Category</label>
 					<select class="unit-select" v-model="form.category" :disabled="isSubmitting" style="width:100%">
@@ -253,6 +266,7 @@ interface AnalyzeResult {
 	net_unit: string | null
 	matched_user_allergens: string[]
 	food_category?: string
+	storage_location?: string
 }
 
 const props = defineProps<{ isOpen: boolean }>()
@@ -278,7 +292,7 @@ const nonFoodDetected = ref(false)
 const nonFoodMessage = ref('')
 
 const storageLocations = ['Fridge', 'Freezer', 'Cupboard'] as const
-const unitOptions = ['pcs', 'bottles', 'cans', 'packs', 'boxes', 'g', 'kg', 'ml', 'L']
+const unitOptions = ['g', 'kg', 'ml', 'L', 'oz']
 const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
 
 // Same mapping as ScanResultModal.storageForCategory (duplicated; not shared)
@@ -292,8 +306,9 @@ const form = reactive({
 	expirationDate: '',
 	bestBeforeDate: '',
 	storageLocation: 'Cupboard' as (typeof storageLocations)[number],
-	quantity: 1,
-	unit: 'pcs',
+	netContent: null as number | null,
+	netUnit: 'g',
+	piecesCount: 1,
 	category: 'Uncategorized' as string,
 	ingredientsText: '',
 	simplifiedIngredientsText: '',
@@ -335,10 +350,10 @@ function onBestBeforeDateChange(): void {
 
 const isFormValid = computed(() => {
 	const hasName = form.productName.trim().length > 0
-	const hasValidQty = form.quantity > 0
+	const hasValidPiecesCount = form.piecesCount >= 1 && form.piecesCount <= 99
 	const hasAtLeastOneDate = !!form.expirationDate || !!form.bestBeforeDate
 	const hasBothDates = !!form.expirationDate && !!form.bestBeforeDate
-	return hasName && hasValidQty && hasAtLeastOneDate && !hasBothDates
+	return hasName && hasValidPiecesCount && hasAtLeastOneDate && !hasBothDates
 })
 
 const isExpirationExpired = computed(() => {
@@ -362,8 +377,9 @@ function resetAll(): void {
 	form.expirationDate = ''
 	form.bestBeforeDate = ''
 	form.storageLocation = 'Cupboard'
-	form.quantity = 1
-	form.unit = 'pcs'
+	form.netContent = null
+	form.netUnit = 'g'
+	form.piecesCount = 1
 	form.category = 'Uncategorized'
 	form.ingredientsText = ''
 	form.simplifiedIngredientsText = ''
@@ -441,6 +457,20 @@ async function goToStep2(): Promise<void> {
 		}
 		if (result.product_name) form.productName = result.product_name
 		if (result.expiration_date) form.expirationDate = result.expiration_date
+		
+		// Use AI-detected storage_location if available
+		if (result.storage_location && ['Fridge', 'Freezer', 'Cupboard'].includes(result.storage_location)) {
+			form.storageLocation = result.storage_location as (typeof storageLocations)[number]
+		} else if (
+			result.food_category &&
+			result.food_category !== 'Uncategorized' &&
+			categoryOptions.includes(result.food_category) &&
+			form.storageLocation === 'Cupboard'
+		) {
+			// Fallback to category-based storage mapping
+			form.storageLocation = storageForCategory(result.food_category)
+		}
+		
 		if (
 			result.food_category &&
 			result.food_category !== 'Uncategorized' &&
@@ -448,24 +478,27 @@ async function goToStep2(): Promise<void> {
 			form.category === 'Uncategorized'
 		) {
 			form.category = result.food_category
-			// Mirror ScanResultModal's category -> storage mapping, only while storage is still the default
-			if (form.storageLocation === 'Cupboard') {
-				form.storageLocation = storageForCategory(result.food_category)
-			}
 		}
 		form.ingredientsText = result.ingredients_text || ''
 		form.simplifiedIngredientsText = result.simplified_ingredients || ''
 		matchedUserAllergens.value = result.matched_user_allergens ?? []
 
-		const UNIT_OPTIONS = ['pcs', 'bottles', 'cans', 'packs', 'boxes', 'g', 'kg', 'ml', 'L']
-		const unitMap: Record<string, string> = { pc: 'pcs', piece: 'pcs', pieces: 'pcs', pcs: 'pcs', bottle: 'bottles', bottles: 'bottles', can: 'cans', cans: 'cans', pack: 'packs', packs: 'packs', box: 'boxes', boxes: 'boxes', liter: 'L', litre: 'L', liters: 'L', litres: 'L', gram: 'g', grams: 'g', kilogram: 'kg', kilograms: 'kg', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml' }
+		const UNIT_OPTIONS = ['g', 'kg', 'ml', 'L', 'oz']
+		const unitMap: Record<string, string> = { 
+			gram: 'g', grams: 'g', g: 'g',
+			kilogram: 'kg', kilograms: 'kg', kg: 'kg',
+			milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml', ml: 'ml',
+			liter: 'L', litre: 'L', liters: 'L', litres: 'L', L: 'L',
+			ounce: 'oz', ounces: 'oz', oz: 'oz'
+		}
 		if (typeof result.net_quantity === 'number' && result.net_quantity > 0) {
-			form.quantity = result.net_quantity
+			form.netContent = result.net_quantity
 		}
 		if (typeof result.net_unit === 'string' && result.net_unit.trim()) {
 			const normalized = unitMap[result.net_unit.trim().toLowerCase()] ?? result.net_unit.trim().toLowerCase()
-			if (UNIT_OPTIONS.includes(normalized)) form.unit = normalized
+			if (UNIT_OPTIONS.includes(normalized)) form.netUnit = normalized
 		}
+		form.piecesCount = 1
 		step.value = 2
 	} catch {
 		step.value = 2
@@ -560,8 +593,9 @@ async function handleSubmit(): Promise<void> {
 				expiration_date: form.expirationDate || undefined,
 				best_before_date: form.bestBeforeDate || undefined,
 				storage_location: form.storageLocation,
-				quantity: form.quantity,
-				unit: form.unit,
+				net_content: form.netContent || null,
+				net_unit: form.netContent && form.netContent > 0 ? form.netUnit : null,
+				pieces_count: form.piecesCount,
 				category: form.category,
 			},
 		})
@@ -1001,6 +1035,27 @@ ion-accordion-group {
 
 .quantity-input::-webkit-outer-spin-button,
 .quantity-input::-webkit-inner-spin-button {
+	appearance: none;
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.pieces-input {
+	width: 100%;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	padding: 10px 12px;
+	font-size: 0.925rem;
+	color: #3b5bfd;
+	font-weight: 500;
+	background: #ffffff;
+	appearance: textfield;
+	-moz-appearance: textfield;
+	margin-bottom: 14px;
+}
+
+.pieces-input::-webkit-outer-spin-button,
+.pieces-input::-webkit-inner-spin-button {
 	appearance: none;
 	-webkit-appearance: none;
 	margin: 0;

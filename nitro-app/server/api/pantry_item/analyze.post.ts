@@ -38,6 +38,7 @@ interface UploadAiExtraction {
 	net_quantity: number | null
 	net_unit: string | null
 	food_category: string
+	storage_location: string
 }
 
 function buildAnalyzePrompt(): string {
@@ -45,7 +46,7 @@ function buildAnalyzePrompt(): string {
 		'You are a food-label analysis assistant.',
 		'Determine whether the attached photo shows a FOOD OR BEVERAGE product intended for human consumption.',
 		'Respond with ONLY a single JSON object, no prose, no markdown code fences, matching this shape exactly:',
-		'{"is_food_product": boolean, "is_real_photo": boolean, "product_name": string, "expiration_date": string | null, "ingredients_text": string, "simplified_ingredients": string, "net_quantity": number | null, "net_unit": string | null, "food_category": string}.',
+		'{"is_food_product": boolean, "is_real_photo": boolean, "product_name": string, "expiration_date": string | null, "ingredients_text": string, "simplified_ingredients": string, "net_quantity": number | null, "net_unit": string | null, "food_category": string, "storage_location": string}.',
 		'Set is_food_product to false for any non-food item (cosmetics, cleaning supplies, electronics, clothing, etc.).',
 		'When is_food_product is false, set product_name and ingredients_text to "" and expiration_date to null.',
 		'When is_food_product is true:',
@@ -58,6 +59,7 @@ function buildAnalyzePrompt(): string {
 		'"food_category" should classify the product into exactly one of these predefined pantry categories: ' +
 		'"Canned Goods", "Instant Noodles", "Condiments & Sauces", "Dairy", "Snacks", "Beverages", "Grains". ' +
 		'Choose the single best-fitting category based on the product type. If the category cannot be determined, return an empty string.',
+		'"storage_location" should classify where the product is typically stored based on the product type and common storage practices. Choose exactly one: "Fridge" (refrigerated items like dairy, fresh produce, beverages that need cooling), "Freezer" (frozen goods, ice cream, frozen meals), or "Cupboard" (dry goods, canned items, condiments, snacks, grains). Return "Cupboard" if uncertain.',
 		'Do not invent information not visible on the packaging.',
 		'"is_real_photo" must be true for genuine real-world photographs AND for stock or marketing images of real food product packaging, even if the packaging contains cartoon mascots, illustrated characters, or graphic design elements. Set is_real_photo to false ONLY when the entire image is a cartoon, hand-drawn illustration, anime, digital art, painting, sketch, screenshot of an app, or contains no real food product packaging at all.',
 	].join(' ')
@@ -66,6 +68,16 @@ function buildAnalyzePrompt(): string {
 function coerceUploadExtraction(value: unknown): UploadAiExtraction | null {
 	if (!value || typeof value !== 'object') return null
 	const c = value as Record<string, unknown>
+	
+	// Validate and default storage_location
+	let storageLocation = 'Cupboard'
+	if (typeof c.storage_location === 'string') {
+		const normalized = c.storage_location.trim()
+		if (['Fridge', 'Freezer', 'Cupboard'].includes(normalized)) {
+			storageLocation = normalized
+		}
+	}
+	
 	return {
 		is_food_product: c.is_food_product === true,
 		is_real_photo: typeof c.is_real_photo === 'boolean' ? c.is_real_photo : true,
@@ -76,6 +88,7 @@ function coerceUploadExtraction(value: unknown): UploadAiExtraction | null {
 		net_quantity: typeof c.net_quantity === 'number' ? c.net_quantity : null,
 		net_unit: typeof c.net_unit === 'string' && c.net_unit.trim() ? c.net_unit.trim().toLowerCase() : null,
 		food_category: normalizeFoodCategory(c.food_category),
+		storage_location: storageLocation,
 	}
 }
 
@@ -158,6 +171,7 @@ export default defineEventHandler(async (event) => {
 			net_quantity: null,
 			net_unit: null,
 			food_category: '',
+			storage_location: 'Cupboard',
 		}
 	}
 

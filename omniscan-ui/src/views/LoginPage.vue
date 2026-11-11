@@ -130,7 +130,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, toastController } from '@ionic/vue'
 import { chevronBackOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
@@ -140,6 +140,7 @@ import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
 
 const authStore = useAuthStore()
 const route = useRoute()
+const router = useRouter()
 
 const googleCancelled = computed(() => route.query.google_cancelled === '1')
 const isGoogleSubmitting = ref(false)
@@ -176,14 +177,46 @@ async function handleGoogleSignIn(): Promise<void> {
 				throw new Error('No ID Token returned from Google Sign-In')
 			}
 
-			await apiFetch('/api/auth/google/verify', {
+			const verifyResponse = await apiFetch<{
+				success: boolean
+				requiresRegistration: boolean
+				token?: string
+				pendingToken?: string
+			}>('/api/auth/google/verify', {
 				method: 'POST',
 				body: { idToken },
 				skipAuth: true,
 			})
 
-			await authStore.checkAuth()
-			window.location.href = '/tabs/home'
+			if (verifyResponse.requiresRegistration && verifyResponse.pendingToken) {
+				// New account — decode the pending token and hand off to
+				// RegisterPage with the form pre-filled.
+				const raw = verifyResponse.pendingToken
+				const parts = raw.split('.')
+				const payloadJson = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
+				const payload = JSON.parse(payloadJson)
+
+				authStore.setPendingGoogleData({
+					email: payload.email,
+					firstName: payload.firstName,
+					lastName: payload.lastName,
+					googleId: payload.googleId,
+					username: payload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 15) || 'user',
+					pendingToken: raw,
+				})
+
+				// Navigate to RegisterPage — the pending data in the store
+				// will pre-fill the form exactly as if they started from there.
+				router.push('/register')
+			} else if (verifyResponse.token) {
+				// Existing account — save the token first, then navigate
+				// with router.push (no hard reload, so the router guard sees
+				// the session synchronously).
+				await authStore.loginWithOAuthToken(verifyResponse.token)
+				router.push('/tabs/home')
+			} else {
+				throw new Error('Unexpected response from Google verification.')
+			}
 		} catch (error: any) {
 			console.error('Native Google Sign-In failed:', error)
 			const errMsg = error?.message || 'Google sign-in failed. Please try again.'

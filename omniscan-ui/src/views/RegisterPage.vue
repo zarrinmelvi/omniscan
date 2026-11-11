@@ -1217,7 +1217,20 @@ function onWindowFocus(): void {
 }
 
 onMounted(async () => {
-	// Check for oauth_pending token from Google OAuth
+	// If LoginPage already set pendingGoogleData in the store (native Google
+	// sign-in on the Login screen for a new account), pre-fill the form from
+	// the store directly — no query string needed.
+	if (authStore.pendingGoogleData && !route.query.oauth_pending) {
+		const pending = authStore.pendingGoogleData
+		isGooglePending.value = true
+		firstName.value = pending.firstName
+		lastName.value = pending.lastName
+		email.value = pending.email
+		username.value = pending.username
+		await checkUsernameAvailability(pending.username)
+	}
+
+	// Check for oauth_pending token from Google OAuth (web flow)
 	const pendingToken = route.query.oauth_pending as string
 	if (pendingToken) {
 		try {

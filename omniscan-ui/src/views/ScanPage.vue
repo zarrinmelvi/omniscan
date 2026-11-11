@@ -128,6 +128,7 @@ import {
 import { onBeforeRouteLeave } from 'vue-router'
 
 import { API_BASE_URL } from '@/utils/api'
+import { resizeImageForUpload } from '@/utils/imageResize'
 import { cameraOutline, closeOutline, scanOutline } from 'ionicons/icons'
 import { useCameraPermission } from '@/composables/useCameraPermission'
 import ScanResultModal from '../components/ScanResultModal.vue'
@@ -320,7 +321,10 @@ async function onFileSelected(event: Event): Promise<void> {
 		return
 	}
 
-	await processCapturedFile(file)
+	// Photos picked from the gallery/native camera can be several MB; downscale
+	// them first so the upload and the AI read are faster.
+	const optimizedFile = await resizeImageForUpload(file)
+	await processCapturedFile(optimizedFile)
 }
 
 async function processCapturedFile(file: File): Promise<void> {

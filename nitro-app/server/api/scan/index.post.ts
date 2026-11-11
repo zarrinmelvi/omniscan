@@ -20,6 +20,10 @@ import { normalizeFoodCategory } from '../../lib/food-category'
 const HALAL_MAX_ATTEMPTS = 3
 const HALAL_ATTEMPT_WINDOW_DAYS = 7
 
+// Upper bound for the allergen-matching AI call; on timeout the scan continues
+// with the deterministic (plain-text) allergen matches only.
+const SEMANTIC_ALLERGEN_TIMEOUT_MS = 8000
+
 // AI_OCR_CONFIDENCE_THRESHOLD is hardcoded per REQ-EPIC2 — must not be read from AdminSettings for backend enforcement
 const AI_OCR_CONFIDENCE_THRESHOLD = 0.90
 
@@ -459,9 +463,15 @@ export default defineEventHandler(async (event) => {
 
 	const combinedIngredientText = `${extraction.ingredients_text} ${extraction.simplified_ingredients}`
 	const stringMatches = findMatchedUserAllergens(combinedIngredientText, userWithAllergens?.allergens ?? [])
+	// Only ask the AI about allergens the plain-text match did NOT already find.
+	// If every allergen is already matched, the AI call is skipped entirely, and
+	// otherwise it gets a shorter prompt. The AI call is also capped so a slow
+	// response falls back to the deterministic result instead of stalling the scan.
+	const stringMatchedIds = new Set(stringMatches.map((m) => m.id))
+	const unmatchedAllergens = (userWithAllergens?.allergens ?? []).filter((a) => !stringMatchedIds.has(a.id))
 	const semanticMatches = mockTextField?.data
 		? []
-		: await matchUserAllergensSemantically(combinedIngredientText, userWithAllergens?.allergens ?? [])
+		: await matchUserAllergensSemantically(combinedIngredientText, unmatchedAllergens, { timeoutMs: SEMANTIC_ALLERGEN_TIMEOUT_MS })
 
 	const matchedUserAllergens = mergeMatchedAllergens(stringMatches, semanticMatches)
 
@@ -536,6 +546,37 @@ export default defineEventHandler(async (event) => {
 		secondaryProductImage = imageDataUri
 	}
 
+	// Alternatives only depend on the user's dietary profile and the catalog match,
+	// not on the saved scan, so start them now and let them run alongside the
+	// database writes below. Awaited just before the response is built.
+	const halalPref = userWithAllergens?.dietary_prof?.[0]?.halal_pref ?? false
+	const alternativesTask: Promise<{
+		alternatives: Awaited<ReturnType<typeof findAlternativeProducts>>
+		alternativesMessage: string | null
+	}> = (async () => {
+		if (!catalogMatch?.variant_group) {
+			return { alternatives: [], alternativesMessage: 'No known alternatives for this product yet.' }
+		}
+		const dietaryProfile = {
+			allergens: userWithAllergens?.allergens ?? [],
+			halalPref,
+			customPreferences: userWithAllergens?.dietary_prof?.[0]?.custom_preferences ?? [],
+		}
+		const { disallowedIngredientNames } = await determineDisallowedCatalogIngredients(dietaryProfile)
+		const found = await findAlternativeProducts(disallowedIngredientNames, {
+			variantGroup: catalogMatch.variant_group,
+			excludeProductId: catalogMatch.id,
+			requireHalalCertified: halalPref,
+		})
+		return {
+			alternatives: found,
+			alternativesMessage: found.length === 0 ? 'No verified allergen-free alternatives found for this product group.' : null,
+		}
+	})().catch((err) => {
+		console.error('Alternatives lookup failed (non-blocking):', err)
+		return { alternatives: [], alternativesMessage: 'Alternatives are temporarily unavailable.' }
+	})
+
 	const canonicalMatch = await findCanonicalProduct(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
 
 	try {
@@ -591,20 +632,12 @@ export default defineEventHandler(async (event) => {
 			},
 		})
 
-		await logAuditEvent({
-			event_type: 'SCAN',
-			entity: 'Scan',
-			entity_id: scan.id,
-			triggered_by_user_id: authUser.id,
-			summary: `User #${authUser.id} scanned ${product.product_name} (verdict: ${verdict})`,
-			metadata: { product_id: product.id, verdict, confidence: Number(scan.ai_confidence_score) },
-		})
-
 		// Only log to Recent Activities if a valid product name was extracted (skip filename fallbacks)
 		const extractedName = extraction.product_name?.trim()
 		const isValidProductName = extractedName && extractedName.toLowerCase() !== imageField.filename.toLowerCase()
 
-		if (isValidProductName) {
+		const logRecentActivity = async () => {
+			if (!isValidProductName) return
 			const sixtySecondsAgo = new Date(Date.now() - 60 * 1000)
 			const recentScanLog = await prisma.activityLog.findFirst({
 				where: {
@@ -626,6 +659,19 @@ export default defineEventHandler(async (event) => {
 				})
 			}
 		}
+
+		// The audit entry and the activity log are independent, so write them together.
+		await Promise.all([
+			logAuditEvent({
+				event_type: 'SCAN',
+				entity: 'Scan',
+				entity_id: scan.id,
+				triggered_by_user_id: authUser.id,
+				summary: `User #${authUser.id} scanned ${product.product_name} (verdict: ${verdict})`,
+				metadata: { product_id: product.id, verdict, confidence: Number(scan.ai_confidence_score) },
+			}),
+			logRecentActivity(),
+		])
 
 		// Convert stored 0.0-1.0 score to 0-100 percentage for threshold comparison
 		const confidencePct = Math.round(Number(scan.ai_confidence_score) * 100)
@@ -698,31 +744,7 @@ export default defineEventHandler(async (event) => {
 
 		setResponseStatus(event, 201)
 
-		const halalPref = userWithAllergens?.dietary_prof?.[0]?.halal_pref ?? false
-		let alternatives: Awaited<ReturnType<typeof findAlternativeProducts>> = []
-		let alternativesMessage: string | null = null
-
-		if (catalogMatch?.variant_group) {
-			const dietaryProfile = {
-				allergens: userWithAllergens?.allergens ?? [],
-				halalPref,
-				customPreferences: userWithAllergens?.dietary_prof?.[0]?.custom_preferences ?? [],
-			}
-
-			const { disallowedIngredientNames } = await determineDisallowedCatalogIngredients(dietaryProfile)
-
-			alternatives = await findAlternativeProducts(disallowedIngredientNames, {
-				variantGroup: catalogMatch.variant_group,
-				excludeProductId: catalogMatch.id,
-				requireHalalCertified: halalPref,
-			})
-
-			if (alternatives.length === 0) {
-				alternativesMessage = 'No verified allergen-free alternatives found for this product group.'
-			}
-		} else {
-			alternativesMessage = 'No known alternatives for this product yet.'
-		}
+		const { alternatives, alternativesMessage } = await alternativesTask
 
 		return {
 			success: true,

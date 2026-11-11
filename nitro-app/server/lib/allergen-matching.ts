@@ -67,7 +67,11 @@ export function findMatchedUserAllergens(text: string, allergens: UserAllergenRe
 		.map((allergen) => ({ id: allergen.id, name: allergen.name, confidence: 1 }))
 }
 
-export async function matchUserAllergensSemantically(ingredientsText: string, allergens: UserAllergenRecord[]): Promise<SemanticAllergenMatch[]> {
+export async function matchUserAllergensSemantically(
+	ingredientsText: string,
+	allergens: UserAllergenRecord[],
+	options: { timeoutMs?: number } = {},
+): Promise<SemanticAllergenMatch[]> {
 	if (allergens.length === 0 || !ingredientsText.trim()) {
 		return []
 	}
@@ -104,6 +108,7 @@ export async function matchUserAllergensSemantically(ingredientsText: string, al
 				Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
 			},
 			body: requestPayload,
+			...(options.timeoutMs ? { timeout: options.timeoutMs } : {}),
 		})
 
 		const rawContent = response?.message?.content

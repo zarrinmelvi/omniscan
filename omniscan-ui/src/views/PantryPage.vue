@@ -154,7 +154,7 @@
 								</button>
 							</div>
 
-							<div class="card-image">
+							<div v-pantry-lazy-image="item" class="card-image">
 								<img
 									v-if="item.product.image_base64"
 									:src="item.product.image_base64"
@@ -210,7 +210,7 @@
 
 						<div v-else class="archived-list">
 							<div v-for="item in filteredArchivedItems" :key="item.id" class="archived-card">
-								<div class="archived-thumb">
+								<div v-pantry-lazy-image="item" class="archived-thumb">
 									<img
 										v-if="item.product.image_base64"
 										:src="item.product.image_base64"
@@ -289,12 +289,14 @@ import { apiFetch, ApiError } from '@/utils/api'
 import { syncExpiryReminders } from '@/utils/reminderScheduler'
 import AppHeader from '@/components/AppHeader.vue'
 import SkeletonCard from '@/components/SkeletonCard.vue'
+import { usePantryList } from '@/composables/usePantryList'
 
 interface Product {
 	id: number
 	product_name: string
 	brand_name: string
 	image_base64: string | null
+	needs_image?: boolean
 }
 
 interface PantryItemDto {
@@ -322,9 +324,13 @@ interface SortOptionItem {
 	value: SortOption
 }
 
-const items = ref<PantryItemDto[]>([])
-const isLoading = ref(true)
-const loadError = ref('')
+const pantryList = usePantryList()
+const vPantryLazyImage = pantryList.pantryLazyImage
+const items = pantryList.items
+// Skeletons only on the cold first load; later visits show cached data and refresh silently.
+const isLoading = pantryList.isFirstLoad
+const actionError = ref('')
+const loadError = computed(() => actionError.value || pantryList.loadError.value)
 const totalItemsScanned = ref(0)
 
 const view = ref<ViewMode>('active')
@@ -524,19 +530,8 @@ function formatQuantity(item: PantryItemDto): string {
 }
 
 async function fetchPantryItems(): Promise<void> {
-	isLoading.value = true
-	loadError.value = ''
-
-	try {
-		const data = await apiFetch<{ success: boolean; items: PantryItemDto[] }>('/api/pantry_item', {
-			method: 'GET',
-		})
-		items.value = data.items
-	} catch (err) {
-		loadError.value = err instanceof ApiError ? err.message : 'Failed to load your pantry.'
-	} finally {
-		isLoading.value = false
-	}
+	actionError.value = ''
+	await pantryList.refresh({ silent: false })
 
 	// Sync local expiry reminders with the latest pantry state (fire-and-forget).
 	void syncExpiryReminders()
@@ -584,10 +579,10 @@ async function confirmConsume(targetId: number): Promise<void> {
 			body: { is_archived: true },
 		})
 
-		const index = items.value.findIndex((item) => item.id === targetId)
-		if (index !== -1) items.value[index] = data.item
+		pantryList.upsert(data.item)
+		pantryList.invalidate()
 	} catch (err) {
-		loadError.value = err instanceof ApiError ? err.message : 'Failed to archive this item.'
+		actionError.value = err instanceof ApiError ? err.message : 'Failed to archive this item.'
 	} finally {
 		isArchiving.value = false
 	}
@@ -605,8 +600,8 @@ async function restoreItem(id: number): Promise<void> {
 			body: { is_archived: false },
 		})
 
-		const index = items.value.findIndex((item) => item.id === id)
-		if (index !== -1) items.value[index] = data.item
+		pantryList.upsert(data.item)
+		pantryList.invalidate()
 	} catch (err) {
 		const message = err instanceof ApiError ? err.message : 'Failed to restore this item.'
 		const alert = await alertController.create({
@@ -656,9 +651,10 @@ async function confirmDelete(targetId: number): Promise<void> {
 			method: 'DELETE',
 		})
 
-		items.value = items.value.filter((item) => item.id !== targetId)
+		pantryList.remove(targetId)
+		pantryList.invalidate()
 	} catch (err) {
-		loadError.value = err instanceof ApiError ? err.message : 'Failed to delete this item.'
+		actionError.value = err instanceof ApiError ? err.message : 'Failed to delete this item.'
 	} finally {
 		isDeletingId.value = null
 	}
@@ -670,7 +666,8 @@ async function confirmDelete(targetId: number): Promise<void> {
 onIonViewWillEnter(() => {
 	expiringOnly.value = route.query.filter === 'expiring'
 	if (expiringOnly.value) sortOption.value = 'expiring_soonest'
-	fetchPantryItems()
+	actionError.value = ''
+	void pantryList.refresh({ silent: true }).then(() => syncExpiryReminders())
 	fetchTotalItemsScanned()
 })
 </script>

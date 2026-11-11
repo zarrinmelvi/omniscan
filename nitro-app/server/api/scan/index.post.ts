@@ -14,6 +14,7 @@ import { sendNewFlagNotification } from '../../utils/email'
 import { logAuditEvent } from '../../lib/audit-logger'
 import { cropLogo, type LogoBox } from '../../lib/logo-crop'
 import { normalizeFoodCategory } from '../../lib/food-category'
+import { makeThumbDataUri } from '../../lib/image-thumb'
 
 // A Halal logo that can't be identified is rejected for re-scan until this many
 // failed attempts (within the window) have been made; then it is flagged for admin review.
@@ -372,6 +373,15 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
+	// The front packaging image is the 2nd upload only when the AI says so.
+	// Build its thumbnail and look up the canonical product while the other
+	// queries run; neither depends on the catalog fill below (brand/name are not modified).
+	const frontBuffer = hasBackImage && extraction.front_image_index === 1 ? imageBackField!.data : imageField.data
+	const thumbTask = makeThumbDataUri(frontBuffer)
+	const canonicalTask = findCanonicalProduct(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
+	// Avoid an unhandled rejection if we throw (422 etc.) before awaiting it.
+	canonicalTask.catch(() => {})
+
 	const [userWithAllergens, halalLogos, catalogProducts, adminSettings] = await Promise.all([
 		prisma.user.findUnique({
 			where: { id: authUser.id },
@@ -544,7 +554,7 @@ export default defineEventHandler(async (event) => {
 		return { alternatives: [], alternativesMessage: 'Alternatives are temporarily unavailable.' }
 	})
 
-	const canonicalMatch = await findCanonicalProduct(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
+	const [canonicalMatch, thumb] = await Promise.all([canonicalTask, thumbTask])
 
 	try {
 		const product = await prisma.product.create({
@@ -557,22 +567,35 @@ export default defineEventHandler(async (event) => {
 				simplified_ingredients: extraction.simplified_ingredients.trim() || canonicalMatch?.simplified_ingredients || extraction.simplified_ingredients,
 				image_base64: mainProductImage,
 				image_base64_back: secondaryProductImage ?? undefined,
+				image_thumb_base64: thumb,
 				is_verified: false,
 				...(matchedHalalLogo ? { halal_logo_id: matchedHalalLogo.id } : {}),
 				halal_unverified: halalUnverified,
 				canonical_key: canonicalKey,
 				...(canonicalMatch ? { canonical_product_id: canonicalMatch.id } : {}),
 			},
+			// Do not read the full-size images back from Postgres.
+			select: {
+				id: true,
+				brand_name: true,
+				product_name: true,
+				ingredient_text: true,
+				simplified_ingredients: true,
+				halal_logo_id: true,
+				halal_unverified: true,
+				canonical_product_id: true,
+			},
 		})
 
-		if (matchedHalalLogos.length > 0) {
-			await prisma.productHalalLogo.createMany({
-				data: matchedHalalLogos.map((logo) => ({ product_id: product.id, halal_logo_id: logo.id })),
-				skipDuplicates: true,
-			})
-		}
-
-		const scan = await prisma.scan.create({
+		// Independent writes: link rows and the scan record.
+		const [, scan] = await Promise.all([
+			matchedHalalLogos.length > 0
+				? prisma.productHalalLogo.createMany({
+					data: matchedHalalLogos.map((logo) => ({ product_id: product.id, halal_logo_id: logo.id })),
+					skipDuplicates: true,
+				})
+				: Promise.resolve(null),
+			prisma.scan.create({
 			data: {
 				image_url: `uploads/${imageField.filename}`,
 				image_url_back: hasBackImage ? `uploads/${imageBackField!.filename}` : undefined,
@@ -597,7 +620,8 @@ export default defineEventHandler(async (event) => {
 				user_id: authUser.id,
 				product_id: product.id,
 			},
-		})
+			}),
+		])
 
 		// Only log to Recent Activities if a valid product name was extracted (skip filename fallbacks)
 		const extractedName = extraction.product_name?.trim()
@@ -673,7 +697,7 @@ export default defineEventHandler(async (event) => {
 				logoCrop = await cropLogo(source, logoBox.box)
 			}
 
-			await prisma.flaggedScan
+			const flaggedScanTask = prisma.flaggedScan
 				.create({
 					data: {
 						flag_reason: flagReasonParts.join(' | '),
@@ -691,13 +715,17 @@ export default defineEventHandler(async (event) => {
 					? `Scan of ${product.product_name} recorded: Red verdict`
 					: `Scan of ${product.product_name} recorded for audit`
 
-			await logAuditEvent({
-				event_type: 'FLAG',
-				entity: 'FlaggedScan',
-				triggered_by_user_id: authUser.id,
-				summary: flagSummary,
-				metadata: { scan_id: scan.id, flag_reason: flagReasonParts.join(' | ') },
-			})
+			// FlaggedScan record and FLAG audit event are independent: write together.
+			await Promise.all([
+				flaggedScanTask,
+				logAuditEvent({
+					event_type: 'FLAG',
+					entity: 'FlaggedScan',
+					triggered_by_user_id: authUser.id,
+					summary: flagSummary,
+					metadata: { scan_id: scan.id, flag_reason: flagReasonParts.join(' | ') },
+				}),
+			])
 
 			// Fire-and-forget admin notification (gated by the emailOnNewFlag
 			// setting inside sendNewFlagNotification). Non-blocking: the scan
@@ -726,8 +754,8 @@ export default defineEventHandler(async (event) => {
 					halal_unverified: product.halal_unverified,
 					canonical_product_id: product.canonical_product_id,
 					is_duplicate: product.canonical_product_id != null,
-					image_base64: product.image_base64,
-					image_base64_back: product.image_base64_back,
+					image_base64: thumb,
+					image_base64_back: null,
 					expiration_date_detected: extraction.expiration_date,
 					net_quantity_detected: extraction.net_quantity,
 					net_unit_detected: extraction.net_unit,

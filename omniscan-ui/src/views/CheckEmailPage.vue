@@ -467,4 +467,19 @@ onUnmounted(() => {
 		width: fit-content;
 	}
 }
+
+/* DARK MODE */
+html.ion-palette-dark .auth-content { --background: #0b160b; }
+html.ion-palette-dark .auth-card { background: #0b160b; }
+html.ion-palette-dark .auth-title { color: #f9fafb; }
+html.ion-palette-dark .auth-subtitle { color: #9ca3af; }
+html.ion-palette-dark .email-highlight { color: #f9fafb; }
+html.ion-palette-dark .feedback-banner--success { background: #0f2a17; color: #86efac; border-color: #1f5c33; }
+html.ion-palette-dark .feedback-banner--error { background: #2a1010; color: #fca5a5; border-color: #5c1f1f; }
+html.ion-palette-dark .resend-button { --background-disabled: #172617; --color-disabled: #6b7280; }
+html.ion-palette-dark .tips-box { background: #172617; border-color: #2d4a2d; }
+html.ion-palette-dark .tips-title { color: #d1d5db; }
+html.ion-palette-dark .tips-list li { color: #9ca3af; }
+html.ion-palette-dark .switch-auth { color: #9ca3af; }
+/* No custom-input on this page; surface color #172617 is used by .tips-box */
 </style>

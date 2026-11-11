@@ -21,8 +21,8 @@
 		</ion-header>
 
 		<ion-content class="detail-content">
-			<div v-if="isLoading" class="state-block">
-				<ion-spinner name="crescent" />
+			<div v-if="isLoading" class="skeleton-card-wrap">
+				<SkeletonCard variant="hero" />
 			</div>
 
 			<div v-else-if="loadError" class="state-block">
@@ -330,6 +330,7 @@ import {
 	alertController,
 } from '@ionic/vue'
 import AppHeader from '@/components/AppHeader.vue'
+import SkeletonCard from '@/components/SkeletonCard.vue'
 import { useBreakpoint } from '@/utils/useBreakpoint'
 import AppDatePicker from '@/components/AppDatePicker.vue'
 import { PANTRY_MAX, PAST_DATE_MESSAGE, isNewPastDate, todayLocalISO, toISODate } from '@/utils/dateUtils'
@@ -699,6 +700,11 @@ onIonViewWillEnter(() => fetchItem())
 <style scoped>
 .detail-content {
 	--background: #fafafa;
+}
+.skeleton-card-wrap {
+	padding: 12px 16px 24px;
+	max-width: 480px;
+	margin: 0 auto;
 }
 .detail-wrap {
 	padding: 12px 16px 24px;

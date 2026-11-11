@@ -124,7 +124,7 @@ export default defineEventHandler(async (event) => {
 		const [pantryItems, userWithProfile] = await Promise.all([
 			prisma.pantryItem.findMany({
 				where: { user_id: authUser.id, is_archived: false },
-				select: { id: true, quantity: true, portion_unit: true, product: { select: { product_name: true } } },
+				select: { id: true, category: true, quantity: true, portion_unit: true, product: { select: { product_name: true } } },
 			}),
 			prisma.user.findUnique({
 				where: { id: authUser.id },
@@ -168,6 +168,7 @@ export default defineEventHandler(async (event) => {
 		const pantryProducts = pantryItems.map((p) => ({
 			id: p.id,
 			product_name: p.product.product_name,
+			category: p.category,
 			quantity: Number(p.quantity),
 			portion_unit: p.portion_unit,
 		}))

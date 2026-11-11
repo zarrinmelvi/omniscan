@@ -188,7 +188,7 @@ export default defineEventHandler(async (event) => {
 
 		for (const interaction of madeInteractions) {
 			const ingredients = coerceRawIngredients(interaction.recipe.raw_ingredients)
-			const matchedLine = findMatchingIngredientLine(item.product.product_name, ingredients)
+			const matchedLine = findMatchingIngredientLine(item.product.product_name, ingredients, item.category)
 			if (!matchedLine) continue
 
 			recipesUsingThis.push({

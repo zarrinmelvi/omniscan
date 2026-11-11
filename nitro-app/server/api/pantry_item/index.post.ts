@@ -1,9 +1,10 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
-import { matchIngredientsToPantry, extractPantryKeywords, type RawIngredient } from '../../lib/recipe-matching'
+import { matchIngredientsToPantry, extractPantryKeywords, keywordSourceNames, type RawIngredient } from '../../lib/recipe-matching'
 import { buildCanonicalKey, findCanonicalProduct } from '../../lib/product-dedup'
 import { assertPantryQuotaAvailable } from '../../lib/quota'
+import { makeThumbDataUri } from '../../lib/image-thumb'
 import { isValidPantryUnit, isValidPantryCategory, inferCategory } from '../../lib/pantry-taxonomy'
 
 interface CreatePantryItemBody {
@@ -160,6 +161,8 @@ export default defineEventHandler(async (event) => {
 			const canonicalKey = buildCanonicalKey('Manually Added', product_name.trim())
 			const canonicalMatch = await findCanonicalProduct('Manually Added', product_name.trim())
 
+			const thumb = image_base64 ? await makeThumbDataUri(image_base64) : null
+
 			const created = await prisma.product.create({
 				data: {
 					brand_name: 'Manually Added',
@@ -167,6 +170,7 @@ export default defineEventHandler(async (event) => {
 					ingredient_text: ingredient_text?.trim() || canonicalMatch?.ingredient_text || 'Unknown',
 					simplified_ingredients: simplified_ingredients?.trim() || canonicalMatch?.simplified_ingredients || ingredient_text?.trim() || 'Unknown',
 					image_base64: image_base64 || null,
+					image_thumb_base64: thumb,
 					is_verified: false,
 					halal_logo_id: null,
 					canonical_key: canonicalKey,
@@ -199,8 +203,18 @@ export default defineEventHandler(async (event) => {
 				is_archived: false,
 				saved_alternatives: coerceSavedAlternatives(body.saved_alternatives),
 			},
-			include: { product: { select: { id: true, product_name: true, image_base64: true } } },
+			include: { product: { select: { id: true, product_name: true, image_thumb_base64: true } } },
 		})
+
+		// Same response shape as before, but the image field carries the thumbnail only.
+		const responseItem = {
+			...newItem,
+			product: {
+				id: newItem.product.id,
+				product_name: newItem.product.product_name,
+				image_base64: newItem.product.image_thumb_base64 ?? null,
+			},
+		}
 
 		const activityType: 'added' | 'uploaded' = body.product_id !== undefined ? 'added' : 'uploaded'
 
@@ -219,11 +233,11 @@ export default defineEventHandler(async (event) => {
 			try {
 				const pantryItems = await prisma.pantryItem.findMany({
 					where: { user_id: authUser.id, is_archived: false },
-					select: { id: true, product: { select: { product_name: true } } },
+					select: { id: true, category: true, product: { select: { product_name: true } } },
 				})
 
-				const pantryProducts = pantryItems.map((p) => ({ id: p.id, product_name: p.product.product_name }))
-				const keywords = extractPantryKeywords(pantryProducts.map((p) => p.product_name))
+				const pantryProducts = pantryItems.map((p) => ({ id: p.id, product_name: p.product.product_name, category: p.category }))
+				const keywords = extractPantryKeywords(keywordSourceNames(pantryProducts))
 
 				if (keywords.length > 0) {
 					const candidates = await prisma.$queryRaw<{ id: number }[]>`
@@ -279,7 +293,7 @@ export default defineEventHandler(async (event) => {
 			}
 		})()
 
-		return { success: true, item: newItem }
+		return { success: true, item: responseItem }
 	} catch (err: any) {
 		if (err?.statusCode) throw err
 		console.error('Failed to create pantry item:', err)

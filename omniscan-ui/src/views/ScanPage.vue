@@ -912,6 +912,19 @@ onBeforeUnmount(() => {
 	letter-spacing: 0.5px;
 }
 
+/* Dark mode contrast (Group F). Additive only. */
+html.ion-palette-dark .back-prompt-text {
+	color: #cbd5e1;
+}
+
+html.ion-palette-dark .back-prompt-text strong {
+	color: #f1f5f9;
+}
+
+html.ion-palette-dark .skip-btn {
+	--color: #7dd3fc;
+}
+
 .btn-primary {
 	--background: #00b14f;
 	--background-activated: #009643;

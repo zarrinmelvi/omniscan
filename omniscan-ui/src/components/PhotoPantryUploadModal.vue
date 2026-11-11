@@ -261,6 +261,9 @@ import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
 import AppDatePicker from '@/components/AppDatePicker.vue'
 import { PANTRY_MAX, PAST_DATE_MESSAGE, isBeforeToday, todayLocalISO, toISODate } from '@/utils/dateUtils'
 import { showErrorToast, showSuccessToast } from '@/utils/toast'
+import { usePantryList } from '@/composables/usePantryList'
+
+const { invalidate: invalidatePantryList } = usePantryList()
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 const DAILY_MAX_LIMIT = 7
@@ -601,6 +604,8 @@ async function handleSubmit(): Promise<void> {
 				category: form.category,
 			},
 		})
+		// The pantry cache is now outdated; the next Pantry/Home visit refreshes it silently.
+		invalidatePantryList()
 
 		// Success feedback right after the API succeeds and before the modal closes/resets.
 		try {

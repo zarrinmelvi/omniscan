@@ -1,0 +1,188 @@
+{
+  "pbtResults": {
+    "1. Write bug condition exploration test": {
+      "status": "passed",
+      "failingExample": "Expected failure on unfixed code (bug confirmed): matcher property counterexample [\"lemon\",{\"category\":\"Beverages\",\"suffix\":\"iced tea\"},false] -> matched ['lemon']; list response had a 512023-char string; scan image_base64_back not null.",
+      "lastRunTimestamp": 1794436173913
+    }
+  },
+  "executionHistory": {
+    "1. Write bug condition exploration test": [
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794435985306
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794435990803
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794436192108
+      }
+    ],
+    "2. Write preservation property tests (BEFORE implementing fix)": [
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794435985406
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794436192177
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794436413385
+      }
+    ],
+    "3.1 Group A: Image payloads and scan speed (nitro-app)": [
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794435985467
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794436419520
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794436624535
+      }
+    ],
+    "3.2 Group B: Pantry list cache and thumbnails in the UI (omniscan-ui)": [
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794435985534
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794436631981
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794437657798
+      }
+    ],
+    "3.3 Group C: Recipe matching by category (nitro-app)": [
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794435985607
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794437664566
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794437839296
+      }
+    ],
+    "3.4 Group D: Loading skeletons (omniscan-ui)": [
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794435985663
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794437845921
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794437965720
+      }
+    ],
+    "3.5 Group E: Auth pages dark palette (omniscan-ui)": [
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794435985718
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794437973176
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794438069536
+      }
+    ],
+    "3.6 Group F: Scan page and Scan Result modal contrast (omniscan-ui)": [
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794435985778
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794438076794
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794438278414
+      }
+    ],
+    "3.7 Verify bug condition exploration test now passes": [
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794435985851
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794438284746
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794438411087
+      }
+    ],
+    "3.8 Verify preservation tests still pass": [
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794435985920
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794438411141
+      }
+    ],
+    "4. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794435985973
+      },
+      {
+        "executionId": "9ca2bfe0-69e0-4a28-8278-fc0b8cf15c0b",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794438411204
+      }
+    ]
+  }
+}

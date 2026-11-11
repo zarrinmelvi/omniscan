@@ -7,6 +7,7 @@ export interface RawIngredient {
 export interface PantryProductRef {
 	id: number
 	product_name: string
+	category?: string | null
 }
 
 export interface IngredientMatchResult {
@@ -70,6 +71,101 @@ function cleanProductName(productName: string): string {
 	return cleaned.replace(/\s+/g, ' ').trim()
 }
 
+// Pantry categories whose items are ready-made products (a drink, a bag of
+// chips, ...) rather than raw/cooking ingredients. Their names often contain
+// a flavor or ingredient word ("Lemon Iced Tea") that must not satisfy a
+// recipe ingredient of the same name.
+export const PROCESSED_CATEGORIES = ['Beverages', 'Snacks', 'Instant Noodles', 'Canned Goods', 'Condiments & Sauces'] as const
+
+// Processed categories where a trailing head phrase ("soy sauce" in
+// "Kikkoman Soy Sauce") may still satisfy an ingredient.
+const HEAD_PHRASE_CATEGORIES: ReadonlySet<string> = new Set(['Canned Goods', 'Condiments & Sauces'])
+
+const FLAVOR_MARKER = /\b(flavou?r(ed)?|scented)\b/i
+
+// Product-type nouns: if one of these appears before the trailing words, the
+// trailing words are a flavor/variant ("Acme Sauce Lemon"), not the product.
+const PRODUCT_TYPE_WORDS = new Set([
+	'sauce', 'dressing', 'syrup', 'paste', 'drink', 'juice', 'tea', 'soda', 'chip', 'chips',
+	'noodle', 'noodles', 'spread', 'dip', 'marinade', 'seasoning', 'mix', 'snack', 'cola',
+])
+
+export function isProcessedCategory(category: string | null | undefined): boolean {
+	return category != null && (PROCESSED_CATEGORIES as readonly string[]).includes(category)
+}
+
+function stemPhrase(phrase: string): string {
+	return phrase.split(/\s+/).filter(Boolean).map(stemWord).join(' ')
+}
+
+// True when `target` (already lower-cased) equals the trailing words of the
+// product name, with no flavor marker and no product-type noun before them.
+function isHeadPhraseMatch(productName: string, cleanedProduct: string, targetStem: string): boolean {
+	if (FLAVOR_MARKER.test(productName)) return false
+	const words = cleanedProduct.split(/\s+/).filter(Boolean)
+	for (let k = 1; k < words.length; k++) {
+		const prefix = words.slice(0, k)
+		if (stemPhrase(words.slice(k).join(' ')) !== targetStem) continue
+		if (prefix.some((w) => PRODUCT_TYPE_WORDS.has(w))) continue
+		return true
+	}
+	return false
+}
+
+// Whether a pantry product can satisfy `ingredient` (raw, lower-cased, trimmed
+// and non-empty), given its category. Plain categories (incl. null) use the
+// original partial-name predicate unchanged.
+function itemMatchesIngredient(
+	productName: string,
+	category: string | null | undefined,
+	rawTarget: string,
+	targetStem: string,
+): boolean {
+	const cleanedProduct = cleanProductName(productName)
+	const productStem = cleanedProduct.split(/\s+/).map(stemWord).join(' ')
+
+	// 1. Direct or Stemmed Exact Matches
+	if (cleanedProduct === rawTarget || productStem === targetStem) return true
+
+	if (isProcessedCategory(category)) {
+		return HEAD_PHRASE_CATEGORIES.has(category as string) && isHeadPhraseMatch(productName, cleanedProduct, targetStem)
+	}
+
+	// 2. Word Boundary Matches (Raw and Stemmed)
+	const rawRegex = new RegExp(`\\b${escapeRegExp(rawTarget)}\\b`, 'i')
+	const stemRegex = new RegExp(`\\b${escapeRegExp(targetStem)}\\b`, 'i')
+	const prodStemRegex = new RegExp(`\\b${escapeRegExp(productStem)}\\b`, 'i')
+
+	return rawRegex.test(cleanedProduct) || stemRegex.test(productStem) || prodStemRegex.test(targetStem)
+}
+
+// True when a product name could satisfy some recipe ingredient at all.
+export function isRecipeMatchableName(productName: string): boolean {
+	return cleanProductName(productName).length > 0
+}
+
+// Names to feed extractPantryKeywords for the SQL pre-filter. Plain items
+// contribute their full names. Processed items contribute only what the
+// matcher can still use: head-phrase categories their cleaned name, other
+// processed categories their cleaned name only when it is short (a plain
+// product like "Coffee"), so flavor words in "Lemon Iced Tea" don't pull in
+// recipes that could never match.
+export function keywordSourceNames(items: Array<{ product_name: string; category?: string | null }>): string[] {
+	const names: string[] = []
+	for (const item of items) {
+		if (!isProcessedCategory(item.category)) {
+			names.push(item.product_name)
+			continue
+		}
+		const cleaned = cleanProductName(item.product_name)
+		if (!cleaned) continue
+		if (HEAD_PHRASE_CATEGORIES.has(item.category as string) || cleaned.split(/\s+/).length <= 2) {
+			names.push(cleaned)
+		}
+	}
+	return names
+}
+
 // Same matching heuristic as matchIngredientsToPantry below, but keeps each
 // ingredient's quantity/unit against the specific pantry item it matched,
 // instead of collapsing everything down to a Set of ids. Needed for actually
@@ -89,20 +185,9 @@ export function matchIngredientsToPantryForDeduction(
 		// Normalized stemmed version of target (e.g. "eggs" -> "egg")
 		const targetStem = rawTarget.split(/\s+/).map(stemWord).join(' ')
 
-		const hit = pantryItems.find((item) => {
-			const cleanedProduct = cleanProductName(item.product_name)
-			const productStem = cleanedProduct.split(/\s+/).map(stemWord).join(' ')
-
-			// 1. Direct or Stemmed Exact Matches
-			if (cleanedProduct === rawTarget || productStem === targetStem) return true
-
-			// 2. Word Boundary Matches (Raw and Stemmed)
-			const rawRegex = new RegExp(`\\b${escapeRegExp(rawTarget)}\\b`, 'i')
-			const stemRegex = new RegExp(`\\b${escapeRegExp(targetStem)}\\b`, 'i')
-			const prodStemRegex = new RegExp(`\\b${escapeRegExp(productStem)}\\b`, 'i')
-
-			return rawRegex.test(cleanedProduct) || stemRegex.test(productStem) || prodStemRegex.test(targetStem)
-		})
+		const hit = pantryItems.find((item) =>
+			itemMatchesIngredient(item.product_name, item.category, rawTarget, targetStem),
+		)
 
 		if (hit) {
 			deductions.push({
@@ -244,11 +329,16 @@ export function extractPantryKeywords(productNames: string[], maxKeywords = 60):
 	return Array.from(words).slice(0, maxKeywords)
 }
 
-export function findMatchingIngredientLine(productName: string, ingredients: RawIngredient[]): RawIngredient | null {
+export function findMatchingIngredientLine(
+	productName: string,
+	ingredients: RawIngredient[],
+	category?: string | null,
+): RawIngredient | null {
 	const cleanedProduct = cleanProductName(productName)
 	if (!cleanedProduct) return null
 
 	const productStem = cleanedProduct.split(/\s+/).map(stemWord).join(' ')
+	const processed = isProcessedCategory(category)
 
 	return (
 		ingredients.find((ing) => {
@@ -258,6 +348,10 @@ export function findMatchingIngredientLine(productName: string, ingredients: Raw
 			const nameStem = rawName.split(/\s+/).map(stemWord).join(' ')
 
 			if (rawName === cleanedProduct || nameStem === productStem) return true
+
+			if (processed) {
+				return HEAD_PHRASE_CATEGORIES.has(category as string) && isHeadPhraseMatch(productName, cleanedProduct, nameStem)
+			}
 
 			const prodRegex = new RegExp(`\\b${escapeRegExp(productStem)}\\b`, 'i')
 			const nameRegex = new RegExp(`\\b${escapeRegExp(nameStem)}\\b`, 'i')

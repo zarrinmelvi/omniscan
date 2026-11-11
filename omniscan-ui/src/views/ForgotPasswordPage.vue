@@ -197,4 +197,30 @@ onBeforeUnmount(stopTimer)
 	.auth-card > * { width: 100%; max-width: 400px; margin-left: auto; margin-right: auto; }
 	.auth-card .back-button { display: none; }
 }
+
+/* DARK MODE */
+html.ion-palette-dark .auth-content { --background: #0b160b; }
+html.ion-palette-dark .auth-card { background: #0b160b; }
+html.ion-palette-dark .back-button { color: #f9fafb; }
+html.ion-palette-dark .auth-title { color: #f9fafb; }
+html.ion-palette-dark .auth-subtitle { color: #9ca3af; }
+html.ion-palette-dark .input-label { color: #d1d5db; }
+html.ion-palette-dark .custom-input {
+	background: #172617 !important;
+	background-color: #172617 !important;
+	border-color: #2d4a2d !important;
+	color: #f9fafb !important;
+	-webkit-text-fill-color: #f9fafb !important;
+}
+html.ion-palette-dark .custom-input::placeholder { color: #6b7280 !important; }
+html.ion-palette-dark .custom-input:focus { border-color: #05c450 !important; }
+html.ion-palette-dark .custom-input:-webkit-autofill,
+html.ion-palette-dark .custom-input:-webkit-autofill:hover,
+html.ion-palette-dark .custom-input:-webkit-autofill:focus {
+	-webkit-box-shadow: 0 0 0 1000px #172617 inset !important;
+	-webkit-text-fill-color: #f9fafb !important;
+}
+html.ion-palette-dark .switch-auth { color: #9ca3af; }
+html.ion-palette-dark .form-error { background: #2a1010; color: #fca5a5; border: 1px solid #5c1f1f; }
+html.ion-palette-dark .form-success { background: #0f2a17; color: #86efac; border-color: #1f5c33; }
 </style>

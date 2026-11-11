@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
 			}),
 			prisma.pantryItem.findMany({
 				where: { user_id: authUser.id, is_archived: false },
-				select: { id: true, product: { select: { product_name: true } } },
+				select: { id: true, category: true, product: { select: { product_name: true } } },
 			}),
 		])
 
@@ -51,7 +51,7 @@ export default defineEventHandler(async (event) => {
 		}
 		const uniqueInteractions = Array.from(uniqueInteractionsMap.values())
 
-		const pantryProducts = pantryItems.map((p) => ({ id: p.id, product_name: p.product.product_name }))
+		const pantryProducts = pantryItems.map((p) => ({ id: p.id, product_name: p.product.product_name, category: p.category }))
 
 		const results = uniqueInteractions.map(({ recipe, liked }) => {
 			const ingredients = coerceRawIngredients(recipe.raw_ingredients)

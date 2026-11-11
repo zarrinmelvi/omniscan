@@ -4,9 +4,8 @@
 			<AppHeader />
 		</ion-header>
 		<ion-content class="profile-content">
-			<div v-if="isLoading" class="state-block">
-				<ion-spinner name="crescent" />
-				<p>Loading your profile…</p>
+			<div v-if="isLoading" class="skeleton-card-wrap">
+				<SkeletonCard variant="profile" />
 			</div>
 
 			<div v-else-if="loadError" class="state-block">
@@ -368,6 +367,7 @@ import {
 } from 'ionicons/icons'
 import { apiFetch, ApiError, signOutConsumer } from '@/utils/api'
 import AppHeader from '@/components/AppHeader.vue'
+import SkeletonCard from '@/components/SkeletonCard.vue'
 import AppDatePicker from '@/components/AppDatePicker.vue'
 import { BIRTHDAY_MIN, todayLocalISO, toISODate, ageFromISO } from '@/utils/dateUtils'
 import { useAuthStore } from '@/stores/authStore'
@@ -977,6 +977,11 @@ onBeforeRouteLeave(async (to, from, next) => {
 	text-align: center;
 }
 
+.skeleton-card-wrap {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 16px;
+}
 .profile-inner {
 	max-width: 800px;
 	margin: 0 auto;

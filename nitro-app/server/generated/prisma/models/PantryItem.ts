@@ -29,6 +29,8 @@ export type AggregatePantryItem = {
 export type PantryItemAvgAggregateOutputType = {
   id: number | null
   quantity: runtime.Decimal | null
+  net_content: runtime.Decimal | null
+  pieces_count: number | null
   user_id: number | null
   product_id: number | null
 }
@@ -36,6 +38,8 @@ export type PantryItemAvgAggregateOutputType = {
 export type PantryItemSumAggregateOutputType = {
   id: number | null
   quantity: runtime.Decimal | null
+  net_content: runtime.Decimal | null
+  pieces_count: number | null
   user_id: number | null
   product_id: number | null
 }
@@ -47,6 +51,9 @@ export type PantryItemMinAggregateOutputType = {
   storage_location: string | null
   quantity: runtime.Decimal | null
   portion_unit: string | null
+  net_content: runtime.Decimal | null
+  net_unit: string | null
+  pieces_count: number | null
   category: string | null
   added_date: Date | null
   is_archived: boolean | null
@@ -64,6 +71,9 @@ export type PantryItemMaxAggregateOutputType = {
   storage_location: string | null
   quantity: runtime.Decimal | null
   portion_unit: string | null
+  net_content: runtime.Decimal | null
+  net_unit: string | null
+  pieces_count: number | null
   category: string | null
   added_date: Date | null
   is_archived: boolean | null
@@ -81,6 +91,9 @@ export type PantryItemCountAggregateOutputType = {
   storage_location: number
   quantity: number
   portion_unit: number
+  net_content: number
+  net_unit: number
+  pieces_count: number
   category: number
   added_date: number
   is_archived: number
@@ -97,6 +110,8 @@ export type PantryItemCountAggregateOutputType = {
 export type PantryItemAvgAggregateInputType = {
   id?: true
   quantity?: true
+  net_content?: true
+  pieces_count?: true
   user_id?: true
   product_id?: true
 }
@@ -104,6 +119,8 @@ export type PantryItemAvgAggregateInputType = {
 export type PantryItemSumAggregateInputType = {
   id?: true
   quantity?: true
+  net_content?: true
+  pieces_count?: true
   user_id?: true
   product_id?: true
 }
@@ -115,6 +132,9 @@ export type PantryItemMinAggregateInputType = {
   storage_location?: true
   quantity?: true
   portion_unit?: true
+  net_content?: true
+  net_unit?: true
+  pieces_count?: true
   category?: true
   added_date?: true
   is_archived?: true
@@ -132,6 +152,9 @@ export type PantryItemMaxAggregateInputType = {
   storage_location?: true
   quantity?: true
   portion_unit?: true
+  net_content?: true
+  net_unit?: true
+  pieces_count?: true
   category?: true
   added_date?: true
   is_archived?: true
@@ -149,6 +172,9 @@ export type PantryItemCountAggregateInputType = {
   storage_location?: true
   quantity?: true
   portion_unit?: true
+  net_content?: true
+  net_unit?: true
+  pieces_count?: true
   category?: true
   added_date?: true
   is_archived?: true
@@ -254,6 +280,9 @@ export type PantryItemGroupByOutputType = {
   storage_location: string
   quantity: runtime.Decimal
   portion_unit: string
+  net_content: runtime.Decimal | null
+  net_unit: string | null
+  pieces_count: number
   category: string | null
   added_date: Date
   is_archived: boolean
@@ -295,6 +324,9 @@ export type PantryItemWhereInput = {
   storage_location?: Prisma.StringFilter<"PantryItem"> | string
   quantity?: Prisma.DecimalFilter<"PantryItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFilter<"PantryItem"> | string
+  net_content?: Prisma.DecimalNullableFilter<"PantryItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.StringNullableFilter<"PantryItem"> | string | null
+  pieces_count?: Prisma.IntFilter<"PantryItem"> | number
   category?: Prisma.StringNullableFilter<"PantryItem"> | string | null
   added_date?: Prisma.DateTimeFilter<"PantryItem"> | Date | string
   is_archived?: Prisma.BoolFilter<"PantryItem"> | boolean
@@ -317,6 +349,9 @@ export type PantryItemOrderByWithRelationInput = {
   storage_location?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   portion_unit?: Prisma.SortOrder
+  net_content?: Prisma.SortOrderInput | Prisma.SortOrder
+  net_unit?: Prisma.SortOrderInput | Prisma.SortOrder
+  pieces_count?: Prisma.SortOrder
   category?: Prisma.SortOrderInput | Prisma.SortOrder
   added_date?: Prisma.SortOrder
   is_archived?: Prisma.SortOrder
@@ -342,6 +377,9 @@ export type PantryItemWhereUniqueInput = Prisma.AtLeast<{
   storage_location?: Prisma.StringFilter<"PantryItem"> | string
   quantity?: Prisma.DecimalFilter<"PantryItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFilter<"PantryItem"> | string
+  net_content?: Prisma.DecimalNullableFilter<"PantryItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.StringNullableFilter<"PantryItem"> | string | null
+  pieces_count?: Prisma.IntFilter<"PantryItem"> | number
   category?: Prisma.StringNullableFilter<"PantryItem"> | string | null
   added_date?: Prisma.DateTimeFilter<"PantryItem"> | Date | string
   is_archived?: Prisma.BoolFilter<"PantryItem"> | boolean
@@ -364,6 +402,9 @@ export type PantryItemOrderByWithAggregationInput = {
   storage_location?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   portion_unit?: Prisma.SortOrder
+  net_content?: Prisma.SortOrderInput | Prisma.SortOrder
+  net_unit?: Prisma.SortOrderInput | Prisma.SortOrder
+  pieces_count?: Prisma.SortOrder
   category?: Prisma.SortOrderInput | Prisma.SortOrder
   added_date?: Prisma.SortOrder
   is_archived?: Prisma.SortOrder
@@ -390,6 +431,9 @@ export type PantryItemScalarWhereWithAggregatesInput = {
   storage_location?: Prisma.StringWithAggregatesFilter<"PantryItem"> | string
   quantity?: Prisma.DecimalWithAggregatesFilter<"PantryItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringWithAggregatesFilter<"PantryItem"> | string
+  net_content?: Prisma.DecimalNullableWithAggregatesFilter<"PantryItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.StringNullableWithAggregatesFilter<"PantryItem"> | string | null
+  pieces_count?: Prisma.IntWithAggregatesFilter<"PantryItem"> | number
   category?: Prisma.StringNullableWithAggregatesFilter<"PantryItem"> | string | null
   added_date?: Prisma.DateTimeWithAggregatesFilter<"PantryItem"> | Date | string
   is_archived?: Prisma.BoolWithAggregatesFilter<"PantryItem"> | boolean
@@ -407,6 +451,9 @@ export type PantryItemCreateInput = {
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -427,6 +474,9 @@ export type PantryItemUncheckedCreateInput = {
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -446,6 +496,9 @@ export type PantryItemUpdateInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -466,6 +519,9 @@ export type PantryItemUncheckedUpdateInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -486,6 +542,9 @@ export type PantryItemCreateManyInput = {
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -503,6 +562,9 @@ export type PantryItemUpdateManyMutationInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -519,6 +581,9 @@ export type PantryItemUncheckedUpdateManyInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -552,6 +617,9 @@ export type PantryItemCountOrderByAggregateInput = {
   storage_location?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   portion_unit?: Prisma.SortOrder
+  net_content?: Prisma.SortOrder
+  net_unit?: Prisma.SortOrder
+  pieces_count?: Prisma.SortOrder
   category?: Prisma.SortOrder
   added_date?: Prisma.SortOrder
   is_archived?: Prisma.SortOrder
@@ -566,6 +634,8 @@ export type PantryItemCountOrderByAggregateInput = {
 export type PantryItemAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  net_content?: Prisma.SortOrder
+  pieces_count?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   product_id?: Prisma.SortOrder
 }
@@ -577,6 +647,9 @@ export type PantryItemMaxOrderByAggregateInput = {
   storage_location?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   portion_unit?: Prisma.SortOrder
+  net_content?: Prisma.SortOrder
+  net_unit?: Prisma.SortOrder
+  pieces_count?: Prisma.SortOrder
   category?: Prisma.SortOrder
   added_date?: Prisma.SortOrder
   is_archived?: Prisma.SortOrder
@@ -594,6 +667,9 @@ export type PantryItemMinOrderByAggregateInput = {
   storage_location?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   portion_unit?: Prisma.SortOrder
+  net_content?: Prisma.SortOrder
+  net_unit?: Prisma.SortOrder
+  pieces_count?: Prisma.SortOrder
   category?: Prisma.SortOrder
   added_date?: Prisma.SortOrder
   is_archived?: Prisma.SortOrder
@@ -607,6 +683,8 @@ export type PantryItemMinOrderByAggregateInput = {
 export type PantryItemSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  net_content?: Prisma.SortOrder
+  pieces_count?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   product_id?: Prisma.SortOrder
 }
@@ -727,12 +805,23 @@ export type PantryItemUncheckedUpdateManyWithoutProductNestedInput = {
   deleteMany?: Prisma.PantryItemScalarWhereInput | Prisma.PantryItemScalarWhereInput[]
 }
 
+export type NullableDecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
 export type PantryItemCreateWithoutActivityLogInput = {
   expiration_date?: Date | string | null
   best_before_date?: Date | string | null
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -752,6 +841,9 @@ export type PantryItemUncheckedCreateWithoutActivityLogInput = {
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -786,6 +878,9 @@ export type PantryItemUpdateWithoutActivityLogInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -805,6 +900,9 @@ export type PantryItemUncheckedUpdateWithoutActivityLogInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -823,6 +921,9 @@ export type PantryItemCreateWithoutUserInput = {
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -842,6 +943,9 @@ export type PantryItemUncheckedCreateWithoutUserInput = {
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -890,6 +994,9 @@ export type PantryItemScalarWhereInput = {
   storage_location?: Prisma.StringFilter<"PantryItem"> | string
   quantity?: Prisma.DecimalFilter<"PantryItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFilter<"PantryItem"> | string
+  net_content?: Prisma.DecimalNullableFilter<"PantryItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.StringNullableFilter<"PantryItem"> | string | null
+  pieces_count?: Prisma.IntFilter<"PantryItem"> | number
   category?: Prisma.StringNullableFilter<"PantryItem"> | string | null
   added_date?: Prisma.DateTimeFilter<"PantryItem"> | Date | string
   is_archived?: Prisma.BoolFilter<"PantryItem"> | boolean
@@ -907,6 +1014,9 @@ export type PantryItemCreateWithoutNotificationInput = {
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -926,6 +1036,9 @@ export type PantryItemUncheckedCreateWithoutNotificationInput = {
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -960,6 +1073,9 @@ export type PantryItemUpdateWithoutNotificationInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -979,6 +1095,9 @@ export type PantryItemUncheckedUpdateWithoutNotificationInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -997,6 +1116,9 @@ export type PantryItemCreateWithoutProductInput = {
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -1016,6 +1138,9 @@ export type PantryItemUncheckedCreateWithoutProductInput = {
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -1061,6 +1186,9 @@ export type PantryItemCreateManyUserInput = {
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -1077,6 +1205,9 @@ export type PantryItemUpdateWithoutUserInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1096,6 +1227,9 @@ export type PantryItemUncheckedUpdateWithoutUserInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1115,6 +1249,9 @@ export type PantryItemUncheckedUpdateManyWithoutUserInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1132,6 +1269,9 @@ export type PantryItemCreateManyProductInput = {
   storage_location: string
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit: string
+  net_content?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: string | null
+  pieces_count?: number
   category?: string | null
   added_date: Date | string
   is_archived?: boolean
@@ -1148,6 +1288,9 @@ export type PantryItemUpdateWithoutProductInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1167,6 +1310,9 @@ export type PantryItemUncheckedUpdateWithoutProductInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1186,6 +1332,9 @@ export type PantryItemUncheckedUpdateManyWithoutProductInput = {
   storage_location?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   portion_unit?: Prisma.StringFieldUpdateOperationsInput | string
+  net_content?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  net_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pieces_count?: Prisma.IntFieldUpdateOperationsInput | number
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   added_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_archived?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1243,6 +1392,9 @@ export type PantryItemSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   storage_location?: boolean
   quantity?: boolean
   portion_unit?: boolean
+  net_content?: boolean
+  net_unit?: boolean
+  pieces_count?: boolean
   category?: boolean
   added_date?: boolean
   is_archived?: boolean
@@ -1266,6 +1418,9 @@ export type PantryItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   storage_location?: boolean
   quantity?: boolean
   portion_unit?: boolean
+  net_content?: boolean
+  net_unit?: boolean
+  pieces_count?: boolean
   category?: boolean
   added_date?: boolean
   is_archived?: boolean
@@ -1286,6 +1441,9 @@ export type PantryItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   storage_location?: boolean
   quantity?: boolean
   portion_unit?: boolean
+  net_content?: boolean
+  net_unit?: boolean
+  pieces_count?: boolean
   category?: boolean
   added_date?: boolean
   is_archived?: boolean
@@ -1306,6 +1464,9 @@ export type PantryItemSelectScalar = {
   storage_location?: boolean
   quantity?: boolean
   portion_unit?: boolean
+  net_content?: boolean
+  net_unit?: boolean
+  pieces_count?: boolean
   category?: boolean
   added_date?: boolean
   is_archived?: boolean
@@ -1317,7 +1478,7 @@ export type PantryItemSelectScalar = {
   deleted_at?: boolean
 }
 
-export type PantryItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "expiration_date" | "best_before_date" | "storage_location" | "quantity" | "portion_unit" | "category" | "added_date" | "is_archived" | "saved_alternatives" | "user_id" | "product_id" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["pantryItem"]>
+export type PantryItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "expiration_date" | "best_before_date" | "storage_location" | "quantity" | "portion_unit" | "net_content" | "net_unit" | "pieces_count" | "category" | "added_date" | "is_archived" | "saved_alternatives" | "user_id" | "product_id" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["pantryItem"]>
 export type PantryItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
@@ -1349,6 +1510,9 @@ export type $PantryItemPayload<ExtArgs extends runtime.Types.Extensions.Internal
     storage_location: string
     quantity: runtime.Decimal
     portion_unit: string
+    net_content: runtime.Decimal | null
+    net_unit: string | null
+    pieces_count: number
     category: string | null
     added_date: Date
     is_archived: boolean
@@ -1791,6 +1955,9 @@ export interface PantryItemFieldRefs {
   readonly storage_location: Prisma.FieldRef<"PantryItem", 'String'>
   readonly quantity: Prisma.FieldRef<"PantryItem", 'Decimal'>
   readonly portion_unit: Prisma.FieldRef<"PantryItem", 'String'>
+  readonly net_content: Prisma.FieldRef<"PantryItem", 'Decimal'>
+  readonly net_unit: Prisma.FieldRef<"PantryItem", 'String'>
+  readonly pieces_count: Prisma.FieldRef<"PantryItem", 'Int'>
   readonly category: Prisma.FieldRef<"PantryItem", 'String'>
   readonly added_date: Prisma.FieldRef<"PantryItem", 'DateTime'>
   readonly is_archived: Prisma.FieldRef<"PantryItem", 'Boolean'>

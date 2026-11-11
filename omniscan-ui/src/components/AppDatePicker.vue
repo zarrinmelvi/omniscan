@@ -101,7 +101,30 @@ function confirm(): void {
 }
 </script>
 
+<style>
+/* Non-scoped: ion-modal is moved to the app root overlay, so target the host directly.
+   Centered floating dialog (default Ionic modal, no sheet breakpoints), also on phones. */
+ion-modal.app-date-picker-modal {
+	--width: min(92vw, 360px);
+	--height: auto;
+	--max-height: 90vh;
+	--border-radius: 16px;
+	--box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+	--backdrop-opacity: 0.45;
+}
+
+ion-modal.app-date-picker-modal .app-date-picker-sheet ion-datetime {
+	width: 100%;
+	max-width: 100%;
+}
+</style>
+
 <style scoped>
+.app-date-picker-sheet ion-datetime {
+	width: 100%;
+	max-width: 100%;
+}
+
 .app-date-picker {
 	display: flex;
 	align-items: center;

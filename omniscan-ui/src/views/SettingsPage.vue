@@ -24,9 +24,11 @@
 						</div>
 						<div class="row-text">
 							<p class="row-title">Camera</p>
-							<p class="row-subtitle">Allow OmniScan to scan product's ingredients &amp; logo</p>
+							<p class="row-subtitle">
+								{{ isDesktop ? 'Camera scanning is available on the mobile app' : "Allow OmniScan to scan product's ingredients & logo" }}
+							</p>
 						</div>
-						<ion-toggle v-model="cameraPermission" @ion-change="onCameraToggleChange" class="custom-toggle" />
+						<ion-toggle :checked="!isDesktop && cameraPermission" :disabled="isDesktop" @ion-change="onCameraToggleChange" class="custom-toggle" />
 					</div>
 					<div class="settings-row">
 						<div class="icon-wrapper icon-orange">
@@ -36,7 +38,7 @@
 							<p class="row-title">Notifications</p>
 							<p class="row-subtitle">Get expiry and recipe alerts</p>
 						</div>
-						<ion-toggle v-model="notificationsPermission" @ion-change="savePrefs" class="custom-toggle" />
+						<ion-toggle :checked="notificationsEnabled" @ion-change="onNotifToggleChange" class="custom-toggle" />
 					</div>
 				</div>
 
@@ -386,6 +388,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCameraPermission } from '@/composables/useCameraPermission'
+import { useNotificationPrefs } from '@/composables/useNotificationPrefs'
 import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import {
@@ -436,10 +439,9 @@ function goBackToProfile() {
 	}
 }
 
-const { hasPermission: cameraPermission, setPermission } = useCameraPermission()
-const NOTIF_PREF_KEY = 'omniscan_pref_notifications'
+const { hasPermission: cameraPermission, requestPermission, setPermission } = useCameraPermission()
+const { notificationsEnabled, loadPrefs, savePrefs } = useNotificationPrefs()
 
-const notificationsPermission = ref(true)
 const darkMode = ref(isDarkSingleton.value)
 
 const isTermsOpen = ref(false)
@@ -489,13 +491,30 @@ const faqs = [
 	},
 ]
 
-function savePrefs() {
-	localStorage.setItem(NOTIF_PREF_KEY, String(notificationsPermission.value))
+async function onNotifToggleChange(event: CustomEvent) {
+	await savePrefs(event.detail.checked)
+	// Sync local reminders: schedule if ON, cancel if OFF.
+	if (event.detail.checked) {
+		const { syncExpiryReminders } = await import('@/utils/reminderScheduler')
+		await syncExpiryReminders()
+	} else {
+		const { cancelAllReminders } = await import('@/utils/reminderScheduler')
+		await cancelAllReminders()
+	}
 }
 
-function onCameraToggleChange(event: CustomEvent) {
+async function onCameraToggleChange(event: CustomEvent) {
+	// Desktop shows the toggle as off/disabled; never overwrite the saved preference from there.
+	if (isDesktop.value) return
 	const isEnabled = event.detail.checked
-	setPermission(isEnabled)
+	if (isEnabled) {
+		// Request actual camera permission immediately when turning ON.
+		// If denied (NotAllowedError), requestPermission sets the ref to
+		// false, which reverts the toggle to OFF automatically.
+		await requestPermission()
+	} else {
+		setPermission(false)
+	}
 }
 
 async function updateNativeStatusBar(isDark: boolean) {
@@ -516,8 +535,10 @@ function contactSupport() {
 }
 
 onMounted(async () => {
-	// cameraPermission is now managed by useCameraPermission composable
-	notificationsPermission.value = localStorage.getItem(NOTIF_PREF_KEY) !== 'false'
+	// Load notification preference from the server (single source of truth).
+	// This also performs the one-time legacy sync from localStorage if the
+	// old key still exists.
+	await loadPrefs()
 	darkMode.value = isDarkSingleton.value
 
 	await updateNativeStatusBar(darkMode.value)

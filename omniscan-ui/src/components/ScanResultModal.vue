@@ -16,7 +16,7 @@
 		:breakpoints="[0, 0.5, 0.95]"
 		:initial-breakpoint="0.95"
 		:backdrop-dismiss="false"
-		@didDismiss="handleDismiss"
+		@didDismiss="onDidDismiss"
 	>
 		<ion-content class="sheet-ion-content" :scroll-y="true">
 			<div class="sheet-content">
@@ -31,7 +31,7 @@
 							{{ product?.brand_name || 'Unknown Brand' }}<span v-if="product?.id"> - #{{ product.id }}</span>
 						</p>
 					</div>
-					<button type="button" class="close-btn" aria-label="Close" :disabled="submitting" @click="handleDismiss">
+					<button type="button" class="close-btn" aria-label="Close" :disabled="submitting" @click="requestClose">
 						<ion-icon :icon="closeOutline" />
 					</button>
 				</div>
@@ -169,11 +169,14 @@
 								<ion-icon :icon="sparklesOutline" />
 								<span>Expiration Detected — please double-check for accuracy</span>
 							</div>
-							<input 
-								type="date" 
-								class="date-input" 
-								:class="{ 'date-input--has-value': !!expirationDate }" 
-								v-model="expirationDate" 
+							<AppDatePicker
+								class="date-input"
+								:class="{ 'date-input--has-value': !!expirationDate }"
+								v-model="expirationDate"
+								:min="minPantryDate"
+								:max="PANTRY_MAX"
+								placeholder="Select expiration date"
+								aria-label="Expiration date"
 								:disabled="submitting"
 								@change="onExpirationDateChange"
 							/>
@@ -184,16 +187,21 @@
 						<div class="date-field">
 							<label class="date-field-label">Best Before Date</label>
 							<span class="field-hint">For fresh stocks and produce (e.g. fruits, vegetables, dry goods).</span>
-							<input 
-								type="date" 
-								class="date-input" 
-								:class="{ 'date-input--has-value': !!bestBeforeDate }" 
-								v-model="bestBeforeDate" 
+							<AppDatePicker
+								class="date-input"
+								:class="{ 'date-input--has-value': !!bestBeforeDate }"
+								v-model="bestBeforeDate"
+								:min="minPantryDate"
+								:max="PANTRY_MAX"
+								placeholder="Select best before date"
+								aria-label="Best before date"
 								:disabled="submitting"
 								@change="onBestBeforeDateChange"
 							/>
 						</div>
 					</div>
+
+					<p v-if="pastDateError" class="date-past-error" role="alert">{{ PAST_DATE_MESSAGE }}</p>
 
 					<p v-if="submitError" class="submit-error">{{ submitError }}</p>
 
@@ -212,6 +220,9 @@
 import { ref, computed, watch } from 'vue'
 import { IonModal, IonAlert, IonContent, IonIcon, IonButton, IonSpinner, alertController } from '@ionic/vue'
 import { apiFetch, ApiError } from '@/utils/api'
+import AppDatePicker from '@/components/AppDatePicker.vue'
+import { PANTRY_MAX, PAST_DATE_MESSAGE, isBeforeToday, todayLocalISO, toISODate } from '@/utils/dateUtils'
+import { showErrorToast, showSuccessToast } from '@/utils/toast'
 
 async function showQuotaModal(message: string): Promise<void> {
 	const alert = await alertController.create({
@@ -360,12 +371,16 @@ const expirationDate = ref('')
 const bestBeforeDate = ref('')
 const submitting = ref(false)
 const submitError = ref('')
+const dismissedBySwipe = ref(false)
 
 const dateAutoDetected = ref(false)
 
 function normalizeDetectedDate(value: unknown): string | null {
-	return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null
+	return toISODate(value) || null
 }
+
+// Recomputed when the modal opens so a long-lived page doesn't keep a stale "today".
+const minPantryDate = ref(todayLocalISO())
 
 async function fetchAiAlternatives() {
 	if (!product.value?.product_name) return
@@ -453,6 +468,7 @@ function resetPantryForm() {
 		storageLocation.value = storageForCategory(catForStorage)
 	}
 	
+	minPantryDate.value = todayLocalISO()
 	const detected = normalizeDetectedDate(product.value?.expiration_date_detected)
 	expirationDate.value = detected ?? ''
 	bestBeforeDate.value = ''
@@ -491,8 +507,12 @@ function onBestBeforeDateChange() {
 	}
 }
 
+// True when a selected expiration / best-before date is already in the past.
+const pastDateError = computed(() => isBeforeToday(expirationDate.value) || isBeforeToday(bestBeforeDate.value))
+
 const isFormValid = computed(
 	() =>
+		!pastDateError.value &&
 		piecesCount.value >= 1 &&
 		piecesCount.value <= 99 &&
 		!!storageLocation.value &&
@@ -501,6 +521,11 @@ const isFormValid = computed(
 )
 
 async function submitAddToPantry() {
+	// Forced submit with a past date: block before anything else (no allergen prompt, no API call).
+	if (pastDateError.value) {
+		await showErrorToast(PAST_DATE_MESSAGE)
+		return
+	}
 	if (!isFormValid.value || !product.value?.product_name) return
 
 	submitError.value = ''
@@ -518,23 +543,6 @@ async function submitAddToPantry() {
 		await allergenAlert.present()
 		const { role } = await allergenAlert.onDidDismiss()
 		if (role !== 'confirm') return
-	}
-
-	const today = new Date()
-	today.setHours(0, 0, 0, 0)
-	if (expirationDate.value) {
-		const exp = new Date(expirationDate.value + 'T00:00:00')
-		if (exp < today) {
-			submitError.value = 'This product has already expired and cannot be added to your pantry.'
-			return
-		}
-	}
-	if (bestBeforeDate.value) {
-		const bbd = new Date(bestBeforeDate.value + 'T00:00:00')
-		if (bbd < today) {
-			submitError.value = 'This product\'s best-before date has already passed and cannot be added.'
-			return
-		}
 	}
 
 	submitting.value = true
@@ -555,6 +563,12 @@ async function submitAddToPantry() {
 			},
 		})
 
+		// Success feedback right after the API succeeds and before the modal closes.
+		try {
+			await showSuccessToast('Item successfully added to pantry.')
+		} catch {
+			/* a toast failure must never block the flow */
+		}
 		emit('added')
 		forceDismiss()
 	} catch (err) {
@@ -566,6 +580,36 @@ async function submitAddToPantry() {
 	} finally {
 		submitting.value = false
 	}
+}
+
+function onDidDismiss() {
+	dismissedBySwipe.value = true
+	handleDismiss()
+}
+
+async function requestClose() {
+	if (submitting.value) return
+
+	if (!product.value) {
+		forceDismiss()
+		return
+	}
+
+	const alert = await alertController.create({
+		header: 'Unsaved Item',
+		message: 'You have not added this item to your pantry yet. Are you sure you want to close without saving?',
+		cssClass: 'custom-make-alert',
+		buttons: [
+			{ text: 'Keep Editing', role: 'cancel' },
+			{ text: 'Discard Item', role: 'confirm', cssClass: 'alert-button-danger' },
+		],
+	})
+	await alert.present()
+	const { role } = await alert.onDidDismiss()
+	if (role === 'confirm') {
+		forceDismiss()
+	}
+	// Keep Editing: do nothing — the modal is still open and stays open
 }
 
 async function handleDismiss() {
@@ -1165,6 +1209,17 @@ function forceDismiss() {
 .or-divider span {
 	padding: 0 10px;
 	color: #3b82f6;
+}
+
+.date-past-error {
+	color: #dc2626;
+	font-size: 0.82rem;
+	font-weight: 600;
+	margin: 8px 0 0;
+}
+
+html.ion-palette-dark .date-past-error {
+	color: #f87171;
 }
 
 .submit-error {

@@ -33,6 +33,9 @@ import AdminToast from '@/components/admin/AdminToast.vue'
 import { startSessionWatcher } from '@/composables/useSessionWatcher'
 import { useAuthStore } from '@/stores/authStore'
 import { useDarkMode } from '@/composables/useDarkMode'
+import { refreshNotifBadge, clearBadge } from '@/utils/appBadge'
+import { syncExpiryReminders, cancelAllReminders } from '@/utils/reminderScheduler'
+import { useNotificationPrefs } from '@/composables/useNotificationPrefs'
 
 const route = useRoute()
 const router = useRouter()
@@ -73,11 +76,39 @@ onMounted(async () => {
 				router.push('/tabs/home')
 			}
 		})
+
+		// Refresh the notification badge and sync expiry reminders when the
+		// app returns to the foreground (user switched away and came back).
+		await App.addListener('appStateChange', ({ isActive }) => {
+			if (isActive) {
+				refreshNotifBadge()
+				syncExpiryReminders()
+			}
+		})
 	}
 
 	// Watch the consumer session in the background
 	startSessionWatcher()
 })
+
+// Sync reminders and badge when auth state changes (login / logout / refresh).
+// On login (or session restore on app launch): load the notification toggle
+// preference from the server, refresh the badge, and schedule reminders.
+// On logout: clear the badge and cancel all scheduled reminders.
+watch(
+	() => authStore.isAuthenticated,
+	async (authed, wasAuthed) => {
+		if (authed) {
+			const { loadPrefs } = useNotificationPrefs()
+			await loadPrefs()
+			await refreshNotifBadge()
+			await syncExpiryReminders()
+		} else if (wasAuthed) {
+			await clearBadge()
+			await cancelAllReminders()
+		}
+	},
+)
 </script>
 
 <style scoped>

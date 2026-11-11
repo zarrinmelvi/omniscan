@@ -64,18 +64,18 @@
 							<div class="name-row">
 								<div class="form-group">
 									<label class="input-label">First name</label>
-									<input v-model="firstName" type="text" placeholder="First name" class="custom-input" :class="{ 'input-error': fieldErrors.firstName }" @input="clearFieldError('firstName')" />
+									<input v-model="firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" :class="{ 'input-error': fieldErrors.firstName }" @input="clearFieldError('firstName')" />
 								</div>
 								<div class="form-group">
 									<label class="input-label">Last name</label>
-									<input v-model="lastName" type="text" placeholder="Last name" class="custom-input" :class="{ 'input-error': fieldErrors.lastName }" @input="clearFieldError('lastName')" />
+									<input v-model="lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" :class="{ 'input-error': fieldErrors.lastName }" @input="clearFieldError('lastName')" />
 								</div>
 							</div>
 							<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
 								{{ showMiddleName ? '- Remove middle name' : '+ Add middle name (optional)' }}
 							</button>
 							<div v-if="showMiddleName" class="form-group">
-								<input v-model="middleName" type="text" placeholder="Middle name" class="custom-input" />
+								<input v-model="middleName" type="text" placeholder="Middle name" maxlength="21" class="custom-input" />
 							</div>
 
 							<div class="form-group">
@@ -85,6 +85,8 @@
 								v-model="username"
 								type="text"
 								placeholder="Choose a username"
+								minlength="4"
+								maxlength="15"
 								class="custom-input"
 								:class="{ 
 									'input-error': fieldErrors.username || (usernameValidation.isAvailable === false && username.trim()),
@@ -119,13 +121,14 @@
 
 							<div class="form-group">
 								<label class="input-label">Birthday</label>
-								<input 
-									v-model="birthday" 
-									type="date"
+								<AppDatePicker
+									v-model="birthday"
+									:min="BIRTHDAY_MIN"
 									:max="maxBirthdayDate"
+									placeholder="Select your birthday"
+									aria-label="Birthday"
 									class="custom-input"
 									:class="{ 'input-error': fieldErrors.birthday || ageError }"
-									@input="clearFieldError('birthday')"
 									@change="clearFieldError('birthday')" />
 								<div v-if="ageError" class="field-error-text">{{ ageError }}</div>
 							</div>
@@ -568,6 +571,8 @@ import { Capacitor } from '@capacitor/core'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
+import AppDatePicker from '@/components/AppDatePicker.vue'
+import { BIRTHDAY_MIN, todayLocalISO, toISODate, ageFromISO } from '@/utils/dateUtils'
 
 const router = useRouter()
 const route = useRoute()
@@ -603,7 +608,7 @@ async function handleGoogleSignIn(): Promise<void> {
 		isGoogleSubmitting.value = true
 		try {
 			await GoogleSignIn.initialize({
-				clientId: '394571296954-s5pjiqq3fg7hhcsm0i0tn6l4mfs69s7m.apps.googleusercontent.com',
+				clientId: '394571296954-2nkqagdbfjujgdei1aoiq78fg3p9i7nv.apps.googleusercontent.com',
 			})
 
 			const result = await GoogleSignIn.signIn()
@@ -647,9 +652,10 @@ async function handleGoogleSignIn(): Promise<void> {
 				await checkUsernameAvailability(suggestedUsername)
 				await showToast('Please complete your registration', 'success')
 			} else if (verifyResponse.token) {
-				// Existing user - log in directly
+				// Existing user — save token then do a clean reload so the
+				// router guard reads the token from localStorage on startup.
 				await authStore.loginWithOAuthToken(verifyResponse.token)
-				router.push('/tabs/home')
+				window.location.replace('/tabs/home')
 			}
 		} catch (error: any) {
 			console.error('Native Google Sign-In failed:', error)
@@ -762,16 +768,14 @@ const isPasswordValid = computed(() => {
 	return c.length && c.upper && c.lower && c.number && c.special
 })
 
-const maxBirthdayDate = computed(() => {
-	const date = new Date()
-	date.setFullYear(date.getFullYear() - 16)
-	return date.toISOString().split('T')[0]
-})
+// Picker upper bound is today (local time); the under-16 rule is a validation error below.
+const maxBirthdayDate = computed(() => todayLocalISO())
 
 const ageError = computed(() => {
 	if (!birthday.value) return ''
-	const age = (Date.now() - new Date(birthday.value).getTime()) / (1000 * 60 * 60 * 24 * 365.25)
-	return age < 16 ? 'You must be at least 16 years old to register' : ''
+	const iso = toISODate(birthday.value)
+	if (!iso || iso < BIRTHDAY_MIN || iso > maxBirthdayDate.value) return 'Please enter a valid birthday'
+	return ageFromISO(iso) < 16 ? 'You must be at least 16 years old to register' : ''
 })
 
 const isBirthdayValid = computed(() => birthday.value && !ageError.value)
@@ -965,10 +969,10 @@ async function handleRegister(): Promise<void> {
 		return
 	}
 
-	const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
+	const USERNAME_RE = /^[a-zA-Z0-9_]{4,15}$/
 	if (!USERNAME_RE.test(username.value.trim())) {
 		fieldErrors.username = true
-		errorMessage.value = 'Username must be 3-20 characters, letters, numbers, and underscores only.'
+		errorMessage.value = 'Username must be 4–15 characters, letters, numbers, and underscores only.'
 		void revealError()
 		return
 	}
@@ -1214,7 +1218,20 @@ function onWindowFocus(): void {
 }
 
 onMounted(async () => {
-	// Check for oauth_pending token from Google OAuth
+	// If LoginPage already set pendingGoogleData in the store (native Google
+	// sign-in on the Login screen for a new account), pre-fill the form from
+	// the store directly — no query string needed.
+	if (authStore.pendingGoogleData && !route.query.oauth_pending) {
+		const pending = authStore.pendingGoogleData
+		isGooglePending.value = true
+		firstName.value = pending.firstName
+		lastName.value = pending.lastName
+		email.value = pending.email
+		username.value = pending.username
+		await checkUsernameAvailability(pending.username)
+	}
+
+	// Check for oauth_pending token from Google OAuth (web flow)
 	const pendingToken = route.query.oauth_pending as string
 	if (pendingToken) {
 		try {
@@ -1453,7 +1470,7 @@ onUnmounted(() => {
 
 
 .custom-select,
-input[type="date"].custom-input {
+.app-date-picker.custom-input {
 	color: #111827;
 }
 
@@ -1935,13 +1952,13 @@ html.ion-palette-dark .terms-disagree-btn { --border-color: #1a3322; --color: #e
 	cursor: pointer;
 }
 
-.custom-select:disabled, input[type="date"].custom-input:disabled {
+.custom-select:disabled, .app-date-picker--disabled.custom-input {
 	background-color: #f3f4f6;
 	cursor: not-allowed;
 	color: #9ca3af;
 }
 
-input[type="date"].custom-input {
+.app-date-picker.custom-input {
 	cursor: pointer;
 }
 
@@ -1971,7 +1988,7 @@ input[type="date"].custom-input {
 }
 
 html.ion-palette-dark .custom-select,
-html.ion-palette-dark input[type="date"].custom-input {
+html.ion-palette-dark .app-date-picker.custom-input {
 	color: #f9fafb;
 }
 

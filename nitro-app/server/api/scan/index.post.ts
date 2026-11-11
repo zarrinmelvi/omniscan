@@ -68,8 +68,6 @@ interface ScanAiExtraction {
 	net_quantity: number | null
 	net_unit: string | null
 	food_category: string
-	image_quality_issue: string | null  // "blurry", "dark", "glare", "low_resolution", or null
-	non_food_category: string | null  // for analytics/logging only
 }
 
 interface HalalLogoRecord {
@@ -96,12 +94,11 @@ function buildPrompt(): string {
 		'matching exactly this shape:',
 		'{"is_food_product": boolean, "is_real_photo": boolean, "front_image_index": number, "product_name": string, "brand": string, "ingredients_text": string,',
 		'"simplified_ingredients": string, "halal_logo_detected": boolean, "certifying_body": string, "halal_logo_box": {"image_index": number, "box": [ymin, xmin, ymax, xmax]} | null,',
-		'"expiration_date": string | null, "net_quantity": number | null, "net_unit": string | null, "food_category": string, "image_quality_issue": string | null, "non_food_category": string | null}.',
+		'"expiration_date": string | null, "net_quantity": number | null, "net_unit": string | null, "food_category": string}.',
 		'"is_food_product" must be false for anything that is not meant for human consumption',
 		'(e.g. lotion, shampoo, cosmetics, household cleaners, detergent, toothpaste, deodorant, electronics, toys, stationery, clothing, footwear) — when false, you may leave the',
 		'other string fields as empty strings, halal_logo_detected as false, front_image_index as 0, and expiration_date as null,',
 		'since ingredient extraction does not apply to a non-food item.',
-		'"non_food_category" should classify non-food products into one of: "personal_care" (shampoo, lotion, cosmetics), "household_cleaner" (detergent, disinfectant), "hygiene" (toothpaste, deodorant), "electronics", "clothing", "toys", "stationery", "other", or null if is_food_product is true.',
 		'When is_food_product is true, extract the remaining fields as follows:',
 		'"front_image_index" should be 0 if the 1st attached image contains the primary front packaging/product name/brand logo, or 1 if the 2nd attached image contains the front packaging/brand logo instead. If only 1 image is attached, return 0.',
 		'"product_name" and "brand" should be extracted from whichever image contains the branding or primary product title.',
@@ -129,7 +126,6 @@ function buildPrompt(): string {
 		'"net_unit" should be the unit of measure as printed (e.g. "ml", "L", "g", "kg", "oz", "fl oz", "pcs", "pack"). Return only the unit string, lowercase. If no unit is visible or net_quantity is null, return null.',
 		'Do not invent ingredients, certifications, product identity, or a date that are not visibly present.',
 		'"is_real_photo" MUST be true for genuine photographs AND commercial stock or e-commerce marketing images of real packaged food products, even if the packaging features cartoon mascots, anime/illustrated characters (e.g., Buldak Hochi mascot), animated graphics, or studio backgrounds. ONLY set is_real_photo to false when the entire uploaded image itself is a hand-drawn cartoon sketch, anime drawing, artwork, digital painting, meme, screenshot of an app/text/website, photo of a person\'s face or body, landscape/scenery photo, or contains no physical product packaging whatsoever.',
-		'"image_quality_issue" should assess whether the photo is clear enough to reliably read text. Return null if the image quality is acceptable. Otherwise return one of these values: "blurry" if the image is out of focus or motion-blurred, "dark" if the image is too dark or underexposed to read labels clearly, "glare" if excessive reflection or glare obscures critical text on the packaging, "low_resolution" if the image resolution is too low to read ingredient text. If multiple quality issues exist, return the most severe one that prevents accurate text reading.',
 		'"food_category" should classify the product into exactly one of these predefined pantry categories: ' +
 		'"Canned Goods", "Instant Noodles", "Condiments & Sauces", "Dairy", "Snacks", "Beverages", "Grains". ' +
 		'Choose the single best-fitting category based on the product type. If the category cannot be determined, return an empty string.',
@@ -183,13 +179,6 @@ function coerceAiExtraction(value: unknown): ScanAiExtraction | null {
 		net_quantity: typeof candidate.net_quantity === 'number' ? candidate.net_quantity : null,
 		net_unit: typeof candidate.net_unit === 'string' && candidate.net_unit.trim() ? candidate.net_unit.trim().toLowerCase() : null,
 		food_category: normalizeFoodCategory(candidate.food_category),
-		image_quality_issue: typeof candidate.image_quality_issue === 'string' 
-			&& ['blurry', 'dark', 'glare', 'low_resolution'].includes(candidate.image_quality_issue)
-			? candidate.image_quality_issue 
-			: null,
-		non_food_category: typeof candidate.non_food_category === 'string' && candidate.non_food_category.trim()
-			? candidate.non_food_category.trim().toLowerCase()
-			: null,
 	}
 }
 
@@ -344,32 +333,10 @@ export default defineEventHandler(async (event) => {
 			net_quantity: null,
 			net_unit: null,
 			food_category: '',
-			image_quality_issue: null,
-			non_food_category: null,
 		}
 	} else {
 		const imagesForAi = base64RawBack ? [base64Raw, base64RawBack] : [base64Raw]
 		extraction = await extractProductInfoFromImage(imagesForAi)
-	}
-
-	// Image quality gate - reject before food product check
-	if (extraction.image_quality_issue) {
-		const qualityMessages: Record<string, string> = {
-			blurry: 'The photo is too blurry. Hold the camera steady and ensure the label is in focus.',
-			dark: 'The photo is too dark to read the label. Move to a brighter area or turn on more lights.',
-			glare: "There's too much glare on the label. Adjust the angle or lighting to reduce reflections.",
-			low_resolution: 'The photo quality is too low. Move closer to the product or clean your camera lens.',
-		}
-
-		throw createError({
-			statusCode: 422,
-			statusMessage: qualityMessages[extraction.image_quality_issue] || 'Image quality is too poor to scan. Please try again with better lighting and focus.',
-			data: { 
-				rescan_required: true, 
-				reason: 'image_quality',
-				quality_issue: extraction.image_quality_issue,
-			},
-		})
 	}
 
 	if (!extraction.is_food_product) {

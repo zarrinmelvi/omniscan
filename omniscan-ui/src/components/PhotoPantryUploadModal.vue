@@ -145,11 +145,14 @@
 						<div class="date-field">
 							<label class="date-field-label">Expiration Date</label>
 							<span class="field-hint">For packaged and processed products (e.g. canned goods, dairy, meat).</span>
-							<input
+							<AppDatePicker
 								v-model="form.expirationDate"
-								type="date"
 								class="date-input"
 								:class="{ 'date-input--has-value': !!form.expirationDate, 'date-input--expired': isExpirationExpired }"
+								:min="minPantryDate"
+								:max="PANTRY_MAX"
+								placeholder="Select expiration date"
+								aria-label="Expiration date"
 								:disabled="isSubmitting"
 								@change="onExpirationDateChange"
 							/>
@@ -160,16 +163,21 @@
 						<div class="date-field">
 							<label class="date-field-label">Best Before Date</label>
 							<span class="field-hint">For fresh stocks and produce (e.g. fruits, vegetables, dry goods).</span>
-							<input
+							<AppDatePicker
 								v-model="form.bestBeforeDate"
-								type="date"
 								class="date-input"
 								:class="{ 'date-input--has-value': !!form.bestBeforeDate }"
+								:min="minPantryDate"
+								:max="PANTRY_MAX"
+								placeholder="Select best before date"
+								aria-label="Best before date"
 								:disabled="isSubmitting"
 								@change="onBestBeforeDateChange"
 							/>
 						</div>
 					</div>
+
+					<p v-if="pastDateError" class="date-past-error" role="alert">{{ PAST_DATE_MESSAGE }}</p>
 
 					<label class="field-label-brown">Storage Location</label>
 					<div class="storage-buttons">
@@ -250,6 +258,9 @@ import {
 	addOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
+import AppDatePicker from '@/components/AppDatePicker.vue'
+import { PANTRY_MAX, PAST_DATE_MESSAGE, isBeforeToday, todayLocalISO, toISODate } from '@/utils/dateUtils'
+import { showErrorToast, showSuccessToast } from '@/utils/toast'
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 const DAILY_MAX_LIMIT = 7
@@ -317,11 +328,14 @@ const form = reactive({
 const isSubmitting = ref(false)
 const formError = ref<string | null>(null)
 const matchedUserAllergens = ref<string[]>([])
+// Refreshed whenever the modal opens so "today" is never stale.
+const minPantryDate = ref(todayLocalISO())
 
 watch(
 	() => props.isOpen,
 	async (isOpen) => {
 		if (isOpen) {
+			minPantryDate.value = todayLocalISO()
 			await checkDailyUploadLimit()
 		}
 	}
@@ -348,7 +362,11 @@ function onBestBeforeDateChange(): void {
 	}
 }
 
+// True when a selected expiration / best-before date is already in the past.
+const pastDateError = computed(() => isBeforeToday(form.expirationDate) || isBeforeToday(form.bestBeforeDate))
+
 const isFormValid = computed(() => {
+	if (pastDateError.value) return false
 	const hasName = form.productName.trim().length > 0
 	const hasValidPiecesCount = form.piecesCount >= 1 && form.piecesCount <= 99
 	const hasAtLeastOneDate = !!form.expirationDate || !!form.bestBeforeDate
@@ -356,12 +374,7 @@ const isFormValid = computed(() => {
 	return hasName && hasValidPiecesCount && hasAtLeastOneDate && !hasBothDates
 })
 
-const isExpirationExpired = computed(() => {
-	if (!form.expirationDate) return false
-	const today = new Date()
-	today.setHours(0, 0, 0, 0)
-	return new Date(form.expirationDate + 'T00:00:00') < today
-})
+const isExpirationExpired = computed(() => isBeforeToday(form.expirationDate))
 
 function resetAll(): void {
 	step.value = 1
@@ -456,7 +469,8 @@ async function goToStep2(): Promise<void> {
 			return
 		}
 		if (result.product_name) form.productName = result.product_name
-		if (result.expiration_date) form.expirationDate = result.expiration_date
+		// OCR output may be malformed; only accept a valid YYYY-MM-DD, otherwise leave empty.
+		if (result.expiration_date) form.expirationDate = toISODate(result.expiration_date)
 		
 		// Use AI-detected storage_location if available
 		if (result.storage_location && ['Fridge', 'Freezer', 'Cupboard'].includes(result.storage_location)) {
@@ -545,6 +559,11 @@ function forceDismiss(): void {
 }
 
 async function handleSubmit(): Promise<void> {
+	// Forced submit with a past date: block before anything else (no allergen prompt, no API call).
+	if (pastDateError.value) {
+		await showErrorToast(PAST_DATE_MESSAGE)
+		return
+	}
 	if (!isFormValid.value || remainingUploads.value <= 0) return
 	formError.value = null
 
@@ -561,23 +580,6 @@ async function handleSubmit(): Promise<void> {
 		await alert.present()
 		const { role } = await alert.onDidDismiss()
 		if (role !== 'confirm') return
-	}
-
-	const today = new Date()
-	today.setHours(0, 0, 0, 0)
-	if (form.expirationDate) {
-		const exp = new Date(form.expirationDate + 'T00:00:00')
-		if (exp < today) {
-			formError.value = 'This product has already expired and cannot be added to your pantry. Please update the expiration date or remove it.'
-			return
-		}
-	}
-	if (form.bestBeforeDate) {
-		const bbd = new Date(form.bestBeforeDate + 'T00:00:00')
-		if (bbd < today) {
-			formError.value = 'This product\'s best-before date has already passed. Please update the date or remove it.'
-			return
-		}
 	}
 
 	isSubmitting.value = true
@@ -600,6 +602,12 @@ async function handleSubmit(): Promise<void> {
 			},
 		})
 
+		// Success feedback right after the API succeeds and before the modal closes/resets.
+		try {
+			await showSuccessToast('Item successfully added to pantry.')
+		} catch {
+			/* a toast failure must never block the flow */
+		}
 		emit('created')
 		forceDismiss()
 	} catch (err) {
@@ -1082,6 +1090,17 @@ ion-accordion-group {
 	font-weight: 700;
 	margin-top: 20px;
 	height: 48px;
+}
+
+.date-past-error {
+	color: #dc2626;
+	font-size: 0.82rem;
+	font-weight: 600;
+	margin: 8px 0 0;
+}
+
+html.ion-palette-dark .date-past-error {
+	color: #f87171;
 }
 
 .form-error {

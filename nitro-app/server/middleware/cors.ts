@@ -17,12 +17,18 @@ const ALLOWED_ORIGINS = [
 export default defineEventHandler((event) => {
 	const origin = event.node.req.headers.origin
 
-	// Reflect the request origin if it is in the allow-list; otherwise fall
-	// back to primary client origin (omniscan.website).
-	const primaryClientOrigin = 'https://app.omniscan.website'
-	const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin)
-		? origin
-		: primaryClientOrigin
+	// Reflect the request origin if it is in the allow-list.
+	// When origin is absent (native Capacitor HTTP on Android strips the
+	// Origin header), fall back to 'https://localhost' so the WebView's
+	// CORS check passes. Only fall back to omniscan.website for non-native
+	// browser requests that come from an unlisted origin.
+	const nativeFallback = 'https://localhost'
+	const primaryClientOrigin = 'https://omniscan.website'
+	const allowOrigin = !origin
+		? nativeFallback
+		: ALLOWED_ORIGINS.includes(origin)
+			? origin
+			: primaryClientOrigin
 
 	setResponseHeaders(event, {
 		'Access-Control-Allow-Origin': allowOrigin,

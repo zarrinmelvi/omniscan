@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<ion-page>
 		<ion-header class="app-header-shell">
 			<AppHeader />
@@ -142,18 +142,46 @@
 						<div class="name-row">
 							<div class="form-group">
 								<label class="input-label">First Name</label>
-								<input v-model="form.firstName" type="text" placeholder="First name" class="custom-input" />
+								<input v-model="form.firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" />
+								<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
+									{{ showMiddleName ? '- Remove middle name' : '+ Add middle name (optional)' }}
+								</button>
 							</div>
 							<div class="form-group">
 								<label class="input-label">Last Name</label>
-								<input v-model="form.lastName" type="text" placeholder="Last name" class="custom-input" />
+								<input v-model="form.lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" />
 							</div>
+						</div>
+						<div v-if="showMiddleName" class="form-group">
+							<input v-model="form.middleName" type="text" placeholder="Middle name" maxlength="21" class="custom-input" />
 						</div>
 
 						<!-- Username -->
 						<div class="form-group">
 							<label class="input-label">Username</label>
-							<input v-model="form.username" type="text" placeholder="Choose a username" class="custom-input" />
+							<div class="custom-input-wrapper">
+								<input
+									v-model="form.username"
+									type="text"
+									placeholder="Choose a username"
+									minlength="4"
+									maxlength="15"
+									class="custom-input"
+									:class="{
+										'input-error': !!usernameError || profileUsernameValidation.isAvailable === false,
+										'input-success': profileUsernameValidation.isAvailable === true && !usernameError
+									}"
+									@input="handleProfileUsernameInput" />
+								<ion-spinner v-if="profileUsernameValidation.isChecking" name="crescent" class="username-spinner" />
+							</div>
+							<div v-if="form.username.trim() && profileUsernameValidation.message" class="username-feedback" :class="{
+								'username-feedback--checking': profileUsernameValidation.isChecking,
+								'username-feedback--success': profileUsernameValidation.isAvailable === true,
+								'username-feedback--error': profileUsernameValidation.isAvailable === false
+							}">
+								{{ profileUsernameValidation.message }}
+							</div>
+							<div v-else-if="usernameError" class="field-error-text">{{ usernameError }}</div>
 						</div>
 
 						<!-- Gender -->
@@ -171,7 +199,15 @@
 						<!-- Birthday -->
 						<div class="form-group">
 							<label class="input-label">Birthday</label>
-							<input v-model="form.birthday" type="date" :max="maxBirthdayDate" class="custom-input" />
+							<AppDatePicker
+								v-model="form.birthday"
+								:min="BIRTHDAY_MIN"
+								:max="maxBirthdayDate"
+								placeholder="Select your birthday"
+								aria-label="Birthday"
+								class="custom-input"
+								:class="{ 'input-error': !!birthdayError }" />
+							<div v-if="birthdayError" class="field-error-text">{{ birthdayError }}</div>
 						</div>
 
 						<!-- Email (disabled) -->
@@ -180,11 +216,78 @@
 							<input :value="form.email" type="email" disabled class="custom-input custom-input--disabled" />
 						</div>
 
-						<!-- Password (disabled, masked) -->
+						<!-- Password -->
 						<div class="form-group">
 							<label class="input-label">Password</label>
-							<input type="password" value="••••••••" disabled class="custom-input custom-input--disabled" />
-							<p class="input-helper">Password cannot be changed from this screen</p>
+							<!-- Current password — only shown when the user has an existing password and is changing it -->
+							<div v-if="passwordTyped && hasPasswordSet" class="custom-input-wrapper" style="margin-bottom:10px">
+								<input
+									v-model="currentPassword"
+									:type="showCurrentPassword ? 'text' : 'password'"
+									placeholder="Current password"
+									class="custom-input" />
+								<ion-icon
+									:icon="showCurrentPassword ? eyeOffOutline : eyeOutline"
+									class="password-toggle"
+									@click="showCurrentPassword = !showCurrentPassword" />
+							</div>
+							<!-- New password -->
+							<div class="custom-input-wrapper">
+								<input
+									v-model="newPassword"
+									:type="showNewPassword ? 'text' : 'password'"
+									:placeholder="hasPasswordSet ? '••••••••' : 'Set a password'"
+									class="custom-input"
+									:class="{ 'input-error': !!newPasswordError }"
+									@input="onNewPasswordInput" />
+								<ion-icon
+									:icon="showNewPassword ? eyeOffOutline : eyeOutline"
+									class="password-toggle"
+									@click="showNewPassword = !showNewPassword" />
+							</div>
+							<p v-if="newPasswordError" class="field-error-text">{{ newPasswordError }}</p>
+						</div>
+
+						<!-- Confirm password — only shown when user has started typing -->
+						<div v-if="passwordTyped" class="form-group">
+							<label class="input-label">Confirm Password</label>
+							<div class="custom-input-wrapper">
+								<input
+									v-model="confirmNewPassword"
+									:type="showConfirmNewPassword ? 'text' : 'password'"
+									placeholder="Re-enter new password"
+									class="custom-input"
+									:class="{ 'input-error': !!confirmPasswordError }" />
+								<ion-icon
+									:icon="showConfirmNewPassword ? eyeOffOutline : eyeOutline"
+									class="password-toggle"
+									@click="showConfirmNewPassword = !showConfirmNewPassword" />
+							</div>
+							<p v-if="confirmPasswordError" class="field-error-text">{{ confirmPasswordError }}</p>
+						</div>
+
+						<!-- Password strength criteria — only shown when typing -->
+						<div v-if="passwordTyped" class="pass-criteria-grid">
+							<div class="criteria-item" :class="{ valid: newPassCriteria.length }">
+								<ion-icon :icon="newPassCriteria.length ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+								At least 8 characters
+							</div>
+							<div class="criteria-item" :class="{ valid: newPassCriteria.upper }">
+								<ion-icon :icon="newPassCriteria.upper ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+								1 uppercase letter (A-Z)
+							</div>
+							<div class="criteria-item" :class="{ valid: newPassCriteria.lower }">
+								<ion-icon :icon="newPassCriteria.lower ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+								1 lowercase letter (a-z)
+							</div>
+							<div class="criteria-item" :class="{ valid: newPassCriteria.number }">
+								<ion-icon :icon="newPassCriteria.number ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+								1 number (0-9)
+							</div>
+							<div class="criteria-item" :class="{ valid: newPassCriteria.special }">
+								<ion-icon :icon="newPassCriteria.special ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+								1 special character
+							</div>
 						</div>
 
 						<!-- Halal Toggle -->
@@ -248,7 +351,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { IonPage, IonContent, IonHeader, IonButton, IonIcon, IonSpinner, IonToast, IonModal, IonToggle, alertController, onIonViewWillEnter } from '@ionic/vue'
 import {
 	alertCircleOutline,
@@ -258,9 +361,15 @@ import {
 	chevronForwardOutline,
 	closeOutline,
 	cameraOutline,
+	eyeOutline,
+	eyeOffOutline,
+	checkmarkCircle,
+	ellipseOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError, signOutConsumer } from '@/utils/api'
 import AppHeader from '@/components/AppHeader.vue'
+import AppDatePicker from '@/components/AppDatePicker.vue'
+import { BIRTHDAY_MIN, todayLocalISO, toISODate, ageFromISO } from '@/utils/dateUtils'
 import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
@@ -349,11 +458,15 @@ interface DietaryProfileDto {
 interface UserDto {
 	id: number
 	name: string
+	first_name: string | null
+	last_name: string | null
 	username: string
 	gender: string
 	birthday: string
 	email: string
 	avatar_base64: string | null
+	oauth_provider: string | null
+	has_password: boolean
 	dietary_prof: DietaryProfileDto[]
 	allergens: Allergen[]
 }
@@ -370,9 +483,137 @@ const isEditing = ref(false)
 const saveError = ref('')
 const showSuccessToast = ref(false)
 
+// ── Password change state ────────────────────────────────────────────────────
+const currentPassword = ref('')
+const newPassword = ref('')
+const confirmNewPassword = ref('')
+const showCurrentPassword = ref(false)
+const showNewPassword = ref(false)
+const showConfirmNewPassword = ref(false)
+const passwordTyped = ref(false)
+const showMiddleName = ref(false)
+
+const hasPasswordSet = computed(() => user.value.has_password)
+
+const newPassCriteria = computed(() => ({
+	length: newPassword.value.length >= 8,
+	upper: /[A-Z]/.test(newPassword.value),
+	lower: /[a-z]/.test(newPassword.value),
+	number: /[0-9]/.test(newPassword.value),
+	special: /[^A-Za-z0-9]/.test(newPassword.value),
+}))
+
+const isNewPasswordValid = computed(() => Object.values(newPassCriteria.value).every(Boolean))
+
+const newPasswordError = computed(() => {
+	if (!passwordTyped.value || !newPassword.value) return ''
+	if (!isNewPasswordValid.value) return 'Password does not meet the requirements.'
+	return ''
+})
+
+const confirmPasswordError = computed(() => {
+	if (!passwordTyped.value || !confirmNewPassword.value) return ''
+	if (newPassword.value !== confirmNewPassword.value) return 'Passwords do not match.'
+	return ''
+})
+
+function onNewPasswordInput() {
+	passwordTyped.value = newPassword.value.length > 0
+}
+
+function resetPasswordFields() {
+	currentPassword.value = ''
+	newPassword.value = ''
+	confirmNewPassword.value = ''
+	showCurrentPassword.value = false
+	showNewPassword.value = false
+	showConfirmNewPassword.value = false
+	passwordTyped.value = false
+}
+// ────────────────────────────────────────────────────────────────────────────
+
+// ── Username validation ───────────────────────────────────────────────────────
+const USERNAME_RE = /^[a-zA-Z0-9_]{4,15}$/
+const usernameError = computed(() => {
+	if (!form.username) return ''
+	if (!USERNAME_RE.test(form.username.trim())) return 'Username must be 4–15 characters, letters, numbers, and underscores only.'
+	return ''
+})
+
+const profileUsernameValidation = ref<{
+	isChecking: boolean
+	isAvailable: boolean | null
+	message: string
+	lastChecked: string
+}>({
+	isChecking: false,
+	isAvailable: null,
+	message: '',
+	lastChecked: '',
+})
+
+let profileUsernameCheckTimeout: ReturnType<typeof setTimeout> | null = null
+
+function handleProfileUsernameInput() {
+	checkProfileUsernameAvailability(form.username)
+}
+
+async function checkProfileUsernameAvailability(value: string) {
+	const trimmed = value.trim()
+
+	if (profileUsernameCheckTimeout) clearTimeout(profileUsernameCheckTimeout)
+
+	if (!trimmed) {
+		profileUsernameValidation.value = { isChecking: false, isAvailable: null, message: '', lastChecked: '' }
+		return
+	}
+
+	// If the format is invalid, skip the API call — usernameError computed handles the message.
+	if (!USERNAME_RE.test(trimmed)) {
+		profileUsernameValidation.value = { isChecking: false, isAvailable: null, message: '', lastChecked: '' }
+		return
+	}
+
+	// If the user types back their own current username, treat it as valid without hitting the API.
+	if (trimmed === initialForm.username.trim()) {
+		profileUsernameValidation.value = { isChecking: false, isAvailable: null, message: '', lastChecked: trimmed }
+		return
+	}
+
+	if (profileUsernameValidation.value.lastChecked === trimmed && profileUsernameValidation.value.isAvailable !== null) {
+		return
+	}
+
+	profileUsernameValidation.value.isChecking = true
+	profileUsernameValidation.value.message = 'Checking availability...'
+
+	profileUsernameCheckTimeout = setTimeout(async () => {
+		try {
+			const response = await apiFetch<{ available: boolean; message: string; isFormatError: boolean }>(
+				'/api/auth/check-username',
+				{ method: 'POST', body: { username: trimmed } },
+			)
+			profileUsernameValidation.value = {
+				isChecking: false,
+				isAvailable: response.available,
+				message: response.message,
+				lastChecked: trimmed,
+			}
+		} catch (error: any) {
+			profileUsernameValidation.value = {
+				isChecking: false,
+				isAvailable: false,
+				message: error?.message || 'Could not check username availability',
+				lastChecked: trimmed,
+			}
+		}
+	}, 500)
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 const allergenCatalog = ref<Allergen[]>([])
 
-const user = ref<UserDto>({ id: 0, name: '', username: '', gender: '', birthday: '', email: '', avatar_base64: null, dietary_prof: [], allergens: [] })
+const user = ref<UserDto>({ id: 0, name: '', first_name: null, last_name: null, username: '', gender: '', birthday: '', email: '', avatar_base64: null, oauth_provider: null, has_password: false, dietary_prof: [], allergens: [] })
 
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 const avatarError = ref('')
@@ -390,14 +631,21 @@ const displayPreferences = computed(() => {
 const isExceedingLimit = computed(() => form.customPreferences.length > PREF_MAX)
 const isAtAllergenLimit = computed(() => form.customPreferences.length >= PREF_MAX)
 
-const maxBirthdayDate = computed(() => {
-	const date = new Date()
-	date.setFullYear(date.getFullYear() - 16)
-	return date.toISOString().split('T')[0]
+// Picker upper bound is today (local time); the under-16 rule is a validation error below.
+const maxBirthdayDate = computed(() => todayLocalISO())
+
+const birthdayError = computed(() => {
+	if (!form.birthday) return ''
+	const iso = toISODate(form.birthday)
+	if (!iso || iso < BIRTHDAY_MIN || iso > maxBirthdayDate.value) return 'Please enter a valid birthday'
+	// Only enforce the age rule when the birthday was changed, so existing accounts can still save other edits.
+	if (form.birthday !== initialForm.birthday && ageFromISO(iso) < 16) return 'You must be at least 16 years old'
+	return ''
 })
 
 const form = reactive({
 	firstName: '',
+	middleName: '',
 	lastName: '',
 	username: '',
 	gender: '',
@@ -410,6 +658,7 @@ const form = reactive({
 
 const initialForm = reactive({
 	firstName: '',
+	middleName: '',
 	lastName: '',
 	username: '',
 	gender: '',
@@ -422,7 +671,9 @@ const initialForm = reactive({
 
 const hasUnsavedChanges = computed(() => {
 	return (
+		passwordTyped.value ||
 		form.firstName !== initialForm.firstName ||
+		form.middleName !== initialForm.middleName ||
 		form.lastName !== initialForm.lastName ||
 		form.username !== initialForm.username ||
 		form.gender !== initialForm.gender ||
@@ -456,22 +707,29 @@ async function fetchAllergens() {
 }
 
 function startEditing() {
-	// Split full name into first and last
-	const nameParts = (user.value.name || '').trim().split(' ')
-	form.firstName = nameParts[0] || ''
-	form.lastName = nameParts.slice(1).join(' ') || ''
-	
+	// Use first_name/last_name from the backend directly for accuracy.
+	// first_name may contain "First Middle" (concatenated during registration), so split on first space.
+	const rawFirst = (user.value.first_name || user.value.name || '').trim()
+	const firstParts = rawFirst.split(' ')
+	form.firstName = firstParts[0] || ''
+	form.middleName = firstParts.slice(1).join(' ') || ''
+	form.lastName = (user.value.last_name || '').trim()
+
+	showMiddleName.value = form.middleName.length > 0
+
 	form.username = user.value.username || ''
 	form.email = user.value.email
 	form.gender = user.value.gender || ''
-	form.birthday = user.value.birthday || ''
+	form.birthday = toISODate(user.value.birthday)
 	form.halalPref = halalPref.value
 	form.customPreferences = [...displayPreferences.value]
 	form.avatarBase64 = user.value.avatar_base64
 	avatarError.value = ''
 	saveError.value = ''
+	profileUsernameValidation.value = { isChecking: false, isAvailable: null, message: '', lastChecked: '' }
 
 	initialForm.firstName = form.firstName
+	initialForm.middleName = form.middleName
 	initialForm.lastName = form.lastName
 	initialForm.username = form.username
 	initialForm.email = form.email
@@ -491,7 +749,7 @@ async function cancelEditing() {
 			message: 'You have not saved any changes. Are you sure you want to close without saving?',
 			cssClass: 'custom-make-alert',
 			buttons: [
-				{ text: 'Keep Editing', role: 'cancel', cssClass: 'alert-button-cancel' },
+				{ text: 'Keep Editing', role: 'cancel' },
 				{
 					text: 'Discard Changes',
 					cssClass: 'alert-button-danger',
@@ -549,15 +807,62 @@ function toggleWhoAllergen(value: string) {
 
 async function saveProfile() {
 	if (isExceedingLimit.value) return
+	if (birthdayError.value) {
+		saveError.value = birthdayError.value
+		return
+	}
+	if (usernameError.value) {
+		saveError.value = usernameError.value
+		return
+	}
+	if (profileUsernameValidation.value.isChecking) {
+		saveError.value = 'Still checking username availability. Please wait a moment and try again.'
+		return
+	}
+	if (profileUsernameValidation.value.isAvailable === false) {
+		return
+	}
+	// Validate password fields if the user has started typing a new password.
+	if (passwordTyped.value) {
+		if (!isNewPasswordValid.value) {
+			saveError.value = 'Password does not meet the requirements.'
+			return
+		}
+		if (newPassword.value !== confirmNewPassword.value) {
+			saveError.value = 'Passwords do not match.'
+			return
+		}
+		if (hasPasswordSet.value && !currentPassword.value) {
+			saveError.value = 'Please enter your current password.'
+			return
+		}
+	}
 
 	isSaving.value = true
 	saveError.value = ''
 
 	try {
+		// If the user is changing their password, do that first.
+		if (passwordTyped.value) {
+			await apiFetch('/api/users/password', {
+				method: 'PUT',
+				body: {
+					current_password: currentPassword.value,
+					new_password: newPassword.value,
+				},
+			})
+			// The password is saved now. Clear the fields straight away so a later
+			// profile-save error can't make a retry re-send the old current password.
+			resetPasswordFields()
+			user.value.has_password = true
+		}
+
 		const data = await apiFetch<ProfileResponse>('/api/users', {
 			method: 'PUT',
 			body: {
-				name: `${form.firstName} ${form.lastName}`.trim(),
+				first_name: [form.firstName, form.middleName].filter(Boolean).join(' ').trim(),
+				last_name: form.lastName.trim(),
+				name: [form.firstName, form.middleName, form.lastName].filter(Boolean).join(' ').trim(),
 				username: form.username,
 				gender: form.gender,
 				birthday: form.birthday,
@@ -571,6 +876,8 @@ async function saveProfile() {
 		user.value = data.user
 		// Keep the auth store (used by the desktop sidebar) in sync with the new photo
 		if (authStore.user) authStore.user.avatar_base64 = data.user.avatar_base64
+		resetPasswordFields()
+		showMiddleName.value = false
 		isEditing.value = false
 		showSuccessToast.value = true
 	} catch (err) {
@@ -616,6 +923,36 @@ onMounted(() => {
 
 onIonViewWillEnter(() => {
 	loadData()
+})
+
+onBeforeRouteLeave(async (to, from, next) => {
+	if (isEditing.value && hasUnsavedChanges.value) {
+		const alert = await alertController.create({
+			header: 'Unsaved Changes',
+			message: 'You have not saved any changes. Are you sure you want to leave without saving?',
+			cssClass: 'custom-make-alert',
+			buttons: [
+				{
+					text: 'Keep Editing',
+					role: 'cancel',
+					handler: () => next(false),
+				},
+				{
+					text: 'Discard Changes',
+					cssClass: 'alert-button-danger',
+					handler: () => {
+						isEditing.value = false
+						resetPasswordFields()
+						showMiddleName.value = false
+						next()
+					},
+				},
+			],
+		})
+		await alert.present()
+	} else {
+		next()
+	}
 })
 </script>
 
@@ -1168,6 +1505,8 @@ onIonViewWillEnter(() => {
 	display: none;
 }
 
+.add-middle-link { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #475569; font-size: 0.82rem; font-weight: 500; cursor: pointer; padding: 0; margin: 6px 0 0; }
+
 .name-row {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -1191,6 +1530,84 @@ onIonViewWillEnter(() => {
 	.input-label {
 		color: #94a3b8;
 	}
+	.add-middle-link {
+		color: #94a3b8;
+	}
+}
+
+.custom-input.input-error {
+	border-color: #dc2626;
+}
+
+/* Password field with eye toggle — mirrors RegisterPage */
+.custom-input-wrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.custom-input-wrapper .custom-input {
+	padding-right: 44px;
+}
+
+.password-toggle {
+	position: absolute;
+	right: 14px;
+	font-size: 1.1rem;
+	color: #6b7280;
+	cursor: pointer;
+}
+
+.pass-criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin: -4px 0 14px; padding: 12px 14px; background: #f9fafb; border-radius: 10px; }
+.criteria-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #9ca3af; }
+.criteria-item.valid { color: #15803d; }
+.criteria-icon { width: 16px; height: 16px; flex-shrink: 0; color: #d1d5db; }
+.criteria-item.valid .criteria-icon { color: #15803d; }
+
+:global(html.ion-palette-dark) .pass-criteria-grid { background: #1e293b; }
+:global(html.ion-palette-dark) .password-toggle { color: #94a3b8; }
+
+.field-error-text {
+	margin-top: 6px;
+	font-size: 0.8rem;
+	color: #dc2626;
+}
+
+.username-spinner {
+	position: absolute;
+	right: 14px;
+	width: 16px;
+	height: 16px;
+	color: #6b7280;
+}
+
+.username-feedback {
+	font-size: 0.8rem;
+	margin-top: 6px;
+	padding: 6px 10px;
+	border-radius: 6px;
+	border: 1px solid transparent;
+}
+
+.username-feedback--checking {
+	color: #6b7280;
+	background: #f3f4f6;
+}
+
+.username-feedback--success {
+	color: #15803d;
+	background: #f0fdf4;
+	border-color: #bbf7d0;
+}
+
+.username-feedback--error {
+	color: #b91c1c;
+	background: #fee2e2;
+	border-color: #fecaca;
+}
+
+.input-success {
+	border-color: #22c55e !important;
 }
 
 .custom-input {
@@ -1820,4 +2237,8 @@ ion-modal.custom-edit-modal {
 	margin: 6px 0 4px;
 	line-height: 1.4;
 }
+
+html.ion-palette-dark .username-feedback--checking { background: #1f2937; color: #9ca3af; }
+html.ion-palette-dark .username-feedback--success { background: #14532d; color: #86efac; border-color: #166534; }
+html.ion-palette-dark .username-feedback--error { background: #450a0a; color: #fca5a5; border-color: #7f1d1d; }
 </style>

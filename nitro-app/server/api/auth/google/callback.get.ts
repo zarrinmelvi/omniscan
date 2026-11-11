@@ -80,7 +80,7 @@ export default defineEventHandler(async (event) => {
                 { expiresIn: '30m' }
             )
 
-            const FRONTEND_URL = process.env.FRONTEND_URL || 'https://app.omniscan.website'
+            const FRONTEND_URL = process.env.FRONTEND_URL || 'https://omniscan.website'
             return sendRedirect(event, `${FRONTEND_URL}/register?oauth_pending=${encodeURIComponent(tempToken)}`)
         }
 

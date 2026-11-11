@@ -22,6 +22,25 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Ionic App" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+    <!-- Apply the saved theme before first paint (no light flash). Mirrors src/utils/themeStorage.ts -->
+    <script>
+      (function () {
+        var dark = false;
+        try {
+          var stored = localStorage.getItem('omniscan_dark_mode');
+          if (stored === 'true') dark = true;
+          else if (stored === 'false') dark = false;
+          else dark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        } catch (e) {}
+        var root = document.documentElement;
+        root.classList.toggle('ion-palette-dark', dark);
+        root.classList.toggle('dark', dark);
+        document.addEventListener('DOMContentLoaded', function () {
+          document.body.classList.toggle('dark', dark);
+        });
+      })();
+    </script>
   </head>
 
   <body>

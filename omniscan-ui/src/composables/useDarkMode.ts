@@ -1,9 +1,9 @@
 import { ref, watch } from 'vue'
-
-const DARK_MODE_KEY = 'omniscan_dark_mode'
+import { DARK_MODE_KEY, resolveInitialDark, writeStoredTheme } from '@/utils/themeStorage'
 
 // Module-level singleton ref — shared across all component instances in the same page.
-const isDark = ref(localStorage.getItem(DARK_MODE_KEY) === 'true')
+// Stored choice wins; first-time visitors get the system preference.
+const isDark = ref(resolveInitialDark())
 
 function applyTheme(enabled: boolean) {
 	document.documentElement.classList.toggle('ion-palette-dark', enabled)
@@ -14,11 +14,15 @@ function applyTheme(enabled: boolean) {
 // Apply the classes immediately on module load
 applyTheme(isDark.value)
 
-// Keep all DOM target classes in sync whenever isDark changes
-watch(isDark, (enabled) => {
-	applyTheme(enabled)
-	localStorage.setItem(DARK_MODE_KEY, String(enabled))
-})
+// Keep all DOM target classes in sync and persist right away (sync flush: no delay before navigation)
+watch(
+	isDark,
+	(enabled) => {
+		applyTheme(enabled)
+		writeStoredTheme(enabled)
+	},
+	{ flush: 'sync' }
+)
 
 // Sync across browser tabs via the storage event
 window.addEventListener('storage', (e) => {

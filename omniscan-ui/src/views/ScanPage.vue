@@ -37,7 +37,7 @@
 					</div>
 
 					<!-- Primary Action Button -->
-					<ion-button expand="block" class="btn-primary" :disabled="isUploading || isCoolingDown || isResultModalOpen" @click="openCamera">
+					<ion-button expand="block" class="btn-primary" :disabled="isDesktop || isUploading || isCoolingDown || isResultModalOpen" @click="openCamera">
 						<ion-spinner v-if="isCoolingDown" name="crescent" slot="start" />
 						<ion-icon v-else :icon="scanOutline" slot="start" />
 						<span v-if="isCoolingDown">Processing… ({{ remainingSeconds }}s)</span>
@@ -45,6 +45,7 @@
 						<span v-else-if="hasScannedAtLeastOnce || isUploading">Scan Again</span>
 						<span v-else>Scan Product</span>
 					</ion-button>
+					<p v-if="isDesktop" class="desktop-scan-hint">Live scanning is available on the mobile and tablet app. You can still upload a photo below.</p>
 
 					<!-- Secondary Action Button -->
 					<ion-button
@@ -133,6 +134,9 @@ import { useCameraPermission } from '@/composables/useCameraPermission'
 import ScanResultModal from '../components/ScanResultModal.vue'
 import PhotoPantryUploadModal from '../components/PhotoPantryUploadModal.vue'
 import AppHeader from '@/components/AppHeader.vue'
+import { useBreakpoint } from '@/utils/useBreakpoint'
+
+const { isDesktop } = useBreakpoint()
 
 const TOKEN_KEY = 'omniscan_token'
 
@@ -566,7 +570,7 @@ let brightnessCanvas: HTMLCanvasElement | null = null
 let brightnessCtx: CanvasRenderingContext2D | null = null
 
 async function openCamera(): Promise<void> {
-	if (isCoolingDown.value || isUploading.value || isCameraOpen.value || isRequestingPermission.value) {
+	if (isDesktop.value || isCoolingDown.value || isUploading.value || isCameraOpen.value || isRequestingPermission.value) {
 		return
 	}
 
@@ -912,6 +916,13 @@ onBeforeUnmount(() => {
 	min-height: 48px;
 	height: 48px;
 	margin: 0;
+}
+
+.desktop-scan-hint {
+	margin: 0;
+	font-size: 0.85rem;
+	text-align: center;
+	color: #64748b;
 }
 
 .btn-secondary {

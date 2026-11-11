@@ -24,9 +24,11 @@
 						</div>
 						<div class="row-text">
 							<p class="row-title">Camera</p>
-							<p class="row-subtitle">Allow OmniScan to scan product's ingredients &amp; logo</p>
+							<p class="row-subtitle">
+								{{ isDesktop ? 'Camera scanning is available on the mobile app' : "Allow OmniScan to scan product's ingredients & logo" }}
+							</p>
 						</div>
-						<ion-toggle v-model="cameraPermission" @ion-change="onCameraToggleChange" class="custom-toggle" />
+						<ion-toggle :checked="!isDesktop && cameraPermission" :disabled="isDesktop" @ion-change="onCameraToggleChange" class="custom-toggle" />
 					</div>
 					<div class="settings-row">
 						<div class="icon-wrapper icon-orange">
@@ -494,6 +496,8 @@ function savePrefs() {
 }
 
 function onCameraToggleChange(event: CustomEvent) {
+	// Desktop shows the toggle as off/disabled; never overwrite the saved preference from there.
+	if (isDesktop.value) return
 	const isEnabled = event.detail.checked
 	setPermission(isEnabled)
 }

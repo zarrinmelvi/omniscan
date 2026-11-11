@@ -26,10 +26,10 @@ export default defineEventHandler(async (event) => {
 	if (!username || typeof username !== 'string' || !username.trim()) {
 		throw createError({ statusCode: 400, statusMessage: 'Username is required.' })
 	}
-	// Username: 3-20 chars, alphanumeric + underscore only
-	const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
+	// Username: 4-15 chars, alphanumeric + underscore only
+	const USERNAME_RE = /^[a-zA-Z0-9_]{4,15}$/
 	if (!USERNAME_RE.test(username.trim())) {
-		throw createError({ statusCode: 400, statusMessage: 'Username must be 3-20 characters, letters, numbers, and underscores only.' })
+		throw createError({ statusCode: 400, statusMessage: 'Username must be 4–15 characters, letters, numbers, and underscores only.' })
 	}
 	if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email) || !isAllowedEmailDomain(email)) {
 		throw createError({ statusCode: 400, statusMessage: 'Only @gmail.com, @outlook.com, @hotmail.com, and @yahoo.com emails are permitted.' })

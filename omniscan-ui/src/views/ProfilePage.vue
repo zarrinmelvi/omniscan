@@ -153,7 +153,15 @@
 						<!-- Username -->
 						<div class="form-group">
 							<label class="input-label">Username</label>
-							<input v-model="form.username" type="text" placeholder="Choose a username" class="custom-input" />
+							<input
+								v-model="form.username"
+								type="text"
+								placeholder="Choose a username"
+								minlength="4"
+								maxlength="15"
+								class="custom-input"
+								:class="{ 'input-error': !!usernameError }" />
+							<div v-if="usernameError" class="field-error-text">{{ usernameError }}</div>
 						</div>
 
 						<!-- Gender -->
@@ -188,11 +196,78 @@
 							<input :value="form.email" type="email" disabled class="custom-input custom-input--disabled" />
 						</div>
 
-						<!-- Password (disabled, masked) -->
+						<!-- Password -->
 						<div class="form-group">
 							<label class="input-label">Password</label>
-							<input type="password" value="••••••••" disabled class="custom-input custom-input--disabled" />
-							<p class="input-helper">Password cannot be changed from this screen</p>
+							<!-- Current password — only shown when the user has an existing password and is changing it -->
+							<div v-if="passwordTyped && hasPasswordSet" class="custom-input-wrapper" style="margin-bottom:10px">
+								<input
+									v-model="currentPassword"
+									:type="showCurrentPassword ? 'text' : 'password'"
+									placeholder="Current password"
+									class="custom-input" />
+								<ion-icon
+									:icon="showCurrentPassword ? eyeOffOutline : eyeOutline"
+									class="password-toggle"
+									@click="showCurrentPassword = !showCurrentPassword" />
+							</div>
+							<!-- New password -->
+							<div class="custom-input-wrapper">
+								<input
+									v-model="newPassword"
+									:type="showNewPassword ? 'text' : 'password'"
+									:placeholder="hasPasswordSet ? '••••••••' : 'Set a password'"
+									class="custom-input"
+									:class="{ 'input-error': !!newPasswordError }"
+									@input="onNewPasswordInput" />
+								<ion-icon
+									:icon="showNewPassword ? eyeOffOutline : eyeOutline"
+									class="password-toggle"
+									@click="showNewPassword = !showNewPassword" />
+							</div>
+							<p v-if="newPasswordError" class="field-error-text">{{ newPasswordError }}</p>
+						</div>
+
+						<!-- Confirm password — only shown when user has started typing -->
+						<div v-if="passwordTyped" class="form-group">
+							<label class="input-label">Confirm Password</label>
+							<div class="custom-input-wrapper">
+								<input
+									v-model="confirmNewPassword"
+									:type="showConfirmNewPassword ? 'text' : 'password'"
+									placeholder="Re-enter new password"
+									class="custom-input"
+									:class="{ 'input-error': !!confirmPasswordError }" />
+								<ion-icon
+									:icon="showConfirmNewPassword ? eyeOffOutline : eyeOutline"
+									class="password-toggle"
+									@click="showConfirmNewPassword = !showConfirmNewPassword" />
+							</div>
+							<p v-if="confirmPasswordError" class="field-error-text">{{ confirmPasswordError }}</p>
+						</div>
+
+						<!-- Password strength criteria — only shown when typing -->
+						<div v-if="passwordTyped" class="pass-criteria-grid">
+							<div class="criteria-item" :class="{ valid: newPassCriteria.length }">
+								<ion-icon :icon="newPassCriteria.length ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+								At least 8 characters
+							</div>
+							<div class="criteria-item" :class="{ valid: newPassCriteria.upper }">
+								<ion-icon :icon="newPassCriteria.upper ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+								1 uppercase letter (A-Z)
+							</div>
+							<div class="criteria-item" :class="{ valid: newPassCriteria.lower }">
+								<ion-icon :icon="newPassCriteria.lower ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+								1 lowercase letter (a-z)
+							</div>
+							<div class="criteria-item" :class="{ valid: newPassCriteria.number }">
+								<ion-icon :icon="newPassCriteria.number ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+								1 number (0-9)
+							</div>
+							<div class="criteria-item" :class="{ valid: newPassCriteria.special }">
+								<ion-icon :icon="newPassCriteria.special ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
+								1 special character
+							</div>
 						</div>
 
 						<!-- Halal Toggle -->
@@ -256,7 +331,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { IonPage, IonContent, IonHeader, IonButton, IonIcon, IonSpinner, IonToast, IonModal, IonToggle, alertController, onIonViewWillEnter } from '@ionic/vue'
 import {
 	alertCircleOutline,
@@ -266,6 +341,10 @@ import {
 	chevronForwardOutline,
 	closeOutline,
 	cameraOutline,
+	eyeOutline,
+	eyeOffOutline,
+	checkmarkCircle,
+	ellipseOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError, signOutConsumer } from '@/utils/api'
 import AppHeader from '@/components/AppHeader.vue'
@@ -364,6 +443,8 @@ interface UserDto {
 	birthday: string
 	email: string
 	avatar_base64: string | null
+	oauth_provider: string | null
+	has_password: boolean
 	dietary_prof: DietaryProfileDto[]
 	allergens: Allergen[]
 }
@@ -380,9 +461,66 @@ const isEditing = ref(false)
 const saveError = ref('')
 const showSuccessToast = ref(false)
 
+// ── Password change state ────────────────────────────────────────────────────
+const currentPassword = ref('')
+const newPassword = ref('')
+const confirmNewPassword = ref('')
+const showCurrentPassword = ref(false)
+const showNewPassword = ref(false)
+const showConfirmNewPassword = ref(false)
+const passwordTyped = ref(false)
+
+const hasPasswordSet = computed(() => user.value.has_password)
+
+const newPassCriteria = computed(() => ({
+	length: newPassword.value.length >= 8,
+	upper: /[A-Z]/.test(newPassword.value),
+	lower: /[a-z]/.test(newPassword.value),
+	number: /[0-9]/.test(newPassword.value),
+	special: /[^A-Za-z0-9]/.test(newPassword.value),
+}))
+
+const isNewPasswordValid = computed(() => Object.values(newPassCriteria.value).every(Boolean))
+
+const newPasswordError = computed(() => {
+	if (!passwordTyped.value || !newPassword.value) return ''
+	if (!isNewPasswordValid.value) return 'Password does not meet the requirements.'
+	return ''
+})
+
+const confirmPasswordError = computed(() => {
+	if (!passwordTyped.value || !confirmNewPassword.value) return ''
+	if (newPassword.value !== confirmNewPassword.value) return 'Passwords do not match.'
+	return ''
+})
+
+function onNewPasswordInput() {
+	passwordTyped.value = newPassword.value.length > 0
+}
+
+function resetPasswordFields() {
+	currentPassword.value = ''
+	newPassword.value = ''
+	confirmNewPassword.value = ''
+	showCurrentPassword.value = false
+	showNewPassword.value = false
+	showConfirmNewPassword.value = false
+	passwordTyped.value = false
+}
+// ────────────────────────────────────────────────────────────────────────────
+
+// ── Username validation ───────────────────────────────────────────────────────
+const USERNAME_RE = /^[a-zA-Z0-9_]{4,15}$/
+const usernameError = computed(() => {
+	if (!form.username) return ''
+	if (!USERNAME_RE.test(form.username.trim())) return 'Username must be 4–15 characters, letters, numbers, and underscores only.'
+	return ''
+})
+// ─────────────────────────────────────────────────────────────────────────────
+
 const allergenCatalog = ref<Allergen[]>([])
 
-const user = ref<UserDto>({ id: 0, name: '', username: '', gender: '', birthday: '', email: '', avatar_base64: null, dietary_prof: [], allergens: [] })
+const user = ref<UserDto>({ id: 0, name: '', username: '', gender: '', birthday: '', email: '', avatar_base64: null, oauth_provider: null, has_password: false, dietary_prof: [], allergens: [] })
 
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 const avatarError = ref('')
@@ -438,6 +576,7 @@ const initialForm = reactive({
 
 const hasUnsavedChanges = computed(() => {
 	return (
+		passwordTyped.value ||
 		form.firstName !== initialForm.firstName ||
 		form.lastName !== initialForm.lastName ||
 		form.username !== initialForm.username ||
@@ -507,7 +646,7 @@ async function cancelEditing() {
 			message: 'You have not saved any changes. Are you sure you want to close without saving?',
 			cssClass: 'custom-make-alert',
 			buttons: [
-				{ text: 'Keep Editing', role: 'cancel', cssClass: 'alert-button-cancel' },
+				{ text: 'Keep Editing', role: 'cancel' },
 				{
 					text: 'Discard Changes',
 					cssClass: 'alert-button-danger',
@@ -569,11 +708,45 @@ async function saveProfile() {
 		saveError.value = birthdayError.value
 		return
 	}
+	if (usernameError.value) {
+		saveError.value = usernameError.value
+		return
+	}
+	// Validate password fields if the user has started typing a new password.
+	if (passwordTyped.value) {
+		if (!isNewPasswordValid.value) {
+			saveError.value = 'Password does not meet the requirements.'
+			return
+		}
+		if (newPassword.value !== confirmNewPassword.value) {
+			saveError.value = 'Passwords do not match.'
+			return
+		}
+		if (hasPasswordSet.value && !currentPassword.value) {
+			saveError.value = 'Please enter your current password.'
+			return
+		}
+	}
 
 	isSaving.value = true
 	saveError.value = ''
 
 	try {
+		// If the user is changing their password, do that first.
+		if (passwordTyped.value) {
+			await apiFetch('/api/users/password', {
+				method: 'PUT',
+				body: {
+					current_password: currentPassword.value,
+					new_password: newPassword.value,
+				},
+			})
+			// The password is saved now. Clear the fields straight away so a later
+			// profile-save error can't make a retry re-send the old current password.
+			resetPasswordFields()
+			user.value.has_password = true
+		}
+
 		const data = await apiFetch<ProfileResponse>('/api/users', {
 			method: 'PUT',
 			body: {
@@ -591,6 +764,7 @@ async function saveProfile() {
 		user.value = data.user
 		// Keep the auth store (used by the desktop sidebar) in sync with the new photo
 		if (authStore.user) authStore.user.avatar_base64 = data.user.avatar_base64
+		resetPasswordFields()
 		isEditing.value = false
 		showSuccessToast.value = true
 	} catch (err) {
@@ -636,6 +810,35 @@ onMounted(() => {
 
 onIonViewWillEnter(() => {
 	loadData()
+})
+
+onBeforeRouteLeave(async (to, from, next) => {
+	if (isEditing.value && hasUnsavedChanges.value) {
+		const alert = await alertController.create({
+			header: 'Unsaved Changes',
+			message: 'You have not saved any changes. Are you sure you want to leave without saving?',
+			cssClass: 'custom-make-alert',
+			buttons: [
+				{
+					text: 'Keep Editing',
+					role: 'cancel',
+					handler: () => next(false),
+				},
+				{
+					text: 'Discard Changes',
+					cssClass: 'alert-button-danger',
+					handler: () => {
+						isEditing.value = false
+						resetPasswordFields()
+						next()
+					},
+				},
+			],
+		})
+		await alert.present()
+	} else {
+		next()
+	}
 })
 </script>
 
@@ -1216,6 +1419,34 @@ onIonViewWillEnter(() => {
 .custom-input.input-error {
 	border-color: #dc2626;
 }
+
+/* Password field with eye toggle — mirrors RegisterPage */
+.custom-input-wrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.custom-input-wrapper .custom-input {
+	padding-right: 44px;
+}
+
+.password-toggle {
+	position: absolute;
+	right: 14px;
+	font-size: 1.1rem;
+	color: #6b7280;
+	cursor: pointer;
+}
+
+.pass-criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin: -4px 0 14px; padding: 12px 14px; background: #f9fafb; border-radius: 10px; }
+.criteria-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #9ca3af; }
+.criteria-item.valid { color: #15803d; }
+.criteria-icon { width: 16px; height: 16px; flex-shrink: 0; color: #d1d5db; }
+.criteria-item.valid .criteria-icon { color: #15803d; }
+
+:global(html.ion-palette-dark) .pass-criteria-grid { background: #1e293b; }
+:global(html.ion-palette-dark) .password-toggle { color: #94a3b8; }
 
 .field-error-text {
 	margin-top: 6px;

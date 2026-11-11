@@ -32,8 +32,8 @@ function validateBody(body: Record<string, unknown>): ProfileUpdateBody {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid body field: "last_name" must be a string.' })
 	}
 	if (typeof body.username !== 'undefined') {
-		if (typeof body.username !== 'string' || !/^[a-zA-Z0-9_]{3,20}$/.test(body.username.trim())) {
-			throw createError({ statusCode: 400, statusMessage: 'Username must be 3-20 characters, letters, numbers, and underscores only.' })
+		if (typeof body.username !== 'string' || !/^[a-zA-Z0-9_]{4,15}$/.test(body.username.trim())) {
+			throw createError({ statusCode: 400, statusMessage: 'Username must be 4–15 characters, letters, numbers, and underscores only.' })
 		}
 	}
 
@@ -147,7 +147,7 @@ export default eventHandler(async (event) => {
 
 		return {
 			success: true,
-			user: safeUser,
+			user: { ...safeUser, has_password: updatedUser.password !== null },
 		}
 	} catch (error: any) {
 		if (error.statusCode) throw error

@@ -85,6 +85,8 @@
 								v-model="username"
 								type="text"
 								placeholder="Choose a username"
+								minlength="4"
+								maxlength="15"
 								class="custom-input"
 								:class="{ 
 									'input-error': fieldErrors.username || (usernameValidation.isAvailable === false && username.trim()),
@@ -966,10 +968,10 @@ async function handleRegister(): Promise<void> {
 		return
 	}
 
-	const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
+	const USERNAME_RE = /^[a-zA-Z0-9_]{4,15}$/
 	if (!USERNAME_RE.test(username.value.trim())) {
 		fieldErrors.username = true
-		errorMessage.value = 'Username must be 3-20 characters, letters, numbers, and underscores only.'
+		errorMessage.value = 'Username must be 4–15 characters, letters, numbers, and underscores only.'
 		void revealError()
 		return
 	}

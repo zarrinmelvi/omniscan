@@ -30,7 +30,7 @@ export default eventHandler(async (event) => {
 
 		return {
 			success: true,
-			user: safeUser,
+			user: { ...safeUser, has_password: user.password !== null },
 			stats: {
 				total_items_scanned: scanCount,
 			},

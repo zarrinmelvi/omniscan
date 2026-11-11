@@ -16,7 +16,7 @@
 		:breakpoints="[0, 0.5, 0.95]"
 		:initial-breakpoint="0.95"
 		:backdrop-dismiss="false"
-		@didDismiss="handleDismiss"
+		@didDismiss="onDidDismiss"
 	>
 		<ion-content class="sheet-ion-content" :scroll-y="true">
 			<div class="sheet-content">
@@ -31,7 +31,7 @@
 							{{ product?.brand_name || 'Unknown Brand' }}<span v-if="product?.id"> - #{{ product.id }}</span>
 						</p>
 					</div>
-					<button type="button" class="close-btn" aria-label="Close" :disabled="submitting" @click="handleDismiss">
+					<button type="button" class="close-btn" aria-label="Close" :disabled="submitting" @click="requestClose">
 						<ion-icon :icon="closeOutline" />
 					</button>
 				</div>
@@ -371,6 +371,7 @@ const expirationDate = ref('')
 const bestBeforeDate = ref('')
 const submitting = ref(false)
 const submitError = ref('')
+const dismissedBySwipe = ref(false)
 
 const dateAutoDetected = ref(false)
 
@@ -579,6 +580,36 @@ async function submitAddToPantry() {
 	} finally {
 		submitting.value = false
 	}
+}
+
+function onDidDismiss() {
+	dismissedBySwipe.value = true
+	handleDismiss()
+}
+
+async function requestClose() {
+	if (submitting.value) return
+
+	if (!product.value) {
+		forceDismiss()
+		return
+	}
+
+	const alert = await alertController.create({
+		header: 'Unsaved Item',
+		message: 'You have not added this item to your pantry yet. Are you sure you want to close without saving?',
+		cssClass: 'custom-make-alert',
+		buttons: [
+			{ text: 'Keep Editing', role: 'cancel' },
+			{ text: 'Discard Item', role: 'confirm', cssClass: 'alert-button-danger' },
+		],
+	})
+	await alert.present()
+	const { role } = await alert.onDidDismiss()
+	if (role === 'confirm') {
+		forceDismiss()
+	}
+	// Keep Editing: do nothing — the modal is still open and stays open
 }
 
 async function handleDismiss() {

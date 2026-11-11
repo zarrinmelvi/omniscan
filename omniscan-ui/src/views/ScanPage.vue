@@ -218,6 +218,7 @@ const hasUnsavedScan = computed(() => {
 	}
 
 	return (
+		isSavingImage.value ||
 		isUploading.value ||
 		captureStage.value === 'back' ||
 		isPhotoModalOpen.value
@@ -229,7 +230,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 		isRouteAlertOpen.value = true
 		const alert = await alertController.create({
 			header: 'Unsaved Item',
-			message: 'you have not added this item to your pantry yet. are you sure you want to close without saving?',
+			message: 'You have not added this item to your pantry yet. Are you sure you want to close without saving?',
 			cssClass: 'custom-make-alert',
 			buttons: [
 				{

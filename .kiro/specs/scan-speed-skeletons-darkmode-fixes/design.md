@@ -143,7 +143,7 @@ _For any_ pantry item whose `category` is in `{Beverages, Snacks, Instant Noodle
 
 Property 4: Bug Condition - Consistent auth palette and readable Scan text in dark mode
 
-_For any_ dark-mode render of Login, Register, Forgot Password, Reset Password, Verify Email or Check Email, the fixed page SHALL use page `#0b160b`, surface `#172617`, border `#2d4a2d`, text `#f9fafb`; and _for any_ dark-mode render of the listed Scan page and Scan Result modal elements, the fixed styles SHALL give normal text a contrast ratio of at least 4.5:1 against its background, with the Category select using a dark background and light text.
+_For any_ dark-mode render of Login, Register, Forgot Password, Reset Password, Verify Email or Check Email, the fixed page SHALL use page `#0b160b`, surface `#172617`, border `#2d4a2d`, text `#f9fafb` (updated at user request to the app's navy tokens: `#0f172a` / `#1e293b` / `#334155` / `#f1f5f9`); and _for any_ dark-mode render of the listed Scan page and Scan Result modal elements, the fixed styles SHALL give normal text a contrast ratio of at least 4.5:1 against its background, with the Category select using a dark background and light text.
 
 **Validates: Requirements 2.7, 2.8, 2.9, 2.10**
 

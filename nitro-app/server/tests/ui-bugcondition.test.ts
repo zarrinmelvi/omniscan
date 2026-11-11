@@ -53,11 +53,11 @@ describe('D4 auth pages dark palette', () => {
 		['views/ResetPasswordPage.vue'],
 		['views/VerifyEmailPage.vue'],
 		['views/CheckEmailPage.vue'],
-	])('%s has an html.ion-palette-dark rule using #0b160b (and #172617 where it has inputs)', (file) => {
+	])('%s has an html.ion-palette-dark rule using #0f172a (and #1e293b where it has inputs)', (file) => {
 		const src = read(file)
 		expect(src).toMatch(/html\.ion-palette-dark/)
-		expect(src).toContain('#0b160b')
-		if (src.includes('custom-input')) expect(src).toContain('#172617')
+		expect(src).toContain('#0f172a')
+		if (src.includes('custom-input')) expect(src).toContain('#1e293b')
 	})
 })
 

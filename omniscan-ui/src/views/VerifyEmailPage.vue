@@ -1,4 +1,4 @@
-﻿<template>
+<template>
 	<ion-page>
 		<ion-content class="auth-content" :scroll-y="true">
 			<div class="auth-layout">
@@ -523,11 +523,11 @@ onUnmounted(() => {
 }
 
 /* DARK MODE */
-html.ion-palette-dark .auth-content { --background: #0b160b; }
-html.ion-palette-dark .auth-card { background: #0b160b; }
-html.ion-palette-dark .auth-title { color: #f9fafb; }
-html.ion-palette-dark .auth-subtitle { color: #9ca3af; }
-html.ion-palette-dark .input-label { color: #d1d5db; }
+html.ion-palette-dark .auth-content { --background: #0f172a; }
+html.ion-palette-dark .auth-card { background: #0f172a; }
+html.ion-palette-dark .auth-title { color: #f1f5f9; }
+html.ion-palette-dark .auth-subtitle { color: #94a3b8; }
+html.ion-palette-dark .input-label { color: #cbd5e1; }
 html.ion-palette-dark .state-icon--warning { color: #fbbf24; }
 html.ion-palette-dark .info-box { background: #0f1f33; border-color: #1e3a5f; }
 html.ion-palette-dark .info-box ion-icon { color: #60a5fa; }
@@ -535,19 +535,19 @@ html.ion-palette-dark .info-box p { color: #bfdbfe; }
 html.ion-palette-dark .feedback-banner--success { background: #0f2a17; color: #86efac; border-color: #1f5c33; }
 html.ion-palette-dark .feedback-banner--error { background: #2a1010; color: #fca5a5; border-color: #5c1f1f; }
 html.ion-palette-dark .custom-input {
-	background: #172617 !important;
-	background-color: #172617 !important;
-	border-color: #2d4a2d !important;
-	color: #f9fafb !important;
-	-webkit-text-fill-color: #f9fafb !important;
+	background: #1e293b !important;
+	background-color: #1e293b !important;
+	border-color: #334155 !important;
+	color: #f1f5f9 !important;
+	-webkit-text-fill-color: #f1f5f9 !important;
 }
 html.ion-palette-dark .custom-input::placeholder { color: #6b7280 !important; }
 html.ion-palette-dark .custom-input:focus { border-color: #05c450 !important; }
 html.ion-palette-dark .custom-input:-webkit-autofill,
 html.ion-palette-dark .custom-input:-webkit-autofill:hover,
 html.ion-palette-dark .custom-input:-webkit-autofill:focus {
-	-webkit-box-shadow: 0 0 0 1000px #172617 inset !important;
-	-webkit-text-fill-color: #f9fafb !important;
+	-webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
+	-webkit-text-fill-color: #f1f5f9 !important;
 }
-html.ion-palette-dark .switch-auth { color: #9ca3af; }
+html.ion-palette-dark .switch-auth { color: #94a3b8; }
 </style>

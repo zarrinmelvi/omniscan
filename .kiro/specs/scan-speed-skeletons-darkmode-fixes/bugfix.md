@@ -48,7 +48,7 @@ This spec covers five related defects in the Omniscan app (omniscan-ui and nitro
 
 2.6 WHEN a pantry item is a flavored or processed product (determined by its food_category, such as Beverages, Snacks, Instant Noodles, Canned Goods, Condiments & Sauces) THEN the system SHALL NOT count it as the plain ingredient it is flavored like, and SHALL only match and use real raw or cooking ingredients in recipe suggestions and the recipe maker.
 
-2.7 WHEN the user views Login, Register, Forgot Password (and any other auth page such as reset-password or verify-email) in dark mode THEN the system SHALL use one consistent green-black palette: page #0b160b, surface #172617, border #2d4a2d, text #f9fafb.
+2.7 WHEN the user views Login, Register, Forgot Password (and any other auth page such as reset-password or verify-email) in dark mode THEN the system SHALL use one consistent green-black palette: page #0b160b, surface #172617, border #2d4a2d, text #f9fafb. _Update: at user request the auth palette was changed to the app's navy tokens (page #0f172a, surface #1e293b, border #334155, text #f1f5f9) for consistency with the rest of the app._
 
 2.8 WHEN the Scan page status card shows its messages in dark mode THEN the system SHALL render the message text in a light, readable color, and the "SKIP — USE FIRST PHOTO ONLY" link in a light, readable accent color.
 

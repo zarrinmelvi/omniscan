@@ -613,7 +613,7 @@ async function checkProfileUsernameAvailability(value: string) {
 
 const allergenCatalog = ref<Allergen[]>([])
 
-const user = ref<UserDto>({ id: 0, name: '', username: '', gender: '', birthday: '', email: '', avatar_base64: null, oauth_provider: null, has_password: false, dietary_prof: [], allergens: [] })
+const user = ref<UserDto>({ id: 0, name: '', first_name: null, last_name: null, username: '', gender: '', birthday: '', email: '', avatar_base64: null, oauth_provider: null, has_password: false, dietary_prof: [], allergens: [] })
 
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 const avatarError = ref('')

@@ -1381,4 +1381,39 @@ html.ion-palette-dark .category-select option {
 html.ion-palette-dark .field-label.field-label--strong {
 	color: #e2e8f0 !important;
 }
+
+/* Show/Hide Alternatives button in dark mode. iOS Safari keeps :hover after a
+   tap, and the scoped light :hover rule out-ranks the global dark rule, which
+   left a white box with invisible light text. Cover every state. */
+html.ion-palette-dark .show-alternatives-btn,
+html.ion-palette-dark .show-alternatives-btn:hover,
+html.ion-palette-dark .show-alternatives-btn:active,
+html.ion-palette-dark .show-alternatives-btn:focus {
+	-webkit-appearance: none;
+	appearance: none;
+	background: #334155;
+	border-color: #475569;
+	color: #f1f5f9;
+	-webkit-text-fill-color: #f1f5f9;
+}
+
+html.ion-palette-dark .show-alternatives-btn ion-icon {
+	color: #f1f5f9;
+}
+
+html.ion-palette-dark .alternatives-spinner {
+	color: #94a3b8;
+}
+</style>
+
+<!-- Not scoped: ion-alert renders its header/message as inner elements that
+     scoped selectors cannot reach. Limited to this component's alert class. -->
+<style>
+html.ion-palette-dark ion-alert.non-product-alert .alert-title {
+	color: #f1f5f9 !important;
+}
+
+html.ion-palette-dark ion-alert.non-product-alert .alert-message {
+	color: #cbd5e1 !important;
+}
 </style>

@@ -13,6 +13,7 @@ interface ProfileUpdateBody {
 	allergen_ids?: number[]
 	avatar_base64?: string | null
 	custom_preferences?: string[]
+	push_notifications_enabled?: boolean
 }
 
 function isPositiveInteger(value: unknown): boolean {
@@ -66,6 +67,10 @@ function validateBody(body: Record<string, unknown>): ProfileUpdateBody {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid body field: "custom_preferences" must be an array of strings.' })
 	}
 
+	if (typeof body.push_notifications_enabled !== 'undefined' && typeof body.push_notifications_enabled !== 'boolean') {
+		throw createError({ statusCode: 400, statusMessage: 'Invalid body field: "push_notifications_enabled" must be a boolean.' })
+	}
+
 	return {
 		name: body.name as string | undefined,
 		first_name: body.first_name as string | undefined,
@@ -75,6 +80,7 @@ function validateBody(body: Record<string, unknown>): ProfileUpdateBody {
 		allergen_ids: (body.allergen_ids as number[] | undefined)?.map(Number),
 		avatar_base64: body.avatar_base64 as string | null | undefined,
 		custom_preferences: (body.custom_preferences as string[] | undefined)?.map((p) => p.trim()).filter(Boolean),
+		push_notifications_enabled: body.push_notifications_enabled as boolean | undefined,
 	}
 }
 
@@ -82,7 +88,7 @@ export default eventHandler(async (event) => {
 	const authUser = requireAuth(event) // CHANGED — was manual event.context.user check
 
 	const rawBody = await readBody(event)
-	const { name, first_name, last_name, username, halal_pref, allergen_ids, avatar_base64, custom_preferences } = validateBody(rawBody)
+	const { name, first_name, last_name, username, halal_pref, allergen_ids, avatar_base64, custom_preferences, push_notifications_enabled } = validateBody(rawBody)
 	const id = authUser.id
 
 	try {
@@ -132,6 +138,7 @@ export default eventHandler(async (event) => {
 						name: `${(first_name ?? existingUser.first_name ?? '').trim()} ${(last_name ?? existingUser.last_name ?? '').trim()}`.trim() || existingUser.name,
 					}),
 					...(typeof avatar_base64 !== 'undefined' && { avatar_base64 }),
+					...(typeof push_notifications_enabled !== 'undefined' && { push_notifications_enabled }),
 					...(typeof allergen_ids !== 'undefined' && {
 						allergens: { set: allergen_ids.map((allergenId) => ({ id: allergenId })) },
 					}),

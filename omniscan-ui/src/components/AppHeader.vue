@@ -35,6 +35,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { IonIcon } from '@ionic/vue'
 import { notificationsOutline, moonOutline, sunnyOutline } from 'ionicons/icons'
 import { apiFetch } from '@/utils/api'
+import { setBadge } from '@/utils/appBadge'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { useBreakpoint } from '@/utils/useBreakpoint'
 
@@ -68,6 +69,8 @@ async function fetchUnreadNotifs(): Promise<void> {
 	} catch {
 		unreadNotifCount.value = 0
 	}
+	// Update the app launcher badge with the unread count.
+	await setBadge(unreadNotifCount.value)
 }
 
 function goToNotifications(): void {

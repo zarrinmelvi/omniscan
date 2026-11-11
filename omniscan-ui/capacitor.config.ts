@@ -25,8 +25,12 @@ const config: CapacitorConfig = {
     },
     GoogleAuth: {
       scopes: ['profile', 'email'],
-      serverClientId: 'YOUR_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com',
+      serverClientId: '394571296954-2nkqagdbfjujgdei1aoiq78fg3p9i7nv.apps.googleusercontent.com',
       forceCodeForRefreshToken: true,
+    },
+    LocalNotifications: {
+      smallIcon: 'ic_stat_notification',
+      iconColor: '#488AFF',
     }
   }
 };

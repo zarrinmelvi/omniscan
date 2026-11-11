@@ -142,6 +142,7 @@ export const UserScalarFieldEnum = {
   verification_token_expires_at: 'verification_token_expires_at',
   last_verification_sent_at: 'last_verification_sent_at',
   password_reset_requested_at: 'password_reset_requested_at',
+  push_notifications_enabled: 'push_notifications_enabled',
   session_token: 'session_token',
   inactivity_warning_sent_at: 'inactivity_warning_sent_at',
   archived_at: 'archived_at',

@@ -286,6 +286,7 @@ import {
 	arrowUpOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
+import { syncExpiryReminders } from '@/utils/reminderScheduler'
 import AppHeader from '@/components/AppHeader.vue'
 import SkeletonCard from '@/components/SkeletonCard.vue'
 
@@ -536,6 +537,9 @@ async function fetchPantryItems(): Promise<void> {
 	} finally {
 		isLoading.value = false
 	}
+
+	// Sync local expiry reminders with the latest pantry state (fire-and-forget).
+	void syncExpiryReminders()
 }
 
 async function fetchTotalItemsScanned(): Promise<void> {
@@ -587,6 +591,9 @@ async function confirmConsume(targetId: number): Promise<void> {
 	} finally {
 		isArchiving.value = false
 	}
+
+	// Pantry state changed — sync local expiry reminders.
+	void syncExpiryReminders()
 }
 
 async function restoreItem(id: number): Promise<void> {
@@ -612,6 +619,9 @@ async function restoreItem(id: number): Promise<void> {
 	} finally {
 		isRestoringId.value = null
 	}
+
+	// Pantry state changed — sync local expiry reminders.
+	void syncExpiryReminders()
 }
 
 async function openDeleteModal(item: PantryItemDto): Promise<void> {
@@ -652,6 +662,9 @@ async function confirmDelete(targetId: number): Promise<void> {
 	} finally {
 		isDeletingId.value = null
 	}
+
+	// Pantry state changed — sync local expiry reminders.
+	void syncExpiryReminders()
 }
 
 onIonViewWillEnter(() => {

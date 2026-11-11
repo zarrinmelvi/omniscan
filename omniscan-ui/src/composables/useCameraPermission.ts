@@ -23,20 +23,34 @@ export function useCameraPermission() {
 	 * Returns true if permission was granted, false otherwise.
 	 */
 	async function requestPermission(): Promise<boolean> {
+		// Guard: on desktop or browsers without mediaDevices, no permission to
+		// request — leave the saved state untouched and return false.
+		if (!navigator.mediaDevices?.getUserMedia) {
+			console.warn('[useCameraPermission] getUserMedia not available on this platform.')
+			return false
+		}
+
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({
 				video: { facingMode: 'environment' }
 			})
-			
+
 			// Permission granted - close the stream immediately
 			stream.getTracks().forEach(track => track.stop())
-			
+
 			// Update the shared permission state
 			hasPermission.value = true
 			return true
 		} catch (err) {
-			// Permission denied or error occurred
-			console.error('[useCameraPermission] Permission request failed:', err)
+			// NotAllowedError = the user explicitly denied (or previously denied)
+			// camera access.  Turn the toggle state OFF so the UI reflects reality.
+			// Other errors (NotFoundError, NotReadableError, etc.) also turn it
+			// off — the camera isn't usable regardless of the reason.
+			if (err instanceof DOMException && err.name === 'NotAllowedError') {
+				console.warn('[useCameraPermission] Camera permission denied by user.')
+			} else {
+				console.error('[useCameraPermission] Permission request failed:', err)
+			}
 			hasPermission.value = false
 			return false
 		}

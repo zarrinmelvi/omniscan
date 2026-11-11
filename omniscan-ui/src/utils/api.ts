@@ -112,6 +112,16 @@ export async function signOutConsumer(): Promise<void> {
 	const { useAuthStore } = await import('@/stores/authStore')
 	useAuthStore().logout()
 	notifyServerLogout('/api/auth/logout', token)
+
+	// Clear the app badge and cancel any scheduled reminders on logout.
+	try {
+		const { clearBadge } = await import('@/utils/appBadge')
+		await clearBadge()
+		const { cancelAllReminders } = await import('@/utils/reminderScheduler')
+		await cancelAllReminders()
+	} catch {
+		/* non-critical — best-effort cleanup */
+	}
 }
 
 /** User-initiated admin logout; see signOutConsumer. */

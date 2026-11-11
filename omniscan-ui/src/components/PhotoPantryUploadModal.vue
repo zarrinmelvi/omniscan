@@ -145,11 +145,14 @@
 						<div class="date-field">
 							<label class="date-field-label">Expiration Date</label>
 							<span class="field-hint">For packaged and processed products (e.g. canned goods, dairy, meat).</span>
-							<input
+							<AppDatePicker
 								v-model="form.expirationDate"
-								type="date"
 								class="date-input"
 								:class="{ 'date-input--has-value': !!form.expirationDate, 'date-input--expired': isExpirationExpired }"
+								:min="minPantryDate"
+								:max="PANTRY_MAX"
+								placeholder="Select expiration date"
+								aria-label="Expiration date"
 								:disabled="isSubmitting"
 								@change="onExpirationDateChange"
 							/>
@@ -160,11 +163,14 @@
 						<div class="date-field">
 							<label class="date-field-label">Best Before Date</label>
 							<span class="field-hint">For fresh stocks and produce (e.g. fruits, vegetables, dry goods).</span>
-							<input
+							<AppDatePicker
 								v-model="form.bestBeforeDate"
-								type="date"
 								class="date-input"
 								:class="{ 'date-input--has-value': !!form.bestBeforeDate }"
+								:min="minPantryDate"
+								:max="PANTRY_MAX"
+								placeholder="Select best before date"
+								aria-label="Best before date"
 								:disabled="isSubmitting"
 								@change="onBestBeforeDateChange"
 							/>
@@ -250,6 +256,8 @@ import {
 	addOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
+import AppDatePicker from '@/components/AppDatePicker.vue'
+import { PANTRY_MAX, todayLocalISO, toISODate } from '@/utils/dateUtils'
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 const DAILY_MAX_LIMIT = 7
@@ -317,11 +325,14 @@ const form = reactive({
 const isSubmitting = ref(false)
 const formError = ref<string | null>(null)
 const matchedUserAllergens = ref<string[]>([])
+// Refreshed whenever the modal opens so "today" is never stale.
+const minPantryDate = ref(todayLocalISO())
 
 watch(
 	() => props.isOpen,
 	async (isOpen) => {
 		if (isOpen) {
+			minPantryDate.value = todayLocalISO()
 			await checkDailyUploadLimit()
 		}
 	}
@@ -456,7 +467,8 @@ async function goToStep2(): Promise<void> {
 			return
 		}
 		if (result.product_name) form.productName = result.product_name
-		if (result.expiration_date) form.expirationDate = result.expiration_date
+		// OCR output may be malformed; only accept a valid YYYY-MM-DD, otherwise leave empty.
+		if (result.expiration_date) form.expirationDate = toISODate(result.expiration_date)
 		
 		// Use AI-detected storage_location if available
 		if (result.storage_location && ['Fridge', 'Freezer', 'Cupboard'].includes(result.storage_location)) {

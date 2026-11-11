@@ -271,20 +271,26 @@
 
 					<!-- Expiration Date -->
 					<label class="field-label-brown">Expiration Date</label>
-					<input
+					<AppDatePicker
 						v-model="editForm.expiration_date"
-						type="date"
 						class="edit-date-input"
 						:class="{ 'edit-date-input--filled': !!editForm.expiration_date }"
+						:min="editMinDate"
+						:max="PANTRY_MAX"
+						placeholder="Select expiration date"
+						aria-label="Expiration date"
 						@change="onExpirationDateChange" />
 
 					<!-- Best Before Date -->
 					<label class="field-label-brown">Best Before Date</label>
-					<input
+					<AppDatePicker
 						v-model="editForm.best_before_date"
-						type="date"
 						class="edit-date-input"
 						:class="{ 'edit-date-input--filled': !!editForm.best_before_date }"
+						:min="editMinDate"
+						:max="PANTRY_MAX"
+						placeholder="Select best before date"
+						aria-label="Best before date"
 						@change="onBestBeforeDateChange" />
 					
 					<p v-if="editForm.expiration_date && editForm.best_before_date" class="validation-hint">You can only update one date</p>
@@ -325,6 +331,8 @@ import {
 } from '@ionic/vue'
 import AppHeader from '@/components/AppHeader.vue'
 import { useBreakpoint } from '@/utils/useBreakpoint'
+import AppDatePicker from '@/components/AppDatePicker.vue'
+import { PANTRY_MAX, toISODate, yearsAgoLocalISO } from '@/utils/dateUtils'
 import {
 	alertCircleOutline,
 	calendarOutline,
@@ -394,6 +402,7 @@ const rawIngredientsOpen = ref(false)
 
 const isEditModalOpen = ref(false)
 const isSaving = ref(false)
+const editMinDate = ref(yearsAgoLocalISO(1))
 const editError = ref('')
 const editForm = reactive({
   storage_location: '',
@@ -533,12 +542,12 @@ function openEditModal(): void {
   editForm.net_unit = item.value.net_unit || 'g'
   editForm.pieces_count = item.value.pieces_count
   editForm.category = item.value.category ?? 'Uncategorized'
-  editForm.expiration_date = item.value.expiration_date
-    ? item.value.expiration_date.split('T')[0]
-    : ''
-  editForm.best_before_date = item.value.best_before_date
-    ? item.value.best_before_date.split('T')[0]
-    : ''
+  editForm.expiration_date = toISODate(item.value.expiration_date)
+  editForm.best_before_date = toISODate(item.value.best_before_date)
+  // Earlier of the saved date and one year back, so an existing past date is never clamped.
+  const oneYearBack = yearsAgoLocalISO(1)
+  const saved = [editForm.expiration_date, editForm.best_before_date].filter(Boolean)
+  editMinDate.value = saved.reduce((min, d) => (d < min ? d : min), oneYearBack)
   editError.value = ''
   editSnapshot.value = editFingerprint()
   bypassEditGuard = false

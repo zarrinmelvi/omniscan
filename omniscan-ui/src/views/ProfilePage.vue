@@ -171,7 +171,15 @@
 						<!-- Birthday -->
 						<div class="form-group">
 							<label class="input-label">Birthday</label>
-							<input v-model="form.birthday" type="date" :max="maxBirthdayDate" class="custom-input" />
+							<AppDatePicker
+								v-model="form.birthday"
+								:min="BIRTHDAY_MIN"
+								:max="maxBirthdayDate"
+								placeholder="Select your birthday"
+								aria-label="Birthday"
+								class="custom-input"
+								:class="{ 'input-error': !!birthdayError }" />
+							<div v-if="birthdayError" class="field-error-text">{{ birthdayError }}</div>
 						</div>
 
 						<!-- Email (disabled) -->
@@ -261,6 +269,8 @@ import {
 } from 'ionicons/icons'
 import { apiFetch, ApiError, signOutConsumer } from '@/utils/api'
 import AppHeader from '@/components/AppHeader.vue'
+import AppDatePicker from '@/components/AppDatePicker.vue'
+import { BIRTHDAY_MIN, todayLocalISO, toISODate, ageFromISO } from '@/utils/dateUtils'
 import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
@@ -390,10 +400,16 @@ const displayPreferences = computed(() => {
 const isExceedingLimit = computed(() => form.customPreferences.length > PREF_MAX)
 const isAtAllergenLimit = computed(() => form.customPreferences.length >= PREF_MAX)
 
-const maxBirthdayDate = computed(() => {
-	const date = new Date()
-	date.setFullYear(date.getFullYear() - 16)
-	return date.toISOString().split('T')[0]
+// Picker upper bound is today (local time); the under-16 rule is a validation error below.
+const maxBirthdayDate = computed(() => todayLocalISO())
+
+const birthdayError = computed(() => {
+	if (!form.birthday) return ''
+	const iso = toISODate(form.birthday)
+	if (!iso || iso < BIRTHDAY_MIN || iso > maxBirthdayDate.value) return 'Please enter a valid birthday'
+	// Only enforce the age rule when the birthday was changed, so existing accounts can still save other edits.
+	if (form.birthday !== initialForm.birthday && ageFromISO(iso) < 16) return 'You must be at least 16 years old'
+	return ''
 })
 
 const form = reactive({
@@ -464,7 +480,7 @@ function startEditing() {
 	form.username = user.value.username || ''
 	form.email = user.value.email
 	form.gender = user.value.gender || ''
-	form.birthday = user.value.birthday || ''
+	form.birthday = toISODate(user.value.birthday)
 	form.halalPref = halalPref.value
 	form.customPreferences = [...displayPreferences.value]
 	form.avatarBase64 = user.value.avatar_base64
@@ -549,6 +565,10 @@ function toggleWhoAllergen(value: string) {
 
 async function saveProfile() {
 	if (isExceedingLimit.value) return
+	if (birthdayError.value) {
+		saveError.value = birthdayError.value
+		return
+	}
 
 	isSaving.value = true
 	saveError.value = ''
@@ -1191,6 +1211,16 @@ onIonViewWillEnter(() => {
 	.input-label {
 		color: #94a3b8;
 	}
+}
+
+.custom-input.input-error {
+	border-color: #dc2626;
+}
+
+.field-error-text {
+	margin-top: 6px;
+	font-size: 0.8rem;
+	color: #dc2626;
 }
 
 .custom-input {

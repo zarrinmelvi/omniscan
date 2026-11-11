@@ -169,11 +169,14 @@
 								<ion-icon :icon="sparklesOutline" />
 								<span>Expiration Detected — please double-check for accuracy</span>
 							</div>
-							<input 
-								type="date" 
-								class="date-input" 
-								:class="{ 'date-input--has-value': !!expirationDate }" 
-								v-model="expirationDate" 
+							<AppDatePicker
+								class="date-input"
+								:class="{ 'date-input--has-value': !!expirationDate }"
+								v-model="expirationDate"
+								:min="minPantryDate"
+								:max="PANTRY_MAX"
+								placeholder="Select expiration date"
+								aria-label="Expiration date"
 								:disabled="submitting"
 								@change="onExpirationDateChange"
 							/>
@@ -184,11 +187,14 @@
 						<div class="date-field">
 							<label class="date-field-label">Best Before Date</label>
 							<span class="field-hint">For fresh stocks and produce (e.g. fruits, vegetables, dry goods).</span>
-							<input 
-								type="date" 
-								class="date-input" 
-								:class="{ 'date-input--has-value': !!bestBeforeDate }" 
-								v-model="bestBeforeDate" 
+							<AppDatePicker
+								class="date-input"
+								:class="{ 'date-input--has-value': !!bestBeforeDate }"
+								v-model="bestBeforeDate"
+								:min="minPantryDate"
+								:max="PANTRY_MAX"
+								placeholder="Select best before date"
+								aria-label="Best before date"
 								:disabled="submitting"
 								@change="onBestBeforeDateChange"
 							/>
@@ -212,6 +218,8 @@
 import { ref, computed, watch } from 'vue'
 import { IonModal, IonAlert, IonContent, IonIcon, IonButton, IonSpinner, alertController } from '@ionic/vue'
 import { apiFetch, ApiError } from '@/utils/api'
+import AppDatePicker from '@/components/AppDatePicker.vue'
+import { PANTRY_MAX, todayLocalISO, toISODate } from '@/utils/dateUtils'
 
 async function showQuotaModal(message: string): Promise<void> {
 	const alert = await alertController.create({
@@ -364,8 +372,11 @@ const submitError = ref('')
 const dateAutoDetected = ref(false)
 
 function normalizeDetectedDate(value: unknown): string | null {
-	return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null
+	return toISODate(value) || null
 }
+
+// Recomputed when the modal opens so a long-lived page doesn't keep a stale "today".
+const minPantryDate = ref(todayLocalISO())
 
 async function fetchAiAlternatives() {
 	if (!product.value?.product_name) return
@@ -453,6 +464,7 @@ function resetPantryForm() {
 		storageLocation.value = storageForCategory(catForStorage)
 	}
 	
+	minPantryDate.value = todayLocalISO()
 	const detected = normalizeDetectedDate(product.value?.expiration_date_detected)
 	expirationDate.value = detected ?? ''
 	bestBeforeDate.value = ''

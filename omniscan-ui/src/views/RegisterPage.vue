@@ -652,9 +652,10 @@ async function handleGoogleSignIn(): Promise<void> {
 				await checkUsernameAvailability(suggestedUsername)
 				await showToast('Please complete your registration', 'success')
 			} else if (verifyResponse.token) {
-				// Existing user - log in directly
+				// Existing user — save token then do a clean reload so the
+				// router guard reads the token from localStorage on startup.
 				await authStore.loginWithOAuthToken(verifyResponse.token)
-				router.push('/tabs/home')
+				window.location.replace('/tabs/home')
 			}
 		} catch (error: any) {
 			console.error('Native Google Sign-In failed:', error)

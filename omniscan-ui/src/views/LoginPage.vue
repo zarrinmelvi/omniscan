@@ -209,11 +209,12 @@ async function handleGoogleSignIn(): Promise<void> {
 				// will pre-fill the form exactly as if they started from there.
 				router.push('/register')
 			} else if (verifyResponse.token) {
-				// Existing account — save the token first, then navigate
-				// with router.push (no hard reload, so the router guard sees
-				// the session synchronously).
+				// Existing account — save the token to localStorage first,
+				// then do a full location replace so the app boots fresh with
+				// the token already present. router.push races against the
+				// async checkAuth() call and can land on WelcomePage.
 				await authStore.loginWithOAuthToken(verifyResponse.token)
-				router.push('/tabs/home')
+				window.location.replace('/tabs/home')
 			} else {
 				throw new Error('Unexpected response from Google verification.')
 			}

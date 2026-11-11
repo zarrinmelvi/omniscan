@@ -5,7 +5,6 @@ const config: CapacitorConfig = {
   appName: 'OmniScan',
   webDir: 'dist',
   server: {
-    url: 'https://omniscan.website',
     cleartext: true,
     androidScheme: 'https',
     allowNavigation: [

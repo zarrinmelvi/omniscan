@@ -565,6 +565,12 @@ async function checkProfileUsernameAvailability(value: string) {
 		return
 	}
 
+	// If the user types back their own current username, treat it as valid without hitting the API.
+	if (trimmed === initialForm.username.trim()) {
+		profileUsernameValidation.value = { isChecking: false, isAvailable: null, message: '', lastChecked: trimmed }
+		return
+	}
+
 	if (profileUsernameValidation.value.lastChecked === trimmed && profileUsernameValidation.value.isAvailable !== null) {
 		return
 	}
@@ -796,7 +802,6 @@ async function saveProfile() {
 		return
 	}
 	if (profileUsernameValidation.value.isAvailable === false) {
-		saveError.value = profileUsernameValidation.value.message || 'That username is already taken. Please choose another.'
 		return
 	}
 	// Validate password fields if the user has started typing a new password.

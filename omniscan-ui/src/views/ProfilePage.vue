@@ -142,12 +142,18 @@
 						<div class="name-row">
 							<div class="form-group">
 								<label class="input-label">First Name</label>
-								<input v-model="form.firstName" type="text" placeholder="First name" class="custom-input" />
+								<input v-model="form.firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" />
 							</div>
 							<div class="form-group">
 								<label class="input-label">Last Name</label>
-								<input v-model="form.lastName" type="text" placeholder="Last name" class="custom-input" />
+								<input v-model="form.lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" />
 							</div>
+						</div>
+						<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
+							{{ showMiddleName ? '- Remove middle name' : '+ Add middle name (optional)' }}
+						</button>
+						<div v-if="showMiddleName" class="form-group">
+							<input v-model="form.middleName" type="text" placeholder="Middle name" maxlength="21" class="custom-input" />
 						</div>
 
 						<!-- Username -->
@@ -452,6 +458,8 @@ interface DietaryProfileDto {
 interface UserDto {
 	id: number
 	name: string
+	first_name: string | null
+	last_name: string | null
 	username: string
 	gender: string
 	birthday: string
@@ -483,6 +491,7 @@ const showCurrentPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmNewPassword = ref(false)
 const passwordTyped = ref(false)
+const showMiddleName = ref(false)
 
 const hasPasswordSet = computed(() => user.value.has_password)
 
@@ -636,6 +645,7 @@ const birthdayError = computed(() => {
 
 const form = reactive({
 	firstName: '',
+	middleName: '',
 	lastName: '',
 	username: '',
 	gender: '',
@@ -648,6 +658,7 @@ const form = reactive({
 
 const initialForm = reactive({
 	firstName: '',
+	middleName: '',
 	lastName: '',
 	username: '',
 	gender: '',
@@ -662,6 +673,7 @@ const hasUnsavedChanges = computed(() => {
 	return (
 		passwordTyped.value ||
 		form.firstName !== initialForm.firstName ||
+		form.middleName !== initialForm.middleName ||
 		form.lastName !== initialForm.lastName ||
 		form.username !== initialForm.username ||
 		form.gender !== initialForm.gender ||
@@ -695,11 +707,16 @@ async function fetchAllergens() {
 }
 
 function startEditing() {
-	// Split full name into first and last
-	const nameParts = (user.value.name || '').trim().split(' ')
-	form.firstName = nameParts[0] || ''
-	form.lastName = nameParts.slice(1).join(' ') || ''
-	
+	// Use first_name/last_name from the backend directly for accuracy.
+	// first_name may contain "First Middle" (concatenated during registration), so split on first space.
+	const rawFirst = (user.value.first_name || user.value.name || '').trim()
+	const firstParts = rawFirst.split(' ')
+	form.firstName = firstParts[0] || ''
+	form.middleName = firstParts.slice(1).join(' ') || ''
+	form.lastName = (user.value.last_name || '').trim()
+
+	showMiddleName.value = form.middleName.length > 0
+
 	form.username = user.value.username || ''
 	form.email = user.value.email
 	form.gender = user.value.gender || ''
@@ -712,6 +729,7 @@ function startEditing() {
 	profileUsernameValidation.value = { isChecking: false, isAvailable: null, message: '', lastChecked: '' }
 
 	initialForm.firstName = form.firstName
+	initialForm.middleName = form.middleName
 	initialForm.lastName = form.lastName
 	initialForm.username = form.username
 	initialForm.email = form.email
@@ -842,7 +860,9 @@ async function saveProfile() {
 		const data = await apiFetch<ProfileResponse>('/api/users', {
 			method: 'PUT',
 			body: {
-				name: `${form.firstName} ${form.lastName}`.trim(),
+				first_name: [form.firstName, form.middleName].filter(Boolean).join(' ').trim(),
+				last_name: form.lastName.trim(),
+				name: [form.firstName, form.middleName, form.lastName].filter(Boolean).join(' ').trim(),
 				username: form.username,
 				gender: form.gender,
 				birthday: form.birthday,
@@ -857,6 +877,7 @@ async function saveProfile() {
 		// Keep the auth store (used by the desktop sidebar) in sync with the new photo
 		if (authStore.user) authStore.user.avatar_base64 = data.user.avatar_base64
 		resetPasswordFields()
+		showMiddleName.value = false
 		isEditing.value = false
 		showSuccessToast.value = true
 	} catch (err) {
@@ -922,6 +943,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 					handler: () => {
 						isEditing.value = false
 						resetPasswordFields()
+						showMiddleName.value = false
 						next()
 					},
 				},

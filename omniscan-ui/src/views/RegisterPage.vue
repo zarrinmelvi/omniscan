@@ -64,18 +64,18 @@
 							<div class="name-row">
 								<div class="form-group">
 									<label class="input-label">First name</label>
-									<input v-model="firstName" type="text" placeholder="First name" class="custom-input" :class="{ 'input-error': fieldErrors.firstName }" @input="clearFieldError('firstName')" />
+									<input v-model="firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" :class="{ 'input-error': fieldErrors.firstName }" @input="clearFieldError('firstName')" />
 								</div>
 								<div class="form-group">
 									<label class="input-label">Last name</label>
-									<input v-model="lastName" type="text" placeholder="Last name" class="custom-input" :class="{ 'input-error': fieldErrors.lastName }" @input="clearFieldError('lastName')" />
+									<input v-model="lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" :class="{ 'input-error': fieldErrors.lastName }" @input="clearFieldError('lastName')" />
 								</div>
 							</div>
 							<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
 								{{ showMiddleName ? '- Remove middle name' : '+ Add middle name (optional)' }}
 							</button>
 							<div v-if="showMiddleName" class="form-group">
-								<input v-model="middleName" type="text" placeholder="Middle name" class="custom-input" />
+								<input v-model="middleName" type="text" placeholder="Middle name" maxlength="21" class="custom-input" />
 							</div>
 
 							<div class="form-group">

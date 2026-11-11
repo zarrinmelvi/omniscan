@@ -1505,6 +1505,8 @@ onBeforeRouteLeave(async (to, from, next) => {
 	display: none;
 }
 
+.add-middle-link { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #05c450; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0; margin: 8px 0 12px; }
+
 .name-row {
 	display: grid;
 	grid-template-columns: 1fr 1fr;

@@ -29,8 +29,9 @@
 							</div>
 						</div>
 
-						<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting">
+						<ion-button expand="block" type="submit" class="submit-button" :disabled="isSubmitting || secondsLeft > 0">
 							<ion-spinner v-if="isSubmitting" name="crescent" class="btn-spinner" />
+							<span v-else-if="secondsLeft > 0">Resend in {{ secondsLeft }}s</span>
 							<span v-else>Send Reset Link</span>
 						</ion-button>
 					</form>
@@ -46,22 +47,81 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import { chevronBackOutline } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
+
+const COOLDOWN_SECONDS = 30
+const COOLDOWN_KEY = 'omniscan_reset_cooldown_until'
 
 const router = useRouter()
 const email = ref('')
 const isSubmitting = ref(false)
 const errorMessage = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
+const secondsLeft = ref(0)
+
+let cooldownEndsAt = 0
+let timer: ReturnType<typeof setInterval> | null = null
+
+function stopTimer() {
+	if (timer) {
+		clearInterval(timer)
+		timer = null
+	}
+}
+
+function tick() {
+	const left = Math.ceil((cooldownEndsAt - Date.now()) / 1000)
+	if (left <= 0) {
+		clearCooldown()
+		return
+	}
+	secondsLeft.value = left
+}
+
+// Start (or restart) the countdown. The end time is saved so a page refresh keeps it.
+function startCooldown(seconds: number) {
+	stopTimer()
+	cooldownEndsAt = Date.now() + seconds * 1000
+	try {
+		localStorage.setItem(COOLDOWN_KEY, String(cooldownEndsAt))
+	} catch {
+		/* storage unavailable: countdown still works for this visit */
+	}
+	tick()
+	timer = setInterval(tick, 250)
+}
+
+function clearCooldown() {
+	stopTimer()
+	cooldownEndsAt = 0
+	secondsLeft.value = 0
+	try {
+		localStorage.removeItem(COOLDOWN_KEY)
+	} catch {
+		/* ignore */
+	}
+}
+
+function retrySecondsFrom(err: ApiError): number {
+	const fromData = (err.data as { data?: { retryAfterSeconds?: number } } | null)?.data?.retryAfterSeconds
+	if (typeof fromData === 'number' && fromData > 0) return Math.min(fromData, COOLDOWN_SECONDS)
+	const match = err.message.match(/(\d+)/)
+	return match ? Math.min(Number(match[1]), COOLDOWN_SECONDS) : COOLDOWN_SECONDS
+}
 
 async function handleRequestReset() {
+	// Also blocks the Enter key while the button is disabled
+	if (isSubmitting.value || secondsLeft.value > 0) return
+
 	errorMessage.value = null
 	successMessage.value = null
 	isSubmitting.value = true
+	// Lock the button right away; released below if the request did not send an email
+	startCooldown(COOLDOWN_SECONDS)
 
 	try {
 		const res = await apiFetch<{ message: string }>('/api/auth/forgot-password', {
@@ -71,11 +131,35 @@ async function handleRequestReset() {
 		})
 		successMessage.value = res.message
 	} catch (err) {
+		if (err instanceof ApiError && err.status === 429) {
+			// Server says a link was sent very recently: follow its remaining time
+			startCooldown(retrySecondsFrom(err))
+		} else {
+			// Unknown email, bad format or send failure: let the user correct and retry
+			clearCooldown()
+		}
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to request password reset.'
 	} finally {
 		isSubmitting.value = false
 	}
 }
+
+onMounted(() => {
+	try {
+		const saved = Number(localStorage.getItem(COOLDOWN_KEY))
+		if (saved > Date.now()) {
+			cooldownEndsAt = saved
+			tick()
+			timer = setInterval(tick, 250)
+		} else if (saved) {
+			localStorage.removeItem(COOLDOWN_KEY)
+		}
+	} catch {
+		/* ignore */
+	}
+})
+
+onBeforeUnmount(stopTimer)
 </script>
 
 <style scoped>

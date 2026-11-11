@@ -38,6 +38,7 @@ export default defineEventHandler(async (event) => {
 				email: true,
 				password: true,
 				email_verified: true,
+				avatar_base64: true,
 			},
 		})
 
@@ -88,7 +89,7 @@ export default defineEventHandler(async (event) => {
 
 		return {
 			token,
-			user: { id: user.id, name: user.name, email: user.email },
+			user: { id: user.id, name: user.name, email: user.email, avatar_base64: user.avatar_base64 ?? null },
 			message: 'Login successful',
 		}
 	} catch (err: any) {

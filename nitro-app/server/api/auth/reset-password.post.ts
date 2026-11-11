@@ -2,6 +2,7 @@ import { eventHandler, readBody, createError } from 'h3'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { prisma } from '../../lib/prisma'
+import { passwordFingerprint } from '../../lib/password-reset'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-default-jwt-secret'
 
@@ -50,6 +51,24 @@ export default eventHandler(async (event) => {
 			throw createError({ statusCode: 404, statusMessage: 'User not found.' })
 		}
 
+		// Single-use link: the token carries a fingerprint of the password hash it was
+		// issued for. If the password has changed since (e.g. the link was already
+		// used), the fingerprint no longer matches. Tokens without it are rejected.
+		if (typeof payload.pwf !== 'string' || payload.pwf !== passwordFingerprint(user.password)) {
+			throw createError({
+				statusCode: 400,
+				statusMessage: 'This reset link is invalid, expired, or has already been used. Please request a new one.',
+			})
+		}
+
+		// The new password must differ from the current one.
+		if (user.password && (await bcrypt.compare(newPassword, user.password))) {
+			throw createError({
+				statusCode: 400,
+				statusMessage: 'The new password cannot be the same as your previous password.',
+			})
+		}
+
 		const password_hash = await bcrypt.hash(newPassword, 10)
 
 		await prisma.user.update({
@@ -59,7 +78,7 @@ export default eventHandler(async (event) => {
 
 		return {
 			success: true,
-			message: 'Password reset successfully. You can now log in with your new password.',
+			message: 'Update successfully',
 		}
 	} catch (err: any) {
 		if (err.statusCode) throw err

@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import { randomUUID } from 'crypto'
 import { prisma } from '../../../lib/prisma'
 import { logAuditEvent } from '../../../lib/audit-logger'
+import { fetchGoogleAvatarAsDataUri } from '../../../lib/google-avatar'
 
 const JWT_SECRET = process.env.JWT_SECRET
 const TOKEN_EXPIRY = '7d'
@@ -18,15 +19,38 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid request body.' })
 	}
 
-	const { email, firstName, lastName, googleId, username, gender, birthday } = body as {
-		email?: string
-		firstName?: string
-		lastName?: string
-		googleId?: string
+	const { pending_token, username, gender, birthday } = body as {
+		pending_token?: string
 		username?: string
 		gender?: string
 		birthday?: string
 	}
+
+	// Identity (email, Google ID, names, picture) comes ONLY from the signed
+	// pending token issued after Google verified the account. Anything the client
+	// sends for these fields is ignored.
+	if (!pending_token || typeof pending_token !== 'string') {
+		throw createError({ statusCode: 400, statusMessage: 'Google sign-up session is missing. Please try again.' })
+	}
+
+	let pending: {
+		type?: string
+		email?: string
+		firstName?: string
+		lastName?: string
+		googleId?: string
+		picture?: string | null
+	}
+	try {
+		pending = jwt.verify(pending_token, JWT_SECRET) as typeof pending
+	} catch {
+		throw createError({ statusCode: 400, statusMessage: 'Google sign-up session expired. Please try again.' })
+	}
+	if (!pending || pending.type !== 'google_pending') {
+		throw createError({ statusCode: 400, statusMessage: 'Google sign-up session is invalid. Please try again.' })
+	}
+
+	const { email, firstName, lastName, googleId } = pending
 
 	// Validate required fields
 	if (!email || typeof email !== 'string' || !email.trim()) {
@@ -113,6 +137,9 @@ export default defineEventHandler(async (event) => {
 			throw createError({ statusCode: 400, statusMessage: 'That username is already taken. Please choose another.' })
 		}
 
+		// Import the Google profile photo (null on any failure; never blocks sign-up)
+		const importedAvatar = await fetchGoogleAvatarAsDataUri(pending.picture)
+
 		// Create user and dietary profile in a transaction
 		const user = await prisma.$transaction(async (tx) => {
 			const created = await tx.user.create({
@@ -130,7 +157,7 @@ export default defineEventHandler(async (event) => {
 					status: 'ACTIVE',
 					last_active: new Date(),
 					email_verified: true, // Google already verified the email
-					avatar_base64: null,
+					avatar_base64: importedAvatar,
 				},
 			})
 

@@ -634,7 +634,8 @@ async function handleGoogleSignIn(): Promise<void> {
 					firstName: payload.firstName,
 					lastName: payload.lastName,
 					googleId: payload.googleId,
-					username: suggestedUsername
+					username: suggestedUsername,
+					pendingToken: verifyResponse.pendingToken,
 				})
 
 				isGooglePending.value = true
@@ -1230,7 +1231,8 @@ onMounted(async () => {
 					firstName: payload.firstName,
 					lastName: payload.lastName,
 					googleId: payload.googleId,
-					username: suggestedUsername
+					username: suggestedUsername,
+					pendingToken,
 				})
 
 				isGooglePending.value = true

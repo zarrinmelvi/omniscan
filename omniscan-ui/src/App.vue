@@ -13,7 +13,7 @@
 			v-if="isDesktop && isTabsRoute"
 			:userName="authStore.user?.name"
 			:userEmail="authStore.user?.email"
-			:userAvatarBase64="null" />
+			:userAvatarBase64="authStore.user?.avatar_base64 ?? null" />
 
 		<!-- Main content area with offset when desktop nav is shown -->
 		<ion-router-outlet :class="{ 'with-desktop-nav': isDesktop && isTabsRoute }" />

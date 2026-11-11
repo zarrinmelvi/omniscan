@@ -569,6 +569,8 @@ async function saveProfile() {
 		})
 
 		user.value = data.user
+		// Keep the auth store (used by the desktop sidebar) in sync with the new photo
+		if (authStore.user) authStore.user.avatar_base64 = data.user.avatar_base64
 		isEditing.value = false
 		showSuccessToast.value = true
 	} catch (err) {

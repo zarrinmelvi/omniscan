@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto'
 import { prisma } from '../../../lib/prisma'
 import { GOOGLE_CLIENT_ID } from '../../../lib/oauth'
 import { logAuditEvent } from '../../../lib/audit-logger'
+import { fetchGoogleAvatarAsDataUri } from '../../../lib/google-avatar'
 
 const JWT_SECRET = process.env.JWT_SECRET
 const TOKEN_EXPIRY = '7d'
@@ -57,9 +58,10 @@ export default defineEventHandler(async (event) => {
 					firstName,
 					lastName,
 					googleId,
+					picture: payload.picture ?? null,
 				},
 				JWT_SECRET,
-				{ expiresIn: '10m' }
+				{ expiresIn: '30m' }
 			)
 
 			return {
@@ -80,6 +82,15 @@ export default defineEventHandler(async (event) => {
 					email_verified: true,
 				},
 			})
+		}
+
+		// Import the Google profile photo only when the user has no photo yet,
+		// so a photo they set themselves is never overwritten.
+		if (!user.avatar_base64 && payload.picture) {
+			const avatar = await fetchGoogleAvatarAsDataUri(payload.picture)
+			if (avatar) {
+				await prisma.user.update({ where: { id: user.id }, data: { avatar_base64: avatar } }).catch(() => {})
+			}
 		}
 
 		// Restore ARCHIVED users who return within the grace period

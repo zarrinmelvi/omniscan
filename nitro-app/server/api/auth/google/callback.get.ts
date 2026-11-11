@@ -8,6 +8,7 @@ import {
     OAUTH_FRONTEND_SUCCESS, OAUTH_FRONTEND_FAILURE, isGoogleOAuthConfigured,
 } from '../../../lib/oauth'
 import { logAuditEvent } from '../../../lib/audit-logger'
+import { fetchGoogleAvatarAsDataUri } from '../../../lib/google-avatar'
 
 const JWT_SECRET = process.env.JWT_SECRET
 const TOKEN_EXPIRY = '7d'
@@ -73,9 +74,10 @@ export default defineEventHandler(async (event) => {
                     firstName,
                     lastName,
                     googleId: profile.id,
+                    picture: profile.picture ?? null,
                 },
                 JWT_SECRET,
-                { expiresIn: '10m' }
+                { expiresIn: '30m' }
             )
 
             const FRONTEND_URL = process.env.FRONTEND_URL || 'https://app.omniscan.website'
@@ -89,6 +91,14 @@ export default defineEventHandler(async (event) => {
                 where: { id: user.id },
                 data: { oauth_provider: 'google', oauth_provider_id: profile.id, email_verified: true },
             })
+        }
+        // Import the Google profile photo only when the user has no photo yet,
+        // so a photo they set themselves is never overwritten.
+        if (!user.avatar_base64 && profile.picture) {
+            const avatar = await fetchGoogleAvatarAsDataUri(profile.picture)
+            if (avatar) {
+                await prisma.user.update({ where: { id: user.id }, data: { avatar_base64: avatar } }).catch(() => {})
+            }
         }
         // Returning ARCHIVED users within the grace period are restored to ACTIVE
         await prisma.user.updateMany({

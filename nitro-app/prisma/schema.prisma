@@ -70,6 +70,9 @@ model User {
   verification_token            String?   @unique
   verification_token_expires_at DateTime?
   last_verification_sent_at     DateTime?
+  // Last time a password reset email was successfully sent. Used for the
+  // 30-second per-account cooldown on the forgot-password endpoint.
+  password_reset_requested_at   DateTime?
   session_token                 String?
   // Epic 7: timestamp of the last inactivity warning email sent. Null until a
   // warning fires. Reset to null on login so a fresh inactivity cycle can warn

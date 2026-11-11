@@ -15,7 +15,6 @@
 					<p class="auth-subtitle">Please enter and confirm your new password.</p>
 
 					<div v-if="errorMessage" class="form-error">{{ errorMessage }}</div>
-					<div v-if="successMessage" class="form-success">{{ successMessage }}</div>
 
 					<form v-if="!isCompleted" @submit.prevent="handleResetPassword">
 						<div class="form-group">
@@ -72,6 +71,7 @@
 									class="password-toggle"
 									@click="showConfirmPassword = !showConfirmPassword" />
 							</div>
+							<p v-if="confirmPassword && password !== confirmPassword" class="field-error">Passwords do not match.</p>
 						</div>
 
 						<ion-button
@@ -96,7 +96,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonSpinner, toastController } from '@ionic/vue'
 import { eyeOutline, eyeOffOutline, checkmarkCircle, closeCircle } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
 
@@ -111,7 +111,6 @@ const showConfirmPassword = ref(false)
 const isSubmitting = ref(false)
 const isCompleted = ref(false)
 const errorMessage = ref<string | null>(null)
-const successMessage = ref<string | null>(null)
 
 // Password Strictness Checks
 const passCriteria = computed(() => {
@@ -132,7 +131,6 @@ const isPasswordValid = computed(() => {
 
 async function handleResetPassword() {
 	errorMessage.value = null
-	successMessage.value = null
 
 	if (!token) {
 		errorMessage.value = 'Missing or invalid reset token.'
@@ -152,17 +150,21 @@ async function handleResetPassword() {
 	isSubmitting.value = true
 
 	try {
-		const res = await apiFetch<{ message: string }>('/api/auth/reset-password', {
+		await apiFetch<{ message: string }>('/api/auth/reset-password', {
 			method: 'POST',
 			body: { token, password: password.value },
 			skipAuth: true,
 		})
 
-		successMessage.value = res.message
 		isCompleted.value = true
-		setTimeout(() => {
-			router.push('/login')
-		}, 2000)
+		const toast = await toastController.create({
+			message: 'Update successfully',
+			duration: 2500,
+			color: 'success',
+			position: 'top',
+		})
+		await toast.present()
+		router.replace('/login')
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to reset password.'
 	} finally {
@@ -199,7 +201,7 @@ async function handleResetPassword() {
 .switch-auth { text-align: center; margin-top: 24px; font-size: 0.85rem; color: #4b5563; }
 .switch-link { color: #05c450; font-weight: 600; text-decoration: none; margin-left: 2px; }
 .form-error { background: #fee2e2; color: #b91c1c; border-radius: 8px; padding: 8px 12px; margin-bottom: 16px; font-size: 0.85rem; }
-.form-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 8px; padding: 8px 12px; margin-bottom: 16px; font-size: 0.85rem; }
+.field-error { color: #b91c1c; font-size: 0.78rem; margin: 6px 0 0; }
 
 @media (min-width: 768px) {
 	.auth-layout { display: flex; align-items: center; justify-content: center; min-height: 100%; }

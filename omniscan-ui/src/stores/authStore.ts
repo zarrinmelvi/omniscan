@@ -12,6 +12,7 @@ export interface AuthUser {
 	first_name?: string | null
 	last_name?: string | null
 	username?: string | null
+	avatar_base64?: string | null
 }
 
 interface LoginResponse {
@@ -39,6 +40,7 @@ interface AuthState {
 		lastName: string
 		googleId: string
 		username: string
+		pendingToken: string
 	} | null
 }
 
@@ -92,7 +94,7 @@ export const useAuthStore = defineStore('auth', {
 			return response
 		},
 
-		setPendingGoogleData(data: { email: string; firstName: string; lastName: string; googleId: string; username: string }): void {
+		setPendingGoogleData(data: { email: string; firstName: string; lastName: string; googleId: string; username: string; pendingToken: string }): void {
 			this.pendingGoogleData = data
 		},
 
@@ -113,6 +115,7 @@ export const useAuthStore = defineStore('auth', {
 					firstName: pending.firstName,
 					lastName: pending.lastName,
 					googleId: pending.googleId,
+					pending_token: pending.pendingToken,
 					username,
 					gender,
 					birthday,

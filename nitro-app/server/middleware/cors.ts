@@ -19,7 +19,7 @@ export default defineEventHandler((event) => {
 
 	// Reflect the request origin if it is in the allow-list; otherwise fall
 	// back to primary client origin (omniscan.website).
-	const primaryClientOrigin = 'https://app.omniscan.website'
+	const primaryClientOrigin = 'https://omniscan.website'
 	const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin)
 		? origin
 		: primaryClientOrigin

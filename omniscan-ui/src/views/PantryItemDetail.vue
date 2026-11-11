@@ -294,6 +294,7 @@
 						@change="onBestBeforeDateChange" />
 					
 					<p v-if="editForm.expiration_date && editForm.best_before_date" class="validation-hint">You can only update one date</p>
+					<p v-if="editPastDateError" class="validation-hint" role="alert">{{ PAST_DATE_MESSAGE }}</p>
 
 					<button
 						type="button"
@@ -326,13 +327,13 @@ import {
 	IonButton,
 	IonModal,
 	onIonViewWillEnter,
-	toastController,
 	alertController,
 } from '@ionic/vue'
 import AppHeader from '@/components/AppHeader.vue'
 import { useBreakpoint } from '@/utils/useBreakpoint'
 import AppDatePicker from '@/components/AppDatePicker.vue'
-import { PANTRY_MAX, toISODate, yearsAgoLocalISO } from '@/utils/dateUtils'
+import { PANTRY_MAX, PAST_DATE_MESSAGE, isNewPastDate, todayLocalISO, toISODate } from '@/utils/dateUtils'
+import { showErrorToast, showSuccessToast } from '@/utils/toast'
 import {
 	alertCircleOutline,
 	calendarOutline,
@@ -402,7 +403,7 @@ const rawIngredientsOpen = ref(false)
 
 const isEditModalOpen = ref(false)
 const isSaving = ref(false)
-const editMinDate = ref(yearsAgoLocalISO(1))
+const editMinDate = ref(todayLocalISO())
 const editError = ref('')
 const editForm = reactive({
   storage_location: '',
@@ -525,6 +526,16 @@ function onBestBeforeDateChange() {
   }
 }
 
+// Only a NEWLY chosen past date is an error; an unchanged saved past date can still be saved.
+const editPastDateError = computed(() => {
+  if (!editSnapshot.value) return false
+  const original = JSON.parse(editSnapshot.value) as { expiration_date?: string; best_before_date?: string }
+  return (
+    isNewPastDate(editForm.expiration_date, original.expiration_date) ||
+    isNewPastDate(editForm.best_before_date, original.best_before_date)
+  )
+})
+
 const isEditFormValid = computed(() => {
   const hasExp = !!editForm.expiration_date
   const hasBbd = !!editForm.best_before_date
@@ -532,7 +543,7 @@ const isEditFormValid = computed(() => {
   // Net content is optional: blank ('' from v-model.number) or null is valid
   const nc = editForm.net_content as number | null | ''
   const validNetContent = nc === null || nc === '' || nc === undefined || (Number(nc) > 0 && !!editForm.net_unit)
-  return validPiecesCount && validNetContent && !!editForm.storage_location && (hasExp || hasBbd) && !(hasExp && hasBbd)
+  return validPiecesCount && validNetContent && !!editForm.storage_location && (hasExp || hasBbd) && !(hasExp && hasBbd) && !editPastDateError.value
 })
 
 function openEditModal(): void {
@@ -544,10 +555,8 @@ function openEditModal(): void {
   editForm.category = item.value.category ?? 'Uncategorized'
   editForm.expiration_date = toISODate(item.value.expiration_date)
   editForm.best_before_date = toISODate(item.value.best_before_date)
-  // Earlier of the saved date and one year back, so an existing past date is never clamped.
-  const oneYearBack = yearsAgoLocalISO(1)
-  const saved = [editForm.expiration_date, editForm.best_before_date].filter(Boolean)
-  editMinDate.value = saved.reduce((min, d) => (d < min ? d : min), oneYearBack)
+  // New dates must be today or later. An unchanged saved past date is kept as-is by the picker.
+  editMinDate.value = todayLocalISO()
   editError.value = ''
   editSnapshot.value = editFingerprint()
   bypassEditGuard = false
@@ -631,6 +640,11 @@ function onEditDidDismiss(): void {
 }
 
 async function saveEdit(): Promise<void> {
+  // Forced save with a newly chosen past date: block the API call and tell the user.
+  if (editPastDateError.value) {
+    await showErrorToast(PAST_DATE_MESSAGE)
+    return
+  }
   if (!item.value || !isEditFormValid.value) return
   isSaving.value = true
   editError.value = ''
@@ -654,13 +668,7 @@ async function saveEdit(): Promise<void> {
 
     bypassEditGuard = true
     isEditModalOpen.value = false
-    const toast = await toastController.create({
-      message: 'Pantry item updated successfully',
-      duration: 2000,
-      color: 'success',
-      position: 'top',
-    })
-    await toast.present()
+    await showSuccessToast('Pantry item updated successfully')
   } catch (err) {
     editError.value = err instanceof ApiError ? err.message : 'Failed to save changes.'
   } finally {

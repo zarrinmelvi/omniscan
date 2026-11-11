@@ -201,6 +201,8 @@
 						</div>
 					</div>
 
+					<p v-if="pastDateError" class="date-past-error" role="alert">{{ PAST_DATE_MESSAGE }}</p>
+
 					<p v-if="submitError" class="submit-error">{{ submitError }}</p>
 
 					<ion-button expand="block" class="submit-btn" :disabled="!isFormValid || submitting" @click="submitAddToPantry">
@@ -219,7 +221,8 @@ import { ref, computed, watch } from 'vue'
 import { IonModal, IonAlert, IonContent, IonIcon, IonButton, IonSpinner, alertController } from '@ionic/vue'
 import { apiFetch, ApiError } from '@/utils/api'
 import AppDatePicker from '@/components/AppDatePicker.vue'
-import { PANTRY_MAX, todayLocalISO, toISODate } from '@/utils/dateUtils'
+import { PANTRY_MAX, PAST_DATE_MESSAGE, isBeforeToday, todayLocalISO, toISODate } from '@/utils/dateUtils'
+import { showErrorToast, showSuccessToast } from '@/utils/toast'
 
 async function showQuotaModal(message: string): Promise<void> {
 	const alert = await alertController.create({
@@ -503,8 +506,12 @@ function onBestBeforeDateChange() {
 	}
 }
 
+// True when a selected expiration / best-before date is already in the past.
+const pastDateError = computed(() => isBeforeToday(expirationDate.value) || isBeforeToday(bestBeforeDate.value))
+
 const isFormValid = computed(
 	() =>
+		!pastDateError.value &&
 		piecesCount.value >= 1 &&
 		piecesCount.value <= 99 &&
 		!!storageLocation.value &&
@@ -513,6 +520,11 @@ const isFormValid = computed(
 )
 
 async function submitAddToPantry() {
+	// Forced submit with a past date: block before anything else (no allergen prompt, no API call).
+	if (pastDateError.value) {
+		await showErrorToast(PAST_DATE_MESSAGE)
+		return
+	}
 	if (!isFormValid.value || !product.value?.product_name) return
 
 	submitError.value = ''
@@ -530,23 +542,6 @@ async function submitAddToPantry() {
 		await allergenAlert.present()
 		const { role } = await allergenAlert.onDidDismiss()
 		if (role !== 'confirm') return
-	}
-
-	const today = new Date()
-	today.setHours(0, 0, 0, 0)
-	if (expirationDate.value) {
-		const exp = new Date(expirationDate.value + 'T00:00:00')
-		if (exp < today) {
-			submitError.value = 'This product has already expired and cannot be added to your pantry.'
-			return
-		}
-	}
-	if (bestBeforeDate.value) {
-		const bbd = new Date(bestBeforeDate.value + 'T00:00:00')
-		if (bbd < today) {
-			submitError.value = 'This product\'s best-before date has already passed and cannot be added.'
-			return
-		}
 	}
 
 	submitting.value = true
@@ -567,6 +562,12 @@ async function submitAddToPantry() {
 			},
 		})
 
+		// Success feedback right after the API succeeds and before the modal closes.
+		try {
+			await showSuccessToast('Item successfully added to pantry.')
+		} catch {
+			/* a toast failure must never block the flow */
+		}
 		emit('added')
 		forceDismiss()
 	} catch (err) {
@@ -1177,6 +1178,17 @@ function forceDismiss() {
 .or-divider span {
 	padding: 0 10px;
 	color: #3b82f6;
+}
+
+.date-past-error {
+	color: #dc2626;
+	font-size: 0.82rem;
+	font-weight: 600;
+	margin: 8px 0 0;
+}
+
+html.ion-palette-dark .date-past-error {
+	color: #f87171;
 }
 
 .submit-error {

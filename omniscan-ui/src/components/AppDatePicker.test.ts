@@ -51,6 +51,22 @@ describe('AppDatePicker', () => {
 		expect(w.emitted('update:modelValue')).toBeUndefined()
 	})
 
+	it('keeps an existing out-of-range value when opened and Done is pressed', async () => {
+		const w = factory({ modelValue: '2020-01-01', min: '2030-01-01', max: '2040-01-01' })
+		await w.find('.app-date-picker__trigger').trigger('click')
+		await w.find('[data-test="done"]').trigger('click')
+		expect(w.emitted('update:modelValue')).toBeUndefined()
+		expect(w.emitted('change')).toBeUndefined()
+	})
+
+	it('clamps a newly chosen date to min on confirm', async () => {
+		const w = factory({ modelValue: '', min: '2030-01-01', max: '2040-01-01' })
+		await w.find('.app-date-picker__trigger').trigger('click')
+		w.findComponent(IonDatetime).vm.$emit('ionChange', { detail: { value: '2020-05-05' } })
+		await w.find('[data-test="done"]').trigger('click')
+		expect(w.emitted('update:modelValue')?.[0]).toEqual(['2030-01-01'])
+	})
+
 	it('does not open when disabled', async () => {
 		const w = factory({ modelValue: '', disabled: true })
 		await w.find('.app-date-picker__trigger').trigger('click')

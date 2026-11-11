@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toISODate, todayLocalISO, yearsAgoLocalISO, ageFromISO, formatLocalISO } from './dateUtils'
+import { toISODate, todayLocalISO, yearsAgoLocalISO, ageFromISO, formatLocalISO, isBeforeToday, isNewPastDate } from './dateUtils'
 
 describe('toISODate', () => {
 	it('accepts valid ISO dates and strips time', () => {
@@ -13,6 +13,32 @@ describe('toISODate', () => {
 		expect(toISODate('17-05-24')).toBe('')
 		expect(toISODate('0001-01-31T00:00:00Z')).toBe('')
 		expect(toISODate('2024-02-31')).toBe('')
+	})
+})
+
+describe('past date helpers', () => {
+	const shift = (days: number) => {
+		const d = new Date()
+		d.setDate(d.getDate() + days)
+		return formatLocalISO(d)
+	}
+	it('isBeforeToday: today and future are allowed, past is not', () => {
+		expect(isBeforeToday(shift(0))).toBe(false)
+		expect(isBeforeToday(shift(1))).toBe(false)
+		expect(isBeforeToday(shift(-1))).toBe(true)
+	})
+	it('isBeforeToday ignores empty, null and invalid values', () => {
+		expect(isBeforeToday('')).toBe(false)
+		expect(isBeforeToday(null)).toBe(false)
+		expect(isBeforeToday('0001-01-31')).toBe(false)
+		expect(isBeforeToday('garbage')).toBe(false)
+	})
+	it('isNewPastDate only flags a changed past date', () => {
+		expect(isNewPastDate(shift(-5), shift(-5))).toBe(false)
+		expect(isNewPastDate(shift(-5), '')).toBe(true)
+		expect(isNewPastDate(shift(-5), shift(-9))).toBe(true)
+		expect(isNewPastDate(shift(3), shift(-9))).toBe(false)
+		expect(isNewPastDate('', shift(-9))).toBe(false)
 	})
 })
 

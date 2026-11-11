@@ -52,3 +52,18 @@ export function ageFromISO(iso: string): number {
 	if (now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) age--
 	return age
 }
+
+export const PAST_DATE_MESSAGE = 'Expiration or Best Before date cannot be in the past.'
+
+/** True when `iso` is a valid date strictly before today (local). Empty/invalid -> false. */
+export function isBeforeToday(iso: string | null | undefined): boolean {
+	const valid = toISODate(iso)
+	return !!valid && valid < todayLocalISO()
+}
+
+/** True when `current` is in the past AND differs from the originally saved value. */
+export function isNewPastDate(current: string | null | undefined, original: string | null | undefined): boolean {
+	const cur = toISODate(current)
+	if (!cur) return false
+	return cur !== toISODate(original) && isBeforeToday(cur)
+}

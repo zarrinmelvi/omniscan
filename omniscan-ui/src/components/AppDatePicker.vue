@@ -79,8 +79,9 @@ function clamp(value: string): string {
 
 function open(): void {
 	if (props.disabled) return
-	// Start from the current value, otherwise from the allowed range (never year 1).
-	draft.value = normalizedValue.value ? clamp(normalizedValue.value) : ''
+	// Keep an existing value as-is (even if outside min/max) so just opening and pressing Done never changes it.
+	// Clamping only happens when the user confirms a newly chosen date.
+	draft.value = normalizedValue.value
 	isOpen.value = true
 }
 
@@ -93,9 +94,11 @@ function cancel(): void {
 }
 
 function confirm(): void {
-	const next = clamp(draft.value)
 	isOpen.value = false
-	if (!next || next === normalizedValue.value) return
+	// Untouched draft (e.g. an existing out-of-range value): nothing to confirm.
+	if (!draft.value || draft.value === normalizedValue.value) return
+	const next = clamp(draft.value)
+	if (next === normalizedValue.value) return
 	emit('update:modelValue', next)
 	emit('change', next)
 }
@@ -116,6 +119,58 @@ ion-modal.app-date-picker-modal {
 ion-modal.app-date-picker-modal .app-date-picker-sheet ion-datetime {
 	width: 100%;
 	max-width: 100%;
+}
+
+/* Theme: light (default). Brand green accent, white panel, dark text. */
+ion-modal.app-date-picker-modal {
+	--background: #ffffff;
+	--ion-color-primary: #22c55e;
+	--ion-color-primary-rgb: 34, 197, 94;
+	--ion-color-primary-contrast: #ffffff;
+	--ion-color-primary-contrast-rgb: 255, 255, 255;
+	--ion-color-primary-shade: #1ead54;
+	--ion-color-primary-tint: #38cb6f;
+}
+
+ion-modal.app-date-picker-modal ion-datetime {
+	--background: #ffffff;
+	--background-rgb: 255, 255, 255;
+	--title-color: #0f172a;
+	--ion-text-color: #0f172a;
+	--ion-text-color-rgb: 15, 23, 42;
+	--ion-color-primary: #22c55e;
+	--ion-color-primary-rgb: 34, 197, 94;
+	--ion-color-primary-contrast: #ffffff;
+	--ion-color-primary-contrast-rgb: 255, 255, 255;
+	--wheel-highlight-background: rgba(34, 197, 94, 0.15);
+	--wheel-fade-background-rgb: 255, 255, 255;
+	color: #0f172a;
+}
+
+/* Theme: dark. Navy #1e293b panel with light text; same green accent. */
+html.ion-palette-dark ion-modal.app-date-picker-modal,
+body.dark ion-modal.app-date-picker-modal {
+	--background: #1e293b;
+}
+
+html.ion-palette-dark ion-modal.app-date-picker-modal ion-datetime,
+body.dark ion-modal.app-date-picker-modal ion-datetime {
+	--background: #1e293b;
+	--background-rgb: 30, 41, 59;
+	--title-color: #f1f5f9;
+	--ion-text-color: #f1f5f9;
+	--ion-text-color-rgb: 241, 245, 249;
+	--ion-color-step-150: #334155;
+	--ion-color-step-300: #475569;
+	--ion-color-step-600: #94a3b8;
+	--wheel-highlight-background: #334155;
+	--wheel-fade-background-rgb: 30, 41, 59;
+	color: #f1f5f9;
+}
+
+html.ion-palette-dark ion-modal.app-date-picker-modal .app-date-picker-btn:not(.app-date-picker-btn--primary),
+body.dark ion-modal.app-date-picker-modal .app-date-picker-btn:not(.app-date-picker-btn--primary) {
+	color: #94a3b8;
 }
 </style>
 

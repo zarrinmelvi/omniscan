@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<ion-page>
 		<ion-header class="app-header-shell">
 			<AppHeader />
@@ -143,15 +143,15 @@
 							<div class="form-group">
 								<label class="input-label">First Name</label>
 								<input v-model="form.firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" />
+								<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
+									{{ showMiddleName ? '- Remove middle name' : '+ Add middle name (optional)' }}
+								</button>
 							</div>
 							<div class="form-group">
 								<label class="input-label">Last Name</label>
 								<input v-model="form.lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" />
 							</div>
 						</div>
-						<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
-							{{ showMiddleName ? '- Remove middle name' : '+ Add middle name (optional)' }}
-						</button>
 						<div v-if="showMiddleName" class="form-group">
 							<input v-model="form.middleName" type="text" placeholder="Middle name" maxlength="21" class="custom-input" />
 						</div>
@@ -1505,7 +1505,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 	display: none;
 }
 
-.add-middle-link { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #05c450; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0; margin: 8px 0 12px; }
+.add-middle-link { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #475569; font-size: 0.82rem; font-weight: 500; cursor: pointer; padding: 0; margin: 6px 0 0; }
 
 .name-row {
 	display: grid;
@@ -1528,6 +1528,9 @@ onBeforeRouteLeave(async (to, from, next) => {
 
 :global(html.ion-palette-dark) :global(body.dark) {
 	.input-label {
+		color: #94a3b8;
+	}
+	.add-middle-link {
 		color: #94a3b8;
 	}
 }

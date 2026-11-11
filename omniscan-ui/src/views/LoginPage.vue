@@ -166,7 +166,7 @@ async function handleGoogleSignIn(): Promise<void> {
 		isGoogleSubmitting.value = true
 		try {
 			await GoogleSignIn.initialize({
-				clientId: '394571296954-s5pjiqq3fg7hhcsm0i0tn6l4mfs69s7m.apps.googleusercontent.com',
+				clientId: '394571296954-2nkqagdbfjujgdei1aoiq78fg3p9i7nv.apps.googleusercontent.com',
 			})
 
 			const result = await GoogleSignIn.signIn()

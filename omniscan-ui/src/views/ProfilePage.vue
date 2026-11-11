@@ -153,15 +153,29 @@
 						<!-- Username -->
 						<div class="form-group">
 							<label class="input-label">Username</label>
-							<input
-								v-model="form.username"
-								type="text"
-								placeholder="Choose a username"
-								minlength="4"
-								maxlength="15"
-								class="custom-input"
-								:class="{ 'input-error': !!usernameError }" />
-							<div v-if="usernameError" class="field-error-text">{{ usernameError }}</div>
+							<div class="custom-input-wrapper">
+								<input
+									v-model="form.username"
+									type="text"
+									placeholder="Choose a username"
+									minlength="4"
+									maxlength="15"
+									class="custom-input"
+									:class="{
+										'input-error': !!usernameError || profileUsernameValidation.isAvailable === false,
+										'input-success': profileUsernameValidation.isAvailable === true && !usernameError
+									}"
+									@input="handleProfileUsernameInput" />
+								<ion-spinner v-if="profileUsernameValidation.isChecking" name="crescent" class="username-spinner" />
+							</div>
+							<div v-if="form.username.trim() && profileUsernameValidation.message" class="username-feedback" :class="{
+								'username-feedback--checking': profileUsernameValidation.isChecking,
+								'username-feedback--success': profileUsernameValidation.isAvailable === true,
+								'username-feedback--error': profileUsernameValidation.isAvailable === false
+							}">
+								{{ profileUsernameValidation.message }}
+							</div>
+							<div v-else-if="usernameError" class="field-error-text">{{ usernameError }}</div>
 						</div>
 
 						<!-- Gender -->
@@ -516,6 +530,70 @@ const usernameError = computed(() => {
 	if (!USERNAME_RE.test(form.username.trim())) return 'Username must be 4–15 characters, letters, numbers, and underscores only.'
 	return ''
 })
+
+const profileUsernameValidation = ref<{
+	isChecking: boolean
+	isAvailable: boolean | null
+	message: string
+	lastChecked: string
+}>({
+	isChecking: false,
+	isAvailable: null,
+	message: '',
+	lastChecked: '',
+})
+
+let profileUsernameCheckTimeout: ReturnType<typeof setTimeout> | null = null
+
+function handleProfileUsernameInput() {
+	checkProfileUsernameAvailability(form.username)
+}
+
+async function checkProfileUsernameAvailability(value: string) {
+	const trimmed = value.trim()
+
+	if (profileUsernameCheckTimeout) clearTimeout(profileUsernameCheckTimeout)
+
+	if (!trimmed) {
+		profileUsernameValidation.value = { isChecking: false, isAvailable: null, message: '', lastChecked: '' }
+		return
+	}
+
+	// If the format is invalid, skip the API call — usernameError computed handles the message.
+	if (!USERNAME_RE.test(trimmed)) {
+		profileUsernameValidation.value = { isChecking: false, isAvailable: null, message: '', lastChecked: '' }
+		return
+	}
+
+	if (profileUsernameValidation.value.lastChecked === trimmed && profileUsernameValidation.value.isAvailable !== null) {
+		return
+	}
+
+	profileUsernameValidation.value.isChecking = true
+	profileUsernameValidation.value.message = 'Checking availability...'
+
+	profileUsernameCheckTimeout = setTimeout(async () => {
+		try {
+			const response = await apiFetch<{ available: boolean; message: string; isFormatError: boolean }>(
+				'/api/auth/check-username',
+				{ method: 'POST', body: { username: trimmed } },
+			)
+			profileUsernameValidation.value = {
+				isChecking: false,
+				isAvailable: response.available,
+				message: response.message,
+				lastChecked: trimmed,
+			}
+		} catch (error: any) {
+			profileUsernameValidation.value = {
+				isChecking: false,
+				isAvailable: false,
+				message: error?.message || 'Could not check username availability',
+				lastChecked: trimmed,
+			}
+		}
+	}, 500)
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 const allergenCatalog = ref<Allergen[]>([])
@@ -625,6 +703,7 @@ function startEditing() {
 	form.avatarBase64 = user.value.avatar_base64
 	avatarError.value = ''
 	saveError.value = ''
+	profileUsernameValidation.value = { isChecking: false, isAvailable: null, message: '', lastChecked: '' }
 
 	initialForm.firstName = form.firstName
 	initialForm.lastName = form.lastName
@@ -710,6 +789,14 @@ async function saveProfile() {
 	}
 	if (usernameError.value) {
 		saveError.value = usernameError.value
+		return
+	}
+	if (profileUsernameValidation.value.isChecking) {
+		saveError.value = 'Still checking username availability. Please wait a moment and try again.'
+		return
+	}
+	if (profileUsernameValidation.value.isAvailable === false) {
+		saveError.value = profileUsernameValidation.value.message || 'That username is already taken. Please choose another.'
 		return
 	}
 	// Validate password fields if the user has started typing a new password.
@@ -1454,6 +1541,43 @@ onBeforeRouteLeave(async (to, from, next) => {
 	color: #dc2626;
 }
 
+.username-spinner {
+	position: absolute;
+	right: 14px;
+	width: 16px;
+	height: 16px;
+	color: #6b7280;
+}
+
+.username-feedback {
+	font-size: 0.8rem;
+	margin-top: 6px;
+	padding: 6px 10px;
+	border-radius: 6px;
+	border: 1px solid transparent;
+}
+
+.username-feedback--checking {
+	color: #6b7280;
+	background: #f3f4f6;
+}
+
+.username-feedback--success {
+	color: #15803d;
+	background: #f0fdf4;
+	border-color: #bbf7d0;
+}
+
+.username-feedback--error {
+	color: #b91c1c;
+	background: #fee2e2;
+	border-color: #fecaca;
+}
+
+.input-success {
+	border-color: #22c55e !important;
+}
+
 .custom-input {
 	width: 100%;
 	height: 46px;
@@ -2081,4 +2205,8 @@ ion-modal.custom-edit-modal {
 	margin: 6px 0 4px;
 	line-height: 1.4;
 }
+
+html.ion-palette-dark .username-feedback--checking { background: #1f2937; color: #9ca3af; }
+html.ion-palette-dark .username-feedback--success { background: #14532d; color: #86efac; border-color: #166534; }
+html.ion-palette-dark .username-feedback--error { background: #450a0a; color: #fca5a5; border-color: #7f1d1d; }
 </style>

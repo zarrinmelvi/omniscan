@@ -141,11 +141,13 @@
 						<div class="name-row">
 							<div class="form-group">
 								<label class="input-label">First Name</label>
-								<input v-model="form.firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" />
+								<input v-model="form.firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" :class="{ 'custom-input--disabled': isGoogleUser }" :disabled="isGoogleUser" />
+								<p v-if="isGoogleUser" class="google-managed-hint">Managed by Google · cannot be edited</p>
 							</div>
 							<div class="form-group">
 								<label class="input-label">Last Name</label>
-								<input v-model="form.lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" />
+								<input v-model="form.lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" :class="{ 'custom-input--disabled': isGoogleUser }" :disabled="isGoogleUser" />
+								<p v-if="isGoogleUser" class="google-managed-hint">Managed by Google · cannot be edited</p>
 							</div>
 						</div>
 
@@ -207,6 +209,7 @@
 						<div class="form-group">
 							<label class="input-label">Email</label>
 							<input :value="form.email" type="email" disabled class="custom-input custom-input--disabled" />
+							<p v-if="isGoogleUser" class="google-managed-hint">Managed by Google · cannot be edited</p>
 						</div>
 
 						<!-- Password -->
@@ -487,6 +490,7 @@ const showConfirmNewPassword = ref(false)
 const passwordTyped = ref(false)
 
 const hasPasswordSet = computed(() => user.value.has_password)
+const isGoogleUser = computed(() => user.value.oauth_provider === 'google')
 
 const newPassCriteria = computed(() => ({
 	length: newPassword.value.length >= 8,
@@ -1641,6 +1645,12 @@ onBeforeRouteLeave(async (to, from, next) => {
 	background-color: #f9fafb;
 	color: #64748b;
 	cursor: not-allowed;
+}
+
+.google-managed-hint {
+	font-size: 0.76rem;
+	color: #94a3b8;
+	margin: 4px 0 0;
 }
 
 :global(html.ion-palette-dark) :global(body.dark) {

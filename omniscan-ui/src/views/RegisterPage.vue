@@ -64,11 +64,13 @@
 							<div class="name-row">
 								<div class="form-group">
 									<label class="input-label">First name</label>
-									<input v-model="firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" :class="{ 'input-error': fieldErrors.firstName }" @input="clearFieldError('firstName')" />
+									<input v-model="firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" :class="{ 'input-error': fieldErrors.firstName, 'custom-input--disabled': isGooglePending }" :disabled="isGooglePending" @input="clearFieldError('firstName')" />
+									<p v-if="isGooglePending" class="google-field-hint">Provided by Google</p>
 								</div>
 								<div class="form-group">
 									<label class="input-label">Last name</label>
-									<input v-model="lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" :class="{ 'input-error': fieldErrors.lastName }" @input="clearFieldError('lastName')" />
+									<input v-model="lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" :class="{ 'input-error': fieldErrors.lastName, 'custom-input--disabled': isGooglePending }" :disabled="isGooglePending" @input="clearFieldError('lastName')" />
+									<p v-if="isGooglePending" class="google-field-hint">Provided by Google</p>
 								</div>
 							</div>
 
@@ -645,10 +647,8 @@ async function handleGoogleSignIn(): Promise<void> {
 
 				await checkUsernameAvailability(suggestedUsername)
 			} else if (verifyResponse.token) {
-				// skipCheck=true: don't call checkAuth here — it can fail on native
-				// before the HTTP layer is ready and wipe the token.
-				await authStore.loginWithOAuthToken(verifyResponse.token, true)
-				window.location.replace('/tabs/home')
+				// Existing account — block registration and show error toast
+				void showToast('Account already exists', 'danger')
 			}
 		} catch (error: any) {
 			console.error('Native Google Sign-In failed:', error)
@@ -2019,3 +2019,9 @@ html.ion-palette-dark .google-password-message {
 	color: #a5d6a7;
 }
 </style>
+
+.google-field-hint {
+	font-size: 0.76rem;
+	color: #94a3b8;
+	margin: 4px 0 0;
+}

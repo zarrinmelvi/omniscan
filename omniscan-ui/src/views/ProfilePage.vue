@@ -142,17 +142,11 @@
 							<div class="form-group">
 								<label class="input-label">First Name</label>
 								<input v-model="form.firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" />
-								<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
-									{{ showMiddleName ? '- Remove middle name' : '+ Add middle name (optional)' }}
-								</button>
 							</div>
 							<div class="form-group">
 								<label class="input-label">Last Name</label>
 								<input v-model="form.lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" />
 							</div>
-						</div>
-						<div v-if="showMiddleName" class="form-group">
-							<input v-model="form.middleName" type="text" placeholder="Middle name" maxlength="21" class="custom-input" />
 						</div>
 
 						<!-- Username -->
@@ -491,7 +485,6 @@ const showCurrentPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmNewPassword = ref(false)
 const passwordTyped = ref(false)
-const showMiddleName = ref(false)
 
 const hasPasswordSet = computed(() => user.value.has_password)
 
@@ -645,7 +638,6 @@ const birthdayError = computed(() => {
 
 const form = reactive({
 	firstName: '',
-	middleName: '',
 	lastName: '',
 	username: '',
 	gender: '',
@@ -658,7 +650,6 @@ const form = reactive({
 
 const initialForm = reactive({
 	firstName: '',
-	middleName: '',
 	lastName: '',
 	username: '',
 	gender: '',
@@ -673,7 +664,6 @@ const hasUnsavedChanges = computed(() => {
 	return (
 		passwordTyped.value ||
 		form.firstName !== initialForm.firstName ||
-		form.middleName !== initialForm.middleName ||
 		form.lastName !== initialForm.lastName ||
 		form.username !== initialForm.username ||
 		form.gender !== initialForm.gender ||
@@ -708,14 +698,9 @@ async function fetchAllergens() {
 
 function startEditing() {
 	// Use first_name/last_name from the backend directly for accuracy.
-	// first_name may contain "First Middle" (concatenated during registration), so split on first space.
-	const rawFirst = (user.value.first_name || user.value.name || '').trim()
-	const firstParts = rawFirst.split(' ')
-	form.firstName = firstParts[0] || ''
-	form.middleName = firstParts.slice(1).join(' ') || ''
+	// Older accounts may hold "First Middle" in first_name; it is kept whole (no splitting).
+	form.firstName = (user.value.first_name || user.value.name || '').trim()
 	form.lastName = (user.value.last_name || '').trim()
-
-	showMiddleName.value = form.middleName.length > 0
 
 	form.username = user.value.username || ''
 	form.email = user.value.email
@@ -729,7 +714,6 @@ function startEditing() {
 	profileUsernameValidation.value = { isChecking: false, isAvailable: null, message: '', lastChecked: '' }
 
 	initialForm.firstName = form.firstName
-	initialForm.middleName = form.middleName
 	initialForm.lastName = form.lastName
 	initialForm.username = form.username
 	initialForm.email = form.email
@@ -860,9 +844,9 @@ async function saveProfile() {
 		const data = await apiFetch<ProfileResponse>('/api/users', {
 			method: 'PUT',
 			body: {
-				first_name: [form.firstName, form.middleName].filter(Boolean).join(' ').trim(),
+				first_name: form.firstName.trim(),
 				last_name: form.lastName.trim(),
-				name: [form.firstName, form.middleName, form.lastName].filter(Boolean).join(' ').trim(),
+				name: [form.firstName, form.lastName].map((s) => s.trim()).filter(Boolean).join(' '),
 				username: form.username,
 				gender: form.gender,
 				birthday: form.birthday,
@@ -877,7 +861,6 @@ async function saveProfile() {
 		// Keep the auth store (used by the desktop sidebar) in sync with the new photo
 		if (authStore.user) authStore.user.avatar_base64 = data.user.avatar_base64
 		resetPasswordFields()
-		showMiddleName.value = false
 		isEditing.value = false
 		showSuccessToast.value = true
 	} catch (err) {
@@ -943,7 +926,6 @@ onBeforeRouteLeave(async (to, from, next) => {
 					handler: () => {
 						isEditing.value = false
 						resetPasswordFields()
-						showMiddleName.value = false
 						next()
 					},
 				},
@@ -1510,8 +1492,6 @@ onBeforeRouteLeave(async (to, from, next) => {
 	display: none;
 }
 
-.add-middle-link { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #475569; font-size: 0.82rem; font-weight: 500; cursor: pointer; padding: 0; margin: 6px 0 0; }
-
 .name-row {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -1533,9 +1513,6 @@ onBeforeRouteLeave(async (to, from, next) => {
 
 :global(html.ion-palette-dark) :global(body.dark) {
 	.input-label {
-		color: #94a3b8;
-	}
-	.add-middle-link {
 		color: #94a3b8;
 	}
 }

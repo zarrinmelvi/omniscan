@@ -1,0 +1,228 @@
+{
+  "pbtResults": {
+    "1. Write bug condition exploration test": {
+      "status": "passed",
+      "failingExample": "Case A: {identifier:'juan_dela'} -> 400 \"Email is required.\"; Case B: {email:'juan_dela'} -> 401 \"Invalid email or password.\"; Case C: null password -> 500 (bcrypt \"data and hash arguments required\"); Case D: <input v-model=\"email\" type=\"email\" placeholder=\"your@email.com\" ...>; Cases E-I: middle-name code present in RegisterPage/ProfilePage",
+      "lastRunTimestamp": 1794445613649
+    }
+  },
+  "executionHistory": {
+    "1. Write bug condition exploration test": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063060
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445070567
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445637808
+      }
+    ],
+    "2. Write preservation property tests (BEFORE implementing fix)": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063157
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445637918
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445797607
+      }
+    ],
+    "3.1 Create shared FAQ module and import it in Settings": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063215
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445809842
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445943306
+      }
+    ],
+    "3.2 Create HelpPage.vue and the /help route": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063297
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445944307
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446023600
+      }
+    ],
+    "3.3 Add \"Help and Support\" footer link to WelcomePage": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063356
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446023704
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446106765
+      }
+    ],
+    "3.4 Update login.post.ts for identifier/username lookup, dummy hash and generic 401": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063415
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446029850
+      }
+    ],
+    "3.5 Update authStore.login request body": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063471
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446031087
+      }
+    ],
+    "3.6 Update LoginPage field and resend via 403 data.email": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063532
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446031845
+      }
+    ],
+    "3.7 Add unit and source-level tests for the fix": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063611
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446107736
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446203653
+      }
+    ],
+    "3.8 Remove middle name from RegisterPage.vue (File 10)": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063668
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446033014
+      }
+    ],
+    "3.9 Remove middle name from ProfilePage.vue with no-split open rule and trimmed save (File 11)": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063720
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446034259
+      }
+    ],
+    "3.10 Deliberate one-line update of ui-preservation-snapshot.json (File 12)": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063772
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446035268
+      }
+    ],
+    "3.11 Verify bug condition exploration tests now pass": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063845
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446203835
+      }
+    ],
+    "3.12 Verify preservation tests still pass": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063903
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446204025
+      }
+    ],
+    "4. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794445063966
+      },
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446203933
+      }
+    ],
+    "3. Fix for landing Help FAQ, username/email sign-in and middle name removal": [
+      {
+        "executionId": "86129f06-2b0c-4133-8287-331a3941f0ce",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794446221776
+      }
+    ]
+  }
+}

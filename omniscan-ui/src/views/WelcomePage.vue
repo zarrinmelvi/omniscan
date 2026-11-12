@@ -77,6 +77,7 @@
 					<footer>
 						<span class="brand" style="font-size: 18px">OmniScan</span>
 						<span>Your everyday food companion.</span>
+						<a href="/help" class="footer-link" @click.prevent="router.push('/help')">Help and Support</a>
 					</footer>
 				</div>
 			</main>
@@ -546,6 +547,38 @@ html.ion-palette-dark footer {
 	color: #94a3b8 !important;
 }
 
+.footer-link {
+	color: #627d6b;
+	text-decoration: none;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+	color: #1f7a3a;
+	text-decoration: underline;
+}
+
+.footer-link:focus-visible {
+	outline: 2px solid #1f7a3a;
+	outline-offset: 3px;
+	border-radius: 4px;
+}
+
+html.ion-palette-dark .footer-link {
+	color: #94a3b8;
+}
+
+html.ion-palette-dark .footer-link:hover,
+html.ion-palette-dark .footer-link:focus-visible {
+	color: #63cd77;
+}
+
+html.ion-palette-dark .footer-link:focus-visible {
+	outline-color: #63cd77;
+}
+
 /* Mobile Responsive */
 @media (max-width: 650px) {
 	header {
@@ -597,6 +630,8 @@ html.ion-palette-dark footer {
 
 	footer {
 		flex-direction: column;
+		align-items: center;
+		text-align: center;
 		gap: 8px;
 	}
 }

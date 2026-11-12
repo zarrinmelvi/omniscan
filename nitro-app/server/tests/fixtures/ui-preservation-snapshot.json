@@ -376,7 +376,6 @@
    ".custom-input::placeholder { color: #9ca3af; }",
    ".password-toggle { position: absolute; right: 14px; font-size: 1.1rem; color: #6b7280; cursor: pointer; }",
    ".name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0; }",
-   ".add-middle-link { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #05c450; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0; margin: 4px 0 14px; }",
    ".pass-criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-top: 10px; padding: 12px 14px; background: #f9fafb; border-radius: 10px; margin-bottom: 14px; }",
    ".criteria-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #9ca3af; }",
    ".criteria-item.valid { color: #15803d; }",

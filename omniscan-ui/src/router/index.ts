@@ -18,6 +18,12 @@ const routes: Array<RouteRecordRaw> = [
 		meta: { title: 'OmniScan' },
 	},
 	{
+		path: '/help',
+		name: 'help',
+		component: () => import('../views/HelpPage.vue'),
+		meta: { title: 'OmniScan' },
+	},
+	{
 		path: '/forgot-password',
 		name: 'forgot-password',
 		component: () => import('../views/ForgotPasswordPage.vue'),

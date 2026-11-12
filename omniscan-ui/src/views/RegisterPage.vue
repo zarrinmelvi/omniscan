@@ -71,12 +71,6 @@
 									<input v-model="lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" :class="{ 'input-error': fieldErrors.lastName }" @input="clearFieldError('lastName')" />
 								</div>
 							</div>
-							<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
-								{{ showMiddleName ? '- Remove middle name' : '+ Add middle name (optional)' }}
-							</button>
-							<div v-if="showMiddleName" class="form-group">
-								<input v-model="middleName" type="text" placeholder="Middle name" maxlength="21" class="custom-input" />
-							</div>
 
 							<div class="form-group">
 								<label class="input-label">Username</label>
@@ -682,7 +676,6 @@ watch(
 )
 
 const firstName = ref('')
-const middleName = ref('')
 const lastName = ref('')
 const username = ref('')
 const email = ref('')
@@ -693,7 +686,6 @@ const birthday = ref('')
 const isGooglePending = ref(false)
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
-const showMiddleName = ref(false)
 const isSubmitting = ref(false)
 const isTermsOpen = ref(false)
 const errorMessage = ref<string | null>(null)
@@ -1072,7 +1064,7 @@ async function submitPasswordRegistration(): Promise<void> {
 	isSubmitting.value = true
 	try {
 		const response = await authStore.register(
-			[firstName.value.trim(), middleName.value.trim()].filter(Boolean).join(' '),
+			firstName.value.trim(),
 			lastName.value.trim(),
 			username.value.trim(),
 			email.value,
@@ -1128,7 +1120,6 @@ async function handleGoogleSignUpCancellation(): Promise<void> {
 
 		// Clear all form fields
 		firstName.value = ''
-		middleName.value = ''
 		lastName.value = ''
 		username.value = ''
 		email.value = ''
@@ -1487,7 +1478,6 @@ onUnmounted(() => {
 }
 
 .name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0; }
-.add-middle-link { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #05c450; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0; margin: 4px 0 14px; }
 
 .pass-criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-top: 10px; padding: 12px 14px; background: #f9fafb; border-radius: 10px; margin-bottom: 14px; }
 .criteria-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #9ca3af; }

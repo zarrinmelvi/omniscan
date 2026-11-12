@@ -64,11 +64,11 @@
 						Verification email sent! Check your inbox.
 					</div>
 
-					<form @submit.prevent="handleLogin">
+					<form novalidate @submit.prevent="handleLogin">
 						<div class="form-group">
-							<label class="input-label">Email Address</label>
+							<label class="input-label">Username or email</label>
 							<div class="custom-input-wrapper">
-								<input v-model="email" type="email" placeholder="your@email.com" required class="custom-input" :class="{ 'input-error': !!errorMessage }" />
+								<input v-model="email" type="text" placeholder="Username or email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required class="custom-input" :class="{ 'input-error': !!errorMessage }" />
 							</div>
 						</div>
 
@@ -237,6 +237,7 @@ const showPassword = ref(false)
 const isSubmitting = ref(false)
 const errorMessage = ref<string | null>(null)
 const requiresVerification = ref(false)
+const verificationEmail = ref<string | null>(null)
 const isResending = ref(false)
 const resendSuccess = ref(false)
 const cooldown = ref(0)
@@ -255,7 +256,8 @@ function startCooldown(seconds = 60) {
 }
 
 async function handleResend() {
-	if (!email.value || isResending.value || cooldown.value > 0) return
+	const resendEmail = verificationEmail.value ?? (email.value.includes('@') ? email.value.trim() : '')
+	if (!resendEmail || isResending.value || cooldown.value > 0) return
 
 	isResending.value = true
 	resendSuccess.value = false
@@ -263,7 +265,7 @@ async function handleResend() {
 	try {
 		await apiFetch('/api/auth/resend-verification', {
 			method: 'POST',
-			body: { email: email.value },
+			body: { email: resendEmail },
 			skipAuth: true,
 		})
 		resendSuccess.value = true
@@ -285,6 +287,7 @@ async function handleResend() {
 async function handleLogin(): Promise<void> {
 	errorMessage.value = null
 	requiresVerification.value = false
+	verificationEmail.value = null
 	resendSuccess.value = false
 	isSubmitting.value = true
 
@@ -294,6 +297,10 @@ async function handleLogin(): Promise<void> {
 	} catch (err) {
 		if (err instanceof ApiError && err.status === 403) {
 			requiresVerification.value = true
+			// ApiError.data is the full response body; the server's createError data is nested at body.data
+			const body = err.data as { email?: unknown; data?: { email?: unknown } | null } | null
+			const rawEmail = body?.data?.email ?? body?.email
+			verificationEmail.value = typeof rawEmail === 'string' ? rawEmail : null
 			errorMessage.value = 'Your email is not verified yet. Check your inbox or request a new link.'
 		} else {
 			errorMessage.value = err instanceof ApiError ? err.message : 'Login failed. Please try again.'

@@ -191,21 +191,6 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
 	// ── OAuth callback landing ─────────────────────────────────────────────
 	if (to.query.oauth_token && typeof to.query.oauth_token === 'string') {
-		// If the OAuth callback landed on /register the user clicked "Sign up with Google"
-		// but already has an account. Block the login and show an error toast.
-		if (to.path === '/register') {
-			const { toastController } = await import('@ionic/vue')
-			const toast = await toastController.create({
-				message: 'Account already exists',
-				duration: 3500,
-				color: 'danger',
-				position: 'top',
-			})
-			await toast.present()
-			const cleanQuery = { ...to.query }
-			delete cleanQuery.oauth_token
-			return next({ path: '/register', query: cleanQuery, replace: true })
-		}
 		const authStore = useAuthStore()
 		await authStore.loginWithOAuthToken(to.query.oauth_token)
 		const cleanQuery = { ...to.query }

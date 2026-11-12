@@ -108,8 +108,7 @@ describe('Property 4: Google prefill', () => {
 describe('Property 4: untouched files have no diff', () => {
 	const files = [
 		'omniscan-ui/src/views/admin/AdminManageUserProfile.vue',
-		// register.post.ts is intentionally modified by the password-policy
-		// feature (10-30 char rule via validatePassword); no longer expected to match HEAD.
+		'nitro-app/server/api/auth/register.post.ts',
 		'nitro-app/server/api/auth/google/register.post.ts',
 		'nitro-app/server/api/users/index.put.ts',
 		'nitro-app/prisma/schema.prisma',

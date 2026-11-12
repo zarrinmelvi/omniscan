@@ -2,9 +2,9 @@ import { eventHandler, readBody, createError } from 'h3'
 import bcrypt from 'bcrypt'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
-import { validatePassword } from '../../lib/password-policy'
 
 const SALT_ROUNDS = 10
+const PASSWORD_RE = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/
 
 export default eventHandler(async (event) => {
 	const authUser = requireAuth(event)
@@ -23,9 +23,12 @@ export default eventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'new_password is required.' })
 	}
 
-	const passwordError = validatePassword(new_password)
-	if (passwordError) {
-		throw createError({ statusCode: 400, statusMessage: passwordError })
+	if (!PASSWORD_RE.test(new_password)) {
+		throw createError({
+			statusCode: 400,
+			statusMessage:
+				'Password must be at least 8 characters with an uppercase letter, lowercase letter, number, and special character.',
+		})
 	}
 
 	const user = await prisma.user.findUnique({

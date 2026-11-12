@@ -234,7 +234,6 @@
 
 								<div class="archived-actions">
 									<button
-										v-if="Number(item.quantity) > 0"
 										type="button"
 										class="soft-btn soft-btn--restore"
 										:disabled="isRestoringId === item.id"
@@ -242,10 +241,6 @@
 										<ion-icon :icon="refreshOutline" />
 										Restore
 									</button>
-									<span v-else class="soft-btn soft-btn--cannot-restore" aria-disabled="true">
-										<ion-icon :icon="closeCircleOutline" />
-										Fully used
-									</span>
 									<button
 										type="button"
 										class="soft-btn soft-btn--delete"
@@ -286,7 +281,6 @@ import {
 	refreshOutline,
 	trashOutline,
 	closeOutline,
-	closeCircleOutline,
 	imageOutline,
 	arrowDownOutline,
 	arrowUpOutline,
@@ -1235,12 +1229,6 @@ onIonViewWillEnter(() => {
 .soft-btn--delete {
 	background: #fef2f2;
 	color: #ef4444;
-}
-.soft-btn--cannot-restore {
-	background: #f1f5f9;
-	color: #94a3b8;
-	cursor: default;
-	pointer-events: none;
 }
 
 /* States */

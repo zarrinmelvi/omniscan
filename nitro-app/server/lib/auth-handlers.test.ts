@@ -99,7 +99,7 @@ describe('POST /api/auth/forgot-password', () => {
 })
 
 describe('POST /api/auth/reset-password', () => {
-	const oldPassword = 'OldPass1!x'
+	const oldPassword = 'OldPass1!'
 	let oldHash: string
 
 	const makeToken = (pwf: string | undefined, extra: Record<string, unknown> = {}) =>
@@ -124,34 +124,34 @@ describe('POST /api/auth/reset-password', () => {
 
 	it('rejects a weak password before anything else', async () => {
 		readBodyMock.mockResolvedValue({ token: makeToken(passwordFingerprint(oldHash)), password: 'weak' })
-		await expectError(call(resetPassword), 400, 'Password must be between 10 and 30 characters')
+		await expectError(call(resetPassword), 400, 'Password must be at least 8 characters')
 	})
 
 	it('rejects a link whose password has since changed (already used)', async () => {
-		readBodyMock.mockResolvedValue({ token: makeToken(passwordFingerprint('some-older-hash')), password: 'NewPass1!x' })
+		readBodyMock.mockResolvedValue({ token: makeToken(passwordFingerprint('some-older-hash')), password: 'NewPass1!' })
 		await expectError(call(resetPassword), 400, 'invalid, expired, or has already been used')
 		expect(prismaMock.user.update).not.toHaveBeenCalled()
 	})
 
 	it('rejects old-style tokens that have no pwf claim', async () => {
-		readBodyMock.mockResolvedValue({ token: makeToken(undefined), password: 'NewPass1!x' })
+		readBodyMock.mockResolvedValue({ token: makeToken(undefined), password: 'NewPass1!' })
 		await expectError(call(resetPassword), 400, 'invalid, expired, or has already been used')
 	})
 
 	it('updates the password and returns "Update successfully"', async () => {
-		readBodyMock.mockResolvedValue({ token: makeToken(passwordFingerprint(oldHash)), password: 'NewPass1!x' })
+		readBodyMock.mockResolvedValue({ token: makeToken(passwordFingerprint(oldHash)), password: 'NewPass1!' })
 		prismaMock.user.update.mockResolvedValue({})
 
 		const res = await call(resetPassword)
 		expect(res).toEqual({ success: true, message: 'Update successfully' })
 
 		const saved = prismaMock.user.update.mock.calls[0][0].data.password
-		expect(await bcrypt.compare('NewPass1!x', saved)).toBe(true)
+		expect(await bcrypt.compare('NewPass1!', saved)).toBe(true)
 	})
 
 	it('lets a Google-only account (no password) set one', async () => {
 		prismaMock.user.findUnique.mockResolvedValue({ id: 1, password: null })
-		readBodyMock.mockResolvedValue({ token: makeToken(passwordFingerprint(null)), password: 'NewPass1!x' })
+		readBodyMock.mockResolvedValue({ token: makeToken(passwordFingerprint(null)), password: 'NewPass1!' })
 		prismaMock.user.update.mockResolvedValue({})
 		const res = await call(resetPassword)
 		expect(res.success).toBe(true)

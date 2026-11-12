@@ -64,13 +64,11 @@
 							<div class="name-row">
 								<div class="form-group">
 									<label class="input-label">First name</label>
-									<input v-model="firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" :class="{ 'input-error': fieldErrors.firstName, 'custom-input--disabled': isGooglePending }" :disabled="isGooglePending" @input="clearFieldError('firstName')" />
-									<p v-if="isGooglePending" class="google-field-hint">Provided by Google</p>
+									<input v-model="firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" :class="{ 'input-error': fieldErrors.firstName }" @input="clearFieldError('firstName')" />
 								</div>
 								<div class="form-group">
 									<label class="input-label">Last name</label>
-									<input v-model="lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" :class="{ 'input-error': fieldErrors.lastName, 'custom-input--disabled': isGooglePending }" :disabled="isGooglePending" @input="clearFieldError('lastName')" />
-									<p v-if="isGooglePending" class="google-field-hint">Provided by Google</p>
+									<input v-model="lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" :class="{ 'input-error': fieldErrors.lastName }" @input="clearFieldError('lastName')" />
 								</div>
 							</div>
 
@@ -150,8 +148,6 @@
 										v-model="password"
 										:type="showPassword ? 'text' : 'password'"
 										placeholder="Create a password"
-										minlength="10"
-										maxlength="30"
 										class="custom-input"
 										:class="{ 'input-error': fieldErrors.password }"
 										@input="clearFieldError('password')" />
@@ -165,7 +161,7 @@
 							<div v-if="!isGooglePending" class="pass-criteria-grid">
 								<div class="criteria-item" :class="{ valid: passCriteria.length }">
 									<ion-icon :icon="passCriteria.length ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
-									10–30 characters
+									At least 8 characters
 								</div>
 								<div class="criteria-item" :class="{ valid: passCriteria.upper }">
 									<ion-icon :icon="passCriteria.upper ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
@@ -192,8 +188,6 @@
 										v-model="confirmPassword"
 										:type="showConfirmPassword ? 'text' : 'password'"
 										placeholder="Re-enter your password"
-										minlength="10"
-										maxlength="30"
 										class="custom-input"
 										:class="{ 'input-error': fieldErrors.confirmPassword }"
 										@input="clearFieldError('confirmPassword')" />
@@ -651,8 +645,10 @@ async function handleGoogleSignIn(): Promise<void> {
 
 				await checkUsernameAvailability(suggestedUsername)
 			} else if (verifyResponse.token) {
-				// Existing account — block registration and show error toast
-				void showToast('Account already exists', 'danger')
+				// skipCheck=true: don't call checkAuth here — it can fail on native
+				// before the HTTP layer is ready and wipe the token.
+				await authStore.loginWithOAuthToken(verifyResponse.token, true)
+				window.location.replace('/tabs/home')
 			}
 		} catch (error: any) {
 			console.error('Native Google Sign-In failed:', error)
@@ -750,7 +746,7 @@ watch(isTermsOpen, async (open) => {
 const passCriteria = computed(() => {
 	const val = password.value
 	return {
-		length: val.length >= 10 && val.length <= 30,
+		length: val.length >= 8,
 		upper: /[A-Z]/.test(val),
 		lower: /[a-z]/.test(val),
 		number: /[0-9]/.test(val),
@@ -1443,11 +1439,6 @@ onUnmounted(() => {
 	transition: border-color 0.2s;
 }
 
-/* Ensure text never slides under the eye-toggle icon */
-.custom-input-wrapper .custom-input {
-	padding-right: 44px;
-}
-
 .custom-input:focus {
 	border-color: #05c450;
 }
@@ -2028,9 +2019,3 @@ html.ion-palette-dark .google-password-message {
 	color: #a5d6a7;
 }
 </style>
-
-.google-field-hint {
-	font-size: 0.76rem;
-	color: #94a3b8;
-	margin: 4px 0 0;
-}

@@ -3,9 +3,17 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { prisma } from '../../lib/prisma'
 import { passwordFingerprint } from '../../lib/password-reset'
-import { validatePassword } from '../../lib/password-policy'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-default-jwt-secret'
+
+function validatePasswordStrength(password: string): boolean {
+	const minLength = password.length >= 8
+	const hasUpper = /[A-Z]/.test(password)
+	const hasLower = /[a-z]/.test(password)
+	const hasNumber = /[0-9]/.test(password)
+	const hasSpecial = /[^A-Za-z0-9]/.test(password)
+	return minLength && hasUpper && hasLower && hasNumber && hasSpecial
+}
 
 export default eventHandler(async (event) => {
 	const body = await readBody(event)
@@ -16,9 +24,11 @@ export default eventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Token and new password are required.' })
 	}
 
-	const passwordError = validatePassword(newPassword)
-	if (passwordError) {
-		throw createError({ statusCode: 400, statusMessage: passwordError })
+	if (!validatePasswordStrength(newPassword)) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: 'Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters.',
+		})
 	}
 
 	let payload: any

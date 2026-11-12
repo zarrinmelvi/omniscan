@@ -11,7 +11,6 @@ import { sendAccountArchivedEmail, sendAccountDeletedEmail } from '../../utils/e
 
 const ARCHIVED_RETENTION_DAYS = 7
 const INACTIVE_ARCHIVE_DAYS = 180
-const NOTIFICATION_RETENTION_DAYS = 7
 
 export default defineEventHandler(async (event) => {
 	const authHeader = getHeader(event, 'authorization')
@@ -20,20 +19,6 @@ export default defineEventHandler(async (event) => {
 	}
 
 	const now = new Date()
-
-	// =========================================================================
-	// 0. NOTIFICATION CLEANUP — hard-delete notifications older than 7 days.
-	//    Notifications are transient; rows are removed entirely (not soft-deleted).
-	// =========================================================================
-	const notifCutoff = new Date(now)
-	notifCutoff.setDate(notifCutoff.getDate() - NOTIFICATION_RETENTION_DAYS)
-	const deletedNotificationsResult = await prisma.notification.deleteMany({
-		where: { created_at: { lt: notifCutoff } },
-	})
-	const deletedNotificationCount = deletedNotificationsResult.count
-	if (deletedNotificationCount > 0) {
-		console.log(`[cleanup-archived] Hard-deleted ${deletedNotificationCount} notification(s) older than ${NOTIFICATION_RETENTION_DAYS} days.`)
-	}
 
 	// =========================================================================
 	// 1. PANTRY ITEM CLEANUP
@@ -160,7 +145,6 @@ export default defineEventHandler(async (event) => {
 
 	return {
 		result: 'success',
-		deletedNotifications: deletedNotificationCount,
 		deletedPantryItems: deletedPantryCount,
 		archivedUsers: archivedUsersCount,
 		deletedUsers: deletedUsersCount,

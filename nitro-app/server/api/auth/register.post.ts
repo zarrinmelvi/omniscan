@@ -3,8 +3,6 @@ import bcrypt from 'bcrypt'
 import { prisma } from '../../lib/prisma'
 import { generateVerificationToken, sendVerificationEmail, isAllowedEmailDomain } from '../../utils/email'
 
-import { validatePassword } from '../../lib/password-policy'
-
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const SALT_ROUNDS = 10
 
@@ -36,9 +34,8 @@ export default defineEventHandler(async (event) => {
 	if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email) || !isAllowedEmailDomain(email)) {
 		throw createError({ statusCode: 400, statusMessage: 'Only @gmail.com, @outlook.com, @hotmail.com, and @yahoo.com emails are permitted.' })
 	}
-	const passwordError = validatePassword(password)
-	if (passwordError) {
-		throw createError({ statusCode: 400, statusMessage: passwordError })
+	if (!password || typeof password !== 'string' || password.length < 6) {
+		throw createError({ statusCode: 400, statusMessage: 'Password must be at least 6 characters.' })
 	}
 	// Validate gender
 	if (!gender || typeof gender !== 'string' || !gender.trim()) {

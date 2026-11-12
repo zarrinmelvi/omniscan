@@ -2,7 +2,7 @@ import { defineEventHandler, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 import { findMatchedUserAllergens } from '../../lib/allergen-matching'
-import { matchIngredientsToPantry, findNonHalalKeywords, extractPantryKeywords, type RawIngredient } from '../../lib/recipe-matching'
+import { matchIngredientsToPantry, findNonHalalKeywords, extractPantryKeywords, keywordSourceNames, type RawIngredient } from '../../lib/recipe-matching'
 import { DIETARY_ALLERGEN_MAP } from '../../lib/dietary-map'
 
 const SQL_CANDIDATE_LIMIT = 60
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
 		const [pantryItems, userWithProfile] = await Promise.all([
 			prisma.pantryItem.findMany({
 				where: { user_id: authUser.id, is_archived: false },
-				select: { id: true, product: { select: { product_name: true } } },
+				select: { id: true, category: true, product: { select: { product_name: true } } },
 			}),
 			prisma.user.findUnique({
 				where: { id: authUser.id },
@@ -55,8 +55,8 @@ export default defineEventHandler(async (event) => {
 			return { success: true, recipes: [], message: 'Add items to your pantry to get recipe suggestions.' }
 		}
 
-		const pantryProducts = pantryItems.map((p) => ({ id: p.id, product_name: p.product.product_name }))
-		const keywords = extractPantryKeywords(pantryProducts.map((p) => p.product_name))
+		const pantryProducts = pantryItems.map((p) => ({ id: p.id, product_name: p.product.product_name, category: p.category }))
+		const keywords = extractPantryKeywords(keywordSourceNames(pantryProducts))
 
 		if (keywords.length === 0) {
 			return { success: true, recipes: [], message: 'No searchable ingredients found in your pantry yet.' }

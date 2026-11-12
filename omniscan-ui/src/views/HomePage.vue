@@ -70,7 +70,7 @@
 								}">
 								{{ expiryLabel(item) }}
 							</span>
-							<div class="expiring-image">
+							<div v-pantry-lazy-image="item" class="expiring-image">
 								<img
 									v-if="item.product.image_base64"
 									:src="item.product.image_base64"
@@ -242,6 +242,7 @@ import {
 import { apiFetch, ApiError } from '@/utils/api'
 import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
 import AppHeader from '@/components/AppHeader.vue'
+import { usePantryList } from '@/composables/usePantryList'
 import SkeletonCard from '@/components/SkeletonCard.vue'
 
 const router = useRouter()
@@ -251,6 +252,7 @@ interface Product {
 	product_name: string
 	brand_name: string
 	image_base64: string | null
+	needs_image?: boolean
 }
 
 interface PantryItemDto {
@@ -308,10 +310,13 @@ const EXPIRING_SOON_THRESHOLD_DAYS = 3
 
 const isLoading = ref(true)
 const loadError = ref('')
+let hasDashboardLoaded = false
 
 const userName = ref('')
 const avatarBase64 = ref<string | null>(null)
-const pantryItems = ref<PantryItemDto[]>([])
+const pantryList = usePantryList()
+const vPantryLazyImage = pantryList.pantryLazyImage
+const pantryItems = pantryList.items
 const recommendedRecipes = ref<SuggestedRecipe[]>([])
 const activities = ref<ActivityLogDto[]>([])
 const activitiesLoadError = ref('')
@@ -598,19 +603,23 @@ async function fetchRecommendations() {
 }
 
 async function loadDashboard() {
-	isLoading.value = true
+	// Skeletons only on a cold first load; a warm pantry cache renders instantly.
+	isLoading.value = !hasDashboardLoaded
 	loadError.value = ''
 	activitiesLoadError.value = ''
 
 	try {
-		const [userRes, pantryRes] = await Promise.all([
+		const [userRes] = await Promise.all([
 			apiFetch<{ success: boolean; user: UserDto }>('/api/users', { method: 'GET' }),
-			apiFetch<{ success: boolean; items: PantryItemDto[] }>('/api/pantry_item', { method: 'GET' }),
+			pantryList.refresh({ silent: true }),
 		])
 
 		userName.value = userRes.user.name
 		avatarBase64.value = userRes.user.avatar_base64
-		pantryItems.value = pantryRes.items
+		if (pantryList.loadError.value && pantryItems.value.length === 0) {
+			throw new Error(pantryList.loadError.value)
+		}
+		hasDashboardLoaded = true
 
 		await Promise.all([fetchRecommendations()])
 	} catch (err) {

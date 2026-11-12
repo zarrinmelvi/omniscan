@@ -77,6 +77,7 @@
 					<footer>
 						<span class="brand" style="font-size: 18px">OmniScan</span>
 						<span>Your everyday food companion.</span>
+						<a href="/help" class="footer-link" @click.prevent="router.push('/help')">Help and Support</a>
 					</footer>
 				</div>
 			</main>
@@ -129,9 +130,9 @@ function openDownloadModal() {
 
 /* Force dark background directly on ion-content element and web component part */
 html.ion-palette-dark .welcome-content {
-	--background: #09130e !important;
-	--color: #eef4ed !important;
-	background: #09130e !important;
+	--background: #0f172a !important;
+	--color: #f1f5f9 !important;
+	background: #0f172a !important;
 }
 
 .welcome-content::part(scroll) {
@@ -139,7 +140,7 @@ html.ion-palette-dark .welcome-content {
 }
 
 html.ion-palette-dark .welcome-content::part(scroll) {
-	background: #09130e !important;
+	background: #0f172a !important;
 }
 
 ion-button {
@@ -215,7 +216,7 @@ html.ion-palette-dark .theme ion-icon {
 }
 
 html.ion-palette-dark header {
-	background: rgba(9, 19, 14, 0.92) !important;
+	background: rgba(15, 23, 42, 0.92) !important;
 	backdrop-filter: blur(8px);
 }
 
@@ -285,11 +286,11 @@ html.ion-palette-dark ion-button.pill.download-app-btn {
 
 html.ion-palette-dark ion-button.pill.secondary {
 	background: transparent !important;
-	--background: #173723 !important;
-	--background-hover: #1e4a2e !important;
-	--background-activated: #1e4a2e !important;
-	--color: #75d786 !important;
-	color: #75d786 !important;
+	--background: #334155 !important;
+	--background-hover: #475569 !important;
+	--background-activated: #475569 !important;
+	--color: #f1f5f9 !important;
+	color: #f1f5f9 !important;
 }
 
 /* Hero Section */
@@ -324,7 +325,7 @@ html.ion-palette-dark .hero::before {
 }
 
 html.ion-palette-dark .hero::after {
-	background: linear-gradient(180deg, rgba(9, 19, 14, 0.7) 0%, rgba(9, 19, 14, 0.92) 60%, #09130e 100%) !important;
+	background: linear-gradient(180deg, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.92) 60%, #0f172a 100%) !important;
 }
 
 .eyebrow {
@@ -345,7 +346,7 @@ h1 {
 }
 
 html.ion-palette-dark h1 {
-	color: #eef4ed !important;
+	color: #f1f5f9 !important;
 }
 
 h2,
@@ -356,7 +357,7 @@ h3 {
 }
 
 html.ion-palette-dark h2, html.ion-palette-dark h3 {
-	color: #eef4ed !important;
+	color: #f1f5f9 !important;
 }
 
 h2 {
@@ -371,7 +372,7 @@ p {
 }
 
 html.ion-palette-dark p {
-	color: #b8c8bc !important;
+	color: #94a3b8 !important;
 }
 
 .hero p {
@@ -382,7 +383,7 @@ html.ion-palette-dark p {
 }
 
 html.ion-palette-dark .hero p {
-	color: #b8c8bc !important;
+	color: #94a3b8 !important;
 }
 
 /* Android Only Text */
@@ -403,7 +404,7 @@ html.ion-palette-dark .hero p {
 }
 
 html.ion-palette-dark .android-only {
-	color: #8ca899 !important;
+	color: #94a3b8 !important;
 }
 
 html.ion-palette-dark .android-only ion-icon {
@@ -436,8 +437,8 @@ html.ion-palette-dark .android-only ion-icon {
 }
 
 html.ion-palette-dark .dashboard {
-	background: #0d1f13 !important;
-	border: 1px solid #1a3322 !important;
+	background: #1e293b !important;
+	border: 1px solid #334155 !important;
 }
 
 .dashboard p {
@@ -468,8 +469,8 @@ html.ion-palette-dark .dashboard {
 }
 
 html.ion-palette-dark .card {
-	background: #0d1f13 !important;
-	border: 1px solid #1a3322 !important;
+	background: #1e293b !important;
+	border: 1px solid #334155 !important;
 }
 
 .card h3 {
@@ -484,7 +485,7 @@ html.ion-palette-dark .card {
 }
 
 html.ion-palette-dark .card p {
-	color: #b8c8bc !important;
+	color: #94a3b8 !important;
 }
 
 /* Mobile Preview Section */
@@ -529,7 +530,7 @@ html.ion-palette-dark .card p {
 }
 
 html.ion-palette-dark .diet p {
-	color: #b8c8bc !important;
+	color: #94a3b8 !important;
 }
 
 footer {
@@ -542,8 +543,40 @@ footer {
 }
 
 html.ion-palette-dark footer {
-	border-top-color: #1a3322 !important;
-	color: #8ca899 !important;
+	border-top-color: #334155 !important;
+	color: #94a3b8 !important;
+}
+
+.footer-link {
+	color: #627d6b;
+	text-decoration: none;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+	color: #1f7a3a;
+	text-decoration: underline;
+}
+
+.footer-link:focus-visible {
+	outline: 2px solid #1f7a3a;
+	outline-offset: 3px;
+	border-radius: 4px;
+}
+
+html.ion-palette-dark .footer-link {
+	color: #94a3b8;
+}
+
+html.ion-palette-dark .footer-link:hover,
+html.ion-palette-dark .footer-link:focus-visible {
+	color: #63cd77;
+}
+
+html.ion-palette-dark .footer-link:focus-visible {
+	outline-color: #63cd77;
 }
 
 /* Mobile Responsive */
@@ -597,6 +630,8 @@ html.ion-palette-dark footer {
 
 	footer {
 		flex-direction: column;
+		align-items: center;
+		text-align: center;
 		gap: 8px;
 	}
 }
@@ -621,9 +656,9 @@ ion-modal.download-modal {
 }
 
 html.ion-palette-dark .modal-dialog {
-	background: #0d1f13 !important;
-	border: 1px solid #1a3322 !important;
-	color: #eef4ed !important;
+	background: #1e293b !important;
+	border: 1px solid #334155 !important;
+	color: #f1f5f9 !important;
 }
 
 .modal-dialog .close {

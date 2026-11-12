@@ -220,6 +220,7 @@ model Product {
 	is_verified Boolean @default(false)
 	image_base64 String?
 	image_base64_back String?
+	image_thumb_base64 String?
 
 	halal_logo HalalLogo? @relation(fields: [halal_logo_id], references: [id])
 	halal_logo_id Int?

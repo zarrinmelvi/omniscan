@@ -22,12 +22,24 @@ export default defineEventHandler(async (event) => {
 		where,
 		include: {
 			product: {
-				select: { id: true, product_name: true, brand_name: true, image_base64: true },
+				select: { id: true, product_name: true, brand_name: true, image_thumb_base64: true },
 			},
 		},
 		orderBy: { expiration_date: 'asc' },
 		...(hasPagination ? { skip: (page - 1) * limit, take: limit } : {}),
 	})
+
+	// Legacy rows have a full image but no thumbnail yet. Find them with an
+	// id-only query so no image data is read; the client fetches the thumb lazily.
+	const missingThumbIds = new Set<number>()
+	const candidateIds = [...new Set(items.filter((i) => !i.product.image_thumb_base64).map((i) => i.product.id))]
+	if (candidateIds.length > 0) {
+		const legacy = await prisma.product.findMany({
+			where: { id: { in: candidateIds }, image_thumb_base64: null, image_base64: { not: null } },
+			select: { id: true },
+		})
+		for (const p of legacy) missingThumbIds.add(p.id)
+	}
 
 	const serializedItems = items.map((item) => ({
 		id: item.id,
@@ -42,7 +54,13 @@ export default defineEventHandler(async (event) => {
 		best_before_date: item.best_before_date ? item.best_before_date.toISOString() : null,
 		is_archived: item.is_archived,
 		updated_at: item.updated_at.toISOString(),
-		product: item.product,
+		product: {
+			id: item.product.id,
+			product_name: item.product.product_name,
+			brand_name: item.product.brand_name,
+			image_base64: item.product.image_thumb_base64 ?? null,
+			needs_image: missingThumbIds.has(item.product.id),
+		},
 	}))
 
 	const totalPages = hasPagination ? Math.max(1, Math.ceil(totalItems / limit)) : 1

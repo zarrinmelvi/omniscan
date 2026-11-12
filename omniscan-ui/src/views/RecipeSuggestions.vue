@@ -31,8 +31,8 @@
 
 			<div v-if="errorMessage" class="form-error">{{ errorMessage }}</div>
 
-			<div v-if="isLoading" class="loading-container">
-				<ion-spinner name="crescent" />
+			<div v-if="isLoading" class="cards-list skeleton-card-list">
+				<SkeletonCard v-for="n in 4" :key="n" variant="recipe" />
 			</div>
 
 			<!-- Dynamic Empty States -->
@@ -157,7 +157,6 @@ import {
 	IonContent,
 	IonChip,
 	IonIcon,
-	IonSpinner,
 	IonButton,
 	IonAlert,
 	IonModal,
@@ -167,6 +166,7 @@ import { restaurantOutline, closeOutline, heart, heartOutline, archiveOutline, c
 import { apiFetch, ApiError } from '@/utils/api'
 import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
 import AppHeader from '@/components/AppHeader.vue'
+import SkeletonCard from '@/components/SkeletonCard.vue'
 
 interface SuggestedRecipe {
 	id: number

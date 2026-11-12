@@ -153,6 +153,7 @@ export default defineEventHandler(async (event) => {
 						id: true,
 						brand_name: true,
 						product_name: true,
+						image_thumb_base64: true,
 					},
 				},
 			},
@@ -189,7 +190,13 @@ export default defineEventHandler(async (event) => {
 				best_before_date: updatedItem.best_before_date ? updatedItem.best_before_date.toISOString() : null,
 				is_archived: updatedItem.is_archived,
 				updated_at: updatedItem.updated_at.toISOString(),
-				product: updatedItem.product,
+				product: {
+					id: updatedItem.product.id,
+					brand_name: updatedItem.product.brand_name,
+					product_name: updatedItem.product.product_name,
+					// Thumbnail only, so the picture survives archive/restore without a heavy payload.
+					image_base64: updatedItem.product.image_thumb_base64 ?? null,
+				},
 			},
 		}
 	} catch (err: any) {

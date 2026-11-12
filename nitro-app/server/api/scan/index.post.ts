@@ -14,11 +14,16 @@ import { sendNewFlagNotification } from '../../utils/email'
 import { logAuditEvent } from '../../lib/audit-logger'
 import { cropLogo, type LogoBox } from '../../lib/logo-crop'
 import { normalizeFoodCategory } from '../../lib/food-category'
+import { makeThumbDataUri } from '../../lib/image-thumb'
 
 // A Halal logo that can't be identified is rejected for re-scan until this many
 // failed attempts (within the window) have been made; then it is flagged for admin review.
 const HALAL_MAX_ATTEMPTS = 3
 const HALAL_ATTEMPT_WINDOW_DAYS = 7
+
+// Upper bound for the allergen-matching AI call; on timeout the scan continues
+// with the deterministic (plain-text) allergen matches only.
+const SEMANTIC_ALLERGEN_TIMEOUT_MS = 8000
 
 // AI_OCR_CONFIDENCE_THRESHOLD is hardcoded per REQ-EPIC2 — must not be read from AdminSettings for backend enforcement
 const AI_OCR_CONFIDENCE_THRESHOLD = 0.90
@@ -368,6 +373,15 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
+	// The front packaging image is the 2nd upload only when the AI says so.
+	// Build its thumbnail and look up the canonical product while the other
+	// queries run; neither depends on the catalog fill below (brand/name are not modified).
+	const frontBuffer = hasBackImage && extraction.front_image_index === 1 ? imageBackField!.data : imageField.data
+	const thumbTask = makeThumbDataUri(frontBuffer)
+	const canonicalTask = findCanonicalProduct(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
+	// Avoid an unhandled rejection if we throw (422 etc.) before awaiting it.
+	canonicalTask.catch(() => {})
+
 	const [userWithAllergens, halalLogos, catalogProducts, adminSettings] = await Promise.all([
 		prisma.user.findUnique({
 			where: { id: authUser.id },
@@ -426,9 +440,15 @@ export default defineEventHandler(async (event) => {
 
 	const combinedIngredientText = `${extraction.ingredients_text} ${extraction.simplified_ingredients}`
 	const stringMatches = findMatchedUserAllergens(combinedIngredientText, userWithAllergens?.allergens ?? [])
+	// Only ask the AI about allergens the plain-text match did NOT already find.
+	// If every allergen is already matched, the AI call is skipped entirely, and
+	// otherwise it gets a shorter prompt. The AI call is also capped so a slow
+	// response falls back to the deterministic result instead of stalling the scan.
+	const stringMatchedIds = new Set(stringMatches.map((m) => m.id))
+	const unmatchedAllergens = (userWithAllergens?.allergens ?? []).filter((a) => !stringMatchedIds.has(a.id))
 	const semanticMatches = mockTextField?.data
 		? []
-		: await matchUserAllergensSemantically(combinedIngredientText, userWithAllergens?.allergens ?? [])
+		: await matchUserAllergensSemantically(combinedIngredientText, unmatchedAllergens, { timeoutMs: SEMANTIC_ALLERGEN_TIMEOUT_MS })
 
 	const matchedUserAllergens = mergeMatchedAllergens(stringMatches, semanticMatches)
 
@@ -503,7 +523,38 @@ export default defineEventHandler(async (event) => {
 		secondaryProductImage = imageDataUri
 	}
 
-	const canonicalMatch = await findCanonicalProduct(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
+	// Alternatives only depend on the user's dietary profile and the catalog match,
+	// not on the saved scan, so start them now and let them run alongside the
+	// database writes below. Awaited just before the response is built.
+	const halalPref = userWithAllergens?.dietary_prof?.[0]?.halal_pref ?? false
+	const alternativesTask: Promise<{
+		alternatives: Awaited<ReturnType<typeof findAlternativeProducts>>
+		alternativesMessage: string | null
+	}> = (async () => {
+		if (!catalogMatch?.variant_group) {
+			return { alternatives: [], alternativesMessage: 'No known alternatives for this product yet.' }
+		}
+		const dietaryProfile = {
+			allergens: userWithAllergens?.allergens ?? [],
+			halalPref,
+			customPreferences: userWithAllergens?.dietary_prof?.[0]?.custom_preferences ?? [],
+		}
+		const { disallowedIngredientNames } = await determineDisallowedCatalogIngredients(dietaryProfile)
+		const found = await findAlternativeProducts(disallowedIngredientNames, {
+			variantGroup: catalogMatch.variant_group,
+			excludeProductId: catalogMatch.id,
+			requireHalalCertified: halalPref,
+		})
+		return {
+			alternatives: found,
+			alternativesMessage: found.length === 0 ? 'No verified allergen-free alternatives found for this product group.' : null,
+		}
+	})().catch((err) => {
+		console.error('Alternatives lookup failed (non-blocking):', err)
+		return { alternatives: [], alternativesMessage: 'Alternatives are temporarily unavailable.' }
+	})
+
+	const [canonicalMatch, thumb] = await Promise.all([canonicalTask, thumbTask])
 
 	try {
 		const product = await prisma.product.create({
@@ -516,22 +567,35 @@ export default defineEventHandler(async (event) => {
 				simplified_ingredients: extraction.simplified_ingredients.trim() || canonicalMatch?.simplified_ingredients || extraction.simplified_ingredients,
 				image_base64: mainProductImage,
 				image_base64_back: secondaryProductImage ?? undefined,
+				image_thumb_base64: thumb,
 				is_verified: false,
 				...(matchedHalalLogo ? { halal_logo_id: matchedHalalLogo.id } : {}),
 				halal_unverified: halalUnverified,
 				canonical_key: canonicalKey,
 				...(canonicalMatch ? { canonical_product_id: canonicalMatch.id } : {}),
 			},
+			// Do not read the full-size images back from Postgres.
+			select: {
+				id: true,
+				brand_name: true,
+				product_name: true,
+				ingredient_text: true,
+				simplified_ingredients: true,
+				halal_logo_id: true,
+				halal_unverified: true,
+				canonical_product_id: true,
+			},
 		})
 
-		if (matchedHalalLogos.length > 0) {
-			await prisma.productHalalLogo.createMany({
-				data: matchedHalalLogos.map((logo) => ({ product_id: product.id, halal_logo_id: logo.id })),
-				skipDuplicates: true,
-			})
-		}
-
-		const scan = await prisma.scan.create({
+		// Independent writes: link rows and the scan record.
+		const [, scan] = await Promise.all([
+			matchedHalalLogos.length > 0
+				? prisma.productHalalLogo.createMany({
+					data: matchedHalalLogos.map((logo) => ({ product_id: product.id, halal_logo_id: logo.id })),
+					skipDuplicates: true,
+				})
+				: Promise.resolve(null),
+			prisma.scan.create({
 			data: {
 				image_url: `uploads/${imageField.filename}`,
 				image_url_back: hasBackImage ? `uploads/${imageBackField!.filename}` : undefined,
@@ -556,22 +620,15 @@ export default defineEventHandler(async (event) => {
 				user_id: authUser.id,
 				product_id: product.id,
 			},
-		})
-
-		await logAuditEvent({
-			event_type: 'SCAN',
-			entity: 'Scan',
-			entity_id: scan.id,
-			triggered_by_user_id: authUser.id,
-			summary: `User #${authUser.id} scanned ${product.product_name} (verdict: ${verdict})`,
-			metadata: { product_id: product.id, verdict, confidence: Number(scan.ai_confidence_score) },
-		})
+			}),
+		])
 
 		// Only log to Recent Activities if a valid product name was extracted (skip filename fallbacks)
 		const extractedName = extraction.product_name?.trim()
 		const isValidProductName = extractedName && extractedName.toLowerCase() !== imageField.filename.toLowerCase()
 
-		if (isValidProductName) {
+		const logRecentActivity = async () => {
+			if (!isValidProductName) return
 			const sixtySecondsAgo = new Date(Date.now() - 60 * 1000)
 			const recentScanLog = await prisma.activityLog.findFirst({
 				where: {
@@ -593,6 +650,19 @@ export default defineEventHandler(async (event) => {
 				})
 			}
 		}
+
+		// The audit entry and the activity log are independent, so write them together.
+		await Promise.all([
+			logAuditEvent({
+				event_type: 'SCAN',
+				entity: 'Scan',
+				entity_id: scan.id,
+				triggered_by_user_id: authUser.id,
+				summary: `User #${authUser.id} scanned ${product.product_name} (verdict: ${verdict})`,
+				metadata: { product_id: product.id, verdict, confidence: Number(scan.ai_confidence_score) },
+			}),
+			logRecentActivity(),
+		])
 
 		// Convert stored 0.0-1.0 score to 0-100 percentage for threshold comparison
 		const confidencePct = Math.round(Number(scan.ai_confidence_score) * 100)
@@ -627,7 +697,7 @@ export default defineEventHandler(async (event) => {
 				logoCrop = await cropLogo(source, logoBox.box)
 			}
 
-			await prisma.flaggedScan
+			const flaggedScanTask = prisma.flaggedScan
 				.create({
 					data: {
 						flag_reason: flagReasonParts.join(' | '),
@@ -645,13 +715,17 @@ export default defineEventHandler(async (event) => {
 					? `Scan of ${product.product_name} recorded: Red verdict`
 					: `Scan of ${product.product_name} recorded for audit`
 
-			await logAuditEvent({
-				event_type: 'FLAG',
-				entity: 'FlaggedScan',
-				triggered_by_user_id: authUser.id,
-				summary: flagSummary,
-				metadata: { scan_id: scan.id, flag_reason: flagReasonParts.join(' | ') },
-			})
+			// FlaggedScan record and FLAG audit event are independent: write together.
+			await Promise.all([
+				flaggedScanTask,
+				logAuditEvent({
+					event_type: 'FLAG',
+					entity: 'FlaggedScan',
+					triggered_by_user_id: authUser.id,
+					summary: flagSummary,
+					metadata: { scan_id: scan.id, flag_reason: flagReasonParts.join(' | ') },
+				}),
+			])
 
 			// Fire-and-forget admin notification (gated by the emailOnNewFlag
 			// setting inside sendNewFlagNotification). Non-blocking: the scan
@@ -665,31 +739,7 @@ export default defineEventHandler(async (event) => {
 
 		setResponseStatus(event, 201)
 
-		const halalPref = userWithAllergens?.dietary_prof?.[0]?.halal_pref ?? false
-		let alternatives: Awaited<ReturnType<typeof findAlternativeProducts>> = []
-		let alternativesMessage: string | null = null
-
-		if (catalogMatch?.variant_group) {
-			const dietaryProfile = {
-				allergens: userWithAllergens?.allergens ?? [],
-				halalPref,
-				customPreferences: userWithAllergens?.dietary_prof?.[0]?.custom_preferences ?? [],
-			}
-
-			const { disallowedIngredientNames } = await determineDisallowedCatalogIngredients(dietaryProfile)
-
-			alternatives = await findAlternativeProducts(disallowedIngredientNames, {
-				variantGroup: catalogMatch.variant_group,
-				excludeProductId: catalogMatch.id,
-				requireHalalCertified: halalPref,
-			})
-
-			if (alternatives.length === 0) {
-				alternativesMessage = 'No verified allergen-free alternatives found for this product group.'
-			}
-		} else {
-			alternativesMessage = 'No known alternatives for this product yet.'
-		}
+		const { alternatives, alternativesMessage } = await alternativesTask
 
 		return {
 			success: true,
@@ -704,8 +754,8 @@ export default defineEventHandler(async (event) => {
 					halal_unverified: product.halal_unverified,
 					canonical_product_id: product.canonical_product_id,
 					is_duplicate: product.canonical_product_id != null,
-					image_base64: product.image_base64,
-					image_base64_back: product.image_base64_back,
+					image_base64: thumb,
+					image_base64_back: null,
 					expiration_date_detected: extraction.expiration_date,
 					net_quantity_detected: extraction.net_quantity,
 					net_unit_detected: extraction.net_unit,

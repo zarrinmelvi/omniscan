@@ -64,11 +64,11 @@
 						Verification email sent! Check your inbox.
 					</div>
 
-					<form @submit.prevent="handleLogin">
+					<form novalidate @submit.prevent="handleLogin">
 						<div class="form-group">
-							<label class="input-label">Email Address</label>
+							<label class="input-label">Username or email</label>
 							<div class="custom-input-wrapper">
-								<input v-model="email" type="email" placeholder="your@email.com" required class="custom-input" :class="{ 'input-error': !!errorMessage }" />
+								<input v-model="email" type="text" placeholder="Username or email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required class="custom-input" :class="{ 'input-error': !!errorMessage }" />
 							</div>
 						</div>
 
@@ -261,6 +261,7 @@ const showPassword = ref(false)
 const isSubmitting = ref(false)
 const errorMessage = ref<string | null>(null)
 const requiresVerification = ref(false)
+const verificationEmail = ref<string | null>(null)
 const isResending = ref(false)
 const resendSuccess = ref(false)
 const cooldown = ref(0)
@@ -279,7 +280,8 @@ function startCooldown(seconds = 60) {
 }
 
 async function handleResend() {
-	if (!email.value || isResending.value || cooldown.value > 0) return
+	const resendEmail = verificationEmail.value ?? (email.value.includes('@') ? email.value.trim() : '')
+	if (!resendEmail || isResending.value || cooldown.value > 0) return
 
 	isResending.value = true
 	resendSuccess.value = false
@@ -287,7 +289,7 @@ async function handleResend() {
 	try {
 		await apiFetch('/api/auth/resend-verification', {
 			method: 'POST',
-			body: { email: email.value },
+			body: { email: resendEmail },
 			skipAuth: true,
 		})
 		resendSuccess.value = true
@@ -309,6 +311,7 @@ async function handleResend() {
 async function handleLogin(): Promise<void> {
 	errorMessage.value = null
 	requiresVerification.value = false
+	verificationEmail.value = null
 	resendSuccess.value = false
 	isSubmitting.value = true
 
@@ -318,6 +321,10 @@ async function handleLogin(): Promise<void> {
 	} catch (err) {
 		if (err instanceof ApiError && err.status === 403) {
 			requiresVerification.value = true
+			// ApiError.data is the full response body; the server's createError data is nested at body.data
+			const body = err.data as { email?: unknown; data?: { email?: unknown } | null } | null
+			const rawEmail = body?.data?.email ?? body?.email
+			verificationEmail.value = typeof rawEmail === 'string' ? rawEmail : null
 			errorMessage.value = 'Your email is not verified yet. Check your inbox or request a new link.'
 		} else {
 			errorMessage.value = err instanceof ApiError ? err.message : 'Login failed. Please try again.'
@@ -649,17 +656,17 @@ onUnmounted(() => {
 	flex-shrink: 0;
 }
 
-html.ion-palette-dark .auth-content { --background: #0b160b; }
-html.ion-palette-dark .auth-card { background: #0b160b; }
-html.ion-palette-dark .auth-title { color: #f9fafb; }
-html.ion-palette-dark .auth-subtitle { color: #9ca3af; }
-html.ion-palette-dark .input-label { color: #d1d5db; }
+html.ion-palette-dark .auth-content { --background: #0f172a; }
+html.ion-palette-dark .auth-card { background: #0f172a; }
+html.ion-palette-dark .auth-title { color: #f1f5f9; }
+html.ion-palette-dark .auth-subtitle { color: #94a3b8; }
+html.ion-palette-dark .input-label { color: #cbd5e1; }
 html.ion-palette-dark .custom-input {
-	background: #172617 !important;
-	background-color: #172617 !important;
-	border-color: #2d4a2d !important;
-	color: #f9fafb !important;
-	-webkit-text-fill-color: #f9fafb !important;
+	background: #1e293b !important;
+	background-color: #1e293b !important;
+	border-color: #334155 !important;
+	color: #f1f5f9 !important;
+	-webkit-text-fill-color: #f1f5f9 !important;
 }
 html.ion-palette-dark .custom-input::placeholder { color: #6b7280 !important; }
 html.ion-palette-dark .custom-input:focus { border-color: #05c450 !important; }
@@ -667,20 +674,20 @@ html.ion-palette-dark .custom-input.input-error { border-color: #ef4444 !importa
 html.ion-palette-dark .custom-input:-webkit-autofill,
 html.ion-palette-dark .custom-input:-webkit-autofill:hover,
 html.ion-palette-dark .custom-input:-webkit-autofill:focus {
-	-webkit-box-shadow: 0 0 0 1000px #172617 inset !important;
-	-webkit-text-fill-color: #f9fafb !important;
+	-webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
+	-webkit-text-fill-color: #f1f5f9 !important;
 }
-html.ion-palette-dark .custom-checkbox-box { background-color: #172617 !important; border-color: #2d4a2d !important; }
+html.ion-palette-dark .custom-checkbox-box { background-color: #1e293b !important; border-color: #334155 !important; }
 html.ion-palette-dark .custom-checkbox-input:checked ~ .custom-checkbox-box { background-color: #05c450 !important; border-color: #05c450 !important; }
 html.ion-palette-dark .banner-warning { background: #2a2208; border-color: #5c4a10; color: #fcd34d; }
-html.ion-palette-dark .google-btn { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
-html.ion-palette-dark .google-btn:hover { background: #1e3a24; border-color: #3a5f3a; }
-html.ion-palette-dark .back-to-home { color: #9ca3af; }
-html.ion-palette-dark .switch-auth { color: #9ca3af; }
-html.ion-palette-dark .password-toggle { color: #9ca3af; }
-html.ion-palette-dark .remember-label { color: #d1d5db !important; }
+html.ion-palette-dark .google-btn { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+html.ion-palette-dark .google-btn:hover { background: #334155; border-color: #475569; }
+html.ion-palette-dark .back-to-home { color: #94a3b8; }
+html.ion-palette-dark .switch-auth { color: #94a3b8; }
+html.ion-palette-dark .password-toggle { color: #94a3b8; }
+html.ion-palette-dark .remember-label { color: #cbd5e1 !important; }
 html.ion-palette-dark .oauth-divider { color: #6b7280; }
-html.ion-palette-dark .oauth-divider::before, html.ion-palette-dark .oauth-divider::after { border-bottom-color: #2d4a2d; }
+html.ion-palette-dark .oauth-divider::before, html.ion-palette-dark .oauth-divider::after { border-bottom-color: #334155; }
 
 @media (min-width: 768px) {
 	.auth-layout {

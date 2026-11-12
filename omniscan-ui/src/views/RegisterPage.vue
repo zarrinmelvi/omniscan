@@ -71,12 +71,6 @@
 									<input v-model="lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" :class="{ 'input-error': fieldErrors.lastName }" @input="clearFieldError('lastName')" />
 								</div>
 							</div>
-							<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
-								{{ showMiddleName ? '- Remove middle name' : '+ Add middle name (optional)' }}
-							</button>
-							<div v-if="showMiddleName" class="form-group">
-								<input v-model="middleName" type="text" placeholder="Middle name" maxlength="21" class="custom-input" />
-							</div>
 
 							<div class="form-group">
 								<label class="input-label">Username</label>
@@ -681,7 +675,6 @@ watch(
 )
 
 const firstName = ref('')
-const middleName = ref('')
 const lastName = ref('')
 const username = ref('')
 const email = ref('')
@@ -692,7 +685,6 @@ const birthday = ref('')
 const isGooglePending = ref(false)
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
-const showMiddleName = ref(false)
 const isSubmitting = ref(false)
 const isTermsOpen = ref(false)
 const errorMessage = ref<string | null>(null)
@@ -1093,7 +1085,7 @@ async function submitPasswordRegistration(): Promise<void> {
 	isSubmitting.value = true
 	try {
 		const response = await authStore.register(
-			[firstName.value.trim(), middleName.value.trim()].filter(Boolean).join(' '),
+			firstName.value.trim(),
 			lastName.value.trim(),
 			username.value.trim(),
 			email.value,
@@ -1149,7 +1141,6 @@ async function handleGoogleSignUpCancellation(): Promise<void> {
 
 		// Clear all form fields
 		firstName.value = ''
-		middleName.value = ''
 		lastName.value = ''
 		username.value = ''
 		email.value = ''
@@ -1512,7 +1503,6 @@ onUnmounted(() => {
 }
 
 .name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0; }
-.add-middle-link { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #05c450; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0; margin: 4px 0 14px; }
 
 .pass-criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-top: 10px; padding: 12px 14px; background: #f9fafb; border-radius: 10px; margin-bottom: 14px; }
 .criteria-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #9ca3af; }
@@ -1821,22 +1811,22 @@ onUnmounted(() => {
 	text-transform: none;
 }
 
-html.ion-palette-dark .auth-content { --background: #0b160b; }
-html.ion-palette-dark .auth-card { background: #0b160b; }
-html.ion-palette-dark .auth-title { color: #f9fafb; }
-html.ion-palette-dark .auth-subtitle { color: #9ca3af; }
-html.ion-palette-dark .input-label { color: #d1d5db; }
+html.ion-palette-dark .auth-content { --background: #0f172a; }
+html.ion-palette-dark .auth-card { background: #0f172a; }
+html.ion-palette-dark .auth-title { color: #f1f5f9; }
+html.ion-palette-dark .auth-subtitle { color: #94a3b8; }
+html.ion-palette-dark .input-label { color: #cbd5e1; }
 html.ion-palette-dark .custom-input {
-	background: #172617 !important;
-	background-color: #172617 !important;
-	border-color: #2d4a2d !important;
-	color: #f9fafb !important;
-	-webkit-text-fill-color: #f9fafb !important;
+	background: #1e293b !important;
+	background-color: #1e293b !important;
+	border-color: #334155 !important;
+	color: #f1f5f9 !important;
+	-webkit-text-fill-color: #f1f5f9 !important;
 }
 html.ion-palette-dark .custom-input::placeholder { color: #6b7280 !important; }
 html.ion-palette-dark .username-feedback--checking {
-	background: #1f2937;
-	color: #9ca3af;
+	background: #1e293b;
+	color: #94a3b8;
 }
 html.ion-palette-dark .username-feedback--success {
 	background: #14532d;
@@ -1848,50 +1838,50 @@ html.ion-palette-dark .username-feedback--error {
 	color: #fca5a5;
 	border-color: #7f1d1d;
 }
-html.ion-palette-dark .pass-criteria-grid { background: #172617; }
+html.ion-palette-dark .pass-criteria-grid { background: #1e293b; }
 html.ion-palette-dark .criteria-item { color: #6b7280; }
-html.ion-palette-dark .allergen-chip { border-color: #2d4a2d; color: #d1d5db; }
+html.ion-palette-dark .allergen-chip { border-color: #334155; color: #cbd5e1; }
 html.ion-palette-dark .allergen-chip--selected { background: #15803d; border-color: #15803d; color: #fff; }
-html.ion-palette-dark .halal-toggle-card { background: #172617; border-color: #2d4a2d; }
-html.ion-palette-dark .halal-toggle-label { color: #f9fafb; }
-html.ion-palette-dark .halal-toggle-sub { color: #9ca3af; }
-html.ion-palette-dark .back-to-home { color: #9ca3af; }
-html.ion-palette-dark .remember-label { color: #d1d5db !important; }
+html.ion-palette-dark .halal-toggle-card { background: #1e293b; border-color: #334155; }
+html.ion-palette-dark .halal-toggle-label { color: #f1f5f9; }
+html.ion-palette-dark .halal-toggle-sub { color: #94a3b8; }
+html.ion-palette-dark .back-to-home { color: #94a3b8; }
+html.ion-palette-dark .remember-label { color: #cbd5e1 !important; }
 html.ion-palette-dark .custom-input:focus { border-color: #05c450 !important; }
 html.ion-palette-dark .custom-input.input-error { border-color: #ef4444 !important; }
 html.ion-palette-dark .custom-input:-webkit-autofill,
 html.ion-palette-dark .custom-input:-webkit-autofill:hover,
 html.ion-palette-dark .custom-input:-webkit-autofill:focus {
--webkit-box-shadow: 0 0 0 1000px #172617 inset !important;
--webkit-text-fill-color: #f9fafb !important;
+-webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
+-webkit-text-fill-color: #f1f5f9 !important;
 }
-html.ion-palette-dark .custom-checkbox-box { background-color: #172617 !important; border-color: #2d4a2d !important; }
+html.ion-palette-dark .custom-checkbox-box { background-color: #1e293b !important; border-color: #334155 !important; }
 html.ion-palette-dark .custom-checkbox-input:checked ~ .custom-checkbox-box { background-color: #05c450 !important; border-color: #05c450 !important; }
-html.ion-palette-dark .google-btn { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
-html.ion-palette-dark .google-btn:hover { background: #1e3a24; border-color: #3a5f3a; }
+html.ion-palette-dark .google-btn { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+html.ion-palette-dark .google-btn:hover { background: #334155; border-color: #475569; }
 html.ion-palette-dark .oauth-divider { color: #6b7280; }
-html.ion-palette-dark .oauth-divider::before, html.ion-palette-dark .oauth-divider::after { border-bottom-color: #2d4a2d; }
-html.ion-palette-dark .switch-auth { color: #9ca3af; }
-html.ion-palette-dark .password-toggle { color: #9ca3af; }
-html.ion-palette-dark .step-label { color: #9ca3af; }
-html.ion-palette-dark .progress-segment { background: #2d4a2d; }
+html.ion-palette-dark .oauth-divider::before, html.ion-palette-dark .oauth-divider::after { border-bottom-color: #334155; }
+html.ion-palette-dark .switch-auth { color: #94a3b8; }
+html.ion-palette-dark .password-toggle { color: #94a3b8; }
+html.ion-palette-dark .step-label { color: #94a3b8; }
+html.ion-palette-dark .progress-segment { background: #334155; }
 html.ion-palette-dark .progress-segment--filled { background: #05c450; }
 html.ion-palette-dark .criteria-item.valid { color: #4ade80; }
-html.ion-palette-dark .allergen-count-text { color: #d1d5db; }
-html.ion-palette-dark .allergen-dot { background: #2d4a2d; }
+html.ion-palette-dark .allergen-count-text { color: #cbd5e1; }
+html.ion-palette-dark .allergen-dot { background: #334155; }
 html.ion-palette-dark .allergen-dot--filled { background: #4ade80; }
-html.ion-palette-dark .back-button { color: #f9fafb !important; }
-html.ion-palette-dark .terms-sheet-modal { --background: #0d1f13; }
-html.ion-palette-dark .terms-modal-header { background: #0d1f13 !important; border-bottom-color: #1a3322 !important; }
-html.ion-palette-dark .terms-modal-title { color: #eef4ed !important; }
-html.ion-palette-dark .terms-modal-content { --background: #0d1f13; --color: #eef4ed; }
-html.ion-palette-dark .terms-modal-body { background: #0d1f13 !important; color: #b8c8bc !important; }
-html.ion-palette-dark .terms-modal-body h4 { color: #eef4ed !important; }
-html.ion-palette-dark .terms-modal-body p, html.ion-palette-dark .terms-modal-body li { color: #b8c8bc !important; }
-html.ion-palette-dark .terms-updated, html.ion-palette-dark .terms-footer-meta p { color: #b8c8bc !important; }
-html.ion-palette-dark .terms-footer-meta { border-top-color: #1a3322 !important; }
-html.ion-palette-dark .terms-modal-footer { background: #0d1f13 !important; border-top-color: #1a3322 !important; }
-html.ion-palette-dark .terms-disagree-btn { --border-color: #1a3322; --color: #eef4ed !important; }
+html.ion-palette-dark .back-button { color: #f1f5f9 !important; }
+html.ion-palette-dark .terms-sheet-modal { --background: #0f172a; }
+html.ion-palette-dark .terms-modal-header { background: #0f172a !important; border-bottom-color: #334155 !important; }
+html.ion-palette-dark .terms-modal-title { color: #f1f5f9 !important; }
+html.ion-palette-dark .terms-modal-content { --background: #0f172a; --color: #f1f5f9; }
+html.ion-palette-dark .terms-modal-body { background: #0f172a !important; color: #94a3b8 !important; }
+html.ion-palette-dark .terms-modal-body h4 { color: #f1f5f9 !important; }
+html.ion-palette-dark .terms-modal-body p, html.ion-palette-dark .terms-modal-body li { color: #94a3b8 !important; }
+html.ion-palette-dark .terms-updated, html.ion-palette-dark .terms-footer-meta p { color: #94a3b8 !important; }
+html.ion-palette-dark .terms-footer-meta { border-top-color: #334155 !important; }
+html.ion-palette-dark .terms-modal-footer { background: #0f172a !important; border-top-color: #334155 !important; }
+html.ion-palette-dark .terms-disagree-btn { --border-color: #334155; --color: #f1f5f9 !important; }
 
 @media (min-width: 768px) {
 	.auth-layout {
@@ -2014,13 +2004,13 @@ html.ion-palette-dark .terms-disagree-btn { --border-color: #1a3322; --color: #e
 
 html.ion-palette-dark .custom-select,
 html.ion-palette-dark .app-date-picker.custom-input {
-	color: #f9fafb;
+	color: #f1f5f9;
 }
 
 html.ion-palette-dark .custom-select {
-	background-color: #1f2937;
-	color: #e5e7eb;
-	border-color: #374151;
+	background-color: #1e293b;
+	color: #f1f5f9;
+	border-color: #334155;
 }
 
 html.ion-palette-dark .google-password-message {

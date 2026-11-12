@@ -74,7 +74,8 @@ export const useAuthStore = defineStore('auth', {
 
 			const response = await apiFetch<LoginResponse>('/api/auth/login', {
 				method: 'POST',
-				body: { email, password },
+				// `email` parameter now carries either a username or an email address
+				body: { identifier: email, password },
 				skipAuth: true,
 			})
 

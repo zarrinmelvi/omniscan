@@ -136,12 +136,12 @@
 					<span class="field-hint">How many pieces do you have?</span>
 					<input type="number" min="1" max="99" class="pieces-input" v-model.number="piecesCount" :disabled="submitting" required />
 
-					<label class="field-label">Category</label>
+					<label class="field-label field-label--strong">Category</label>
 					<select class="category-select" v-model="category" :disabled="submitting">
 						<option v-for="opt in categoryOptions" :key="opt" :value="opt">{{ opt }}</option>
 					</select>
 
-					<label class="field-label">Storage Location</label>
+					<label class="field-label field-label--strong">Storage Location</label>
 					<div class="storage-row">
 						<button
 							v-for="loc in storageOptions"
@@ -223,6 +223,9 @@ import { apiFetch, ApiError } from '@/utils/api'
 import AppDatePicker from '@/components/AppDatePicker.vue'
 import { PANTRY_MAX, PAST_DATE_MESSAGE, isBeforeToday, todayLocalISO, toISODate } from '@/utils/dateUtils'
 import { showErrorToast, showSuccessToast } from '@/utils/toast'
+import { usePantryList } from '@/composables/usePantryList'
+
+const { invalidate: invalidatePantryList } = usePantryList()
 
 async function showQuotaModal(message: string): Promise<void> {
 	const alert = await alertController.create({
@@ -562,6 +565,8 @@ async function submitAddToPantry() {
 				saved_alternatives: displayAlternatives.value,
 			},
 		})
+		// The pantry cache is now outdated; the next Pantry/Home visit refreshes it silently.
+		invalidatePantryList()
 
 		// Success feedback right after the API succeeds and before the modal closes.
 		try {
@@ -1345,5 +1350,70 @@ html.ion-palette-dark .date-past-error {
 .alt-chip--halal {
 	background: #dcfce7;
 	color: #15803d;
+}
+
+/* Dark mode contrast (Group F). Additive only. */
+html.ion-palette-dark .alt-row__name {
+	color: #f1f5f9;
+}
+
+html.ion-palette-dark .alt-row__descriptor {
+	color: #cbd5e1;
+}
+
+html.ion-palette-dark .alt-row {
+	border-bottom-color: #334155;
+}
+
+html.ion-palette-dark .category-select {
+	background-color: #1e293b !important;
+	color: #f1f5f9 !important;
+	-webkit-text-fill-color: #f1f5f9;
+	border-color: #334155 !important;
+	color-scheme: dark;
+}
+
+html.ion-palette-dark .category-select option {
+	background-color: #1e293b;
+	color: #f1f5f9;
+}
+
+html.ion-palette-dark .field-label.field-label--strong {
+	color: #e2e8f0 !important;
+}
+
+/* Show/Hide Alternatives button in dark mode. iOS Safari keeps :hover after a
+   tap, and the scoped light :hover rule out-ranks the global dark rule, which
+   left a white box with invisible light text. Cover every state. */
+html.ion-palette-dark .show-alternatives-btn,
+html.ion-palette-dark .show-alternatives-btn:hover,
+html.ion-palette-dark .show-alternatives-btn:active,
+html.ion-palette-dark .show-alternatives-btn:focus {
+	-webkit-appearance: none;
+	appearance: none;
+	background: #334155;
+	border-color: #475569;
+	color: #f1f5f9;
+	-webkit-text-fill-color: #f1f5f9;
+}
+
+html.ion-palette-dark .show-alternatives-btn ion-icon {
+	color: #f1f5f9;
+}
+
+html.ion-palette-dark .alternatives-spinner {
+	color: #94a3b8;
+}
+</style>
+
+<!-- Not scoped: ion-alert renders its header/message as inner elements that
+     scoped selectors cannot reach. Limited to this component's alert class. -->
+<style>
+html.ion-palette-dark ion-alert.non-product-alert .alert-title {
+	color: #f1f5f9 !important;
+}
+
+html.ion-palette-dark ion-alert.non-product-alert .alert-message {
+	color: #cbd5e1 !important;
 }
 </style>

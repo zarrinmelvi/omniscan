@@ -7,6 +7,8 @@ import { logAuditEvent } from '../../lib/audit-logger'
 
 const JWT_SECRET = process.env.JWT_SECRET
 const TOKEN_EXPIRY = '7d'
+// bcrypt cost 10 (matches registration SALT_ROUNDS) hash of a throwaway string, used to equalise timing
+const DUMMY_HASH = '$2b$10$nvVqWleMjAwJXXLfCI3vgue127S2dM6br32e06geAsc57skb9T89e'
 
 export default defineEventHandler(async (event) => {
 	if (!JWT_SECRET) {
@@ -20,36 +22,45 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid request body.' })
 	}
 
-	const { email, password } = body as { email?: string; password?: string }
+	const { identifier, email, password } = body as { identifier?: unknown; email?: unknown; password?: unknown }
 
-	if (!email || typeof email !== 'string') {
-		throw createError({ statusCode: 400, statusMessage: 'Email is required.' })
+	// identifier wins over email; a present non-string identifier is invalid (no fallback)
+	const raw = identifier ?? email
+	if (typeof raw !== 'string' || raw.trim() === '') {
+		throw createError({ statusCode: 400, statusMessage: 'Username or email is required.' })
 	}
 	if (!password || typeof password !== 'string') {
 		throw createError({ statusCode: 400, statusMessage: 'Password is required.' })
 	}
+	const id = raw.trim()
 
 	try {
-		const user = await prisma.user.findUnique({
-			where: { email },
-			select: {
-				id: true,
-				name: true,
-				email: true,
-				password: true,
-				email_verified: true,
-				avatar_base64: true,
-			},
-		})
-
-		if (!user) {
-			throw createError({ statusCode: 401, statusMessage: 'Invalid email or password.' })
+		const select = {
+			id: true,
+			name: true,
+			email: true,
+			password: true,
+			email_verified: true,
+			avatar_base64: true,
 		}
 
-		const isPasswordValid = await bcrypt.compare(password, user.password)
+		let user: any = null
+		if (id.includes('@')) {
+			user = await prisma.user.findUnique({ where: { email: id }, select })
+		} else {
+			const rows = await prisma.user.findMany({
+				where: { username: { equals: id, mode: 'insensitive' } },
+				select: { ...select, username: true },
+				take: 5,
+			})
+			user = rows.find((r: any) => r.username === id) ?? (rows.length === 1 ? rows[0] : null)
+		}
 
-		if (!isPasswordValid) {
-			throw createError({ statusCode: 401, statusMessage: 'Invalid email or password.' })
+		// Always run a compare so timing does not reveal whether the account exists
+		const isPasswordValid = await bcrypt.compare(password, user?.password ?? DUMMY_HASH)
+
+		if (!user || !user.password || !isPasswordValid) {
+			throw createError({ statusCode: 401, statusMessage: 'Invalid username/email or password.' })
 		}
 
 		// Block login until email is verified (REQ-002)

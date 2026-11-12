@@ -10,7 +10,8 @@ const config: CapacitorConfig = {
     allowNavigation: [
       'omniscan.website',
       '*.omniscan.website',
-      'accounts.google.com'
+      'accounts.google.com',
+      'omniscan-ten.vercel.app'
     ]
   },
   plugins: {

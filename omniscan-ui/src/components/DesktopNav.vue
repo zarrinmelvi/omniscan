@@ -80,7 +80,13 @@ async function confirmLogout(): Promise<void> {
 	} catch {
 		/* ignore */
 	}
-	window.location.href = 'https://omniscan.website'
+	// On native, stay within the WebView to preserve the native bridge.
+	const { Capacitor } = await import('@capacitor/core')
+	if (Capacitor.isNativePlatform()) {
+		router.replace('/')
+	} else {
+		window.location.href = 'https://omniscan.website'
+	}
 }
 
 function goToProfile(): void {

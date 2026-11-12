@@ -128,7 +128,7 @@ export const useAuthStore = defineStore('auth', {
 			return response
 		},
 
-		async loginWithOAuthToken(token: string): Promise<void> {
+		async loginWithOAuthToken(token: string, skipCheck = false): Promise<void> {
 			// Clear any admin session (cross-session isolation, same as password login)
 			sessionStorage.removeItem('omniscan_admin_token')
 			sessionStorage.removeItem('omniscan_admin')
@@ -139,8 +139,14 @@ export const useAuthStore = defineStore('auth', {
 
 			localStorage.setItem('omniscan_token', token)
 			this.token = token
-			// Hydrate the user from /api/auth/me
-			await this.checkAuth()
+
+			// skipCheck=true on native: skip the /api/auth/me call here because
+			// on Android the WebView fetch can fail and checkAuth clears the token.
+			// The router guard will call checkAuth() on the next navigation instead,
+			// by which point the native HTTP layer is fully ready.
+			if (!skipCheck) {
+				await this.checkAuth()
+			}
 		},
 
 		logout(): void {

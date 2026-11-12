@@ -904,7 +904,14 @@ async function handleLogout() {
 					} catch {
 						/* ignore */
 					}
-					window.location.href = 'https://omniscan.website'
+					// On native, stay within the WebView — navigating to omniscan.website
+					// destroys the native bridge and breaks Google Sign-In on next attempt.
+					const { Capacitor } = await import('@capacitor/core')
+					if (Capacitor.isNativePlatform()) {
+						router.replace('/')
+					} else {
+						window.location.href = 'https://omniscan.website'
+					}
 				},
 			},
 		],

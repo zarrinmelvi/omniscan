@@ -155,8 +155,17 @@ async function showToast(message: string, color: 'success' | 'danger' | 'warning
 	await toast.present()
 }
 
-function goToLandingPage(): void {
-	window.location.href = 'https://omniscan.website'
+async function goToLandingPage(): Promise<void> {
+	// Clear any pending Google sign-up data so stale prefill info doesn't
+	// carry over if the user starts a new Google flow after going back.
+	authStore.clearPendingGoogleData()
+	// On native, stay within the WebView to preserve the native bridge.
+	const { Capacitor } = await import('@capacitor/core')
+	if (Capacitor.isNativePlatform()) {
+		router.replace('/')
+	} else {
+		window.location.href = 'https://omniscan.website'
+	}
 }
 
 async function handleGoogleSignIn(): Promise<void> {
@@ -166,17 +175,21 @@ async function handleGoogleSignIn(): Promise<void> {
 	if (isNative) {
 		isGoogleSubmitting.value = true
 		try {
+			console.log('[GoogleSignIn] STEP 1: initializing plugin')
 			await GoogleSignIn.initialize({
 				clientId: '394571296954-2nkqagdbfjujgdei1aoiq78fg3p9i7nv.apps.googleusercontent.com',
 			})
+			console.log('[GoogleSignIn] STEP 2: plugin initialized, calling signIn()')
 
 			const result = await GoogleSignIn.signIn()
+			console.log('[GoogleSignIn] STEP 3: signIn() returned, idToken present:', !!result.idToken)
 			const idToken = result.idToken
 
 			if (!idToken) {
 				throw new Error('No ID Token returned from Google Sign-In')
 			}
 
+			console.log('[GoogleSignIn] STEP 4: calling /api/auth/google/verify')
 			const verifyResponse = await apiFetch<{
 				success: boolean
 				requiresRegistration: boolean
@@ -187,10 +200,14 @@ async function handleGoogleSignIn(): Promise<void> {
 				body: { idToken },
 				skipAuth: true,
 			})
+			console.log('[GoogleSignIn] STEP 5: verify response:', JSON.stringify({
+				requiresRegistration: verifyResponse.requiresRegistration,
+				hasToken: !!verifyResponse.token,
+				hasPendingToken: !!verifyResponse.pendingToken,
+			}))
 
 			if (verifyResponse.requiresRegistration && verifyResponse.pendingToken) {
-				// New account — decode the pending token and hand off to
-				// RegisterPage with the form pre-filled.
+				console.log('[GoogleSignIn] STEP 6a: new account — routing to /register')
 				const raw = verifyResponse.pendingToken
 				const parts = raw.split('.')
 				const payloadJson = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
@@ -205,21 +222,28 @@ async function handleGoogleSignIn(): Promise<void> {
 					pendingToken: raw,
 				})
 
-				// Navigate to RegisterPage — the pending data in the store
-				// will pre-fill the form exactly as if they started from there.
 				router.push('/register')
 			} else if (verifyResponse.token) {
-				// Existing account — save the token to localStorage first,
-				// then do a full location replace so the app boots fresh with
-				// the token already present. router.push races against the
-				// async checkAuth() call and can land on WelcomePage.
-				await authStore.loginWithOAuthToken(verifyResponse.token)
-				window.location.replace('/tabs/home')
+				// Pass skipCheck=true so checkAuth() is NOT called here on native.
+				// checkAuth fires a network request that can fail before the native
+				// HTTP layer is ready, which wipes the token from localStorage.
+				// The router guard will call checkAuth() after the page reloads.
+				await authStore.loginWithOAuthToken(verifyResponse.token, true)
+				console.log('[GoogleSignIn] STEP 7: token saved, isAuthenticated:', authStore.isAuthenticated)
+				console.log('[GoogleSignIn] STEP 8: token in localStorage:', !!localStorage.getItem('omniscan_token'))
+				const tokenSaved = !!localStorage.getItem('omniscan_token')
+				if (tokenSaved) {
+					console.log('[GoogleSignIn] STEP 9: token confirmed in localStorage, navigating to /tabs/home')
+					window.location.replace('/tabs/home')
+				} else {
+					console.error('[GoogleSignIn] STEP 9 ABORT: token not in localStorage, cannot navigate')
+					void showToast('Sign-in failed. Please try again.', 'danger')
+				}
 			} else {
 				throw new Error('Unexpected response from Google verification.')
 			}
 		} catch (error: any) {
-			console.error('Native Google Sign-In failed:', error)
+			console.error('[GoogleSignIn] FAILED at some step:', error?.message, error)
 			const errMsg = error?.message || 'Google sign-in failed. Please try again.'
 			void showToast(errMsg, 'danger')
 		} finally {

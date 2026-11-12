@@ -67,12 +67,17 @@ onMounted(async () => {
 		await StatusBar.setOverlaysWebView({ overlay: true })
 		await updateStatusBar(isDark.value)
 
-		// Listen for deep link redirects back to the app (OAuth / custom scheme callbacks)
+		// Listen for deep link redirects back to the app (OAuth / custom scheme callbacks).
+		// Only handle actual deep links that target the app's custom scheme or a known
+		// callback path. Do NOT trigger on omniscan.website URLs — those are web OAuth
+		// redirects that the native Google Sign-In plugin handles internally. Reacting
+		// to them here would reload the app from the live website and lose the native session.
 		await App.addListener('appUrlOpen', (event) => {
-			console.log('App opened with URL:', event.url)
+			console.log('[appUrlOpen] URL received:', event.url)
 
-			// Handle redirect back from Google OAuth or omniscan.website domain
-			if (event.url.includes('google-auth-callback') || event.url.includes('omniscan.website')) {
+			// Only handle the web OAuth callback path — not generic omniscan.website URLs.
+			if (event.url.includes('google-auth-callback')) {
+				console.log('[appUrlOpen] Google auth callback detected, routing to /tabs/home')
 				router.push('/tabs/home')
 			}
 		})

@@ -650,11 +650,10 @@ async function handleGoogleSignIn(): Promise<void> {
 				username.value = suggestedUsername
 
 				await checkUsernameAvailability(suggestedUsername)
-				await showToast('Please complete your registration', 'success')
 			} else if (verifyResponse.token) {
-				// Existing user — save token then do a clean reload so the
-				// router guard reads the token from localStorage on startup.
-				await authStore.loginWithOAuthToken(verifyResponse.token)
+				// skipCheck=true: don't call checkAuth here — it can fail on native
+				// before the HTTP layer is ready and wipe the token.
+				await authStore.loginWithOAuthToken(verifyResponse.token, true)
 				window.location.replace('/tabs/home')
 			}
 		} catch (error: any) {
@@ -903,11 +902,33 @@ function formatAllergenName(name: string): string {
 	return name.replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
-function handleBack(): void {
-	window.location.href = 'https://omniscan.website'
+async function handleBack(): Promise<void> {
+	// Clear any pending Google sign-up data so it doesn't pre-fill the form
+	// if the user starts a new Google sign-up flow after going back.
+	authStore.clearPendingGoogleData()
+	// Also clear the local form refs so the fields are visually empty
+	// when the user returns to this page.
+	firstName.value = ''
+	lastName.value = ''
+	email.value = ''
+	username.value = ''
+	isGooglePending.value = false
+	// On native, stay within the WebView to preserve the native bridge.
+	const { Capacitor } = await import('@capacitor/core')
+	if (Capacitor.isNativePlatform()) {
+		router.replace('/')
+	} else {
+		window.location.href = 'https://omniscan.website'
+	}
 }
 
 async function redirectIfAlreadyAuthenticated(): Promise<boolean> {
+	// If there is pending Google data in the store, the user just came back
+	// from the Google account picker — do NOT call checkAuth() here. Calling
+	// checkAuth fires GET /api/auth/me with no valid session, gets a 401, and
+	// handleUnauthorized navigates away, losing the pending registration data.
+	if (authStore.pendingGoogleData) return false
+
 	await authStore.checkAuth()
 	if (authStore.isAuthenticated) {
 		step.value = 2
@@ -1109,11 +1130,11 @@ async function submitPasswordRegistration(): Promise<void> {
 }
 
 function disagreeTerms(): void {
+	// Just close the T&C modal. Do NOT clear the form or sign out — the user
+	// disagreed with the T&C but may still want to review their info or try
+	// again. Fields are only cleared when they explicitly go back to the
+	// Welcome page via the back button (handleBack).
 	isTermsOpen.value = false
-	
-	if (isGooglePending.value) {
-		handleGoogleSignUpCancellation()
-	}
 }
 
 async function handleGoogleSignUpCancellation(): Promise<void> {
@@ -1212,7 +1233,11 @@ async function completeSetup(): Promise<void> {
 }
 
 function onWindowFocus(): void {
-	if (step.value === 1) {
+	// Do not trigger checkAuth when the window regains focus if there is pending
+	// Google data — the Google account picker returning to the app fires this,
+	// which would call checkAuth, 401, and navigate away before the sign-in
+	// flow completes.
+	if (step.value === 1 && !authStore.pendingGoogleData) {
 		redirectIfAlreadyAuthenticated()
 	}
 }

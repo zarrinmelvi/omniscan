@@ -165,6 +165,17 @@ export async function handleUnauthorized(isAdmin?: boolean): Promise<void> {
 
 	if (sessionReplacedNotice.consumer) return
 
+	// On native (Android APK), use router navigation instead of a hard redirect
+	// to omniscan.website. A hard redirect on native loads the live website into
+	// the WebView, losing the native bridge and breaking subsequent Google Sign-In.
+	const { Capacitor } = await import('@capacitor/core')
+	if (Capacitor.isNativePlatform()) {
+		if (router.currentRoute.value.name !== 'welcome') {
+			router.replace({ path: '/' })
+		}
+		return
+	}
+
 	if (router.currentRoute.value.name !== 'welcome') {
 		window.location.href = 'https://omniscan.website'
 	}

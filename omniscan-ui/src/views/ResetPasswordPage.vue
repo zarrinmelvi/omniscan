@@ -24,6 +24,8 @@
 									v-model="password"
 									:type="showPassword ? 'text' : 'password'"
 									placeholder="Enter new password"
+									minlength="10"
+									maxlength="30"
 									required
 									class="custom-input" />
 								<ion-icon
@@ -37,7 +39,7 @@
 						<div class="password-checklist">
 							<div class="check-item" :class="{ valid: passCriteria.length }">
 								<ion-icon :icon="passCriteria.length ? checkmarkCircle : closeCircle" />
-								<span>At least 8 characters</span>
+								<span>10–30 characters</span>
 							</div>
 							<div class="check-item" :class="{ valid: passCriteria.upper }">
 								<ion-icon :icon="passCriteria.upper ? checkmarkCircle : closeCircle" />
@@ -64,6 +66,8 @@
 									v-model="confirmPassword"
 									:type="showConfirmPassword ? 'text' : 'password'"
 									placeholder="Re-enter new password"
+									minlength="10"
+									maxlength="30"
 									required
 									class="custom-input" />
 								<ion-icon
@@ -116,7 +120,7 @@ const errorMessage = ref<string | null>(null)
 const passCriteria = computed(() => {
 	const val = password.value
 	return {
-		length: val.length >= 8,
+		length: val.length >= 10 && val.length <= 30,
 		upper: /[A-Z]/.test(val),
 		lower: /[a-z]/.test(val),
 		number: /[0-9]/.test(val),
@@ -186,6 +190,8 @@ async function handleResetPassword() {
 .input-label { display: block; font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 6px; }
 .custom-input-wrapper { position: relative; display: flex; align-items: center; }
 .custom-input { width: 100%; height: 46px; border: 1px solid #e5e7eb; border-radius: 12px; padding: 0 14px; font-size: 16px; color: #111827; outline: none; background: #ffffff; }
+/* Ensure text never slides under the eye-toggle icon */
+.custom-input-wrapper .custom-input { padding-right: 44px; }
 .custom-input:focus { border-color: #05c450; }
 .password-toggle { position: absolute; right: 14px; font-size: 1.1rem; color: #6b7280; cursor: pointer; }
 

@@ -60,6 +60,10 @@
 							<strong class="email-highlight">{{ email }}</strong>
 						</p>
 
+					<p class="verify-disclaimer">
+						Note: Unverified accounts will be automatically deleted after 7 days.
+					</p>
+
 						<!-- Success feedback -->
 						<div v-if="successMessage" class="feedback-banner feedback-banner--success">
 							<ion-icon :icon="checkmarkCircleOutline" />
@@ -300,6 +304,14 @@ onUnmounted(() => {
 	text-align: center;
 }
 
+.verify-disclaimer {
+	text-align: center;
+	font-size: 0.78rem;
+	color: #d97706;
+	margin: -12px 0 20px;
+	line-height: 1.4;
+}
+
 .email-highlight {
 	color: #111827;
 	font-weight: 600;
@@ -481,5 +493,6 @@ html.ion-palette-dark .tips-box { background: #1e293b; border-color: #334155; }
 html.ion-palette-dark .tips-title { color: #cbd5e1; }
 html.ion-palette-dark .tips-list li { color: #94a3b8; }
 html.ion-palette-dark .switch-auth { color: #94a3b8; }
+html.ion-palette-dark .verify-disclaimer { color: #fbbf24; }
 /* No custom-input on this page; surface color #1e293b is used by .tips-box */
 </style>

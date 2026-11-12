@@ -2,6 +2,7 @@ import { defineEventHandler, readBody, getRouterParam, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 import { isValidPantryUnit, isValidPantryCategory } from '../../lib/pantry-taxonomy'
+import { canRestorePantryItem } from '../../lib/pantry-restore'
 
 interface UpdatePantryItemBody {
 	net_content?: number | null
@@ -115,14 +116,13 @@ export default defineEventHandler(async (event) => {
 
 		const isNewlyConsumed = is_archived === true && !existingItem.is_archived
 
-		// Zero-pieces restore guard: cannot restore items with 0 pieces_count
+		// Restore guard: a fully-consumed item (quantity <= 0) cannot be
+		// restored. Condition A (consumed) is inferred from quantity, so items
+		// archived with remaining quantity (e.g. expired, Condition B) restore.
 		if (is_archived === false && existingItem.is_archived) {
-			const currentPieces = Number(existingItem.pieces_count)
-			if (currentPieces <= 0) {
-				throw createError({
-					statusCode: 409,
-					statusMessage: 'Cannot restore this item because its quantity is 0. It has been fully used.',
-				})
+			const restore = canRestorePantryItem(Number(existingItem.quantity))
+			if (!restore.allowed) {
+				throw createError({ statusCode: 409, statusMessage: restore.reason! })
 			}
 		}
 

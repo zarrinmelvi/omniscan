@@ -431,6 +431,11 @@ onUnmounted(() => {
 	transition: border-color 0.2s;
 }
 
+/* Ensure text never slides under the eye-toggle icon */
+.custom-input-wrapper .custom-input {
+	padding-right: 44px;
+}
+
 .custom-input:focus {
 	border-color: #05c450;
 }

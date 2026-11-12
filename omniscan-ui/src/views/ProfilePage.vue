@@ -208,7 +208,7 @@
 						<!-- Email (disabled) -->
 						<div class="form-group">
 							<label class="input-label">Email</label>
-							<input :value="form.email" type="email" disabled class="custom-input custom-input--disabled" />
+							<input :value="form.email" type="email" disabled class="custom-input custom-input--disabled locked-email" />
 							<p v-if="isGoogleUser" class="google-managed-hint">Managed by Google · cannot be edited</p>
 						</div>
 
@@ -233,6 +233,8 @@
 									v-model="newPassword"
 									:type="showNewPassword ? 'text' : 'password'"
 									:placeholder="hasPasswordSet ? '••••••••' : 'Set a password'"
+									minlength="10"
+									maxlength="30"
 									class="custom-input"
 									:class="{ 'input-error': !!newPasswordError }"
 									@input="onNewPasswordInput" />
@@ -252,6 +254,8 @@
 									v-model="confirmNewPassword"
 									:type="showConfirmNewPassword ? 'text' : 'password'"
 									placeholder="Re-enter new password"
+									minlength="10"
+									maxlength="30"
 									class="custom-input"
 									:class="{ 'input-error': !!confirmPasswordError }" />
 								<ion-icon
@@ -266,7 +270,7 @@
 						<div v-if="passwordTyped" class="pass-criteria-grid">
 							<div class="criteria-item" :class="{ valid: newPassCriteria.length }">
 								<ion-icon :icon="newPassCriteria.length ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
-								At least 8 characters
+								10–30 characters
 							</div>
 							<div class="criteria-item" :class="{ valid: newPassCriteria.upper }">
 								<ion-icon :icon="newPassCriteria.upper ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
@@ -493,7 +497,7 @@ const hasPasswordSet = computed(() => user.value.has_password)
 const isGoogleUser = computed(() => user.value.oauth_provider === 'google')
 
 const newPassCriteria = computed(() => ({
-	length: newPassword.value.length >= 8,
+	length: newPassword.value.length >= 10 && newPassword.value.length <= 30,
 	upper: /[A-Z]/.test(newPassword.value),
 	lower: /[a-z]/.test(newPassword.value),
 	number: /[0-9]/.test(newPassword.value),
@@ -1645,6 +1649,15 @@ onBeforeRouteLeave(async (to, from, next) => {
 	background-color: #f9fafb;
 	color: #64748b;
 	cursor: not-allowed;
+}
+
+/* The disabled email field must not be highlightable/copyable. */
+.custom-input.locked-email {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	pointer-events: none;
 }
 
 .google-managed-hint {

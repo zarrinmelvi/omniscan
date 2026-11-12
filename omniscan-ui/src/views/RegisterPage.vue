@@ -150,6 +150,8 @@
 										v-model="password"
 										:type="showPassword ? 'text' : 'password'"
 										placeholder="Create a password"
+										minlength="10"
+										maxlength="30"
 										class="custom-input"
 										:class="{ 'input-error': fieldErrors.password }"
 										@input="clearFieldError('password')" />
@@ -163,7 +165,7 @@
 							<div v-if="!isGooglePending" class="pass-criteria-grid">
 								<div class="criteria-item" :class="{ valid: passCriteria.length }">
 									<ion-icon :icon="passCriteria.length ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
-									At least 8 characters
+									10–30 characters
 								</div>
 								<div class="criteria-item" :class="{ valid: passCriteria.upper }">
 									<ion-icon :icon="passCriteria.upper ? checkmarkCircle : ellipseOutline" class="criteria-icon" />
@@ -190,6 +192,8 @@
 										v-model="confirmPassword"
 										:type="showConfirmPassword ? 'text' : 'password'"
 										placeholder="Re-enter your password"
+										minlength="10"
+										maxlength="30"
 										class="custom-input"
 										:class="{ 'input-error': fieldErrors.confirmPassword }"
 										@input="clearFieldError('confirmPassword')" />
@@ -746,7 +750,7 @@ watch(isTermsOpen, async (open) => {
 const passCriteria = computed(() => {
 	const val = password.value
 	return {
-		length: val.length >= 8,
+		length: val.length >= 10 && val.length <= 30,
 		upper: /[A-Z]/.test(val),
 		lower: /[a-z]/.test(val),
 		number: /[0-9]/.test(val),
@@ -1437,6 +1441,11 @@ onUnmounted(() => {
 	outline: none;
 	background: #ffffff;
 	transition: border-color 0.2s;
+}
+
+/* Ensure text never slides under the eye-toggle icon */
+.custom-input-wrapper .custom-input {
+	padding-right: 44px;
 }
 
 .custom-input:focus {

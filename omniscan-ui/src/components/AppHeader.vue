@@ -87,6 +87,9 @@ onMounted(() => {
 
 <style scoped>
 .app-header {
+	position: sticky;
+	top: 0;
+	z-index: 200;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;

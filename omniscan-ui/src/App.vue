@@ -116,15 +116,26 @@ watch(
 )
 </script>
 
-<style scoped>
-/* Offset main content when desktop navigation is shown */
-.with-desktop-nav {
-	margin-left: 180px;
+<style>
+/* Desktop: pin the router outlet to the viewport so each ion-page fills the
+   available area and only ion-content scrolls internally. Without this,
+   ion-page grows with content and ion-header scrolls away on desktop web. */
+@media (min-width: 1024px) {
+	ion-router-outlet.with-desktop-nav {
+		position: fixed !important;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 180px;
+		width: auto;
+		margin-left: 0;
+	}
 }
 
-/* Remove offset on smaller screens */
+/* Mobile: no offset, let Ionic handle layout normally */
 @media (max-width: 1023px) {
-	.with-desktop-nav {
+	ion-router-outlet.with-desktop-nav {
+		position: unset;
 		margin-left: 0;
 	}
 }

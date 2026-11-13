@@ -124,7 +124,9 @@ export const useAuthStore = defineStore('auth', {
 				skipAuth: true,
 			})
 
-			await this.loginWithOAuthToken(response.token)
+			// skipCheck=true: skip checkAuth on native — the fetch can fail
+			// and wipe the token before the user reaches step 2 of registration.
+			await this.loginWithOAuthToken(response.token, true)
 			this.clearPendingGoogleData()
 			return response
 		},

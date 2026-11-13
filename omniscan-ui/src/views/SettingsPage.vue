@@ -100,7 +100,7 @@
 				<div class="modal-header-flex">
 					<div>
 						<h2 class="modal-title-custom">Terms &amp; Conditions</h2>
-						<p class="terms-updated">Last updated: September 7, 2026</p>
+						<p class="terms-updated">Last updated: November 12, 2026</p>
 					</div>
 					<ion-button fill="clear" class="modal-close-icon-btn" @click="isTermsOpen = false">
 						<ion-icon :icon="closeOutline" slot="icon-only" />

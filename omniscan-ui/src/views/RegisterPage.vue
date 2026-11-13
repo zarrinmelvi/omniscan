@@ -241,7 +241,7 @@
 
 					<!-- STEP 2: Allergens / Dietary Preferences -->
 					<template v-else>
-						<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! \u1F389' : 'Almost There!' }}</span>
+						<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified!' : 'Almost There!' }}</span>
 						<h1 class="auth-title">Your allergens</h1>
 						<p class="auth-subtitle">Choose up to 5. We flag them on every scan. You can change them later in your profile.</p>
 
@@ -310,7 +310,7 @@
 			</ion-header>
 			<ion-content class="terms-modal-content" ref="termsContentRef" :scroll-events="true" @ionScroll="onTermsScroll">
 				<div class="terms-modal-body">
-					<p style="font-size: 0.75rem; color: #6b7280; font-weight: 600; margin-bottom: 16px;">Last Updated: September 7, 2026</p>
+					<p style="font-size: 0.75rem; color: #6b7280; font-weight: 600; margin-bottom: 16px;">Last Updated: November 12, 2026</p>
 
 					<p v-for="(para, pi) in termsIntro" :key="'ti-' + pi">{{ para }}</p>
 
@@ -881,8 +881,6 @@ async function completeGoogleRegistration(): Promise<void> {
 			birthday.value
 		)
 
-		await showToast('Account created successfully!', 'success')
-
 		step.value = 2
 		fetchAllergenCatalog()
 		router.replace({ path: '/register', query: { step: '2' } })
@@ -1031,7 +1029,13 @@ async function completeSetup(): Promise<void> {
 				custom_preferences: customPrefTags,
 			},
 		})
-		window.location.href = '/tabs/home'
+		// On native use replace to stay within the WebView.
+		const { Capacitor } = await import('@capacitor/core')
+		if (Capacitor.isNativePlatform()) {
+			window.location.replace('/tabs/home')
+		} else {
+			window.location.href = '/tabs/home'
+		}
 	} catch (err) {
 		prefsError.value = err instanceof ApiError ? err.message : 'Failed to save your preferences.'
 	} finally {

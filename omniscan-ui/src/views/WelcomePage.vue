@@ -635,6 +635,14 @@ html.ion-palette-dark .footer-link:focus-visible {
 		gap: 8px;
 	}
 }
+
+/* Hide the Android app download CTA on phone-sized screens */
+@media (max-width: 650px) {
+	ion-button.pill.download-app-btn,
+	.android-only {
+		display: none !important;
+	}
+}
 </style>
 
 <!-- Global CSS for Modal -->

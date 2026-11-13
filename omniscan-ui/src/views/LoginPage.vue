@@ -764,4 +764,14 @@ html.ion-palette-dark .oauth-divider::before, html.ion-palette-dark .oauth-divid
 		display: flex;
 	}
 }
+
+@media (max-width: 767px) {
+	.checkbox-container {
+		display: none;
+	}
+
+	.forgot-link {
+		margin-left: auto;
+	}
+}
 </style>

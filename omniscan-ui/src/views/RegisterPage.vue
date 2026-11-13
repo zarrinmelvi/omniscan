@@ -136,6 +136,7 @@
 										v-model="email"
 										type="text"
 										placeholder="your@email.com"
+										maxlength="31"
 										class="custom-input"
 										:class="{ 'input-error': fieldErrors.email }"
 										:disabled="isGooglePending"
@@ -814,6 +815,13 @@ async function handleRegister(): Promise<void> {
 			usernameValidation.value.message && usernameValidation.value.isAvailable === false
 				? usernameValidation.value.message
 				: 'Please choose a different username.'
+		void revealError()
+		return
+	}
+
+	if (!isGooglePending.value && email.value.length > 31) {
+		fieldErrors.email = true
+		errorMessage.value = 'Email must be 31 characters or less.'
 		void revealError()
 		return
 	}

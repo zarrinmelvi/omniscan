@@ -6,6 +6,7 @@ import { createVerificationToken } from '../../lib/verification-token'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const SALT_ROUNDS = 10
+const EMAIL_MAX_LENGTH = 31
 
 export default defineEventHandler(async (event) => {
 	const body = await readBody(event).catch(() => null)
@@ -34,6 +35,9 @@ export default defineEventHandler(async (event) => {
 	}
 	if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email) || !isAllowedEmailDomain(email)) {
 		throw createError({ statusCode: 400, statusMessage: 'Only @gmail.com, @outlook.com, @hotmail.com, and @yahoo.com emails are permitted.' })
+	}
+	if (email.length > EMAIL_MAX_LENGTH) {
+		throw createError({ statusCode: 400, statusMessage: `Email must be ${EMAIL_MAX_LENGTH} characters or less.` })
 	}
 	if (!password || typeof password !== 'string' || password.length < 6) {
 		throw createError({ statusCode: 400, statusMessage: 'Password must be at least 6 characters.' })

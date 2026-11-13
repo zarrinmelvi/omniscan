@@ -11,8 +11,21 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'A valid halal logo id is required.' })
 	}
 
+	const existing = await prisma.halalLogo.findUnique({ where: { id }, select: { id: true, is_active: true } })
+	if (!existing) {
+		throw createError({ statusCode: 404, statusMessage: 'Halal logo not found.' })
+	}
+	if (existing.is_active) {
+		throw createError({ statusCode: 409, statusMessage: 'Only inactive logos can be deleted. Deactivate it first.' })
+	}
+
 	try {
-		await prisma.halalLogo.delete({ where: { id } })
+		// Join rows cascade; the single-FK columns are nullable, so detach them explicitly.
+		await prisma.$transaction([
+			prisma.product.updateMany({ where: { halal_logo_id: id }, data: { halal_logo_id: null } }),
+			prisma.catalogProduct.updateMany({ where: { halal_logo_id: id }, data: { halal_logo_id: null } }),
+			prisma.halalLogo.delete({ where: { id } }),
+		])
 		return { success: true, id }
 	} catch (err: any) {
 		if (err?.code === 'P2025') {

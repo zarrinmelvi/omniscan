@@ -22,7 +22,7 @@
 					<p>Scan food labels, understand your ingredients, and keep your pantry organized. One smarter routine, on your browser and in your pocket.</p>
 					<ion-button class="pill cta-btn download-app-btn" @click="openDownloadModal">
 						<ion-icon :icon="downloadOutline" slot="start" />
-						Download OmniScan App v1.0
+						Download OmniScan App v2.2.2
 					</ion-button>
 					<p class="android-only">
 						<ion-icon :icon="logoAndroid" />
@@ -78,6 +78,7 @@
 						<span class="brand" style="font-size: 18px">OmniScan</span>
 						<span>Your everyday food companion.</span>
 						<a href="/help" class="footer-link" @click.prevent="router.push('/help')">Help and Support</a>
+						<a href="mailto:omniscan.official@gmail.com" class="footer-link">Contact us at omniscan.official@gmail.com</a>
 					</footer>
 				</div>
 			</main>

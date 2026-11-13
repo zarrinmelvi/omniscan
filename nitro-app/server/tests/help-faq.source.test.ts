@@ -19,12 +19,12 @@ const extractArray = (src: string, marker: RegExp): any[] => {
 }
 
 describe('shared FAQ module', () => {
-	it('faqContent.ts exports 10 items deep-equal to the task 2 snapshot', () => {
+	it('faqContent.ts exports 21 items deep-equal to the approved snapshot', () => {
 		const snapshotSrc = readFileSync(resolve(__dirname, 'login-identifier.preservation.test.ts'), 'utf-8').replace(/\r\n/g, '\n')
 		const original = extractArray(snapshotSrc, /const ORIGINAL_FAQS = \[/)
 		const faqs = extractArray(read('data/faqContent.ts'), /export const faqs(?:\s*:\s*[\w\[\]<>]+)?\s*=\s*\[/)
-		expect(original).toHaveLength(10)
-		expect(faqs).toHaveLength(10)
+		expect(original).toHaveLength(21)
+		expect(faqs).toHaveLength(21)
 		expect(faqs).toEqual(original)
 	})
 

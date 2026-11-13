@@ -263,6 +263,7 @@
 						<div class="certifier-actions">
 							<template v-if="!logo.is_active">
 								<button class="cert-btn cert-btn-reactivate" @click="reactivate(logo)">Reactivate</button>
+								<button class="cert-btn cert-btn-danger cert-btn-delete" @click="deleteInactiveLogo(logo)">Delete</button>
 							</template>
 							<template v-else-if="logo.has_pending">
 								<button class="cert-btn cert-btn-primary" @click="openCompare(logo)">Compare logos</button>
@@ -896,6 +897,18 @@ async function reactivate(logo: CertifierRow): Promise<void> {
 		await fetchHalalLogos()
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to reactivate certifier.'
+	}
+}
+
+async function deleteInactiveLogo(logo: CertifierRow): Promise<void> {
+	if (logo.is_active) return
+	if (!window.confirm('Delete this logo permanently?')) return
+	try {
+		await apiFetch(`/api/halal_logo?id=${logo.id}`, { method: 'DELETE', isAdmin: true })
+		showHalalToast(`${logo.certifier} deleted.`)
+		await fetchHalalLogos()
+	} catch (err) {
+		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to delete logo.'
 	}
 }
 
@@ -1573,6 +1586,8 @@ td {
 .cert-btn-primary:hover { background: #00733a; }
 .cert-btn-danger { background: #fff; border-color: #fecaca; color: #dc2626; }
 .cert-btn-danger:hover { background: #fef2f2; }
+html.ion-palette-dark .cert-btn-delete { background: rgba(220, 38, 38, 0.12); border-color: #991b1b; color: #f87171; }
+html.ion-palette-dark .cert-btn-delete:hover { background: rgba(220, 38, 38, 0.2); }
 .cert-btn-reactivate { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
 .cert-btn-reactivate:hover { background: #dcfce7; }
 .cert-btn:disabled { opacity: 0.55; cursor: not-allowed; }

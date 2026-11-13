@@ -99,6 +99,7 @@
 								<button
 									type="button"
 									class="hb-bar"
+									:class="{ 'hb-bar--zero': logo.count === 0 }"
 									:style="{ height: halalBarHeight(logo.count) + '%' }"
 									:aria-label="`${logo.certifier}: ${logo.count} scans, ${logo.pct} percent. Open Halal Logo Library`"
 									@click.stop="goToHalalLibrary"
@@ -575,6 +576,7 @@ const axisLabels = computed(() => {
 	transition: height 0.4s ease, opacity 0.15s;
 }
 .hb-bar:hover { opacity: 0.8; }
+.hb-bar.hb-bar--zero { background: #cbd5e1; }
 .hb-bar:focus-visible { outline: 2px solid #008744; outline-offset: 2px; }
 .hb-name { font-size: 0.72rem; color: #374151; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hb-skeleton { display: flex; gap: 8px; align-items: flex-end; height: 160px; }
@@ -587,6 +589,7 @@ html.ion-palette-dark .halal-chart .hb-label { color: #cbd5e1; }
 html.ion-palette-dark .halal-chart .hb-name { color: #f1f5f9; }
 html.ion-palette-dark .halal-chart .hb-track { background: #162032; }
 html.ion-palette-dark .halal-chart .hb-bar { background: #05c450; }
+html.ion-palette-dark .halal-chart .hb-bar.hb-bar--zero { background: #475569; }
 html.ion-palette-dark .halal-chart .hb-bar:focus-visible { outline: 2px solid #6ee7a0; }
 
 /* ── Area chart ───────────────────────────────────────── */

@@ -34,6 +34,10 @@
 							</ion-item>
 							<div slot="content" class="faq-accordion-body">
 								<p class="faq-answer-text">{{ faq.a }}</p>
+								<ul v-if="faq.list && faq.list.length" class="faq-answer-list">
+									<li v-for="(item, i) in faq.list" :key="i">{{ item }}</li>
+								</ul>
+								<p v-if="faq.outro" class="faq-answer-text faq-answer-outro">{{ faq.outro }}</p>
 							</div>
 						</ion-accordion>
 					</ion-accordion-group>
@@ -336,6 +340,23 @@ html.ion-palette-dark .help-card-title {
 	line-height: 1.5;
 	margin: 0;
 	text-align: left;
+}
+
+.faq-answer-list {
+	margin: 6px 0 0;
+	padding-left: 18px;
+	font-size: 0.82rem;
+	color: #4b5563;
+	line-height: 1.5;
+	text-align: left;
+}
+
+.faq-answer-outro {
+	margin-top: 8px;
+}
+
+html.ion-palette-dark .faq-answer-list {
+	color: #94a3b8 !important;
 }
 
 /* Explicit navy dark rules for this page (match global values, win on specificity) */

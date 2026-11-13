@@ -477,7 +477,12 @@ watch(
 	async (newStep) => {
 		if (newStep === '2') {
 			step.value = 2
-			await authStore.checkAuth()
+			// Skip checkAuth on native — it calls GET /api/auth/me which can
+			// fail and wipe the token. The token is already saved from account creation.
+			const { Capacitor } = await import('@capacitor/core')
+			if (!Capacitor.isNativePlatform()) {
+				await authStore.checkAuth()
+			}
 			fetchAllergenCatalog()
 		}
 	}
@@ -1006,14 +1011,27 @@ async function completeSetup(): Promise<void> {
 	prefsError.value = ''
 	setupError.value = ''
 
-	await authStore.checkAuth()
-	if (!authStore.isAuthenticated) {
-		prefsError.value = 'Your verification session expired. Please sign in to continue.'
-		setTimeout(() => {
-			router.push('/login')
-		}, 1500)
-		isSavingPrefs.value = false
-		return
+	// On native, checkAuth() calls GET /api/auth/me which can fail and wipe
+	// the token even though it was just saved. Trust the token in localStorage
+	// directly on native instead of making a network call.
+	const { Capacitor: Cap } = await import('@capacitor/core')
+	if (Cap.isNativePlatform()) {
+		const token = localStorage.getItem('omniscan_token')
+		if (!token) {
+			prefsError.value = 'Your verification session expired. Please sign in to continue.'
+			setTimeout(() => { router.push('/login') }, 1500)
+			isSavingPrefs.value = false
+			return
+		}
+		if (!authStore.token) authStore.token = token
+	} else {
+		await authStore.checkAuth()
+		if (!authStore.isAuthenticated) {
+			prefsError.value = 'Your verification session expired. Please sign in to continue.'
+			setTimeout(() => { router.push('/login') }, 1500)
+			isSavingPrefs.value = false
+			return
+		}
 	}
 
 	const customPrefTags = allergenCatalog.value
@@ -1118,7 +1136,12 @@ onMounted(async () => {
 	}
 
 	if (step.value === 2) {
-		await authStore.checkAuth()
+		// Skip checkAuth on native — it calls GET /api/auth/me which can
+		// fail and wipe the token. The token is already saved from account creation.
+		const { Capacitor } = await import('@capacitor/core')
+		if (!Capacitor.isNativePlatform()) {
+			await authStore.checkAuth()
+		}
 		fetchAllergenCatalog()
 		return
 	}

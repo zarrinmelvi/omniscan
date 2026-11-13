@@ -76,7 +76,14 @@
 						<div class="eyebrow">POCKET-SIZED. DESKTOP-READY.</div>
 						<h2>A little scan. A smarter routine.</h2>
 						<p>Take your pantry with you. Scan on the go, review your food, and plan your next meal from the OmniScan mobile app.</p>
-						<img class="phone" src="/assets/phone.webp" alt="OmniScan mobile app preview with pantry status and recipe suggestions" width="220" height="438" loading="lazy" />
+						<img
+							class="phone"
+							:src="isDark ? '/assets/dashboard-dark-mobile.jpg' : '/assets/dashboard-light-mobile.jpg'"
+							alt="OmniScan mobile app preview with pantry status and recipe suggestions"
+							width="220"
+							height="438"
+							loading="lazy"
+						/>
 					</section>
 
 					<!-- Dietary Section -->

@@ -141,6 +141,7 @@
 										:disabled="isGooglePending"
 										@input="clearFieldError('email')" />
 								</div>
+								<p v-if="!isGooglePending" class="verify-disclaimer switch-auth">Verify your email within 7 days or your account will be automatically deleted.</p>
 							</div>
 
 							<div v-if="!isGooglePending" class="form-group">
@@ -415,7 +416,7 @@ async function handleGoogleSignIn(): Promise<void> {
 				requiresRegistration: boolean
 			}>('/api/auth/google/verify', {
 				method: 'POST',
-				body: { idToken },
+				body: { idToken, intent: 'register' },
 				skipAuth: true,
 			})
 
@@ -448,6 +449,10 @@ async function handleGoogleSignIn(): Promise<void> {
 			}
 		} catch (error: any) {
 			console.error('Native Google Sign-In failed:', error)
+			if (error instanceof ApiError && error.status === 409) {
+				handleGoogleAccountExists()
+				return
+			}
 			isGooglePending.value = false
 			const errMsg = error?.message || 'Google sign-in failed. Please try again.'
 			void showToast(errMsg, 'danger')
@@ -455,8 +460,15 @@ async function handleGoogleSignIn(): Promise<void> {
 			isGoogleSubmitting.value = false
 		}
 	} else {
-		window.location.href = `${API_BASE_URL}/api/auth/google`
+		window.location.href = `${API_BASE_URL}/api/auth/google?state=register`
 	}
+}
+
+// Google sign-up hit an existing account: no token stored, stay on /register.
+function handleGoogleAccountExists(): void {
+	authStore.clearPendingGoogleData()
+	isGooglePending.value = false
+	void showToast('Account already exist', 'danger')
 }
 
 watch(
@@ -1030,6 +1042,11 @@ function onWindowFocus(): void {
 }
 
 onMounted(async () => {
+	if (route.query.oauth_error === 'account_exists') {
+		handleGoogleAccountExists()
+		router.replace({ path: '/register', query: {} })
+	}
+
 	// If LoginPage already set pendingGoogleData in the store (native Google
 	// sign-in on the Login screen for a new account), pre-fill the form from
 	// the store directly — no query string needed.
@@ -1105,6 +1122,16 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Also carries .switch-auth so it inherits that class's existing dark colour (#94a3b8);
+   the Register dark-rule snapshot forbids adding a new dark rule here. */
+.verify-disclaimer.switch-auth {
+	margin: 6px 0 0;
+	font-size: 0.78rem;
+	line-height: 1.4;
+	text-align: left;
+	color: #6b7280;
+}
+
 .auth-content {
 	--background: #ffffff;
 	--overflow: auto;

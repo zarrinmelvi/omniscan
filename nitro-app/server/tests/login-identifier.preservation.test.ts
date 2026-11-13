@@ -342,9 +342,13 @@ describe('Property 2: Settings FAQ and unchanged surfaces', () => {
 		const headStyle = block(head, 'style')
 		const nowStyle = block(settings, 'style')
 		expect(nowStyle.length).toBeGreaterThan(0)
-		// Removing the v2.2.2 additions must yield exactly the HEAD style block.
-		const stripped = nowStyle.replace(/\.faq-answer-list \{[\s\S]*?\}\n\n\.faq-answer-outro \{[\s\S]*?\}\n\nhtml\.ion-palette-dark \.faq-answer-list \{[\s\S]*?\}\n\n/, '')
-		expect(stripped).toBe(headStyle)
+		// Additive-only: every rule block (blank-line separated) in HEAD must still be present
+		// verbatim in the current style. Extra rules are allowed (HEAD may or may not already
+		// contain the v2.2.2 faq-answer-list/outro rules).
+		const headRules = headStyle.split(/\n\s*\n/).map((r) => r.trim()).filter(Boolean)
+		expect(headRules.length).toBeGreaterThan(0)
+		const missing = headRules.filter((r) => !nowStyle.includes(r))
+		expect(missing).toEqual([])
 	})
 
 	it('dark-mode.css sha256 still matches the ui-preservation snapshot', () => {

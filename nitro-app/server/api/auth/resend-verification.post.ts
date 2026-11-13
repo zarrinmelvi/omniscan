@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
-import { generateVerificationToken, sendVerificationEmail, isAllowedEmailDomain } from '../../utils/email'
+import { sendVerificationEmail, isAllowedEmailDomain } from '../../utils/email'
+import { createVerificationToken, readPendingUsername } from '../../lib/verification-token'
 
 const COOLDOWN_SECONDS = 60
 
@@ -27,6 +28,7 @@ export default defineEventHandler(async (event) => {
 				email: true,
 				email_verified: true,
 				last_verification_sent_at: true,
+				verification_token: true,
 			},
 		})
 	} catch (err) {
@@ -56,7 +58,7 @@ export default defineEventHandler(async (event) => {
 	}
 
 	// Generate fresh token with 24-hour expiry
-	const token = generateVerificationToken()
+	const token = createVerificationToken(readPendingUsername(user.verification_token))
 	const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
 	try {

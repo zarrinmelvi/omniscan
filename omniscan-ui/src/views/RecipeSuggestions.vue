@@ -92,6 +92,7 @@
 			<RecipeDetailModal
 				:is-open="isDetailModalOpen"
 				:recipe="selectedRecipe"
+				:making="makingId !== null"
 				@close="isDetailModalOpen = false"
 				@toggle-like="toggleLike"
 				@make="handleMakeFromModal"
@@ -105,6 +106,9 @@
 				:buttons="alertButtons"
 				class="custom-make-alert"
 				@didDismiss="isAlertOpen = false" />
+
+			<!-- Make Recipe progress indicator -->
+			<ion-loading :is-open="makingId !== null" message="Making recipe..." />
 
 			<!-- Result Modal -->
 			<ion-modal :is-open="isResultModalOpen" @didDismiss="isResultModalOpen = false">
@@ -160,6 +164,7 @@ import {
 	IonButton,
 	IonAlert,
 	IonModal,
+	IonLoading,
 	toastController,
 } from '@ionic/vue'
 import { restaurantOutline, closeOutline, heart, heartOutline, archiveOutline, checkmarkCircle, chevronForwardOutline } from 'ionicons/icons'
@@ -241,7 +246,7 @@ const alertButtons = [
 		role: 'confirm',
 		cssClass: 'alert-button-confirm',
 		handler: () => {
-			if (pendingRecipeId.value !== null) {
+			if (pendingRecipeId.value !== null && makingId.value === null) {
 				void makeRecipe(pendingRecipeId.value)
 			}
 		},
@@ -322,6 +327,7 @@ async function toggleLike(recipe: SuggestedRecipe): Promise<void> {
 }
 
 async function makeRecipe(recipeId: number): Promise<void> {
+	if (makingId.value !== null) return
 	makingId.value = recipeId
 
 	try {

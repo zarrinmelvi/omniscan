@@ -271,6 +271,7 @@ function buildVerificationEmailHtml(name: string, verificationUrl: string): stri
 
               <p style="margin:0;padding-top:24px;border-top:1px solid #eeeeee;font-size:13px;color:#999999;line-height:1.6;">
                 <strong>This link expires in 24 hours.</strong> You can request a new one from the login page.<br />
+                Verify your email within 7 days or your account will be automatically deleted.<br />
                 If you didn't create an OmniScan account, you can safely ignore this email.
               </p>
             </td>

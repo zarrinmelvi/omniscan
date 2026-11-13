@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto'
 import { prisma } from '../../../lib/prisma'
 import { logAuditEvent } from '../../../lib/audit-logger'
 import { fetchGoogleAvatarAsDataUri } from '../../../lib/google-avatar'
+import { ACCOUNT_EXISTS_MESSAGE } from '../../../lib/google-intent'
 
 const JWT_SECRET = process.env.JWT_SECRET
 const TOKEN_EXPIRY = '7d'
@@ -111,7 +112,7 @@ export default defineEventHandler(async (event) => {
 		})
 
 		if (existingUserByEmail) {
-			throw createError({ statusCode: 400, statusMessage: 'An account with this email already exists.' })
+			throw createError({ statusCode: 409, statusMessage: ACCOUNT_EXISTS_MESSAGE })
 		}
 
 		// Check if user already exists by Google ID
@@ -124,7 +125,7 @@ export default defineEventHandler(async (event) => {
 		})
 
 		if (existingUserByGoogleId) {
-			throw createError({ statusCode: 400, statusMessage: 'This Google account is already registered.' })
+			throw createError({ statusCode: 409, statusMessage: ACCOUNT_EXISTS_MESSAGE })
 		}
 
 		// Check if username is taken

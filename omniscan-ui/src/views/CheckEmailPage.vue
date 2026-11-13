@@ -82,6 +82,8 @@
 							<span v-else>Resend verification email</span>
 						</ion-button>
 
+						<p class="verify-disclaimer">Verify your email within 7 days or your account will be automatically deleted.</p>
+
 						<div class="tips-box">
 							<p class="tips-title">Didn't receive it?</p>
 							<ul class="tips-list">
@@ -233,6 +235,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.verify-disclaimer {
+	margin: 0 0 16px;
+	font-size: 0.8rem;
+	line-height: 1.4;
+	text-align: center;
+	color: #6b7280;
+}
+
 .auth-content {
 	--background: #ffffff;
 }
@@ -481,5 +491,6 @@ html.ion-palette-dark .tips-box { background: #1e293b; border-color: #334155; }
 html.ion-palette-dark .tips-title { color: #cbd5e1; }
 html.ion-palette-dark .tips-list li { color: #94a3b8; }
 html.ion-palette-dark .switch-auth { color: #94a3b8; }
+html.ion-palette-dark .verify-disclaimer { color: #94a3b8; }
 /* No custom-input on this page; surface color #1e293b is used by .tips-box */
 </style>

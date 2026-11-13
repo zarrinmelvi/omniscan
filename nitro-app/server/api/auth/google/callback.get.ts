@@ -5,8 +5,9 @@ import { prisma } from '../../../lib/prisma'
 import {
     GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI,
     GOOGLE_TOKEN_URL, GOOGLE_USERINFO_URL,
-    OAUTH_FRONTEND_SUCCESS, OAUTH_FRONTEND_FAILURE, isGoogleOAuthConfigured,
+    OAUTH_FRONTEND_SUCCESS, OAUTH_FRONTEND_FAILURE, OAUTH_FRONTEND_REGISTER, isGoogleOAuthConfigured,
 } from '../../../lib/oauth'
+import { parseGoogleState } from '../../../lib/google-intent'
 import { logAuditEvent } from '../../../lib/audit-logger'
 import { fetchGoogleAvatarAsDataUri } from '../../../lib/google-avatar'
 
@@ -84,6 +85,12 @@ export default defineEventHandler(async (event) => {
             return sendRedirect(event, `${FRONTEND_URL}/register?oauth_pending=${encodeURIComponent(tempToken)}`)
         }
 
+        // Sign-up attempt for an email that already has an account: no session, no updates
+        const { mobile: stateMobile, intent } = parseGoogleState(query.state)
+        if (intent === 'register') {
+            return sendRedirect(event, `${OAUTH_FRONTEND_REGISTER}?oauth_error=account_exists`)
+        }
+
         // Existing user - proceed with login
         // Link the Google identity if this account was previously password-only
         if (!user.oauth_provider) {
@@ -121,7 +128,7 @@ export default defineEventHandler(async (event) => {
         const token = jwt.sign({ userId: user.id, email: user.email, sid: sessionToken }, JWT_SECRET, { expiresIn: TOKEN_EXPIRY })
 
         // 5. Redirect to native app scheme if state/query specifies mobile, or fallback to frontend success
-        const isMobile = query.state === 'mobile' || query.platform === 'android'
+        const isMobile = stateMobile || query.platform === 'android'
         if (isMobile) {
             return sendRedirect(event, `io.ionic.starter://google-auth-callback?oauth_token=${encodeURIComponent(token)}`)
         }

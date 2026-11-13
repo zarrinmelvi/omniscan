@@ -6,6 +6,7 @@ import { prisma } from '../../../lib/prisma'
 import { GOOGLE_CLIENT_ID } from '../../../lib/oauth'
 import { logAuditEvent } from '../../../lib/audit-logger'
 import { fetchGoogleAvatarAsDataUri } from '../../../lib/google-avatar'
+import { ACCOUNT_EXISTS_MESSAGE } from '../../../lib/google-intent'
 
 const JWT_SECRET = process.env.JWT_SECRET
 const TOKEN_EXPIRY = '7d'
@@ -21,7 +22,7 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid request body.' })
 	}
 
-	const { idToken } = body as { idToken?: string }
+	const { idToken, intent } = body as { idToken?: string; intent?: string }
 
 	if (!idToken || typeof idToken !== 'string') {
 		throw createError({ statusCode: 400, statusMessage: 'ID token is required.' })
@@ -69,6 +70,11 @@ export default defineEventHandler(async (event) => {
 				requiresRegistration: true,
 				pendingToken: tempToken,
 			}
+		}
+
+		// Sign-up attempt for an email that already has an account: no session, no updates
+		if (intent === 'register') {
+			throw createError({ statusCode: 409, statusMessage: ACCOUNT_EXISTS_MESSAGE })
 		}
 
 		// Existing user - issue login token

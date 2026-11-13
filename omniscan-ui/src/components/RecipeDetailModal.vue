@@ -70,9 +70,10 @@
 
 			<!-- Fixed Bottom Actions -->
 			<div class="detail-footer">
-				<ion-button expand="block" class="make-btn" @click="emit('make', recipe)">
-					<ion-icon :icon="restaurantOutline" slot="start" />
-					{{ recipe.made ? 'Make Recipe Again' : 'Make Recipe' }}
+				<ion-button expand="block" class="make-btn" :disabled="making" @click="onMake(recipe)">
+					<ion-spinner v-if="making" name="crescent" slot="start" />
+					<ion-icon v-else :icon="restaurantOutline" slot="start" />
+					{{ making ? 'Making...' : recipe.made ? 'Make Recipe Again' : 'Make Recipe' }}
 				</ion-button>
 
 				<button v-if="recipe.made" type="button" class="unmake-btn" @click="emit('unmake', recipe)">Remove from Made History</button>
@@ -82,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonModal, IonButton, IonIcon } from '@ionic/vue'
+import { IonModal, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import { closeOutline, heart, heartOutline, checkmarkCircle, bagHandleOutline, restaurantOutline, warningOutline } from 'ionicons/icons'
 
 interface RecipeIngredientRef {
@@ -105,9 +106,10 @@ interface SuggestedRecipe {
 	allergen_warnings?: string[]
 }
 
-defineProps<{
+const props = defineProps<{
 	isOpen: boolean
 	recipe: SuggestedRecipe | null
+	making?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -116,6 +118,11 @@ const emit = defineEmits<{
 	(e: 'unmake', recipe: SuggestedRecipe): void
 	(e: 'toggle-like', recipe: SuggestedRecipe): void
 }>()
+
+function onMake(recipe: SuggestedRecipe): void {
+	if (props.making) return
+	emit('make', recipe)
+}
 
 function parsedSteps(instructions: string): string[] {
 	if (!instructions) return []

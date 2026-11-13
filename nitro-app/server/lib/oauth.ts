@@ -10,6 +10,7 @@ export const FRONTEND_URL = process.env.FRONTEND_URL || 'https://omniscan.websit
 // Derived landing targets after a successful / failed OAuth login.
 export const OAUTH_FRONTEND_SUCCESS = `${FRONTEND_URL.replace(/\/$/, '')}/tabs/home`
 export const OAUTH_FRONTEND_FAILURE = `${FRONTEND_URL.replace(/\/$/, '')}/login`
+export const OAUTH_FRONTEND_REGISTER = `${FRONTEND_URL.replace(/\/$/, '')}/register`
 
 export function isGoogleOAuthConfigured(): boolean {
 	return Boolean(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET)

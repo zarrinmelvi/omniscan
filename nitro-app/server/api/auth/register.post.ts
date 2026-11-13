@@ -1,7 +1,8 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import bcrypt from 'bcrypt'
 import { prisma } from '../../lib/prisma'
-import { generateVerificationToken, sendVerificationEmail, isAllowedEmailDomain } from '../../utils/email'
+import { sendVerificationEmail, isAllowedEmailDomain } from '../../utils/email'
+import { createVerificationToken } from '../../lib/verification-token'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const SALT_ROUNDS = 10
@@ -87,8 +88,17 @@ export default defineEventHandler(async (event) => {
 					}
 				}
 
-				// Generate a fresh token and resend
-				const token = generateVerificationToken()
+				// A username is only reserved by verified accounts
+				const verifiedOwner = await prisma.user.findUnique({
+					where: { username: normalizedUsername },
+					select: { id: true },
+				})
+				if (verifiedOwner) {
+					throw createError({ statusCode: 400, statusMessage: 'That username is already taken. Please choose another.' })
+				}
+
+				// Generate a fresh token (carrying the pending username) and resend
+				const token = createVerificationToken(normalizedUsername)
 				const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
 				await prisma.user.update({
@@ -129,7 +139,7 @@ export default defineEventHandler(async (event) => {
 
 		// Generate verification token and expiry before creating the user.
 		// If the email send fails we abort — no account is created (REQ-008).
-		const token = generateVerificationToken()
+		const token = createVerificationToken(normalizedUsername)
 		const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
 		const emailResult = await sendVerificationEmail(email, fullName, token)
@@ -150,7 +160,9 @@ export default defineEventHandler(async (event) => {
 					name: fullName,
 					first_name: first_name.trim(),
 					last_name: last_name.trim(),
-					username: normalizedUsername,
+					// Username is held as pending in the verification token and
+					// only saved on verification, so it never blocks other users.
+					username: null,
 					email,
 					password: hashedPassword,
 					gender,

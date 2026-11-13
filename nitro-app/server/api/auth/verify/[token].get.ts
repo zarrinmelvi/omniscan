@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import { randomUUID } from 'crypto'
 import { prisma } from '../../../lib/prisma'
 import { sendWelcomeEmail } from '../../../utils/email'
+import { readPendingUsername } from '../../../lib/verification-token'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-default-jwt-secret'
 
@@ -34,6 +35,8 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid or expired verification link.' })
 	}
 
+	let usernameTaken = false
+
 	// If email is NOT verified yet, update DB and send welcome email
 	if (!user.email_verified) {
 		if (!user.verification_token_expires_at || user.verification_token_expires_at < new Date()) {
@@ -43,15 +46,36 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
+		const verifyData = {
+			email_verified: true,
+			verification_token: null,
+			verification_token_expires_at: null,
+		}
+
 		try {
-			await prisma.user.update({
-				where: { id: user.id },
-				data: {
-					email_verified: true,
-					verification_token: null,
-					verification_token_expires_at: null,
-				},
-			})
+			// Persist the pending username only now, and only if nobody holds it.
+			let pending = readPendingUsername(token)
+			if (pending) {
+				const holder = await prisma.user.findFirst({
+					where: { username: pending },
+					select: { id: true },
+				})
+				if (holder) pending = null
+			}
+
+			if (pending) {
+				try {
+					await prisma.user.update({ where: { id: user.id }, data: { ...verifyData, username: pending } })
+				} catch (err: any) {
+					if (err?.code !== 'P2002') throw err
+					// Lost a race for the username: verify without it.
+					await prisma.user.update({ where: { id: user.id }, data: verifyData })
+					usernameTaken = true
+				}
+			} else {
+				if (readPendingUsername(token)) usernameTaken = true
+				await prisma.user.update({ where: { id: user.id }, data: verifyData })
+			}
 		} catch (err) {
 			console.error('Verify token update error:', err)
 			throw createError({ statusCode: 500, statusMessage: 'Failed to verify email. Please try again.' })
@@ -81,5 +105,6 @@ export default defineEventHandler(async (event) => {
 			name: user.name,
 			email: user.email,
 		},
+		...(usernameTaken ? { usernameTaken: true } : {}),
 	}
 })

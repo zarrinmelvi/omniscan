@@ -1,16 +1,17 @@
-// Cleanup Endpoint: Delete unverified accounts older than 7 days.
+// Cleanup Endpoint: deletes unverified, non-Google accounts older than 7 days.
 //
-// Schedule this endpoint to run daily via an external cron scheduler:
-//   - Vercel Cron Jobs: add to vercel.json under "crons"
-//       { "path": "/api/cron/cleanup-unverified", "schedule": "0 2 * * *" }
-//   - Or use a service like cron-job.org to call it with the CRON_SECRET header.
+// Scheduled daily via Vercel Cron Jobs (vercel.json):
+//   { "path": "/api/cron/cleanup-unverified", "schedule": "0 8 * * *" }
 //
-// Authorization: Bearer <CRON_SECRET> header required (matches check-expiring pattern).
+// Authorization: Bearer <CRON_SECRET> header required.
+// No email is sent (these users never verified their address).
 
 import { defineEventHandler, createError, getHeader } from 'h3'
 import { prisma } from '../../lib/prisma'
-
-const UNVERIFIED_EXPIRY_DAYS = 7
+import {
+	getUnverifiedCutoff,
+	selectUnverifiedAccountsForDeletion,
+} from '../../lib/unverified-cleanup'
 
 export default defineEventHandler(async (event) => {
 	const authHeader = getHeader(event, 'authorization')
@@ -18,40 +19,51 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 401, statusMessage: 'Unauthorized.' })
 	}
 
-	const cutoff = new Date()
-	cutoff.setDate(cutoff.getDate() - UNVERIFIED_EXPIRY_DAYS)
+	const now = new Date()
 
-	// Find accounts to delete first so we can log them for audit purposes
-	const accountsToDelete = await prisma.user.findMany({
+	const candidates = await prisma.user.findMany({
 		where: {
 			email_verified: false,
-			created_at: { lt: cutoff },
+			oauth_provider: null,
+			created_at: { lt: getUnverifiedCutoff(now) },
 		},
-		select: { id: true, email: true, created_at: true },
+		select: { id: true, email_verified: true, oauth_provider: true, created_at: true },
 	})
 
-	if (accountsToDelete.length === 0) {
-		console.log('[cleanup-unverified] No expired unverified accounts to delete.')
-		return { result: 'success', deleted: 0 }
+	// Re-apply the pure predicate as a safety net
+	const toDelete = selectUnverifiedAccountsForDeletion(candidates, now)
+
+	let deletedUsersCount = 0
+	if (toDelete.length > 0) {
+		const userIds = toDelete.map((u) => u.id)
+
+		// Child relations first to avoid foreign key violations
+		await prisma.$transaction(async (tx) => {
+			await tx.activityLog.deleteMany({ where: { user_id: { in: userIds } } })
+			await tx.notification.deleteMany({ where: { user_id: { in: userIds } } })
+			await tx.dietaryProfile.deleteMany({ where: { user_id: { in: userIds } } })
+			await tx.pantryItem.deleteMany({ where: { user_id: { in: userIds } } })
+			await tx.recipeInteraction.deleteMany({ where: { user_id: { in: userIds } } })
+
+			const userScans = await tx.scan.findMany({
+				where: { user_id: { in: userIds } },
+				select: { id: true },
+			})
+			if (userScans.length > 0) {
+				const scanIds = userScans.map((s) => s.id)
+				await tx.flaggedScan.deleteMany({ where: { scan_id: { in: scanIds } } })
+				await tx.scan.deleteMany({ where: { user_id: { in: userIds } } })
+			}
+
+			const deleted = await tx.user.deleteMany({ where: { id: { in: userIds } } })
+			deletedUsersCount = deleted.count
+		})
+
+		console.log(`[cleanup-unverified] Deleted ${deletedUsersCount} unverified account(s).`)
 	}
 
-	console.log(`[cleanup-unverified] Deleting ${accountsToDelete.length} unverified account(s) older than ${UNVERIFIED_EXPIRY_DAYS} days:`)
-	for (const account of accountsToDelete) {
-		console.log(`  - id=${account.id} email=${account.email} registeredAt=${account.created_at.toISOString()}`)
+	return {
+		result: 'success',
+		deletedUnverifiedUsers: deletedUsersCount,
 	}
-
-	const userIds = accountsToDelete.map((u) => u.id)
-
-	// Delete related DietaryProfile records first to satisfy foreign key constraints
-	await prisma.dietaryProfile.deleteMany({
-		where: { user_id: { in: userIds } },
-	})
-
-	const deleted = await prisma.user.deleteMany({
-		where: { id: { in: userIds } },
-	})
-
-	console.log(`[cleanup-unverified] Deleted ${deleted.count} unverified account(s).`)
-
-	return { result: 'success', deleted: deleted.count }
 })

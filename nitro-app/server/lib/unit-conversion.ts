@@ -61,6 +61,18 @@ export function convertIngredientToPantryUnit(quantity: number, ingredientUnit: 
 	const target = pantryUnit.trim().toLowerCase()
 	const normalizedIngUnit = ingredientUnit?.trim().toLowerCase() ?? null
 
+	// Pantry net_unit may be g, ml or oz as well (see PantryItem.net_unit)
+	if (target === 'g' || target === 'oz') {
+		if (!normalizedIngUnit || !(normalizedIngUnit in WEIGHT_TO_KG)) return null
+		const kg = quantity * WEIGHT_TO_KG[normalizedIngUnit]
+		return { comparable_quantity: target === 'g' ? kg * 1000 : kg / WEIGHT_TO_KG.oz, approximate: false }
+	}
+
+	if (target === 'ml') {
+		if (!normalizedIngUnit || !(normalizedIngUnit in VOLUME_TO_L)) return null
+		return { comparable_quantity: quantity * VOLUME_TO_L[normalizedIngUnit] * 1000, approximate: false }
+	}
+
 	if (target === 'kg') {
 		if (!normalizedIngUnit || !(normalizedIngUnit in WEIGHT_TO_KG)) return null
 		return { comparable_quantity: quantity * WEIGHT_TO_KG[normalizedIngUnit], approximate: false }

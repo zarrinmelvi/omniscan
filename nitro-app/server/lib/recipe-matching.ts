@@ -85,7 +85,7 @@ const FLAVOR_MARKER = /\b(flavou?r(ed)?|scented)\b/i
 
 // Product-type nouns: if one of these appears before the trailing words, the
 // trailing words are a flavor/variant ("Acme Sauce Lemon"), not the product.
-const PRODUCT_TYPE_WORDS = new Set([
+export const PRODUCT_TYPE_WORDS = new Set([
 	'sauce', 'dressing', 'syrup', 'paste', 'drink', 'juice', 'tea', 'soda', 'chip', 'chips',
 	'noodle', 'noodles', 'spread', 'dip', 'marinade', 'seasoning', 'mix', 'snack', 'cola',
 ])
@@ -127,8 +127,20 @@ function itemMatchesIngredient(
 	// 1. Direct or Stemmed Exact Matches
 	if (cleanedProduct === rawTarget || productStem === targetStem) return true
 
-	if (isProcessedCategory(category)) {
-		return HEAD_PHRASE_CATEGORIES.has(category as string) && isHeadPhraseMatch(productName, cleanedProduct, targetStem)
+	const productTokens = cleanedProduct.split(/\s+/).filter(Boolean)
+	const containsProcessedTypeWord = productTokens.some((w) => PRODUCT_TYPE_WORDS.has(w))
+
+	const isEffectivelyProcessed =
+		isProcessedCategory(category) ||
+		((category === 'Uncategorized' || category == null) &&
+			productTokens.length > 1 &&
+			containsProcessedTypeWord)
+
+	if (isEffectivelyProcessed) {
+		return (
+			HEAD_PHRASE_CATEGORIES.has(category as string) &&
+			isHeadPhraseMatch(productName, cleanedProduct, targetStem)
+		)
 	}
 
 	// 2. Word Boundary Matches (Raw and Stemmed)
@@ -338,7 +350,14 @@ export function findMatchingIngredientLine(
 	if (!cleanedProduct) return null
 
 	const productStem = cleanedProduct.split(/\s+/).map(stemWord).join(' ')
-	const processed = isProcessedCategory(category)
+	const productTokens = cleanedProduct.split(/\s+/).filter(Boolean)
+	const containsProcessedTypeWord = productTokens.some((w) => PRODUCT_TYPE_WORDS.has(w))
+
+	const isEffectivelyProcessed =
+		isProcessedCategory(category) ||
+		((category === 'Uncategorized' || category == null) &&
+			productTokens.length > 1 &&
+			containsProcessedTypeWord)
 
 	return (
 		ingredients.find((ing) => {
@@ -349,7 +368,7 @@ export function findMatchingIngredientLine(
 
 			if (rawName === cleanedProduct || nameStem === productStem) return true
 
-			if (processed) {
+			if (isEffectivelyProcessed) {
 				return HEAD_PHRASE_CATEGORIES.has(category as string) && isHeadPhraseMatch(productName, cleanedProduct, nameStem)
 			}
 
@@ -359,4 +378,146 @@ export function findMatchingIngredientLine(
 			return prodRegex.test(nameStem) || nameRegex.test(productStem)
 		}) ?? null
 	)
+}
+
+// ─── Quantity-Aware Matching (Bug 3 Fix) ──────────────────────────────────────
+
+import { convertIngredientToPantryUnit } from './unit-conversion'
+
+const PIECE_UNITS: ReadonlySet<string> = new Set([
+	'piece', 'pieces', 'pc', 'pcs', 'whole', 'large', 'medium', 'small', 'unit', 'units',
+	'clove', 'cloves', 'slice', 'slices', 'stick', 'sticks', 'can', 'cans', 'bottle', 'bottles',
+	'pack', 'packs', 'packet', 'packets', 'sheet', 'sheets',
+])
+
+export interface PantryItemQuantityRef extends PantryProductRef {
+	pieces_count: number
+	net_content: number | null // Decimal coerced to number before passing in
+	net_unit: string | null
+}
+
+export interface ShortfallIngredient {
+	name: string
+	quantity: number // recipe requires
+	have: number // pantry has (in same unit)
+	need: number // shortfall = quantity - have
+	unit: string | null
+}
+
+export interface QuantityAwareMatchResult {
+	matchedIngredients: RawIngredient[]
+	shortfallIngredients: ShortfallIngredient[]
+	missingIngredients: RawIngredient[] // ingredient not in pantry at all
+}
+
+/**
+ * Quantity-aware variant of matchIngredientsToPantry.
+ *
+ * For each ingredient:
+ *  - No pantry item matches by name → missingIngredients
+ *  - ingredient.quantity is null → matchedIngredients (no quantity comparison possible)
+ *  - pantry item has net_unit → available = net_content; convert ingredient unit via
+ *    convertIngredientToPantryUnit if units differ
+ *  - pantry item has no net_unit → available = pieces_count
+ *  - available >= required → matchedIngredients
+ *  - available < required → shortfallIngredients { need = required - available }
+ */
+export function matchIngredientsToPantryWithQuantity(
+	ingredients: RawIngredient[],
+	pantryItems: PantryItemQuantityRef[],
+): QuantityAwareMatchResult {
+	const matchedIngredients: RawIngredient[] = []
+	const shortfallIngredients: ShortfallIngredient[] = []
+	const missingIngredients: RawIngredient[] = []
+
+	for (const ingredient of ingredients) {
+		const rawTarget = ingredient.name.trim().toLowerCase()
+		if (!rawTarget) continue
+
+		const targetStem = rawTarget.split(/\s+/).map(stemWord).join(' ')
+
+		const hit = pantryItems.find((item) =>
+			itemMatchesIngredient(item.product_name, item.category, rawTarget, targetStem),
+		)
+
+		if (!hit) {
+			missingIngredients.push(ingredient)
+			continue
+		}
+
+		// No quantity specified → binary match, consider fully satisfied
+		if (ingredient.quantity === null) {
+			matchedIngredients.push(ingredient)
+			continue
+		}
+
+		const required = ingredient.quantity
+
+		// Determine available quantity in the same unit as the recipe ingredient
+		let available: number
+
+		if (hit.net_unit !== null && hit.net_unit !== undefined && hit.net_unit !== '') {
+			// Volume/weight item — use net_content as the base available quantity
+			const pantryUnit = hit.net_unit.trim().toLowerCase()
+			const pantryNetContent = hit.net_content ?? 0
+
+			if (ingredient.unit === null || ingredient.unit === undefined) {
+				// Ingredient has no unit — treat pantry net_content as the comparable quantity
+				available = pantryNetContent
+			} else {
+				const ingUnit = ingredient.unit.trim().toLowerCase()
+				if (ingUnit === pantryUnit) {
+					// Same unit — direct comparison
+					available = pantryNetContent
+				} else {
+					// Different units — convert ingredient requirement into pantry unit
+					const converted = convertIngredientToPantryUnit(required, ingredient.unit, pantryUnit)
+					if (converted !== null) {
+						// Compare converted ingredient requirement against pantry net_content
+						if (pantryNetContent >= converted.comparable_quantity) {
+							matchedIngredients.push(ingredient)
+						} else {
+							// Back-convert shortfall to the original ingredient unit for readability
+							const need = required - (required * pantryNetContent) / converted.comparable_quantity
+							shortfallIngredients.push({
+								name: ingredient.name,
+								quantity: required,
+								have: (required * pantryNetContent) / converted.comparable_quantity,
+								need: Math.max(0, need),
+								unit: ingredient.unit,
+							})
+						}
+						continue
+					}
+					// Unit conversion failed — treat as satisfied (can't assess quantity)
+					matchedIngredients.push(ingredient)
+					continue
+				}
+			}
+		} else {
+			// Count/pieces item — pieces_count is only comparable to a count-style
+			// requirement (no unit, or a piece-like unit). A weight/volume requirement
+			// against a count item can't be assessed, so treat it as satisfied.
+			const ingUnit = ingredient.unit?.trim().toLowerCase() ?? null
+			if (ingUnit !== null && ingUnit !== '' && !PIECE_UNITS.has(ingUnit)) {
+				matchedIngredients.push(ingredient)
+				continue
+			}
+			available = hit.pieces_count
+		}
+
+		if (available >= required) {
+			matchedIngredients.push(ingredient)
+		} else {
+			shortfallIngredients.push({
+				name: ingredient.name,
+				quantity: required,
+				have: available,
+				need: required - available,
+				unit: ingredient.unit,
+			})
+		}
+	}
+
+	return { matchedIngredients, shortfallIngredients, missingIngredients }
 }

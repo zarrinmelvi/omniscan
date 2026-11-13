@@ -10,6 +10,7 @@ import {
 	matchIngredientsToPantry,
 	findMatchingIngredientLine,
 	type RawIngredient,
+	PRODUCT_TYPE_WORDS,
 } from '../lib/recipe-matching'
 
 const ing = (name: string): RawIngredient => ({ name, quantity: null, unit: null })
@@ -59,7 +60,9 @@ describe('raw / cooking ingredients (Dairy, Grains, Uncategorized, null) match a
 	})
 
 	it('legacy null category is treated as plain (no name-based inference)', () => {
-		expect(matches('lemon', 'Lemon Iced Tea', null)).toBe(true)
+		// Intentionally changed by Bug 1 fix: "Lemon Iced Tea" contains "tea"
+		// which is a PRODUCT_TYPE_WORDS token, so it is now blocked even for null category.
+		expect(matches('lemon', 'Lemon Iced Tea', null)).toBe(false)
 		expect(matches('steak', 'Ribeye Steak', null)).toBe(true)
 	})
 
@@ -76,6 +79,11 @@ describe('raw / cooking ingredients (Dairy, Grains, Uncategorized, null) match a
 		const phrase = fc.array(fc.constantFrom(...words), { minLength: 1, maxLength: 3 }).map((w) => w.join(' '))
 		fc.assert(
 			fc.property(phrase, phrase, fc.constantFrom(...PLAIN_CATEGORIES), (ingredient, product, category) => {
+				// Exclude products that contain a PRODUCT_TYPE_WORDS token from this property:
+				// those products are now blocked by the Bug 1 fix for Uncategorized/null categories,
+				// so the new matcher intentionally diverges from the original predicate for them.
+				const productTokens = product.split(/\s+/).filter(Boolean)
+				if (productTokens.some((w) => PRODUCT_TYPE_WORDS.has(w))) return
 				expect(matches(ingredient, product, category)).toBe(originalMatches(ingredient, product))
 			}),
 			{ numRuns: 200 },

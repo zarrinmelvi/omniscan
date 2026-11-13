@@ -181,6 +181,7 @@ interface SuggestedRecipe {
 	matched_count: number
 	total_count: number
 	missing_ingredients: { name: string; quantity: number | null; unit: string | null }[]
+	shortfall_ingredients?: { name: string; need: number; have: number; unit: string | null }[]
 	liked: boolean
 	made: boolean
 	image_url?: string

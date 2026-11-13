@@ -3,7 +3,7 @@ import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 import { OLLAMA_ENDPOINT, GENERATION_MODEL } from '../../lib/ollama-models'
 import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens } from '../../lib/allergen-matching'
-import { matchIngredientsToPantryForDeduction, findNonHalalKeywords, type RawIngredient } from '../../lib/recipe-matching'
+import { matchIngredientsToPantryForDeduction, matchIngredientsToPantryWithQuantity, findNonHalalKeywords, type RawIngredient } from '../../lib/recipe-matching'
 import { convertIngredientToPantryUnit } from '../../lib/unit-conversion'
 import { stripCodeFences } from '../../lib/ai-json'
 
@@ -124,7 +124,7 @@ export default defineEventHandler(async (event) => {
 		const [pantryItems, userWithProfile] = await Promise.all([
 			prisma.pantryItem.findMany({
 				where: { user_id: authUser.id, is_archived: false },
-				select: { id: true, category: true, quantity: true, portion_unit: true, product: { select: { product_name: true } } },
+				select: { id: true, category: true, quantity: true, portion_unit: true, net_content: true, net_unit: true, product: { select: { product_name: true } } },
 			}),
 			prisma.user.findUnique({
 				where: { id: authUser.id },
@@ -171,8 +171,27 @@ export default defineEventHandler(async (event) => {
 			category: p.category,
 			quantity: Number(p.quantity),
 			portion_unit: p.portion_unit,
+			net_content: p.net_content !== null && p.net_content !== undefined ? Number(p.net_content) : null,
+			net_unit: p.net_unit ?? null,
 		}))
 		const { deductions, missingIngredientNames } = matchIngredientsToPantryForDeduction(ingredients, pantryProducts)
+
+		// Pre-flight quantity guard: reject if any matched ingredient has insufficient quantity
+		const pantryProductsWithQty = pantryProducts.map((p) => ({
+			id: p.id,
+			product_name: p.product_name,
+			category: p.category,
+			pieces_count: p.quantity,
+			net_content: p.net_content,
+			net_unit: p.net_unit,
+		}))
+		const { shortfallIngredients } = matchIngredientsToPantryWithQuantity(ingredients, pantryProductsWithQty)
+		if (shortfallIngredients.length > 0) {
+			throw createError({
+				statusCode: 409,
+				statusMessage: 'Insufficient pantry quantities to make this recipe',
+			})
+		}
 
 		const baseServings =
 			recipe.portions_guide && typeof recipe.portions_guide === 'object' && 'base_servings' in (recipe.portions_guide as object)
@@ -205,7 +224,10 @@ export default defineEventHandler(async (event) => {
 				continue
 			}
 
-			const converted = convertIngredientToPantryUnit(deduction.neededQuantity, deduction.neededUnit, pantryItem.portion_unit)
+			// When the pantry item tracks volume (net_unit present), use net_content as the
+			// base and convert the ingredient amount to the pantry's net_unit for deduction.
+			const effectivePantryUnit = (pantryItem.net_unit && pantryItem.net_unit.trim()) ? pantryItem.net_unit.trim() : pantryItem.portion_unit
+			const converted = convertIngredientToPantryUnit(deduction.neededQuantity, deduction.neededUnit, effectivePantryUnit)
 			if (!converted) {
 				adjustment.needsFullArchiveFallback = true
 				continue
@@ -229,20 +251,44 @@ export default defineEventHandler(async (event) => {
 				continue
 			}
 
-			const remaining = pantryItem.quantity - adjustment.deductAmount
+			// When the item tracks volume via net_content/net_unit, deduct from net_content.
+			// Otherwise (count/pieces items), deduct from the legacy quantity field.
+			const hasNetUnit = pantryItem.net_unit && pantryItem.net_unit.trim()
 
-			if (remaining <= 0) {
-				await prisma.pantryItem.update({
-					where: { id: pantryItemId },
-					data: { is_archived: true, quantity: 0 },
-				})
-				archivedCount++
+			if (hasNetUnit) {
+				const currentNetContent = pantryItem.net_content ?? 0
+				const remainingNetContent = currentNetContent - adjustment.deductAmount
+
+				if (remainingNetContent <= 0) {
+					await prisma.pantryItem.update({
+						where: { id: pantryItemId },
+						data: { is_archived: true, quantity: 0, net_content: 0 },
+					})
+					archivedCount++
+				} else {
+					await prisma.pantryItem.update({
+						where: { id: pantryItemId },
+						data: { net_content: remainingNetContent },
+					})
+					deductedCount++
+				}
 			} else {
-				await prisma.pantryItem.update({
-					where: { id: pantryItemId },
-					data: { quantity: remaining },
-				})
-				deductedCount++
+				const remaining = pantryItem.quantity - adjustment.deductAmount
+
+				if (remaining <= 0) {
+					await prisma.pantryItem.update({
+						where: { id: pantryItemId },
+						data: { is_archived: true, quantity: 0 },
+					})
+					archivedCount++
+				} else {
+					await prisma.pantryItem.update({
+						where: { id: pantryItemId },
+						// Keep pieces_count in sync: suggest.get.ts reads it for shortfall checks
+						data: { quantity: remaining, pieces_count: Math.max(1, Math.ceil(remaining)) },
+					})
+					deductedCount++
+				}
 			}
 		}
 

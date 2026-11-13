@@ -2,7 +2,7 @@ import { defineEventHandler, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 import { findMatchedUserAllergens } from '../../lib/allergen-matching'
-import { matchIngredientsToPantry, findNonHalalKeywords, extractPantryKeywords, keywordSourceNames, type RawIngredient } from '../../lib/recipe-matching'
+import { matchIngredientsToPantry, matchIngredientsToPantryWithQuantity, findNonHalalKeywords, extractPantryKeywords, keywordSourceNames, type RawIngredient } from '../../lib/recipe-matching'
 import { DIETARY_ALLERGEN_MAP } from '../../lib/dietary-map'
 
 const SQL_CANDIDATE_LIMIT = 60
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
 		const [pantryItems, userWithProfile] = await Promise.all([
 			prisma.pantryItem.findMany({
 				where: { user_id: authUser.id, is_archived: false },
-				select: { id: true, category: true, product: { select: { product_name: true } } },
+				select: { id: true, category: true, pieces_count: true, net_content: true, net_unit: true, product: { select: { product_name: true } } },
 			}),
 			prisma.user.findUnique({
 				where: { id: authUser.id },
@@ -56,6 +56,14 @@ export default defineEventHandler(async (event) => {
 		}
 
 		const pantryProducts = pantryItems.map((p) => ({ id: p.id, product_name: p.product.product_name, category: p.category }))
+		const pantryProductsWithQty = pantryItems.map((p) => ({
+			id: p.id,
+			product_name: p.product.product_name,
+			category: p.category,
+			pieces_count: Number(p.pieces_count ?? 0),
+			net_content: p.net_content !== null && p.net_content !== undefined ? Number(p.net_content) : null,
+			net_unit: p.net_unit ?? null,
+		}))
 		const keywords = extractPantryKeywords(keywordSourceNames(pantryProducts))
 
 		if (keywords.length === 0) {
@@ -109,6 +117,7 @@ export default defineEventHandler(async (event) => {
 			matched_count: number
 			total_count: number
 			missing_ingredients: { name: string; quantity: number | null; unit: string | null }[]
+			shortfall_ingredients: { name: string; quantity: number; have: number; need: number; unit: string | null }[]
 			liked: boolean
 			made: boolean
 			image_url: string | null
@@ -145,13 +154,13 @@ export default defineEventHandler(async (event) => {
 			if (combinedWarnings.length > 0) continue
 			if (halalPref && findNonHalalKeywords(combinedText).length > 0) continue
 
-			const { matchedIngredients, missingIngredients } = matchIngredientsToPantry(ingredients, pantryProducts)
+			const { matchedIngredients, missingIngredients, shortfallIngredients } = matchIngredientsToPantryWithQuantity(ingredients, pantryProductsWithQty)
 			const interaction = interactionByRecipeId.get(recipe.id)
 			const isMade = interaction?.made_at != null
 			const matchedCount = matchedIngredients.length
 			const totalCount = ingredients.length
 
-			if (matchedCount === 0) continue
+			if (matchedCount === 0 && shortfallIngredients.length === 0) continue
 			if (isMade && matchedCount < totalCount) continue
 
 			seenRecipeIds.add(recipe.id)
@@ -165,6 +174,7 @@ export default defineEventHandler(async (event) => {
 				matched_count: matchedCount,
 				total_count: totalCount,
 				missing_ingredients: missingIngredients,
+				shortfall_ingredients: shortfallIngredients,
 				liked: interaction?.liked ?? false,
 				made: isMade,
 				image_url: recipe.image_url,

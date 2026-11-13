@@ -22,7 +22,8 @@ describe('Make Recipe loading wiring', () => {
 	it('RecipeDetailModal disables the button, shows a spinner and ignores clicks while making', () => {
 		const src = read('components/RecipeDetailModal.vue')
 		expect(src).toMatch(/making\?:\s*boolean/)
-		expect(src).toMatch(/:disabled="making"/)
+		// Bug 3 (task 9.4): also disabled when the recipe has a quantity shortfall
+		expect(src).toMatch(/:disabled="making \|\| hasShortfall"/)
 		expect(src).toContain('<ion-spinner v-if="making"')
 		expect(src).toMatch(/if \(props\.making\) return/)
 	})

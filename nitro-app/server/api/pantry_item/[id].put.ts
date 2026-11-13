@@ -115,14 +115,24 @@ export default defineEventHandler(async (event) => {
 
 		const isNewlyConsumed = is_archived === true && !existingItem.is_archived
 
-		// Zero-pieces restore guard: cannot restore items with 0 pieces_count
+		// Zero-pieces restore guard: cannot restore items with 0 pieces_count,
+		// unless the item was archived due to expiry (not consumption).
+		let restoreWithDefaultPieces = false
 		if (is_archived === false && existingItem.is_archived) {
 			const currentPieces = Number(existingItem.pieces_count)
 			if (currentPieces <= 0) {
-				throw createError({
-					statusCode: 409,
-					statusMessage: 'Cannot restore this item because its quantity is 0. It has been fully used.',
-				})
+				const today = new Date()
+				const isExpiredArchival =
+					(existingItem.expiration_date != null && new Date(existingItem.expiration_date) <= today) ||
+					(existingItem.best_before_date != null && new Date(existingItem.best_before_date) <= today)
+				if (!isExpiredArchival) {
+					throw createError({
+						statusCode: 409,
+						statusMessage: 'Cannot restore this item because its quantity is 0. It has been fully used.',
+					})
+				}
+				// Expired item with zero pieces: allow restore and reset pieces to 1
+				restoreWithDefaultPieces = true
 			}
 		}
 
@@ -131,6 +141,8 @@ export default defineEventHandler(async (event) => {
 			data: {
 				...(net_content !== undefined && { net_content }),
 				...(net_unit !== undefined && { net_unit }),
+				// When restoring an expired item that had 0 pieces, reset to 1
+				...(restoreWithDefaultPieces && { pieces_count: 1, quantity: 1 }),
 				...(pieces_count !== undefined && { 
 					pieces_count,
 					// Also update old fields for backward compatibility

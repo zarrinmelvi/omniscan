@@ -58,6 +58,19 @@
 					</div>
 				</div>
 
+				<!-- Chip-Based Ingredients: Need More (shortfall) -->
+				<div v-if="recipe.shortfall_ingredients?.length" class="section-group">
+					<div class="section-title text-amber">
+						<ion-icon :icon="alertCircleOutline" />
+						<span>Need more</span>
+					</div>
+					<div class="chips-flex-container">
+						<span v-for="(item, idx) in recipe.shortfall_ingredients" :key="idx" class="ingredient-chip amber-chip">
+							Need {{ item.need % 1 === 0 ? item.need : item.need.toFixed(1) }} more{{ item.unit ? ' ' + item.unit : '' }} {{ item.name }} (have {{ item.have % 1 === 0 ? item.have : item.have.toFixed(1) }})
+						</span>
+					</div>
+				</div>
+
 				<!-- Cleaned Instructions Steps -->
 				<div class="section-group">
 					<p class="section-label">Instructions</p>
@@ -70,7 +83,7 @@
 
 			<!-- Fixed Bottom Actions -->
 			<div class="detail-footer">
-				<ion-button expand="block" class="make-btn" :disabled="making" @click="onMake(recipe)">
+				<ion-button expand="block" class="make-btn" :disabled="making || hasShortfall" :title="hasShortfall ? 'You don\'t have enough of some ingredients' : undefined" @click="onMake(recipe)">
 					<ion-spinner v-if="making" name="crescent" slot="start" />
 					<ion-icon v-else :icon="restaurantOutline" slot="start" />
 					{{ making ? 'Making...' : recipe.made ? 'Make Recipe Again' : 'Make Recipe' }}
@@ -83,8 +96,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { IonModal, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
-import { closeOutline, heart, heartOutline, checkmarkCircle, bagHandleOutline, restaurantOutline, warningOutline } from 'ionicons/icons'
+import { closeOutline, heart, heartOutline, checkmarkCircle, bagHandleOutline, restaurantOutline, warningOutline, alertCircleOutline } from 'ionicons/icons'
 
 interface RecipeIngredientRef {
 	name: string
@@ -100,6 +114,7 @@ interface SuggestedRecipe {
 	matched_count: number
 	total_count: number
 	missing_ingredients: RecipeIngredientRef[]
+	shortfall_ingredients?: { name: string; need: number; have: number; unit: string | null }[]
 	liked: boolean
 	made: boolean
 	image_url?: string
@@ -111,6 +126,8 @@ const props = defineProps<{
 	recipe: SuggestedRecipe | null
 	making?: boolean
 }>()
+
+const hasShortfall = computed(() => (props.recipe?.shortfall_ingredients?.length ?? 0) > 0)
 
 const emit = defineEmits<{
 	(e: 'close'): void
@@ -314,6 +331,20 @@ function formatIngredient(item: RecipeIngredientRef): string {
 .orange-chip {
 	background: #fff7ed;
 	color: #9a3412;
+}
+
+.amber-chip {
+	background: #fffbeb;
+	color: #92400e;
+}
+
+.text-amber {
+	color: #d97706;
+}
+
+html.ion-palette-dark .amber-chip {
+	background: #2d2200;
+	color: #fbbf24;
 }
 
 /* Instructions Step Rows */

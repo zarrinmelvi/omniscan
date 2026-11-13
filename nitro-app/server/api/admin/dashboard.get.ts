@@ -1,6 +1,8 @@
 import { defineEventHandler, createError, getQuery } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAdminAuth } from '../../utils/requireAdminAuth'
+import { getUnresolvedLogoSummary } from '../../utils/flagGroups'
+import { onlineWhere } from '../../utils/onlineStatus'
 
 const HALAL_KEYWORDS = ['halal', 'slaughter', 'certification', 'certif', 'stamp', 'logo', 'compliance']
 
@@ -124,6 +126,39 @@ export default defineEventHandler(async (event) => {
 			}),
 		])
 
+		// ── Unresolved logos, online consumers, Halal logo scan chart ─────
+		const unresolvedSummary = await getUnresolvedLogoSummary()
+		const onlineConsumers = await prisma.user.count({ where: { deleted_at: null, ...onlineWhere(now) } })
+
+		const libraryLogos = await prisma.halalLogo.findMany({
+			select: { id: true, certifier: true, full_name: true },
+		})
+		const logoLinks = await prisma.productHalalLogo.findMany({
+			where: { deleted_at: null },
+			select: { product_id: true, halal_logo_id: true },
+		})
+		const scanGroups = await prisma.scan.groupBy({ by: ['product_id'], _count: { _all: true } })
+		const scansByProduct = new Map<any, number>()
+		for (const g of scanGroups as any[]) scansByProduct.set(g.product_id, g._count?._all ?? 0)
+		const countByLogo = new Map<any, number>()
+		for (const l of logoLinks as any[]) {
+			const c = scansByProduct.get(l.product_id) ?? 0
+			countByLogo.set(l.halal_logo_id, (countByLogo.get(l.halal_logo_id) ?? 0) + c)
+		}
+		const logoCounts = libraryLogos.map((l: any) => ({
+			id: l.id,
+			certifier: l.certifier,
+			full_name: l.full_name,
+			count: countByLogo.get(l.id) ?? 0,
+		}))
+		const halalTotal = logoCounts.reduce((sum, l) => sum + l.count, 0)
+		const halalLogos = logoCounts
+			.map((l) => ({
+				...l,
+				pct: halalTotal > 0 ? Math.round((l.count / halalTotal) * 1000) / 10 : 0,
+			}))
+			.sort((a, b) => b.count - a.count || String(a.certifier).localeCompare(String(b.certifier)))
+
 		const pendingFlags = pendingFlagRows.filter((f) => isHalalReason(f.flag_reason)).length
 		const priorPendingFlags = priorPendingFlagRows.filter((f) => isHalalReason(f.flag_reason)).length
 
@@ -222,6 +257,10 @@ export default defineEventHandler(async (event) => {
 				pending_flags: pendingFlags,
 				resolution_rate: resolutionRate,
 				active_consumers: activeConsumers,
+				unresolved_logos: unresolvedSummary.logoCount,
+				unresolved_logo_scans: unresolvedSummary.scanCount,
+				total_consumers: activeConsumers,
+				online_consumers: onlineConsumers,
 				api_latency_ms: apiLatencyMs,
 				trends: {
 					total_scans_pct: trendPct(totalScans, priorScans),
@@ -241,6 +280,7 @@ export default defineEventHandler(async (event) => {
 				Red: verdictMap.Red,
 				total: totalScans,
 			},
+			halal_logo_scans: { total: halalTotal, logos: halalLogos },
 			scans_over_time: scansOverTime,
 			ai_confidence_distribution: [
 				{ label: '<50', count: confBuckets.lt50 },

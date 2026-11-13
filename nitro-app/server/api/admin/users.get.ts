@@ -1,6 +1,7 @@
 import { defineEventHandler, createError, getQuery } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAdminAuth } from '../../utils/requireAdminAuth'
+import { onlineSince, onlineWhere, isOnline } from '../../utils/onlineStatus'
 
 // Account lifecycle thresholds (in days), matching the policy shown in the
 // admin UI:
@@ -13,9 +14,6 @@ const ARCHIVE_AFTER_DAYS = 180
 const DELETE_AFTER_DAYS = 187
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24
-
-// Online = has a live session AND was active within this window.
-const ONLINE_WINDOW_MS = 2 * 60 * 1000
 
 type LifecycleStatus = 'Active' | 'Inactive' | 'Archived'
 
@@ -88,11 +86,11 @@ export default defineEventHandler(async (event) => {
 				],
 			})
 		}
-		const onlineSince = new Date(now.getTime() - ONLINE_WINDOW_MS)
+		const onlineCutoff = onlineSince(now)
 		if (statusKey === 'online') {
-			and.push({ session_token: { not: null }, last_active: { gte: onlineSince } })
+			and.push(onlineWhere(now))
 		} else if (statusKey === 'offline') {
-			and.push({ OR: [{ session_token: null }, { last_active: null }, { last_active: { lt: onlineSince } }] })
+			and.push({ OR: [{ session_token: null }, { last_active: null }, { last_active: { lt: onlineCutoff } }] })
 		}
 		if (statusKey === 'active') and.push(activeCond)
 		else if (statusKey === 'inactive') and.push(inactiveCond)
@@ -169,10 +167,7 @@ export default defineEventHandler(async (event) => {
 				inactive_days: inactiveDays,
 				inactive_for: formatInactiveFor(inactiveDays),
 				status,
-				is_online:
-					!!u.session_token &&
-					u.last_active != null &&
-					u.last_active.getTime() >= now.getTime() - ONLINE_WINDOW_MS,
+				is_online: isOnline(u, now),
 				deletion_due: deletionDue,
 				scan_count: u._count.scan,
 				pantry_item_count: u._count.pantry_item,

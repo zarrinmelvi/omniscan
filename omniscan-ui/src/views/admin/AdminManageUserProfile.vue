@@ -66,13 +66,12 @@
 			<div v-if="isLoading" class="data-table-wrap">
 				<table class="data-table">
 					<thead>
-						<tr><th>CONSUMER</th><th>EMAIL</th><th>SCANS</th><th>PANTRY ITEMS</th><th>CREATED</th><th>STATUS</th></tr>
+						<tr><th>CONSUMER</th><th>EMAIL</th><th>PANTRY ITEMS</th><th>CREATED</th><th>STATUS</th></tr>
 					</thead>
 					<tbody>
 						<tr v-for="n in 8" :key="n" class="users-sk-row">
 							<td><div class="sk-cell shimmer" style="width:140px;height:14px"></div></td>
 							<td><div class="sk-cell shimmer" style="width:120px;height:12px"></div></td>
-							<td><div class="sk-cell shimmer" style="width:30px;height:12px"></div></td>
 							<td><div class="sk-cell shimmer" style="width:100px;height:10px"></div></td>
 							<td><div class="sk-cell shimmer" style="width:50px;height:12px"></div></td>
 							<td><div class="sk-cell shimmer" style="width:60px;height:20px;border-radius:9999px"></div></td>
@@ -93,7 +92,6 @@
 						<tr>
 							<th>CONSUMER</th>
 							<th>EMAIL</th>
-							<th>SCANS</th>
 							<th>PANTRY ITEMS</th>
 							<th>CREATED</th>
 							<th>STATUS</th>
@@ -114,7 +112,6 @@
 								</div>
 							</td>
 							<td class="email-cell">{{ u.email_masked }}</td>
-							<td class="scan-count-cell">{{ u.scan_count }}</td>
 							<td>
 								<div class="pantry-cell">
 									<div class="pantry-bar">
@@ -272,6 +269,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { apiFetch, ApiError } from '@/utils/api'
 
 interface ApiUserRow {
@@ -452,10 +450,38 @@ watch(searchQuery, () => {
 	searchTimer = setTimeout(resetAndFetch, 300)
 })
 
+const route = useRoute()
+
+function firstQueryValue(v: unknown): string {
+	const raw = Array.isArray(v) ? v[0] : v
+	return typeof raw === 'string' ? raw.trim().toLowerCase() : ''
+}
+
+/** Maps ?status= (or ?sort=) from the URL onto the status filter. status wins over sort. */
+function applyQueryFilters(): void {
+	const status = firstQueryValue(route.query.status)
+	const value = status || firstQueryValue(route.query.sort)
+	if (value === 'online') filterStatus.value = 'Online'
+	else if (value === 'offline' && status) filterStatus.value = 'Offline'
+}
+
+// Apply before the filter watcher exists so the first request already carries the status.
+applyQueryFilters()
+
 watch([filterStatus, sortOrder], () => {
 	if (searchTimer) clearTimeout(searchTimer)
 	resetAndFetch()
 })
+
+watch(
+	() => route.query,
+	() => {
+		const before = filterStatus.value
+		applyQueryFilters()
+		// If the filter changed, the watcher above already resets and fetches.
+		if (filterStatus.value === before) resetAndFetch()
+	},
+)
 
 watch(currentPage, () => {
 	if (skipNextPageWatch) {
@@ -709,13 +735,6 @@ td {
 .date-cell {
 	color: #64748b;
 	font-size: 0.85rem;
-}
-
-.scan-count-cell {
-	color: #334155;
-	font-weight: 600;
-	font-size: 0.88rem;
-	text-align: center;
 }
 
 /* Pantry usage */

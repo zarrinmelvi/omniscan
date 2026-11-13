@@ -6,9 +6,8 @@ export default defineEventHandler(async (event) => {
 	requireAdminAuth(event)
 
 	try {
-		// 1. Allergen profile counts — how many users have each predefined allergen
+		// 1. Allergen profile counts — every allergen in the dictionary (predefined and custom)
 		const predefinedAllergens = await prisma.allergen.findMany({
-			where: { is_predefined: true },
 			select: {
 				id: true,
 				name: true,
@@ -22,7 +21,7 @@ export default defineEventHandler(async (event) => {
 				name: a.name,
 				user_count: a._count.users,
 			}))
-			.sort((a, b) => b.user_count - a.user_count)
+			.sort((a, b) => b.user_count - a.user_count || a.name.localeCompare(b.name))
 
 		// 2. Allergen flag counts — load all flagged scans once, then group in-memory
 		const flaggedScans = await prisma.flaggedScan.findMany({

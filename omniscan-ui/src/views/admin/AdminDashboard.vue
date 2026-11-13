@@ -4,8 +4,8 @@
 		<div class="dash-header">
 			<div>
 				<h1 class="dash-title">Welcome back, {{ adminName }}.</h1>
-				<p class="dash-sub dash-sub--clickable" @click="router.push('/admin/verification')" style="cursor:pointer">
-					<span v-if="!isLoading" class="dash-flag-count">{{ stats?.pending_flags ?? 0 }} items</span>
+				<p class="dash-sub dash-sub--clickable" @click="goToUnresolved" style="cursor:pointer">
+					<span v-if="!isLoading" class="dash-flag-count">{{ unresolvedLogos }} unresolved {{ unresolvedLogos === 1 ? 'logo' : 'logos' }}</span>
 					<span v-else class="sk-inline"></span>
 					need your review.
 				</p>
@@ -23,25 +23,33 @@
 				</div>
 			</template>
 			<template v-else>
-				<!-- Total Scans -->
-				<div class="metric-card" @click="router.push('/admin/systemlogs?tab=api-latency')">
-					<div class="metric-label">Total scans</div>
-					<div class="metric-value">{{ stats?.total_scans ?? 0 }}</div>
+				<!-- Unresolved logos -->
+				<div class="metric-card" role="link" tabindex="0"
+					@click="goToUnresolved" @keydown.enter.prevent="goToUnresolved" @keydown.space.prevent="goToUnresolved">
+					<div class="metric-label">Unresolved logos</div>
+					<div class="metric-value">{{ unresolvedLogos }}</div>
+					<div class="metric-sub">distinct logos, covering {{ unresolvedLogoScans }} scans</div>
 				</div>
-				<!-- Pending Flags -->
-				<div class="metric-card" @click="router.push('/admin/verification')">
-					<div class="metric-label">Pending flags</div>
-					<div class="metric-value">{{ stats?.pending_flags ?? 0 }}</div>
+				<!-- Total Consumers -->
+				<div class="metric-card" role="link" tabindex="0"
+					@click="router.push('/admin/usersprofile')"
+					@keydown.enter.prevent="router.push('/admin/usersprofile')"
+					@keydown.space.prevent="router.push('/admin/usersprofile')">
+					<div class="metric-label">Total Consumers</div>
+					<div class="metric-value">{{ totalConsumers }}</div>
+					<div class="metric-sub">registered accounts</div>
 				</div>
-				<!-- Active Consumers -->
-				<div class="metric-card" @click="router.push('/admin/usersprofile')">
-					<div class="metric-label">Active Consumers</div>
-					<div class="metric-value">{{ stats?.active_consumers ?? 0 }}</div>
+				<!-- Online now -->
+				<div class="metric-card" role="link" tabindex="0"
+					@click="goToOnline" @keydown.enter.prevent="goToOnline" @keydown.space.prevent="goToOnline">
+					<div class="metric-label">Online now</div>
+					<div class="metric-value">{{ onlineConsumers }}</div>
+					<div class="metric-sub">of {{ totalConsumers }} Consumers</div>
 				</div>
 			</template>
 		</div>
 
-		<!-- ── Row 2: Allergen Bar + Donut ─────────────────────────── -->
+		<!-- ── Row 2: Allergen Bar + Halal logo chart ──────────────── -->
 		<div class="chart-row chart-row--2col">
 			<!-- Allergen Horizontal Bar Chart -->
 			<div class="chart-card">
@@ -70,43 +78,36 @@
 				</div>
 			</div>
 
-			<!-- Scan Verdicts Donut -->
-			<div class="chart-card">
+			<!-- Scans by Halal logo (vertical bar chart) -->
+			<div class="chart-card halal-chart" role="group" aria-labelledby="halal-chart-title" @click="goToHalalLibrary">
 				<div class="chart-card-header">
 					<div>
-						<div class="chart-title">Scan verdicts</div>
-						<div class="chart-sub">Click a slice to filter flagged items</div>
+						<div id="halal-chart-title" class="chart-title">Scans by Halal logo</div>
+						<div class="chart-sub">Share of scans per certifier logo</div>
 					</div>
+					<router-link to="/admin/productsdata?tab=halal" class="view-all-link" @click.stop>Manage</router-link>
 				</div>
-				<div v-if="isLoading" class="sk-donut-wrap">
-					<div class="sk-donut shimmer"></div>
+				<div v-if="isLoading" class="hb-skeleton">
+					<div v-for="n in 5" :key="n" class="hb-sk-col shimmer"></div>
 				</div>
-				<div v-else-if="(scanVerdicts?.total ?? 0) === 0" class="chart-empty"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>No scans yet.</div>
-				<div v-else class="donut-wrap">
-					<svg class="donut-svg" viewBox="0 0 120 120">
-						<circle cx="60" cy="60" r="46" fill="none" stroke-width="18" class="donut-track"/>
-						<circle
-							v-for="seg in donutSegments" :key="seg.verdict"
-							cx="60" cy="60" r="46" fill="none" stroke-width="18"
-							:stroke="seg.color"
-							:stroke-dasharray="seg.dash"
-							:stroke-dashoffset="seg.offset"
-							stroke-linecap="butt"
-							class="donut-seg"
-							@click="filterByVerdict(seg.verdict)"
-							style="cursor:pointer"
-						/>
-						<text x="60" y="57" text-anchor="middle" class="donut-center-val">{{ scanVerdicts?.total ?? 0 }}</text>
-						<text x="60" y="70" text-anchor="middle" class="donut-center-label">scans</text>
-					</svg>
-					<div class="donut-legend">
-						<div v-for="seg in donutSegments" :key="seg.verdict" class="legend-row">
-							<span class="legend-dot" :style="{ background: seg.color }"></span>
-							<span class="legend-label">{{ seg.verdict }} {{ seg.pct }}%</span>
+				<div v-else-if="halalLogos.length === 0" class="chart-empty">No Halal logos in the library yet.</div>
+				<div v-else class="hb-scroll">
+					<div class="hb-cols">
+						<div v-for="logo in halalLogos" :key="logo.id" class="hb-col" :title="logo.full_name">
+							<div class="hb-label">{{ logo.count }} ({{ logo.pct.toFixed(1) }}%)</div>
+							<div class="hb-track">
+								<button
+									type="button"
+									class="hb-bar"
+									:style="{ height: halalBarHeight(logo.count) + '%' }"
+									:aria-label="`${logo.certifier}: ${logo.count} scans, ${logo.pct} percent. Open Halal Logo Library`"
+									@click.stop="goToHalalLibrary"
+								></button>
+							</div>
+							<div class="hb-name">{{ logo.certifier }}</div>
 						</div>
 					</div>
 				</div>
-				<p class="donut-caption">Halal is tracked separately as a dietary label, not an allergen.</p>
 			</div>
 		</div>
 
@@ -194,8 +195,13 @@ interface DashboardStats {
 	api_latency_ms: number
 	trends: { total_scans_pct: number; pending_flags_pct: number; active_consumers_pct: number }
 	sparklines: { scans: number[]; flags: number[]; consumers: number[]; api_health: number[] }
+	unresolved_logos?: number
+	unresolved_logo_scans?: number
+	total_consumers?: number
+	online_consumers?: number
 }
-interface ScanVerdicts { Green: number; Yellow: number; Red: number; total: number }
+interface HalalLogoEntry { id: number; certifier: string; full_name: string; count: number; pct: number }
+interface HalalLogoScans { total: number; logos: HalalLogoEntry[] }
 interface ScansOverTimeEntry { date: string; count: number }
 interface AllergenEntry { name: string; count: number }
 interface AttentionCertifier {
@@ -214,7 +220,14 @@ const adminName = computed(() => adminStore.admin?.full_name?.split(' ')[0] ?? '
 const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
 const stats = ref<DashboardStats | null>(null)
-const scanVerdicts = ref<ScanVerdicts | null>(null)
+const halalLogoScans = ref<HalalLogoScans | null>(null)
+const unresolvedLogos = computed(() => stats.value?.unresolved_logos ?? 0)
+const unresolvedLogoScans = computed(() => stats.value?.unresolved_logo_scans ?? 0)
+const totalConsumers = computed(() => stats.value?.total_consumers ?? 0)
+const onlineConsumers = computed(() => stats.value?.online_consumers ?? 0)
+const halalLogos = computed<HalalLogoEntry[]>(() => halalLogoScans.value?.logos ?? [])
+const maxHalalCount = computed(() => Math.max(...halalLogos.value.map((l) => l.count), 1))
+function halalBarHeight(count: number): number { return (count / maxHalalCount.value) * 100 }
 const scansOverTime = ref<ScansOverTimeEntry[]>([])
 const allergenDist = ref<AllergenEntry[]>([])
 const attentionCertifiers = ref<AttentionCertifier[]>([])
@@ -233,13 +246,13 @@ async function loadDashboard(): Promise<void> {
 	try {
 		const data = await apiFetch<{
 			stats: DashboardStats
-			scan_verdicts: ScanVerdicts
+			halal_logo_scans?: HalalLogoScans
 			scans_over_time: ScansOverTimeEntry[]
 			allergen_distribution: AllergenEntry[]
 			attention_certifiers: AttentionCertifier[]
 		}>(`/api/admin/dashboard?range=${selectedRange.value}`, { isAdmin: true })
 		stats.value = data.stats
-		scanVerdicts.value = data.scan_verdicts
+		halalLogoScans.value = data.halal_logo_scans ?? null
 		scansOverTime.value = data.scans_over_time
 		allergenDist.value = data.allergen_distribution
 		attentionCertifiers.value = data.attention_certifiers ?? []
@@ -255,8 +268,9 @@ function setRange(r: '7d' | '30d' | '90d'): void {
 	loadDashboard()
 }
 
-function goToVerification(): void { router.push('/admin/verification') }
-function filterByVerdict(verdict: string): void { router.push(`/admin/verification?verdict=${verdict}`) }
+function goToUnresolved(): void { router.push('/admin/verification?tab=needs-decision') }
+function goToOnline(): void { router.push('/admin/usersprofile?status=online') }
+function goToHalalLibrary(): void { router.push('/admin/productsdata?tab=halal') }
 function goToAllergen(name: string): void { router.push('/admin/productsdata?allergen=' + encodeURIComponent(name)) }
 
 onMounted(loadDashboard)
@@ -281,30 +295,6 @@ function barWidth(count: number): number { return (count / maxAllergenCount.valu
 function formatAllergenName(name: string): string {
 	return name.replace(/\b\w/g, (c) => c.toUpperCase())
 }
-
-// ── Donut chart ───────────────────────────────────────────────────────────
-const DONUT_R = 46
-const DONUT_CIRC = 2 * Math.PI * DONUT_R
-
-const donutSegments = computed(() => {
-	const v = scanVerdicts.value ?? { Green: 0, Yellow: 0, Red: 0, total: 0 }
-	const total = v.total || 1
-	const segs = [
-		{ verdict: 'Green', color: '#05c450', count: v.Green },
-		{ verdict: 'Yellow', color: '#f59e0b', count: v.Yellow },
-		{ verdict: 'Red', color: '#ef4444', count: v.Red },
-	]
-	let cumulative = 0
-	return segs.map((s) => {
-		const pct = Math.round((s.count / total) * 100)
-		const dash = (s.count / total) * DONUT_CIRC
-		const gap = DONUT_CIRC - dash
-		// SVG starts at 3 o'clock; rotate to 12 o'clock by subtracting quarter circumference
-		const offset = -(cumulative / total) * DONUT_CIRC + DONUT_CIRC / 4
-		cumulative += s.count
-		return { ...s, pct, dash: `${dash.toFixed(2)} ${gap.toFixed(2)}`, offset: offset.toFixed(2) }
-	})
-})
 
 // ── Area chart ────────────────────────────────────────────────────────────
 const AREA_W = 560, AREA_H = 160
@@ -551,46 +541,53 @@ const axisLabels = computed(() => {
 	font-weight: 500;
 }
 
-/* ── Donut chart ──────────────────────────────────────── */
-.donut-wrap {
+/* ── Halal logo vertical bar chart ───────────────────── */
+.halal-chart { cursor: pointer; min-width: 0; }
+.hb-scroll { overflow-x: auto; padding-bottom: 6px; }
+.hb-cols { display: flex; gap: 8px; align-items: flex-end; min-width: min-content; }
+.hb-col {
+	min-width: 56px;
+	flex: 1 0 56px;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
+	gap: 6px;
+}
+.hb-label { font-size: 0.7rem; color: #4b5563; font-weight: 500; white-space: nowrap; }
+.hb-track {
+	height: 160px;
+	width: 100%;
+	display: flex;
+	align-items: flex-end;
 	justify-content: center;
-	gap: 20px;
-	padding: 8px 0;
+	background: #f3f4f6;
+	border-radius: 8px;
+	overflow: hidden;
 }
-.donut-svg {
-	width: 130px;
-	height: 130px;
-	flex-shrink: 0;
+.hb-bar {
+	width: 60%;
+	min-height: 4px;
+	padding: 0;
+	border: none;
+	background: #05c450;
+	border-radius: 6px 6px 0 0;
+	cursor: pointer;
+	transition: height 0.4s ease, opacity 0.15s;
 }
-.donut-track { stroke: #f3f4f6; }
-.donut-seg { transition: opacity 0.15s; }
-.donut-seg:hover { opacity: 0.8; }
-.donut-center-val {
-	font-size: 22px;
-	font-weight: 700;
-	fill: #111827;
-}
-.donut-center-label {
-	font-size: 9px;
-	fill: #9ca3af;
-}
-.donut-legend { display: flex; flex-direction: column; gap: 8px; }
-.legend-row { display: flex; align-items: center; gap: 8px; }
-.legend-dot {
-	width: 10px;
-	height: 10px;
-	border-radius: 50%;
-	flex-shrink: 0;
-}
-.legend-label { font-size: 0.8rem; color: #374151; }
-.donut-caption {
-	font-size: 0.72rem;
-	color: #9ca3af;
-	margin: 12px 0 0;
-	line-height: 1.4;
-}
+.hb-bar:hover { opacity: 0.8; }
+.hb-bar:focus-visible { outline: 2px solid #008744; outline-offset: 2px; }
+.hb-name { font-size: 0.72rem; color: #374151; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hb-skeleton { display: flex; gap: 8px; align-items: flex-end; height: 160px; }
+.hb-sk-col { flex: 1; height: 100%; border-radius: 8px; }
+.metric-sub { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
+
+html.ion-palette-dark .halal-chart .chart-title { color: #f1f5f9; }
+html.ion-palette-dark .halal-chart .chart-sub { color: #94a3b8; }
+html.ion-palette-dark .halal-chart .hb-label { color: #cbd5e1; }
+html.ion-palette-dark .halal-chart .hb-name { color: #f1f5f9; }
+html.ion-palette-dark .halal-chart .hb-track { background: #162032; }
+html.ion-palette-dark .halal-chart .hb-bar { background: #05c450; }
+html.ion-palette-dark .halal-chart .hb-bar:focus-visible { outline: 2px solid #6ee7a0; }
 
 /* ── Area chart ───────────────────────────────────────── */
 .area-chart-wrap { display: flex; flex-direction: column; gap: 6px; }
@@ -711,12 +708,6 @@ const axisLabels = computed(() => {
 	flex: 1;
 	height: 10px;
 	border-radius: 9999px;
-}
-.sk-donut-wrap { display: flex; justify-content: center; padding: 24px 0; }
-.sk-donut {
-	width: 130px;
-	height: 130px;
-	border-radius: 50%;
 }
 .sk-chart-area {
 	width: 100%;

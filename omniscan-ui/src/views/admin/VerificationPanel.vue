@@ -7,32 +7,25 @@
 			<p class="vp-subtitle">The AI resolves most scans on its own. Only what it could not settle reaches you.</p>
 		</div>
 
-		<!-- ── 4 Queue Metric Cards ───────────────────────────────── -->
-		<div class="queue-metrics">
-			<div class="qm-card">
-				<div class="qm-label">Auto-resolved by AI</div>
-				<div class="qm-value qm-value--neutral">{{ queueMetrics.autoResolved }}%</div>
-				<div class="qm-sub">no admin action needed</div>
-			</div>
-			<div class="qm-card qm-card--clickable" @click="activeTab = 'unmatched'">
-				<div class="qm-label">Needs your decision</div>
-				<div class="qm-value qm-value--green">{{ queueMetrics.needsDecision }}</div>
-				<div class="qm-sub">distinct logos, covering {{ queueMetrics.needsDecisionScans }} scans</div>
-			</div>
-			<div class="qm-card">
-				<div class="qm-label">Resolved this week</div>
-				<div class="qm-value qm-value--neutral">{{ queueMetrics.resolvedThisWeek }}</div>
-				<div class="qm-sub">each one cleared many scans</div>
-			</div>
-		</div>
-
 		<!-- ── Tab Filter Row ─────────────────────────────────────── -->
-		<div class="tab-row">
+		<div class="tab-row" role="tablist" aria-label="Exceptions queue tabs">
 			<button
+				type="button"
+				role="tab"
 				class="tab-btn"
 				:class="{ 'tab-btn--active': activeTab === 'unmatched' }"
-				@click="activeTab = 'unmatched'">
-				Unmatched logos · {{ queueMetrics.needsDecision }}
+				:aria-selected="activeTab === 'unmatched'"
+				@click="switchTab('unmatched')">
+				Unresolved {{ metrics?.needs_decision ?? 0 }}
+			</button>
+			<button
+				type="button"
+				role="tab"
+				class="tab-btn"
+				:class="{ 'tab-btn--active': activeTab === 'resolved' }"
+				:aria-selected="activeTab === 'resolved'"
+				@click="switchTab('resolved')">
+				Resolved {{ metrics?.resolved_logos ?? 0 }}
 			</button>
 		</div>
 
@@ -51,6 +44,30 @@
 					<div class="vp-empty-sub">{{ errorMessage }}</div>
 					<button type="button" class="btn-review" @click="fetchQueue">Retry</button>
 				</div>
+
+				<div v-else-if="activeTab === 'resolved' && resolvedCards.length === 0" class="vp-empty-state">
+					<div class="vp-empty-title">Nothing resolved yet.</div>
+					<div class="vp-empty-sub">Decisions you make on the Unresolved tab appear here.</div>
+				</div>
+
+				<template v-else-if="activeTab === 'resolved'">
+					<div v-for="card in resolvedCards" :key="card.id" class="logo-card logo-card--resolved">
+						<div class="logo-card-collapsed">
+							<div class="logo-thumb">
+								<img v-if="card.thumb" :src="card.thumb" :alt="card.title" class="logo-img" />
+								<span v-else class="logo-placeholder">Logo</span>
+							</div>
+							<div class="logo-collapsed-info">
+								<div class="logo-card-title">{{ card.title }}</div>
+								<div class="logo-card-meta">{{ card.scanCount }} scans · {{ card.productCount }} products · {{ card.consumerCount }} Consumers</div>
+								<div class="logo-card-meta">Decided {{ formatDecidedDate(card.decidedAt) }}</div>
+							</div>
+							<span
+								class="outcome-badge"
+								:class="card.outcome === 'approved' ? 'outcome-badge--approved' : 'outcome-badge--dismissed'">{{ card.outcomeLabel }}</span>
+						</div>
+					</div>
+				</template>
 
 				<div v-else-if="activeTabCards.length === 0" class="vp-empty-state">
 					<svg class="vp-empty-icon" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -175,9 +192,10 @@
 					<div class="modal-box-title">Mark as not a Halal certifier?</div>
 					<p class="modal-box-body">Please provide a short reason so it can be noted in the audit log.</p>
 					<textarea v-model="notHalalDialog.reason" class="dialog-textarea" placeholder="e.g. Logo belongs to a non-food brand, not a Halal certifier." rows="3"></textarea>
+					<p class="dialog-error" v-if="notHalalDialog.error">{{ notHalalDialog.error }}</p>
 					<div class="modal-box-actions">
-						<button class="btn-modal-secondary" @click="notHalalDialog.open = false">Cancel</button>
-						<button class="btn-modal-primary" @click="confirmNotHalal">Confirm</button>
+						<button class="btn-modal-secondary" :disabled="notHalalDialog.saving" @click="notHalalDialog.open = false">Cancel</button>
+						<button class="btn-modal-primary" :disabled="notHalalDialog.saving" @click="confirmNotHalal">{{ notHalalDialog.saving ? 'Saving…' : 'Confirm' }}</button>
 					</div>
 				</div>
 			</div>
@@ -234,6 +252,14 @@ interface QueueMetricsRaw {
 	needs_decision_scans: number
 	awaiting_rescan: number
 	resolved_this_week: number
+	resolved_logos?: number
+	resolved_logo_scans?: number
+}
+
+interface ResolvedServerCard extends ServerCard {
+	outcome: 'approved' | 'dismissed'
+	outcomeLabel: string
+	decidedAt: string
 }
 
 interface QueueCard {
@@ -267,30 +293,19 @@ const metrics = ref<QueueMetricsRaw | null>(null)
 const unmatchedCardsData = ref<ServerCard[]>([])
 const trainingCardsData = ref<ServerCard[]>([])
 
-type TabType = 'unmatched'
+const resolvedCardsData = ref<ResolvedServerCard[]>([])
+
+type TabType = 'unmatched' | 'resolved'
 const activeTab = ref<TabType>('unmatched')
 const expandedId = ref<number | null>(null)
 
 const addDialog = ref<{ open: boolean; card: QueueCard | null; certifier: string; full_name: string; source_url: string; saving: boolean; error: string | null }>({ open: false, card: null, certifier: '', full_name: '', source_url: '', saving: false, error: null })
-const notHalalDialog = ref<{ open: boolean; card: QueueCard | null; reason: string }>({ open: false, card: null, reason: '' })
+const notHalalDialog = ref<{ open: boolean; card: QueueCard | null; reason: string; saving: boolean; error: string | null }>({ open: false, card: null, reason: '', saving: false, error: null })
 
 const toast = ref({ visible: false, message: '' })
 
 // IDs that have been resolved (removed from queue after action)
 const resolvedIds = ref<Set<number>>(new Set())
-
-// ── Queue metrics ────────────────────────────────────────────────────────
-const queueMetrics = computed(() => {
-	const m = metrics.value
-	const visibleUnmatched = unmatchedCards.value
-	const needsDecisionScans = m?.needs_decision_scans ?? visibleUnmatched.reduce((sum, c) => sum + c.scanCount, 0)
-	return {
-		autoResolved: m?.auto_resolved_pct ?? 0,
-		needsDecision: m?.needs_decision ?? visibleUnmatched.length,
-		needsDecisionScans,
-		resolvedThisWeek: m?.resolved_this_week ?? 0,
-	}
-})
 
 // ── Queue cards sourced from the server, filtered by optimistic removals ──
 function mapServerCard(c: ServerCard, type: QueueCard['type']): QueueCard {
@@ -320,6 +335,22 @@ const trainingCards = computed<QueueCard[]>(() =>
 )
 
 const activeTabCards = computed<QueueCard[]>(() => unmatchedCards.value)
+
+const resolvedCards = computed<ResolvedServerCard[]>(() => resolvedCardsData.value)
+
+function formatDecidedDate(iso: string): string {
+	const d = new Date(iso)
+	if (Number.isNaN(d.getTime())) return ''
+	return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+async function switchTab(tab: TabType): Promise<void> {
+	if (activeTab.value === tab) return
+	activeTab.value = tab
+	page.value = 1
+	expandedId.value = null
+	await fetchQueue()
+}
 
 // ── Pagination ───────────────────────────────────────────────────────────
 const totalPages = computed(() => Math.max(1, pagination.value?.total_pages ?? 1))
@@ -365,7 +396,7 @@ function openAddDialog(card: QueueCard): void {
 }
 
 function openNotHalalDialog(card: QueueCard): void {
-	notHalalDialog.value = { open: true, card, reason: '' }
+	notHalalDialog.value = { open: true, card, reason: '', saving: false, error: null }
 }
 
 function showToast(msg: string): void {
@@ -382,8 +413,9 @@ async function confirmAddCertifier(): Promise<void> {
 	if (!certifier) { addDialog.value.error = 'Certifier code is required.'; return }
 	addDialog.value.saving = true
 	addDialog.value.error = null
+	let created = false
 	try {
-		await apiFetch('/api/halal_logo', {
+		const createRes = await apiFetch<{ success?: boolean; halalLogo?: { id?: number } }>('/api/halal_logo', {
 			method: 'POST',
 			isAdmin: true,
 			body: {
@@ -393,6 +425,24 @@ async function confirmAddCertifier(): Promise<void> {
 				...(sourceUrl ? { direct_logo_url: sourceUrl } : {}),
 			},
 		})
+		created = true
+		const halalLogoId = createRes?.halalLogo?.id
+		// Persist the decision: approve every flagged scan in this card's group.
+		const failed = await runForAll(card.rawIds, (id) =>
+			apiFetch(`/api/admin/flagged-scans/${id}/approve`, {
+				method: 'POST',
+				isAdmin: true,
+				body: {
+					...(halalLogoId ? { halal_logo_id: halalLogoId } : {}),
+					admin_correction: `Added to certifier registry: ${certifier}`,
+				},
+			})
+		)
+		if (failed > 0) {
+			addDialog.value.error = `Certifier added, but ${failed} of ${card.rawIds.length} flagged scans could not be approved. The list was refreshed; review the card again.`
+			await fetchQueue()
+			return
+		}
 		addDialog.value.open = false
 		// Remove the resolved card from the queue (optimistic) and refresh real data.
 		resolvedIds.value = new Set([...resolvedIds.value, card.id])
@@ -400,19 +450,48 @@ async function confirmAddCertifier(): Promise<void> {
 		showToast(`Certifier "${certifier}" added. ${card.productCount} products will update.`)
 		await fetchQueue()
 	} catch (err) {
-		addDialog.value.error = err instanceof ApiError ? err.message : 'Failed to add certifier. It may already exist.'
+		addDialog.value.error = err instanceof ApiError ? err.message : (created ? 'Failed to record the decision.' : 'Failed to add certifier. It may already exist.')
+		if (created) await fetchQueue()
 	} finally {
 		addDialog.value.saving = false
 	}
 }
 
-function confirmNotHalal(): void {
+// Runs `fn` for every id; returns how many calls failed.
+async function runForAll(ids: number[], fn: (id: number) => Promise<unknown>): Promise<number> {
+	const results = await Promise.allSettled(ids.map((id) => fn(id)))
+	return results.filter((r) => r.status === 'rejected').length
+}
+
+async function confirmNotHalal(): Promise<void> {
 	const card = notHalalDialog.value.card
 	if (!card) return
-	notHalalDialog.value.open = false
-	resolvedIds.value = new Set([...resolvedIds.value, card.id])
-	expandedId.value = null
-	showToast('Marked as not a Halal certifier.')
+	notHalalDialog.value.saving = true
+	notHalalDialog.value.error = null
+	try {
+		const reason = notHalalDialog.value.reason.trim()
+		const failed = await runForAll(card.rawIds, (id) =>
+			apiFetch(`/api/admin/flagged-scans/${id}/dismiss`, {
+				method: 'POST',
+				isAdmin: true,
+				body: { admin_correction: reason },
+			})
+		)
+		if (failed > 0) {
+			notHalalDialog.value.error = `${failed} of ${card.rawIds.length} flagged scans could not be dismissed. The list was refreshed; review the card again.`
+			await fetchQueue()
+			return
+		}
+		notHalalDialog.value.open = false
+		resolvedIds.value = new Set([...resolvedIds.value, card.id])
+		expandedId.value = null
+		showToast('Marked as not a Halal certifier.')
+		await fetchQueue()
+	} catch (err) {
+		notHalalDialog.value.error = err instanceof ApiError ? err.message : 'Failed to save the decision.'
+	} finally {
+		notHalalDialog.value.saving = false
+	}
 }
 
 // ── API ──────────────────────────────────────────────────────────────────
@@ -424,12 +503,14 @@ async function fetchQueue(): Promise<void> {
 		const data = await apiFetch<{
 			metrics: QueueMetricsRaw
 			unmatched: ServerCard[]
+			resolved?: ResolvedServerCard[]
 			duplicates: ServerCard[]
 			training: ServerCard[]
 			pagination?: { page: number; page_size: number; total: number; total_pages: number }
-		}>(`/api/admin/verification-queue?page=${page.value}&pageSize=${PAGE_SIZE}`, { method: 'GET', isAdmin: true })
+		}>(`/api/admin/verification-queue?page=${page.value}&pageSize=${PAGE_SIZE}${activeTab.value === 'resolved' ? '&status=resolved' : ''}`, { method: 'GET', isAdmin: true })
 		metrics.value = data.metrics
 		unmatchedCardsData.value = data.unmatched
+		resolvedCardsData.value = data.resolved ?? []
 		trainingCardsData.value = data.training
 		pagination.value = data.pagination ?? null
 		if (data.pagination) {
@@ -437,7 +518,8 @@ async function fetchQueue(): Promise<void> {
 			page.value = data.pagination.page
 		}
 		// Current page became empty after resolutions: step back one page.
-		if (page.value > 1 && data.unmatched.length === 0) {
+		const currentListLength = activeTab.value === 'resolved' ? (data.resolved ?? []).length : data.unmatched.length
+		if (page.value > 1 && currentListLength === 0) {
 			page.value -= 1
 			expandedId.value = null
 			await fetchQueue()
@@ -452,13 +534,14 @@ async function fetchQueue(): Promise<void> {
 
 // ── URL query params → tab/card deep-link ───────────────────────────────
 onMounted(async () => {
+	const tabParam = route.query.tab as string | undefined
+	if (tabParam === 'resolved') activeTab.value = 'resolved'
+	else if (tabParam === 'needs-decision') activeTab.value = 'unmatched'
+
 	await fetchQueue()
 
-	const tabParam = route.query.tab as string | undefined
-	if (tabParam === 'needs-decision') activeTab.value = 'unmatched'
-
 	const cardParam = route.query.card
-	if (cardParam) {
+	if (cardParam && activeTab.value === 'unmatched') {
 		const id = Number(cardParam)
 		// Try to find matching card across all tabs and expand it
 		const allCards = [...unmatchedCards.value, ...trainingCards.value]
@@ -472,13 +555,14 @@ onMounted(async () => {
 
 // Page emptied by optimistic removals (e.g. "Not a Halal certifier") → previous page
 watch(activeTabCards, (cards) => {
-	if (!isLoading.value && cards.length === 0 && page.value > 1) {
+	if (activeTab.value === 'unmatched' && !isLoading.value && cards.length === 0 && page.value > 1) {
 		void goToPage(page.value - 1)
 	}
 })
 
 watch(() => route.query, (q) => {
-	if (q.tab === 'needs-decision') activeTab.value = 'unmatched'
+	if (q.tab === 'resolved') void switchTab('resolved')
+	else if (q.tab === 'needs-decision') void switchTab('unmatched')
 })
 </script>
 
@@ -504,40 +588,21 @@ watch(() => route.query, (q) => {
 	margin: 0;
 }
 
-/* ── Queue metrics ────────────────────────────────────── */
-.queue-metrics {
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
-	gap: 14px;
-	margin-bottom: 22px;
+/* ── Resolved cards ───────────────────────────────────── */
+.outcome-badge {
+	display: inline-block;
+	padding: 3px 12px;
+	border-radius: 9999px;
+	font-size: 0.72rem;
+	font-weight: 600;
+	flex-shrink: 0;
+	white-space: nowrap;
 }
-@media (max-width: 900px) { .queue-metrics { grid-template-columns: repeat(2, 1fr); } }
-
-.qm-card {
-	background: #ffffff;
-	border: 1px solid #e5e7eb;
-	border-radius: 12px;
-	padding: 18px 20px;
-}
-.qm-card--clickable { cursor: pointer; transition: box-shadow 0.15s; }
-.qm-card--clickable:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); border-color: #d1d5db; }
-.qm-label {
-	font-size: 0.75rem;
-	color: #9ca3af;
-	font-weight: 500;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-	margin-bottom: 6px;
-}
-.qm-value {
-	font-size: 2.1rem;
-	font-weight: 700;
-	line-height: 1;
-	margin-bottom: 4px;
-}
-.qm-value--green { color: #008744; }
-.qm-value--neutral { color: #111827; }
-.qm-sub { font-size: 0.75rem; color: #9ca3af; }
+.outcome-badge--approved { background: #dcfce7; color: #166534; }
+.outcome-badge--dismissed { background: #f3f4f6; color: #4b5563; }
+html.ion-palette-dark .outcome-badge--approved { background: rgba(34, 197, 94, 0.18); color: #86efac; }
+html.ion-palette-dark .outcome-badge--dismissed { background: rgba(156, 163, 175, 0.18); color: #d1d5db; }
+.tab-btn:focus-visible { outline: 2px solid #008744; outline-offset: 2px; }
 
 /* ── Tab row ──────────────────────────────────────────── */
 .tab-row {

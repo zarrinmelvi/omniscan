@@ -1,6 +1,7 @@
 import { defineEventHandler, createError, getQuery } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAdminAuth } from '../../utils/requireAdminAuth'
+import { isHalalReason, groupFlagsByLogo } from '../../utils/flagGroups'
 
 // A single card rendered in the Verification Panel queues. Every field is
 // derived from real DB rows — no fabricated counts or AI-match guesses.
@@ -15,15 +16,14 @@ interface Card {
 	rawIds: number[]
 }
 
-// Keyword sets mirror /api/admin/flagged-scans classification.
-const HALAL_KEYWORDS = ['halal', 'slaughter', 'certification', 'certif', 'stamp', 'logo', 'compliance']
+interface ResolvedCard extends Card {
+	outcome: 'approved' | 'dismissed'
+	outcomeLabel: 'Added to certifier registry' | 'Not a Halal certifier'
+	decidedAt: string
+}
+
 // Phrases that indicate the logo could not be matched to a known certifier.
 const UNMATCHED_PHRASES = ['not matched', 'unverified', 'could not', 'unrecognized', 'unrecognised', 'no registry', 'not recognized', 'not recognised']
-
-function isHalalReason(reason: string): boolean {
-	const lower = reason.toLowerCase()
-	return HALAL_KEYWORDS.some((k) => lower.includes(k))
-}
 
 function toDataUri(base64: string | null | undefined): string | null {
 	if (!base64) return null
@@ -52,6 +52,7 @@ export default defineEventHandler(async (event) => {
 			resolvedAllTime,
 			resolvedThisWeek,
 			corrections,
+			resolvedFlags,
 		] = await Promise.all([
 			// Pending flagged scans with scan → product → user, for the
 			// unmatched-logo queue grouping.
@@ -94,7 +95,39 @@ export default defineEventHandler(async (event) => {
 					},
 				},
 			}),
+			// Resolved flags (light select, no base64) for the Resolved list and its counts.
+			prisma.flaggedScan.findMany({
+				where: { status: { in: ['approved', 'dismissed'] } },
+				orderBy: { updated_at: 'desc' },
+				select: {
+					id: true,
+					status: true,
+					flag_reason: true,
+					updated_at: true,
+					scan: {
+						select: {
+							user_id: true,
+							product: { select: { id: true, product_name: true } },
+						},
+					},
+				},
+			}),
 		])
+
+		// ── Resolved logo groups ──────────────────────────────────────────
+		const resolvedRows = (resolvedFlags ?? []).filter((f) => isHalalReason(f.flag_reason))
+		const resolvedGroups = [...groupFlagsByLogo(resolvedRows).values()].map((rows) => {
+			const latest = rows.reduce((a, b) =>
+				new Date(b.updated_at as any).getTime() > new Date(a.updated_at as any).getTime() ? b : a,
+			)
+			return { rows, latest }
+		})
+		// Newest decision first (stable for ties).
+		resolvedGroups.sort(
+			(a, b) => new Date(b.latest.updated_at as any).getTime() - new Date(a.latest.updated_at as any).getTime(),
+		)
+		const resolvedLogos = resolvedGroups.length
+		const resolvedLogoScans = resolvedRows.length
 
 		// ── Unmatched-logo queue ──────────────────────────────────────────
 		// Treat all halal-type pending flags as the unmatched-logo queue (lenient,
@@ -103,12 +136,7 @@ export default defineEventHandler(async (event) => {
 		// as the proxy for a distinct logo.
 		const unmatchedRows = pendingFlagged.filter((f) => isHalalReason(f.flag_reason))
 
-		const groups = new Map<string, typeof unmatchedRows>()
-		for (const row of unmatchedRows) {
-			const key = row.scan?.product?.product_name || `flag-${row.id}`
-			if (!groups.has(key)) groups.set(key, [])
-			groups.get(key)!.push(row)
-		}
+		const groups = groupFlagsByLogo(unmatchedRows)
 
 		const unmatched: Card[] = []
 		let needsDecisionScans = 0
@@ -143,9 +171,64 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
-		const totalGroups = unmatched.length
+		const resolvedMode = String(query.status ?? '') === 'resolved'
+		const totalGroups = resolvedMode ? resolvedLogos : unmatched.length
 		const totalPages = Math.max(1, Math.ceil(totalGroups / pageSize))
-		const pagedUnmatched = unmatched.slice((page - 1) * pageSize, page * pageSize)
+		const pagedUnmatched = resolvedMode ? [] : unmatched.slice((page - 1) * pageSize, page * pageSize)
+
+		// ── Resolved cards (current page only; thumbnails fetched for that page) ──
+		const resolved: ResolvedCard[] = []
+		if (resolvedMode) {
+			const pageGroups = resolvedGroups.slice((page - 1) * pageSize, page * pageSize)
+			const pageIds = pageGroups.flatMap((g) => g.rows.map((r) => r.id))
+			let thumbRows: any[] = []
+			if (pageIds.length > 0) {
+				try {
+					thumbRows = (await prisma.flaggedScan.findMany({
+						where: { id: { in: pageIds } },
+						select: {
+							id: true,
+							logo_crop_base64: true,
+							scan: { select: { product: { select: { image_base64: true } } } },
+						},
+					})) ?? []
+				} catch {
+					thumbRows = []
+				}
+			}
+			const thumbById = new Map<number, any>(thumbRows.map((t) => [t.id, t]))
+			pageGroups.forEach(({ rows, latest }, i) => {
+				const first = rows[0]
+				const productIds = new Set(
+					rows.map((r) => r.scan?.product?.id).filter((id): id is number => id != null),
+				)
+				const userIds = new Set(
+					rows.map((r) => r.scan?.user_id).filter((id): id is number => id != null),
+				)
+				const exampleNames = [
+					...new Set(
+						rows.map((r) => r.scan?.product?.product_name).filter((n): n is string => !!n),
+					),
+				].slice(0, 3)
+				const thumbs = rows.map((r) => thumbById.get(r.id)).filter(Boolean)
+				const approved = latest.status === 'approved'
+				resolved.push({
+					id: first.id,
+					title: `Unrecognized Halal logo #${(page - 1) * pageSize + i + 1}`,
+					scanCount: rows.length,
+					productCount: productIds.size > 0 ? productIds.size : 1,
+					consumerCount: userIds.size,
+					examples: exampleNames,
+					thumb:
+						toDataUri(thumbs.find((t) => t.logo_crop_base64)?.logo_crop_base64) ??
+						toDataUri(thumbs[0]?.scan?.product?.image_base64),
+					rawIds: rows.map((r) => r.id),
+					outcome: approved ? 'approved' : 'dismissed',
+					outcomeLabel: approved ? 'Added to certifier registry' : 'Not a Halal certifier',
+					decidedAt: new Date(latest.updated_at as any).toISOString(),
+				})
+			})
+		}
 
 		// ── auto_resolved_pct: real ratio of settled flags ────────────────
 		const denom = resolvedAllTime + pendingAllTime + awaitingAllTime
@@ -180,8 +263,11 @@ export default defineEventHandler(async (event) => {
 				needs_decision_scans: needsDecisionScans,
 				awaiting_rescan: awaitingRescanCount,
 				resolved_this_week: resolvedThisWeek,
+				resolved_logos: resolvedLogos,
+				resolved_logo_scans: resolvedLogoScans,
 			},
 			unmatched: pagedUnmatched,
+			resolved,
 			pagination: { page, page_size: pageSize, total: totalGroups, total_pages: totalPages },
 			duplicates,
 			training,

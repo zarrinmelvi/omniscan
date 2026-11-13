@@ -29,11 +29,6 @@
 				Ingredient Mappings
 				<span class="tab-count-badge">{{ ingredientTotal }}</span>
 			</button>
-			<button class="tab-button" :class="{ active: activeTab === 'products' }" @click="switchTab('products')">
-				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-				Products
-				<span class="tab-count-badge">{{ productTabBadge }}</span>
-			</button>
 		</div>
 
 		<div class="content-card">
@@ -387,116 +382,6 @@
 					</div>
 				</div>
 			</template>
-
-			<!-- 4. PRODUCTS -->
-			<template v-else-if="activeTab === 'products'">
-
-				<div class="products-controls">
-					<div class="search-box">
-						<svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-							<circle cx="11" cy="11" r="8"></circle>
-							<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-						</svg>
-						<input v-model="productSearch" type="text" placeholder="Search by name or brand" />
-					</div>
-					<select v-model="productSort" class="ctrl-select">
-						<option value="name_asc">Name A–Z</option>
-						<option value="name_desc">Name Z–A</option>
-						<option value="newest">Newest</option>
-					</select>
-					<select v-model="productAllergenFilter" class="ctrl-select">
-						<option value="all">All allergens</option>
-						<option v-for="allergen in productAllergenOptions" :key="allergen" :value="allergen">{{ allergen }}</option>
-					</select>
-					<span class="ctrl-count">{{ productTotalFiltered }} products</span>
-				</div>
-
-				<div v-if="productLoading" class="table-wrap">
-					<table class="data-table products-table">
-						<thead><tr><th>PRODUCT</th><th>BRAND</th><th>SCANS</th><th>HALAL STATUS</th><th>ALLERGENS DETECTED</th><th>UPDATED</th></tr></thead>
-						<tbody>
-							<tr v-for="n in 6" :key="n" class="products-sk-row">
-								<td><div class="sk-cell shimmer" style="width:70%;height:14px"></div></td>
-								<td><div class="sk-cell shimmer" style="width:60%;height:12px"></div></td>
-								<td><div class="sk-cell shimmer" style="width:30px;height:12px"></div></td>
-								<td><div class="sk-cell shimmer" style="width:90px;height:20px;border-radius:9999px"></div></td>
-								<td><div class="sk-cell shimmer" style="width:80%;height:12px"></div></td>
-								<td><div class="sk-cell shimmer" style="width:50px;height:12px"></div></td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<p v-else-if="productError" class="error-message">{{ productError }}</p>
-				<div v-else-if="filteredProductList.length === 0" class="prod-empty-state">
-					<svg class="prod-empty-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-						<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-					</svg>
-					<div class="prod-empty-title" v-if="productSearch.trim()">No products match "{{ productSearch }}"</div>
-					<div class="prod-empty-title" v-else>No products yet.</div>
-					<div class="prod-empty-sub" v-if="productSearch.trim()">Check the spelling or clear the search.</div>
-					<button v-if="productSearch.trim()" class="prod-clear-search" @click="productSearch = ''">Clear search</button>
-				</div>
-				<div v-else class="table-wrap">
-					<table class="data-table products-table">
-						<thead>
-							<tr>
-								<th>PRODUCT</th>
-								<th>BRAND</th>
-								<th>SCANS</th>
-								<th>HALAL STATUS</th>
-								<th>ALLERGENS DETECTED</th>
-								<th>UPDATED</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr v-for="p in filteredProductList" :key="p.id">
-								<td>
-									<div class="product-cell">
-										<div class="product-thumb">
-											<img v-if="p.thumb" :src="p.thumb" :alt="p.product_name" @error="(e) => ((e.target as HTMLImageElement).style.display = 'none')" />
-											<span v-else>📦</span>
-										</div>
-										<div class="product-name-wrap">
-											<span class="product-name">{{ p.product_name }}</span>
-											<span v-if="p.possible_duplicate" class="dup-chip">Possible duplicate</span>
-										</div>
-									</div>
-								</td>
-								<td>{{ p.brand_name }}</td>
-								<td class="scan-count-cell">{{ p.scan_count }}</td>
-								<td><span class="halal-pill" :class="'halal-pill--' + p.halal_status.kind">{{ p.halal_status.label }}</span></td>
-								<td>
-									<template v-if="p.allergens_detected.length > 0">
-										<span v-for="a in p.allergens_detected" :key="a" class="allergen-tag">{{ a }}</span>
-									</template>
-									<span v-else class="muted-dash">—</span>
-								</td>
-								<td class="cell-updated">{{ formatDate(p.updated_at) }}</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<div v-if="!productLoading && !productError && filteredProductList.length > 0" class="pagination-bar">
-					<span class="pagination-count">{{ productRangeLabel }}</span>
-					<div class="pagination-controls">
-						<button class="page-nav" :disabled="productPage === 1" @click="productPage > 1 && (productPage -= 1)" aria-label="Previous page">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-						</button>
-						<template v-for="(item, idx) in productPageItems" :key="idx">
-							<button
-								v-if="item !== '...'"
-								class="page-num"
-								:class="{ active: item === productPage }"
-								@click="productPage = item as number"
-							>{{ item }}</button>
-							<span v-else class="page-ellipsis">…</span>
-						</template>
-						<button class="page-nav" :disabled="productPage === productTotalPages" @click="productPage < productTotalPages && (productPage += 1)" aria-label="Next page">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-						</button>
-					</div>
-				</div>
-			</template>
 		</div>
 
 		<!-- ══════════════════ CREATE / EDIT MODAL ══════════════════ -->
@@ -637,36 +522,6 @@
 			@confirm="confirmDelete"
 		/>
 
-		<!-- ══════════════════ MERGE CONFIRMATION MODAL ══════════════════ -->
-		<Teleport to="body">
-			<div v-if="mergeTarget" class="modal-overlay" @click.self="cancelMerge">
-				<div class="modal" role="dialog" aria-modal="true">
-					<div class="modal-header">
-						<h2 class="modal-title">Merge this duplicate?</h2>
-						<button class="modal-close" @click="cancelMerge" aria-label="Close">
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<line x1="18" y1="6" x2="6" y2="18"></line>
-								<line x1="6" y1="6" x2="18" y2="18"></line>
-							</svg>
-						</button>
-					</div>
-					<div class="modal-body">
-						<p class="merge-copy">Merging combines all scan history into one record and points every Consumer to it. The duplicate record is removed. This is recorded in System Logs.</p>
-						<p v-if="mergeError" class="modal-error">{{ mergeError }}</p>
-					</div>
-					<div class="modal-footer">
-						<button class="btn-modal-cancel" :disabled="merging" @click="cancelMerge">Cancel</button>
-						<button class="btn-modal-save" :disabled="merging" @click="confirmMerge">{{ merging ? 'Merging…' : 'Confirm merge' }}</button>
-					</div>
-				</div>
-			</div>
-		</Teleport>
-
-		<!-- ══════════════════ PRODUCT TOAST ══════════════════ -->
-		<Teleport to="body">
-			<div v-if="productToast.visible" class="product-toast">{{ productToast.message }}</div>
-		</Teleport>
-
 		<!-- ══════════════════ COMPARE LOGOS DIALOG ══════════════════ -->
 		<Teleport to="body">
 			<div v-if="compareDialog.open && compareDialog.logo" class="modal-overlay" @click.self="compareDialog.open = false">
@@ -757,32 +612,7 @@ import { apiFetch, ApiError } from '@/utils/api'
 import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal.vue'
 
-type TabType = 'allergen' | 'halal' | 'ingredient' | 'products'
-
-interface ProductRow {
-	id: number
-	brand_name: string
-	product_name: string
-	thumb: string | null
-	scan_count: number
-	halal_status: { label: string; kind: 'certified' | 'unverified' | 'none' }
-	allergens_detected: string[]
-	possible_duplicate: boolean
-	canonical_key: string | null
-	canonical_product_id: number | null
-	updated_at: string
-}
-
-interface ProductsResponse {
-	success: boolean
-	products: ProductRow[]
-	total_filtered: number
-	total: number
-	duplicates_count: number
-	unverified_count: number
-	page: number
-	limit: number
-}
+type TabType = 'allergen' | 'halal' | 'ingredient'
 
 interface AllergenMapping {
 	id: number
@@ -853,44 +683,6 @@ interface PaginationInfo {
 	total: number
 	total_pages: number
 }
-
-// ─── Products tab state ───────────────────────────────────────────────────────
-const PRODUCT_PAGE_SIZE = 10
-const productList = ref<ProductRow[]>([])
-const productTotal = ref(0)        // total after search (filter-chip "All" count)
-const productTotalFiltered = ref(0) // total after search + active filter (for pagination)
-const productTabBadge = ref(0)      // grand total for the tab badge
-const productDuplicatesCount = ref(0)
-const productUnverifiedCount = ref(0)
-const productLoading = ref(false)
-const productError = ref<string | null>(null)
-const productSearch = ref('')
-const productSort = ref<'name_asc' | 'name_desc' | 'newest'>('name_asc')
-const productAllergenFilter = ref<string>('all')
-
-const productAllergenOptions = computed(() => {
-	// Use the full allergen dictionary (same source as Ingredient Mappings),
-	// falling back to names detected in the current page if not yet loaded.
-	if (allergens.value.length > 0) {
-		return [...allergens.value].sort((a, b) => a.name.localeCompare(b.name)).map(a => a.name)
-	}
-	const names = new Set<string>()
-	for (const p of productList.value) {
-		for (const a of p.allergens_detected) names.add(a)
-	}
-	return [...names].sort()
-})
-
-const filteredProductList = computed(() => {
-	if (productAllergenFilter.value === 'all') return productList.value
-	return productList.value.filter(p => p.allergens_detected.includes(productAllergenFilter.value))
-})
-const productPage = ref(1)
-const mergeTarget = ref<ProductRow | null>(null)
-const merging = ref(false)
-const mergeError = ref<string | null>(null)
-const productToast = ref<{ visible: boolean; message: string }>({ visible: false, message: '' })
-let productToastTimer: ReturnType<typeof setTimeout> | null = null
 
 // ─── Halal lifecycle state (Feature C) ──────────────────────────────────────
 const rescrapingId = ref<number | null>(null)
@@ -978,74 +770,8 @@ function aliasesChanged(): boolean {
 const getTabTitle = computed(() => {
 	if (activeTab.value === 'halal') return 'Maintain halal certifier library'
 	if (activeTab.value === 'ingredient') return 'Refine ingredient → allergen mappings'
-	if (activeTab.value === 'products') return 'Manage product records'
 	return 'Update allergen dictionary'
 })
-
-// ─── Products: pagination + fetching ──────────────────────────────────────────
-const productTotalPages = computed(() =>
-	Math.max(1, Math.ceil(productTotalFiltered.value / PRODUCT_PAGE_SIZE)),
-)
-
-const productRangeLabel = computed(() => {
-	const total = productTotalFiltered.value
-	if (total === 0) return 'No records'
-	const start = (productPage.value - 1) * PRODUCT_PAGE_SIZE + 1
-	const end = Math.min(productPage.value * PRODUCT_PAGE_SIZE, total)
-	return `Showing ${start}–${end} of ${total}`
-})
-
-const productPageItems = computed<(number | '...')[]>(() => {
-	const total = productTotalPages.value
-	const current = productPage.value
-	const MAX = 10
-	if (total <= MAX) {
-		return Array.from({ length: total }, (_, i) => i + 1)
-	}
-	const items: (number | '...')[] = []
-	const SIBLINGS = 2
-	const left = Math.max(2, current - SIBLINGS)
-	const right = Math.min(total - 1, current + SIBLINGS)
-	items.push(1)
-	if (left > 2) items.push('...')
-	for (let p = left; p <= right; p++) items.push(p)
-	if (right < total - 1) items.push('...')
-	items.push(total)
-	return items
-})
-
-async function fetchProducts(): Promise<void> {
-	productLoading.value = true
-	productError.value = null
-	try {
-		const params = new URLSearchParams({
-			search: productSearch.value,
-			sort: productSort.value,
-			page: String(productPage.value),
-			limit: String(PRODUCT_PAGE_SIZE),
-		})
-		const data = await apiFetch<ProductsResponse>(`/api/admin/products?${params.toString()}`, { isAdmin: true })
-		productList.value = data.products ?? []
-		productTotal.value = data.total ?? 0
-		productTotalFiltered.value = data.total_filtered ?? 0
-		// `total` is post-search; only an unfiltered request gives the grand total.
-		if (!productSearch.value.trim()) productTabBadge.value = data.total ?? 0
-		productDuplicatesCount.value = data.duplicates_count ?? 0
-		productUnverifiedCount.value = data.unverified_count ?? 0
-	} catch (err) {
-		productError.value = err instanceof ApiError ? err.message : 'Failed to fetch products.'
-	} finally {
-		productLoading.value = false
-	}
-}
-
-function showProductToast(message: string): void {
-	productToast.value = { visible: true, message }
-	if (productToastTimer) clearTimeout(productToastTimer)
-	productToastTimer = setTimeout(() => {
-		productToast.value = { visible: false, message: '' }
-	}, 3000)
-}
 
 // ─── Halal lifecycle actions (Feature C) ────────────────────────────────────
 function showHalalToast(message: string): void {
@@ -1185,69 +911,6 @@ function goToFirstOverdue(): void {
 	highlightTimer = setTimeout(() => {
 		highlightedId.value = null
 	}, 2500)
-}
-
-function openMerge(p: ProductRow): void {
-	if (!p.possible_duplicate) return
-	mergeError.value = null
-	mergeTarget.value = p
-}
-
-function cancelMerge(): void {
-	if (merging.value) return
-	mergeTarget.value = null
-	mergeError.value = null
-}
-
-async function confirmMerge(): Promise<void> {
-	const clicked = mergeTarget.value
-	if (!clicked) return
-	// Resolve primary/duplicate. Prefer the explicit canonical pointer; else pick
-	// the oldest (lowest id) product sharing the same canonical_key from the loaded
-	// list. Never merge a record into itself.
-	let primaryId: number
-	let duplicateId: number = clicked.id
-
-	if (clicked.canonical_product_id != null && clicked.canonical_product_id !== clicked.id) {
-		primaryId = clicked.canonical_product_id
-	} else {
-		const group = productList.value
-			.filter((p) => clicked.canonical_key != null && p.canonical_key === clicked.canonical_key)
-			.sort((a, b) => a.id - b.id)
-		if (group.length < 2) {
-			mergeError.value = 'Could not resolve a duplicate pair for this product.'
-			return
-		}
-		primaryId = group[0].id
-		if (clicked.id === primaryId) {
-			// The clicked row IS the canonical/oldest — merge the next one into it.
-			duplicateId = group[1].id
-		} else {
-			duplicateId = clicked.id
-		}
-	}
-
-	if (primaryId === duplicateId) {
-		mergeError.value = 'Cannot merge a record into itself.'
-		return
-	}
-
-	merging.value = true
-	mergeError.value = null
-	try {
-		await apiFetch('/api/admin/products/merge', {
-			method: 'POST',
-			body: { primary_id: primaryId, duplicate_id: duplicateId },
-			isAdmin: true,
-		})
-		mergeTarget.value = null
-		showProductToast('Merged. Scan history combined.')
-		await fetchProducts()
-	} catch (err) {
-		mergeError.value = err instanceof ApiError ? err.message : 'Failed to merge. Please try again.'
-	} finally {
-		merging.value = false
-	}
 }
 
 const tabSingular = computed(() => {
@@ -1428,7 +1091,7 @@ async function fetchMappings(): Promise<void> {
 }
 
 /**
- * Load all four tab badges in parallel (cheap one-row requests). Failures are
+ * Load all three tab badges in parallel (cheap one-row requests). Failures are
  * ignored per-tab so one bad endpoint never blocks the others. `skip` omits the
  * tab whose own fetch is already updating its total.
  */
@@ -1446,10 +1109,6 @@ async function fetchTabCounts(skip: TabType | null = null): Promise<void> {
 	if (skip !== 'ingredient') {
 		jobs.push(quiet(apiFetch<{ pagination: PaginationInfo }>('/api/ingredient_mapping?page=1&pageSize=1', { isAdmin: true })
 			.then((d) => { ingredientTotal.value = d.pagination?.total ?? ingredientTotal.value })))
-	}
-	if (skip !== 'products') {
-		jobs.push(quiet(apiFetch<ProductsResponse>('/api/admin/products?page=1&limit=1', { isAdmin: true })
-			.then((d) => { productTabBadge.value = d.total ?? productTabBadge.value })))
 	}
 	await Promise.all(jobs)
 }
@@ -1520,39 +1179,11 @@ function switchTab(tab: TabType): void {
 	ingredientAllergenFilter.value = 'all'
 	allergenPage.value = 1
 	ingredientPage.value = 1
-	if (tab === 'products') {
-		productSearch.value = ''
-		productPage.value = 1
-		fetchProducts()
-		// Ensure allergen list is loaded for the filter dropdown
-		if (allergens.value.length === 0) {
-			fetchAllergens()
-		}
-		return
-	}
 	fetchTabContent(tab)
 }
 
-// Reset to page 1 and refetch when products search/sort changes.
-watch([productSearch, productSort], () => {
-	if (activeTab.value !== 'products') return
-	productPage.value = 1
-	fetchProducts()
-})
-watch(productAllergenFilter, () => {
-	if (activeTab.value !== 'products') return
-	productPage.value = 1
-	fetchProducts()
-})
-watch(productPage, () => {
-	if (activeTab.value !== 'products') return
-	fetchProducts()
-})
-
 // ─── Modal open/close ─────────────────────────────────────────────────────────
 function openCreateModal(): void {
-	// Products tab uses its own controls — never the shared create modal.
-	if (activeTab.value === 'products') return
 	modalMode.value = 'create'
 	editingId.value = null
 	modalError.value = null
@@ -1679,7 +1310,6 @@ async function saveModal(): Promise<void> {
 			allergen: '/api/allergen',
 			halal: '/api/halal_logo',
 			ingredient: '/api/ingredient_mapping',
-			products: '',
 		}
 		const endpoint = endpointMap[activeTab.value]
 		const payload: Record<string, any> = { ...form.value }
@@ -1749,7 +1379,6 @@ async function confirmDelete(): Promise<void> {
 		allergen: '/api/allergen',
 		halal: '/api/halal_logo',
 		ingredient: '/api/ingredient_mapping',
-		products: '',
 	}
 	deleting.value = true
 	try {
@@ -1770,10 +1399,7 @@ const route = useRoute()
 onMounted(() => {
 	const tabParam = route.query.tab as string | undefined
 	let initial: TabType = 'allergen'
-	if (tabParam === 'products') {
-		initial = 'products'
-		switchTab('products')
-	} else if (tabParam === 'halal') {
+	if (tabParam === 'halal') {
 		initial = 'halal'
 		switchTab('halal')
 	} else {
@@ -1896,7 +1522,6 @@ td {
 	vertical-align: middle;
 }
 .data-table tbody tr { height: 56px; }
-.products-table tbody tr { height: 64px; }
 .cell-id { color: #94a3b8; font-weight: 600; font-size: 0.82rem; }
 .cell-allergen { font-weight: 600; color: #0f172a; }
 .cell-aliases { color: #64748b; max-width: 260px; line-height: 1.35; }
@@ -2139,7 +1764,6 @@ td {
 
 .card-footer-notice { padding: 16px 24px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 0.82rem; color: #94a3b8; }
 .state-message, .empty-note { padding: 32px; text-align: center; color: #64748b; font-size: 0.9rem; }
-.error-message { padding: 32px; text-align: center; color: #dc2626; font-size: 0.9rem; }
 
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
@@ -2170,47 +1794,6 @@ td {
 .btn-modal-save:hover:not(:disabled) { background: #00753a; }
 .btn-modal-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* ─── Products tab ─────────────────────────────────────────────────────────── */
-.dup-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin:16px 24px;font-size:0.84rem;color:#92400e;}
-.products-controls {
-	display: flex;
-	align-items: center;
-	gap: var(--space-3);
-	padding: var(--space-4) var(--space-5);
-	flex-wrap: wrap;
-	border-bottom: 1px solid #f1f5f9;
-}
-.ctrl-select {
-	height: var(--control-h);
-	padding: 0 var(--space-3);
-	border: 1px solid #e2e8f0;
-	border-radius: 8px;
-	font-size: 0.88rem;
-	color: #334155;
-	background: #fff;
-	cursor: pointer;
-}
-.ctrl-count { font-size: 0.82rem; color: #94a3b8; margin-left: auto; white-space: nowrap; }
-.product-cell{display:flex;align-items:center;gap:12px;}
-.product-thumb{width:40px;height:40px;border-radius:8px;background:#f1f5f9;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
-.product-thumb img{width:100%;height:100%;object-fit:cover;}
-.product-name-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.product-name{font-weight:600;color:#0f172a;}
-.dup-chip{font-size:0.68rem;font-weight:700;background:#fef9c3;color:#854d0e;border-radius:9999px;padding:2px 8px;}
-.halal-pill{display:inline-block;padding:3px 10px;border-radius:9999px;font-size:0.74rem;font-weight:600;}
-.halal-pill--certified{background:#dcfce7;color:#15803d;}
-.halal-pill--unverified{background:#fef9c3;color:#a16207;}
-.halal-pill--none{background:#f1f5f9;color:#64748b;}
-.allergen-tag{display:inline-block;background:#fff1f2;color:#be123c;border-radius:9999px;padding:2px 8px;font-size:0.72rem;font-weight:600;margin:1px 3px 1px 0;}
-.muted-dash{color:#94a3b8;}
-.scan-count-cell{font-weight:600;color:#334155;}
-.btn-view-sm{border:1px solid #e2e8f0;background:#fff;border-radius:8px;padding:5px 14px;font-size:0.8rem;font-weight:600;color:#334155;cursor:pointer;margin-right:6px;}
-.btn-view-sm:hover{background:#f8fafc;}
-.btn-merge{border:1px solid #e2e8f0;background:#fff;border-radius:8px;padding:5px 14px;font-size:0.8rem;font-weight:600;color:#94a3b8;cursor:not-allowed;}
-.btn-merge--active{background:#008744;border-color:#008744;color:#fff;cursor:pointer;}
-.btn-merge--active:hover{background:#00753a;}
-.products-table th, .products-table td { white-space: nowrap; }
-.products-table tbody tr:hover { background: #f8fafc; }
 .merge-copy{margin:0;font-size:0.88rem;color:#334155;line-height:1.5;}
 .product-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 24px;border-radius:9999px;font-size:0.875rem;font-weight:500;z-index:10000;box-shadow:0 8px 30px rgba(0,0,0,0.2);}
 
@@ -2221,21 +1804,12 @@ td {
 .admin-error-retry { border:1px solid #fca5a5; background:#fff; border-radius:6px; padding:5px 14px; font-size:0.78rem; font-weight:600; color:#dc2626; cursor:pointer; flex-shrink:0; }
 .admin-error-retry:hover { background:#fef2f2; }
 
-/* ── Group A1: Products empty state ── */
-.prod-empty-state { display:flex; flex-direction:column; align-items:center; padding:48px 24px; text-align:center; gap:8px; }
-.prod-empty-icon { color:#94a3b8; margin-bottom:4px; }
-.prod-empty-title { font-size:0.95rem; font-weight:600; color:#374151; }
-.prod-empty-sub { font-size:0.82rem; color:#9ca3af; }
-.prod-clear-search { margin-top:8px; border:1px solid #e2e8f0; background:#fff; border-radius:8px; padding:7px 18px; font-size:0.82rem; font-weight:600; color:#374151; cursor:pointer; }
-.prod-clear-search:hover { background:#f8fafc; }
-
 /* ── Group B1: Halal skeleton ── */
 .certifier-sk-card { border:1px solid #e2e8f0; border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:8px; min-height:180px; }
 .certifier-sk-logo { width:56px; height:56px; border-radius:12px; margin-bottom:8px; }
 .certifier-sk-line { height:12px; border-radius:6px; }
 
-/* ── Group B2: Products skeleton ── */
-.products-sk-row td { padding: 14px 24px; border-bottom:1px solid #f8fafc; }
+/* ── Skeleton cell ── */
 .sk-cell { border-radius:6px; display:block; }
 
 /* ── Shimmer ── */
@@ -2255,8 +1829,6 @@ td {
 .filter-chip:hover { background: #f0fdf4; border-color: #16a34a; color: #15803d; }
 
 @media (max-width: 1100px) {
-	.products-controls { flex-wrap: wrap; }
-	.products-controls .search-box { flex: 1 1 200px; }
 	.ingredient-controls-row { flex-wrap: wrap; }
 	.ingredient-controls-row .search-box { flex: 1 1 200px; }
 }

@@ -107,7 +107,8 @@ describe('Property 4: Google prefill', () => {
 
 describe('Property 4: untouched files have no diff', () => {
 	const files = [
-		'omniscan-ui/src/views/admin/AdminManageUserProfile.vue',
+		// AdminManageUserProfile.vue is deliberately edited by the admin-portal-dashboard-cleanup spec
+		// (SCANS column removal, ?status=online handling); its tests cover it.
 		// auth/register.post.ts intentionally changed: 30-char password max (see password-max-length.test.ts)
 		'nitro-app/server/api/auth/google/register.post.ts',
 		'nitro-app/server/api/users/index.put.ts',

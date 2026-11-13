@@ -242,14 +242,6 @@
 						<div class="fa-sk-count shimmer"></div>
 					</div>
 				</div>
-				<div class="fa-sk-section" style="margin-top:24px">
-					<div class="fa-sk-title shimmer"></div>
-					<div v-for="n in 4" :key="n" class="fa-sk-bar-row">
-						<div class="fa-sk-label shimmer"></div>
-						<div class="fa-sk-bar shimmer"></div>
-						<div class="fa-sk-count shimmer"></div>
-					</div>
-				</div>
 			</div>
 			<div v-else-if="!flagStats" class="empty-note">Unable to load flag statistics.</div>
 			<div v-else>
@@ -277,59 +269,6 @@
 							{{ item.user_count }}
 							<span class="fa-bar-pct">({{ profilePct(item.user_count) }}%)</span>
 						</span>
-					</div>
-				</div>
-
-				<!-- Section 2: Scan flag counts -->
-				<div class="fa-flag-section">
-					<h2 class="fa-section-title">Times scans were flagged</h2>
-					<p class="fa-section-sub">This is about scans, so it differs from the chart above.</p>
-
-					<div v-if="flagStats.allergen_flag_counts.filter(a => a.flag_count > 0).length === 0" class="empty-note">
-						No allergen flags recorded yet.
-					</div>
-					<div v-else>
-						<div
-							v-for="item in flagStats.allergen_flag_counts.filter(a => a.flag_count > 0)"
-							:key="item.allergen_id"
-							class="fa-flag-row"
-							:class="{ 'fa-flag-row--expanded': expandedAllergen === item.allergen_id }"
-							@click="toggleAllergen(item.allergen_id)"
-						>
-							<div class="fa-flag-main">
-								<span class="fa-allergen-name">{{ item.name }}</span>
-								<div class="fa-bar-track fa-bar-track--flag">
-									<div
-										class="fa-bar-fill fa-bar-fill--flag"
-										:style="{ width: flagBarWidth(item.flag_count) + '%' }"
-									></div>
-								</div>
-								<span class="fa-flag-count">{{ item.flag_count }}</span>
-								<span class="fa-flag-date">{{ formatFlagDate(item.last_flagged_at) }}</span>
-								<span class="fa-expand-arrow" :class="{ 'fa-expand-arrow--open': expandedAllergen === item.allergen_id }">
-									▾
-								</span>
-							</div>
-							<!-- Expanded sub-panel -->
-							<div v-if="expandedAllergen === item.allergen_id" class="fa-expanded" @click.stop>
-								<div class="fa-expanded-title">MOST FLAGGED PRODUCTS</div>
-								<div v-if="item.top_products.length === 0" class="fa-expanded-empty">
-									No specific products recorded.
-								</div>
-								<div
-									v-for="prod in item.top_products"
-									:key="prod.product_id ?? prod.product_name"
-									class="fa-product-row"
-								>
-									<a
-										class="fa-product-link"
-										href="#"
-										@click.prevent="$router.push('/admin/productsdata?tab=products')"
-									>{{ prod.product_name }}</a>
-									<span class="fa-product-count">{{ prod.flag_count }} flags</span>
-								</div>
-							</div>
-						</div>
 					</div>
 				</div>
 			</div>
@@ -445,7 +384,6 @@ const flagStats = ref<FlagAuditStatsResponse | null>(null)
 const flagStatsLoading = ref(false)
 const flagStatsLoaded = ref(false)
 const sysLoading = ref(true)
-const expandedAllergen = ref<number | null>(null)
 const showSlowOnly = ref(false)
 
 // Audit log filter state
@@ -767,17 +705,14 @@ watch(auditTotalPages, (total) => {
 
 const topProfileAllergens = computed(() => {
 	if (!flagStats.value) return []
-	return flagStats.value.allergen_profile_counts.slice(0, 8)
+	return [...flagStats.value.allergen_profile_counts].sort(
+		(a, b) => b.user_count - a.user_count || a.name.localeCompare(b.name)
+	)
 })
 
 const maxProfileCount = computed(() => {
 	if (!flagStats.value || flagStats.value.allergen_profile_counts.length === 0) return 1
 	return Math.max(...flagStats.value.allergen_profile_counts.map(a => a.user_count), 1)
-})
-
-const maxFlagCount = computed(() => {
-	if (!flagStats.value || flagStats.value.allergen_flag_counts.length === 0) return 1
-	return Math.max(...flagStats.value.allergen_flag_counts.map(a => a.flag_count), 1)
 })
 
 function profileBarWidth(count: number): number {
@@ -788,18 +723,8 @@ function profileBarWidth(count: number): number {
 
 function profilePct(count: number): string {
 	const total = flagStats.value?.total_active_consumers ?? 0
-	if (total === 0) return '0'
+	if (total === 0) return '0.0'
 	return ((count / total) * 100).toFixed(1)
-}
-
-function flagBarWidth(count: number): number {
-	const max = maxFlagCount.value
-	if (max === 0) return 0
-	return Math.round((count / max) * 100)
-}
-
-function toggleAllergen(id: number) {
-	expandedAllergen.value = expandedAllergen.value === id ? null : id
 }
 
 // ─── Shared helpers ────────────────────────────────────────────────────────────
@@ -818,12 +743,6 @@ function formatRelativeDate(iso: string): string {
 	if (d.toDateString() === todayStr) return `Today, ${timeStr}`
 	if (d.toDateString() === yesterdayStr) return `Yesterday, ${timeStr}`
 	return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${timeStr}`
-}
-
-function formatFlagDate(iso: string | null): string {
-	if (!iso) return '—'
-	const d = new Date(iso)
-	return d.toLocaleDateString('en-CA') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 }
 
 function formatAuditTime(iso: string): string {
@@ -1283,7 +1202,7 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 /* ────────────────────────────────────────────────────
    Flag Audit tab
 ──────────────────────────────────────────────────── */
-.fa-profile-section, .fa-flag-section {
+.fa-profile-section {
 	background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;
 	padding: 24px; margin-bottom: 20px;
 }
@@ -1295,31 +1214,6 @@ h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #0f172a; }
 .fa-bar-fill { height: 100%; background: #008744; border-radius: 9999px; transition: width 0.3s ease; }
 .fa-bar-count { font-size: 0.82rem; color: #374151; font-weight: 500; white-space: nowrap; }
 .fa-bar-pct { color: #94a3b8; font-size: 0.75rem; }
-
-.fa-flag-row {
-	border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 8px;
-	overflow: hidden; cursor: pointer;
-	transition: border-color 0.15s ease;
-}
-.fa-flag-row:hover { border-color: #008744; }
-.fa-flag-row--expanded { border-color: #008744; }
-.fa-flag-main {
-	display: flex; align-items: center; gap: 12px; padding: 12px 16px;
-}
-.fa-flag-main .fa-allergen-name { text-align: left; }
-.fa-bar-track--flag { flex: 1; }
-.fa-bar-fill--flag { background: #ef4444; }
-.fa-flag-count { font-size: 0.88rem; font-weight: 700; color: #0f172a; white-space: nowrap; min-width: 24px; }
-.fa-flag-date { font-size: 0.76rem; color: #94a3b8; white-space: nowrap; }
-.fa-expand-arrow { color: #94a3b8; font-size: 0.9rem; transition: transform 0.2s ease; }
-.fa-expand-arrow--open { transform: rotate(180deg); }
-.fa-expanded { background: #f8fafc; padding: 12px 16px; border-top: 1px solid #e2e8f0; }
-.fa-expanded-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em; color: #9ca3af; text-transform: uppercase; margin-bottom: 8px; }
-.fa-expanded-empty { font-size: 0.82rem; color: #94a3b8; }
-.fa-product-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
-.fa-product-link { color: #008744; text-decoration: underline; cursor: pointer; font-size: 0.82rem; }
-.fa-product-link:hover { color: #005c2e; }
-.fa-product-count { font-size: 0.78rem; color: #64748b; }
 
 /* Keep old flag audit styles for any still-used code */
 .flag-audit-table { min-width: 900px; }

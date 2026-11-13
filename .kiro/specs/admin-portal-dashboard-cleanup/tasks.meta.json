@@ -1,0 +1,270 @@
+{
+  "pbtResults": {
+    "1. Write bug condition exploration test": {
+      "status": "passed",
+      "failingExample": "17 of 19 failed on unfixed code (2 guards passed: scan_verdicts in response, View all -> /admin/systemlogs?tab=flag-audit). Counterexamples: dashboard stats lacks unresolved_logos/unresolved_logo_scans/total_consumers/online_consumers; dashboard has no halal_logo_scans; queue metrics lacks resolved_logos; queue ?status=resolved returns no `resolved` list; flag-audit-stats tie order is insertion order (Soy,Egg / Wheat,Peanut / Mustard,Sesame... instead of Egg,Soy / Peanut,Wheat ...); AdminDashboard.vue still has \"Total scans\", \"Scan verdicts\", donut-svg and lacks \"Unresolved logos\"; VerificationPanel.vue has \"Auto-resolved by AI\", no Resolved tab, no /approve or /dismiss call; AdminManageUserProfile.vue has <th>SCANS</th> and never reads route.query; AdminManageProductData.vue has switchTab('products'); AdminSystemLogs.vue has \"Times scans were flagged\" and topProfileAllergens uses .slice(0, 8).",
+      "lastRunTimestamp": 1794562734881
+    }
+  },
+  "executionHistory": {
+    "1. Write bug condition exploration test": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562499891
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562509785
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562769684
+      }
+    ],
+    "2. Write preservation property tests (BEFORE implementing fix)": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562499965
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562770868
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562922994
+      }
+    ],
+    "3.1 A. Shared server helpers (sequential; must finish before 3.2 and 3.3)": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500030
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562924184
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562992393
+      }
+    ],
+    "3.2 B. Dashboard API fields (after 3.1; may run in parallel with 3.3 only if 3.3 does not touch `dashboard.get.ts`, which it does not)": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500078
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563002366
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563359924
+      }
+    ],
+    "3.3 C. Verification-queue resolved mode (after 3.1; parallel-safe with 3.2, touches only `verification-queue.get.ts`)": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500127
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563003568
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563358332
+      }
+    ],
+    "3.4 D. `VerificationPanel.vue` (after 3.3; parallel-safe with 3.5 to 3.8 because it touches only this file)": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500179
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563373993
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563567620
+      }
+    ],
+    "3.5 E. `AdminDashboard.vue` with the vertical bar chart (after 3.2; parallel-safe with 3.4, 3.6, 3.7, 3.8)": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500246
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563374053
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563567552
+      }
+    ],
+    "3.6 F. `AdminManageUserProfile.vue` query handling and SCANS column removal (parallel-safe)": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500292
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563004768
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563362113
+      }
+    ],
+    "3.7 G. `AdminManageProductData.vue` Products tab removal (parallel-safe)": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500348
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563005574
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563357219
+      }
+    ],
+    "3.8.1 I. `flag-audit-stats.get.ts` deterministic full list (parallel-safe; touches only `nitro-app/server/api/admin/flag-audit-stats.get.ts`, disjoint from 3.5 and 3.8)": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500398
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563007185
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563361142
+      }
+    ],
+    "3.9 Write unit tests for the new helpers and handlers (after 3.1 to 3.3)": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500446
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563568755
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563715053
+      }
+    ],
+    "3.10 Write property-based tests for fix checking (after 3.1 to 3.3)": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500501
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563570161
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563715130
+      }
+    ],
+    "3.11 Verify bug condition exploration test now passes": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500550
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563715220
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563728826
+      }
+    ],
+    "3.12 Verify preservation tests still pass": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500597
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563730010
+      }
+    ],
+    "4. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794562500645
+      },
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563731212
+      }
+    ],
+    "3.8 H. `AdminSystemLogs.vue` flag section removal and full allergen list (parallel-safe; also edits the Flag Audit list for design section I)": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563361213
+      }
+    ],
+    "3. Fix for admin portal dashboard cleanup": [
+      {
+        "executionId": "e4b818e2-1eea-4b5e-b7fd-1d351e334e20",
+        "chatSessionId": "sess_774f55c0-f50c-4687-8b47-9f334b9a6a74",
+        "timestamp": 1794563730075
+      }
+    ]
+  }
+}

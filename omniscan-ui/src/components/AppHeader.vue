@@ -92,6 +92,7 @@ onMounted(() => {
 	justify-content: space-between;
 	gap: 12px;
 	padding: 10px 16px;
+	padding-top: calc(10px + env(safe-area-inset-top));
 	background: #ffffff;
 	border-bottom: 1px solid #f1f5f9;
 }

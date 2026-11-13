@@ -179,7 +179,7 @@ async function handleResetPassword() {
 .auth-content { --background: #ffffff; }
 .auth-layout { width: 100%; }
 .auth-brand-panel { display: none; }
-.auth-card { max-width: 380px; margin: 0 auto; padding: 24px 24px 32px; background: #ffffff; }
+.auth-card { max-width: 380px; margin: 0 auto; padding: 24px 24px 32px; padding-top: calc(24px + env(safe-area-inset-top)); background: #ffffff; }
 .brand-label { display: block; color: #05c450; font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; }
 .auth-title { font-size: 1.85rem; font-weight: 700; color: #111827; margin: 0 0 6px; letter-spacing: -0.02em; }
 .auth-subtitle { color: #6b7280; font-size: 0.85rem; line-height: 1.4; margin: 0 0 20px; }

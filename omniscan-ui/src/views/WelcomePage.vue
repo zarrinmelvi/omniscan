@@ -159,6 +159,7 @@ header {
 	margin: 0 auto;
 	height: 76px;
 	padding: 0 32px;
+	padding-top: env(safe-area-inset-top);
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -585,6 +586,7 @@ html.ion-palette-dark .footer-link:focus-visible {
 	header {
 		height: 64px;
 		padding: 0 18px;
+		padding-top: env(safe-area-inset-top);
 	}
 
 	.brand {

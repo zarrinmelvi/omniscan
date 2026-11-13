@@ -166,7 +166,7 @@ onBeforeUnmount(stopTimer)
 .auth-content { --background: #ffffff; }
 .auth-layout { width: 100%; }
 .auth-brand-panel { display: none; }
-.auth-card { max-width: 380px; margin: 0 auto; padding: 12px 24px 32px; background: #ffffff; }
+.auth-card { max-width: 380px; margin: 0 auto; padding: 12px 24px 32px; padding-top: calc(12px + env(safe-area-inset-top)); background: #ffffff; }
 .back-button { background: none; border: none; font-size: 1.25rem; color: #111827; padding: 4px 0; margin-bottom: 24px; cursor: pointer; display: flex; align-items: center; }
 .brand-label { display: block; color: #05c450; font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; }
 .auth-title { font-size: 1.85rem; font-weight: 700; color: #111827; margin: 0 0 6px; letter-spacing: -0.02em; }

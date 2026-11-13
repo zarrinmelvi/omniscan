@@ -244,6 +244,7 @@
 							v-model.number="editForm.net_content"
 							type="number"
 							min="0"
+							max="99999"
 							step="any"
 							class="edit-qty-input"
 							placeholder="500" />
@@ -259,7 +260,7 @@
 						v-model.number="editForm.pieces_count"
 						type="number"
 						min="1"
-						max="99"
+						max="999"
 						class="edit-pieces-input"
 						required />
 
@@ -540,10 +541,10 @@ const editPastDateError = computed(() => {
 const isEditFormValid = computed(() => {
   const hasExp = !!editForm.expiration_date
   const hasBbd = !!editForm.best_before_date
-  const validPiecesCount = editForm.pieces_count >= 1 && editForm.pieces_count <= 99
+  const validPiecesCount = editForm.pieces_count >= 1 && editForm.pieces_count <= 999
   // Net content is optional: blank ('' from v-model.number) or null is valid
   const nc = editForm.net_content as number | null | ''
-  const validNetContent = nc === null || nc === '' || nc === undefined || (Number(nc) > 0 && !!editForm.net_unit)
+  const validNetContent = nc === null || nc === '' || nc === undefined || (Number(nc) > 0 && Number(nc) <= 99999 && !!editForm.net_unit)
   return validPiecesCount && validNetContent && !!editForm.storage_location && (hasExp || hasBbd) && !(hasExp && hasBbd) && !editPastDateError.value
 })
 

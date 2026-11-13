@@ -186,31 +186,36 @@ export default defineEventHandler(async (event) => {
 		// CREATE NOTIFICATION RECORDS FOR TOP SUGGESTIONS
 		if (results.length > 0) {
 			const topMatch = results[0]
-			const isFullMatch = topMatch.matched_count === topMatch.total_count
-			const notifType = isFullMatch ? 'pantry_match' : 'recipe_suggestion'
-			const notifMsg = isFullMatch
-				? `You have all ingredients to cook ${topMatch.name}!`
-				: `You have ${topMatch.matched_count}/${topMatch.total_count} ingredients for ${topMatch.name}.`
+			const minMatchForNotif = Math.max(2, Math.ceil(topMatch.total_count * 0.25))
+			if (topMatch.matched_count < minMatchForNotif) {
+				// Not enough matched ingredients to warrant a notification
+			} else {
+				const isFullMatch = topMatch.matched_count === topMatch.total_count
+				const notifType = isFullMatch ? 'pantry_match' : 'recipe_suggestion'
+				const notifMsg = isFullMatch
+					? `You have all ingredients to cook ${topMatch.name}!`
+					: `You have ${topMatch.matched_count}/${topMatch.total_count} ingredients for ${topMatch.name}.`
 
-			const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-			const existingNotif = await prisma.notification.findFirst({
-				where: {
-					user_id: authUser.id,
-					type: notifType,
-					message: notifMsg,
-					created_at: { gte: twentyFourHoursAgo },
-				},
-			})
-
-			if (!existingNotif) {
-				await prisma.notification.create({
-					data: {
+				const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+				const existingNotif = await prisma.notification.findFirst({
+					where: {
 						user_id: authUser.id,
 						type: notifType,
 						message: notifMsg,
-						is_read: false,
+						created_at: { gte: twentyFourHoursAgo },
 					},
-				}).catch(() => {}) // Non-critical write
+				})
+
+				if (!existingNotif) {
+					await prisma.notification.create({
+						data: {
+							user_id: authUser.id,
+							type: notifType,
+							message: notifMsg,
+							is_read: false,
+						},
+					}).catch(() => {}) // Non-critical write
+				}
 			}
 		}
 

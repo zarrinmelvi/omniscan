@@ -199,6 +199,7 @@
 						<input
 							type="number"
 							min="0"
+							max="99999"
 							step="any"
 							class="quantity-input"
 							v-model.number="form.netContent"
@@ -214,7 +215,7 @@
 					<input
 						type="number"
 						min="1"
-						max="99"
+						max="999"
 						class="pieces-input"
 						v-model.number="form.piecesCount"
 						:disabled="isSubmitting"
@@ -371,10 +372,11 @@ const pastDateError = computed(() => isBeforeToday(form.expirationDate) || isBef
 const isFormValid = computed(() => {
 	if (pastDateError.value) return false
 	const hasName = form.productName.trim().length > 0
-	const hasValidPiecesCount = form.piecesCount >= 1 && form.piecesCount <= 99
+	const hasValidPiecesCount = form.piecesCount >= 1 && form.piecesCount <= 999
+	const hasValidNetContent = !form.netContent || form.netContent <= 99999
 	const hasAtLeastOneDate = !!form.expirationDate || !!form.bestBeforeDate
 	const hasBothDates = !!form.expirationDate && !!form.bestBeforeDate
-	return hasName && hasValidPiecesCount && hasAtLeastOneDate && !hasBothDates
+	return hasName && hasValidPiecesCount && hasValidNetContent && hasAtLeastOneDate && !hasBothDates
 })
 
 const isExpirationExpired = computed(() => isBeforeToday(form.expirationDate))

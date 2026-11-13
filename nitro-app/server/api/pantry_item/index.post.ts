@@ -112,16 +112,16 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// Validate pieces_count (required, 1-99)
+	// Validate pieces_count (required, 1-999)
 	const piecesCountValue = pieces_count ?? 1
-	if (typeof piecesCountValue !== 'number' || piecesCountValue < 1 || piecesCountValue > 99 || !Number.isInteger(piecesCountValue)) {
-		throw createError({ statusCode: 400, statusMessage: 'pieces_count must be an integer between 1 and 99.' })
+	if (typeof piecesCountValue !== 'number' || piecesCountValue < 1 || piecesCountValue > 999 || !Number.isInteger(piecesCountValue)) {
+		throw createError({ statusCode: 400, statusMessage: 'pieces_count must be an integer between 1 and 999.' })
 	}
 
 	// Validate net_content and net_unit (optional, but if net_content provided, net_unit required)
 	if (net_content !== undefined && net_content !== null) {
-		if (typeof net_content !== 'number' || net_content <= 0) {
-			throw createError({ statusCode: 400, statusMessage: 'net_content must be a positive number.' })
+		if (typeof net_content !== 'number' || net_content <= 0 || net_content > 99999) {
+			throw createError({ statusCode: 400, statusMessage: 'net_content must be a positive number no greater than 99999.' })
 		}
 		if (!net_unit || !isValidPantryUnit(net_unit)) {
 			throw createError({ statusCode: 400, statusMessage: 'net_unit must be one of: g, kg, ml, L, oz.' })
@@ -269,7 +269,8 @@ export default defineEventHandler(async (event) => {
 							const { matchedIngredients } = matchIngredientsToPantry(rawIngs, pantryProducts)
 							const isFullMatch = matchedIngredients.length === rawIngs.length
 
-							if (matchedIngredients.length > 0) {
+							const minMatch = Math.max(2, Math.ceil(rawIngs.length * 0.25))
+							if (matchedIngredients.length >= minMatch) {
 								const notifType = isFullMatch ? 'pantry_match' : 'recipe_suggestion'
 								const notifMsg = isFullMatch
 									? `New match! You can now cook ${r.name} with your pantry.`

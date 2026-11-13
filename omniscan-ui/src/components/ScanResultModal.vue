@@ -126,7 +126,7 @@
 					<label class="field-label">Net Content / Package Size (optional)</label>
 					<span class="field-hint">Package size printed on label (e.g. 500ml, 1kg)</span>
 					<div class="quantity-row">
-						<input type="number" min="0" step="any" class="quantity-input" v-model.number="netContent" :disabled="submitting" placeholder="500" />
+						<input type="number" min="0" max="99999" step="any" class="quantity-input" v-model.number="netContent" :disabled="submitting" placeholder="500" />
 						<select class="unit-select" v-model="netUnit" :disabled="submitting">
 							<option v-for="opt in unitOptions" :key="opt" :value="opt">{{ opt }}</option>
 						</select>
@@ -134,7 +134,7 @@
 
 					<label class="field-label">Quantity / Count (pcs) *</label>
 					<span class="field-hint">How many pieces do you have?</span>
-					<input type="number" min="1" max="99" class="pieces-input" v-model.number="piecesCount" :disabled="submitting" required />
+					<input type="number" min="1" max="999" class="pieces-input" v-model.number="piecesCount" :disabled="submitting" required />
 
 					<label class="field-label field-label--strong">Category</label>
 					<select class="category-select" v-model="category" :disabled="submitting">
@@ -517,7 +517,8 @@ const isFormValid = computed(
 	() =>
 		!pastDateError.value &&
 		piecesCount.value >= 1 &&
-		piecesCount.value <= 99 &&
+		piecesCount.value <= 999 &&
+		(!netContent.value || netContent.value <= 99999) &&
 		!!storageLocation.value &&
 		(!!expirationDate.value || !!bestBeforeDate.value) &&
 		!(!!expirationDate.value && !!bestBeforeDate.value)

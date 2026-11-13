@@ -41,14 +41,14 @@ export default defineEventHandler(async (event) => {
 	}
 
 	// Validate pieces_count if provided
-	if (pieces_count !== undefined && (typeof pieces_count !== 'number' || pieces_count < 1 || pieces_count > 99 || !Number.isInteger(pieces_count))) {
-		throw createError({ statusCode: 400, statusMessage: 'pieces_count must be an integer between 1 and 99.' })
+	if (pieces_count !== undefined && (typeof pieces_count !== 'number' || pieces_count < 1 || pieces_count > 999 || !Number.isInteger(pieces_count))) {
+		throw createError({ statusCode: 400, statusMessage: 'pieces_count must be an integer between 1 and 999.' })
 	}
 
 	// Validate net_content and net_unit
 	if (net_content !== undefined && net_content !== null) {
-		if (typeof net_content !== 'number' || net_content <= 0) {
-			throw createError({ statusCode: 400, statusMessage: 'net_content must be a positive number.' })
+		if (typeof net_content !== 'number' || net_content <= 0 || net_content > 99999) {
+			throw createError({ statusCode: 400, statusMessage: 'net_content must be a positive number no greater than 99999.' })
 		}
 		if (!net_unit || !isValidPantryUnit(net_unit)) {
 			throw createError({ statusCode: 400, statusMessage: 'net_unit must be one of: g, kg, ml, L, oz.' })

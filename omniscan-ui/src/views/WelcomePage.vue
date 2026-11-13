@@ -44,7 +44,12 @@
 					<section class="dashboard" aria-labelledby="dashboard-title">
 						<h2 id="dashboard-title">Your kitchen, connected.</h2>
 						<p>A clear view of your pantry, expiration reminders, and recipes inspired by what you already have.</p>
-						<img src="/assets/dashboard.webp" alt="OmniScan dashboard preview showing pantry items, expiring food, and recent activities" width="728" height="339" />
+						<img
+							:src="isDark ? '/assets/dashboard-dark.png' : '/assets/dashboard-light.png'"
+							alt="OmniScan dashboard preview showing pantry items, expiring food, and recent activities"
+							width="728"
+							height="339"
+						/>
 					</section>
 
 					<!-- Features Section -->

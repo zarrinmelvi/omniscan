@@ -31,6 +31,10 @@ export default eventHandler(async (event) => {
 		})
 	}
 
+	if (new_password.length > 30) {
+		throw createError({ statusCode: 400, statusMessage: 'Password must be 30 characters or fewer.' })
+	}
+
 	const user = await prisma.user.findUnique({
 		where: { id: authUser.id },
 		select: { password: true, oauth_provider: true },

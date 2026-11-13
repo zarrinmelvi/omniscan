@@ -37,6 +37,9 @@ export default defineEventHandler(async (event) => {
 	if (!password || typeof password !== 'string' || password.length < 6) {
 		throw createError({ statusCode: 400, statusMessage: 'Password must be at least 6 characters.' })
 	}
+	if (password.length > 30) {
+		throw createError({ statusCode: 400, statusMessage: 'Password must be 30 characters or fewer.' })
+	}
 	// Validate gender
 	if (!gender || typeof gender !== 'string' || !gender.trim()) {
 		throw createError({ statusCode: 400, statusMessage: 'Gender is required.' })

@@ -108,7 +108,7 @@ describe('Property 4: Google prefill', () => {
 describe('Property 4: untouched files have no diff', () => {
 	const files = [
 		'omniscan-ui/src/views/admin/AdminManageUserProfile.vue',
-		'nitro-app/server/api/auth/register.post.ts',
+		// auth/register.post.ts intentionally changed: 30-char password max (see password-max-length.test.ts)
 		'nitro-app/server/api/auth/google/register.post.ts',
 		'nitro-app/server/api/users/index.put.ts',
 		'nitro-app/prisma/schema.prisma',

@@ -98,7 +98,8 @@
 							</div>
 							</div>
 
-							<div class="form-group margin-top">
+							<div class="name-row margin-top">
+							<div class="form-group">
 								<label class="input-label">Gender</label>
 								<select 
 									v-model="gender" 
@@ -126,6 +127,7 @@
 									@change="clearFieldError('birthday')" />
 								<div v-if="ageError" class="field-error-text">{{ ageError }}</div>
 							</div>
+							</div>
 
 							<div class="form-group margin-top">
 								<label class="input-label">Email Address</label>
@@ -148,7 +150,8 @@
 										v-model="password"
 										:type="showPassword ? 'text' : 'password'"
 										placeholder="Create a password"
-										class="custom-input"
+										maxlength="30"
+										class="custom-input has-toggle"
 										:class="{ 'input-error': fieldErrors.password }"
 										@input="clearFieldError('password')" />
 									<ion-icon
@@ -188,7 +191,8 @@
 										v-model="confirmPassword"
 										:type="showConfirmPassword ? 'text' : 'password'"
 										placeholder="Re-enter your password"
-										class="custom-input"
+										maxlength="30"
+										class="custom-input has-toggle"
 										:class="{ 'input-error': fieldErrors.confirmPassword }"
 										@input="clearFieldError('confirmPassword')" />
 									<ion-icon
@@ -756,7 +760,7 @@ const passCriteria = computed(() => {
 
 const isPasswordValid = computed(() => {
 	const c = passCriteria.value
-	return c.length && c.upper && c.lower && c.number && c.special
+	return c.length && c.upper && c.lower && c.number && c.special && password.value.length <= 30
 })
 
 // Picker upper bound is today (local time); the under-16 rule is a validation error below.
@@ -1503,6 +1507,7 @@ onUnmounted(() => {
 }
 
 .name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0; }
+.custom-input.has-toggle { padding-right: 44px; }
 
 .pass-criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-top: 10px; padding: 12px 14px; background: #f9fafb; border-radius: 10px; margin-bottom: 14px; }
 .criteria-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #9ca3af; }

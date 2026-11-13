@@ -80,7 +80,8 @@
 									:type="showPassword ? 'text' : 'password'"
 									placeholder="Enter your password"
 									required
-									class="custom-input"
+									maxlength="30"
+									class="custom-input has-toggle"
 									:class="{ 'input-error': !!errorMessage }" />
 								<ion-icon
 									:icon="showPassword ? eyeOffOutline : eyeOutline"
@@ -440,6 +441,7 @@ onUnmounted(() => {
 }
 
 .custom-input.input-error { border-color: #dc2626 !important; }
+.custom-input.has-toggle { padding-right: 44px; }
 
 .password-toggle {
 	position: absolute;

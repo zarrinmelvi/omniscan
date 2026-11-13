@@ -218,7 +218,7 @@
 									v-model="currentPassword"
 									:type="showCurrentPassword ? 'text' : 'password'"
 									placeholder="Current password"
-									class="custom-input" />
+									class="custom-input has-toggle" />
 								<ion-icon
 									:icon="showCurrentPassword ? eyeOffOutline : eyeOutline"
 									class="password-toggle"
@@ -230,7 +230,8 @@
 									v-model="newPassword"
 									:type="showNewPassword ? 'text' : 'password'"
 									:placeholder="hasPasswordSet ? '••••••••' : 'Set a password'"
-									class="custom-input"
+									maxlength="30"
+									class="custom-input has-toggle"
 									:class="{ 'input-error': !!newPasswordError }"
 									@input="onNewPasswordInput" />
 								<ion-icon
@@ -249,7 +250,8 @@
 									v-model="confirmNewPassword"
 									:type="showConfirmNewPassword ? 'text' : 'password'"
 									placeholder="Re-enter new password"
-									class="custom-input"
+									maxlength="30"
+									class="custom-input has-toggle"
 									:class="{ 'input-error': !!confirmPasswordError }" />
 								<ion-icon
 									:icon="showConfirmNewPassword ? eyeOffOutline : eyeOutline"
@@ -496,7 +498,7 @@ const newPassCriteria = computed(() => ({
 	special: /[^A-Za-z0-9]/.test(newPassword.value),
 }))
 
-const isNewPasswordValid = computed(() => Object.values(newPassCriteria.value).every(Boolean))
+const isNewPasswordValid = computed(() => Object.values(newPassCriteria.value).every(Boolean) && newPassword.value.length <= 30)
 
 const newPasswordError = computed(() => {
 	if (!passwordTyped.value || !newPassword.value) return ''
@@ -1538,6 +1540,8 @@ onBeforeRouteLeave(async (to, from, next) => {
 .custom-input-wrapper .custom-input {
 	padding-right: 44px;
 }
+
+.custom-input.has-toggle { padding-right: 44px; }
 
 .password-toggle {
 	position: absolute;

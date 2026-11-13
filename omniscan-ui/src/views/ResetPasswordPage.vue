@@ -25,7 +25,8 @@
 									:type="showPassword ? 'text' : 'password'"
 									placeholder="Enter new password"
 									required
-									class="custom-input" />
+									maxlength="30"
+									class="custom-input has-toggle" />
 								<ion-icon
 									:icon="showPassword ? eyeOffOutline : eyeOutline"
 									class="password-toggle"
@@ -65,7 +66,8 @@
 									:type="showConfirmPassword ? 'text' : 'password'"
 									placeholder="Re-enter new password"
 									required
-									class="custom-input" />
+									maxlength="30"
+									class="custom-input has-toggle" />
 								<ion-icon
 									:icon="showConfirmPassword ? eyeOffOutline : eyeOutline"
 									class="password-toggle"
@@ -126,7 +128,7 @@ const passCriteria = computed(() => {
 
 const isPasswordValid = computed(() => {
 	const c = passCriteria.value
-	return c.length && c.upper && c.lower && c.number && c.special
+	return c.length && c.upper && c.lower && c.number && c.special && password.value.length <= 30
 })
 
 async function handleResetPassword() {
@@ -187,6 +189,7 @@ async function handleResetPassword() {
 .custom-input-wrapper { position: relative; display: flex; align-items: center; }
 .custom-input { width: 100%; height: 46px; border: 1px solid #e5e7eb; border-radius: 12px; padding: 0 14px; font-size: 16px; color: #111827; outline: none; background: #ffffff; }
 .custom-input:focus { border-color: #05c450; }
+.custom-input.has-toggle { padding-right: 44px; }
 .password-toggle { position: absolute; right: 14px; font-size: 1.1rem; color: #6b7280; cursor: pointer; }
 
 /* Checklist Styling */

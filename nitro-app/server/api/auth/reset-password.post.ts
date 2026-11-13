@@ -31,6 +31,10 @@ export default eventHandler(async (event) => {
 		})
 	}
 
+	if (newPassword.length > 30) {
+		throw createError({ statusCode: 400, statusMessage: 'Password must be 30 characters or fewer.' })
+	}
+
 	let payload: any
 	try {
 		payload = jwt.verify(token, JWT_SECRET)

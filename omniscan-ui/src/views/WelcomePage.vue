@@ -20,10 +20,18 @@
 					<div class="eyebrow">Your everyday food companion</div>
 					<h1>Know your food.<br />Simplify your day.</h1>
 					<p>Scan food labels, understand your ingredients, and keep your pantry organized. One smarter routine, on your browser and in your pocket.</p>
-					<ion-button class="pill cta-btn download-app-btn" @click="openDownloadModal">
-						<ion-icon :icon="downloadOutline" slot="start" />
+					<a
+						:href="APK_URL"
+						download="OmniScan.apk"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="download-app-link"
+						aria-label="Download OmniScan App v2.2.2 for Android"
+						@click="showDownloadModal = true"
+					>
+						<ion-icon :icon="downloadOutline" />
 						Download OmniScan App v2.2.2
-					</ion-button>
+					</a>
 					<p class="android-only">
 						<ion-icon :icon="logoAndroid" />
 						Application is for Android only
@@ -82,38 +90,46 @@
 					</footer>
 				</div>
 			</main>
-
-			<!-- Download Modal -->
-			<ion-modal :is-open="isDownloadModalOpen" @didDismiss="isDownloadModalOpen = false" class="download-modal">
-				<div class="modal-dialog">
-					<button class="close" aria-label="Close dialog" @click="isDownloadModalOpen = false">×</button>
-					<h2>Download the mobile app</h2>
-					<p>The Android app download will be available here once the OmniScan APK is connected.</p>
-					<ion-button class="pill" @click="isDownloadModalOpen = false" style="margin-top: 16px">Got it</ion-button>
+			<div v-if="showDownloadModal" class="dl-overlay" @click.self="showDownloadModal = false">
+				<div class="dl-modal">
+					<button class="dl-close" aria-label="Close" @click="showDownloadModal = false">×</button>
+					<div class="dl-icon-row">
+						<ion-icon :icon="downloadOutline" class="dl-icon" />
+					</div>
+					<h3 class="dl-title">Downloading OmniScan v2.2.2...</h3>
+					<p class="dl-sub">Your download will start automatically in a few seconds.</p>
+					<div class="dl-notice">
+						<span class="dl-notice-icon">⚠</span>
+						<div>
+							<p class="dl-notice-title">Android Security Notice:</p>
+							<p class="dl-notice-body">Your browser may warn you that this file <strong>"might be harmful."</strong> This is a standard automated warning for any app downloaded outside the Google Play Store. It is completely safe to click <strong>Download Anyway</strong>.</p>
+						</div>
+					</div>
+					<p class="dl-fallback">If the download doesn't start, <a :href="APK_URL" download="OmniScan.apk" class="dl-fallback-link">click here</a>.</p>
+					<ion-button class="pill dl-got-it" @click="showDownloadModal = false">Got it</ion-button>
 				</div>
-			</ion-modal>
+			</div>
 		</ion-content>
 	</ion-page>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { IonPage, IonContent, IonButton, IonIcon, IonModal } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { moonOutline, sunnyOutline, downloadOutline, logoAndroid } from 'ionicons/icons'
 import { useDarkMode } from '@/composables/useDarkMode'
 
 const router = useRouter()
 const { isDark, toggle } = useDarkMode()
-const isDownloadModalOpen = ref(false)
-
 function toggleTheme() {
 	toggle()
 }
 
-function openDownloadModal() {
-	isDownloadModalOpen.value = true
-}
+const APK_URL = '/downloads/OmniScan.apk'
+const showDownloadModal = ref(false)
+
+
 </script>
 
 <style scoped>
@@ -256,31 +272,38 @@ ion-button.pill.cta-btn {
 	margin: 16px auto 0;
 }
 
-/* Download App Button - Brand Green */
-ion-button.pill.download-app-btn {
-	display: block;
-	width: fit-content;
-	margin: 16px auto 8px;
-	background: transparent !important;
-	--background: #34a853 !important;
-	--background-hover: #2d9248 !important;
-	--background-activated: #2d9248 !important;
-	--color: #ffffff !important;
-	--padding-start: 24px;
-	--padding-end: 24px;
-	--padding-top: 12px;
-	--padding-bottom: 12px;
-	font-size: 14px;
+/* Download App Link - styled as green pill button */
+.download-app-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	background: #34a853;
+	color: #ffffff;
+	text-decoration: none;
 	font-weight: 600;
+	font-size: 14px;
+	padding: 12px 24px;
+	border-radius: 30px;
+	margin: 16px auto 8px;
+	transition: background 0.15s ease;
+	cursor: pointer;
+}
+.download-app-link:hover {
+	background: #2d9248;
+}
+.download-app-link ion-icon {
+	font-size: 1.1rem;
+	color: #ffffff;
+}
+html.ion-palette-dark .download-app-link {
+	background: #34a853;
+	color: #ffffff;
+}
+html.ion-palette-dark .download-app-link:hover {
+	background: #2d9248;
 }
 
 html.ion-palette-dark ion-button.pill {
-	background: transparent !important;
-	--background: #34a853 !important;
-	--color: #ffffff !important;
-}
-
-html.ion-palette-dark ion-button.pill.download-app-btn {
 	background: transparent !important;
 	--background: #34a853 !important;
 	--color: #ffffff !important;
@@ -638,54 +661,120 @@ html.ion-palette-dark .footer-link:focus-visible {
 		gap: 8px;
 	}
 }
-</style>
-
-<!-- Global CSS for Modal -->
-<style>
-ion-modal.download-modal {
-	--height: auto;
-	--width: min(420px, 90vw);
-	--border-radius: 20px;
-	--background: transparent;
-	--box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+/* Download modal overlay */
+.dl-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(3px);
 }
-
-.modal-dialog {
-	background: #ffffff;
-	border: 1px solid #c8decb;
-	border-radius: 20px;
-	padding: 30px;
-	color: #12291b;
+.dl-modal {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px 28px 24px;
+  max-width: 440px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  color: #111827;
 }
-
-html.ion-palette-dark .modal-dialog {
-	background: #1e293b !important;
-	border: 1px solid #334155 !important;
-	color: #f1f5f9 !important;
+html.ion-palette-dark .dl-modal {
+  background: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid #334155;
 }
-
-.modal-dialog .close {
-	float: right;
-	background: none;
-	border: 0;
-	color: inherit;
-	font-size: 24px;
-	cursor: pointer;
-	line-height: 1;
-	padding: 0;
-	margin: -5px -5px 0 0;
-	-webkit-tap-highlight-color: transparent;
+.dl-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0;
 }
-
-.modal-dialog h2 {
-	font-size: 22px;
-	margin: 0 0 12px;
-	clear: both;
+html.ion-palette-dark .dl-close { color: #94a3b8; }
+.dl-icon-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
 }
-
-.modal-dialog p {
-	font-size: 14px;
-	line-height: 1.5;
-	margin: 0;
+.dl-icon {
+  font-size: 2.5rem;
+  color: #34a853;
+}
+.dl-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 8px;
+  color: #111827;
+}
+html.ion-palette-dark .dl-title { color: #f1f5f9; }
+.dl-sub {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 20px;
+}
+html.ion-palette-dark .dl-sub { color: #94a3b8; }
+.dl-notice {
+  display: flex;
+  gap: 10px;
+  background: #fefce8;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+html.ion-palette-dark .dl-notice {
+  background: #2d2a1a;
+  border-color: #92400e;
+}
+.dl-notice-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  color: #d97706;
+}
+.dl-notice-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0 0 4px;
+}
+html.ion-palette-dark .dl-notice-title { color: #fbbf24; }
+.dl-notice-body {
+  font-size: 0.8rem;
+  color: #78350f;
+  margin: 0;
+  line-height: 1.5;
+}
+html.ion-palette-dark .dl-notice-body { color: #fcd34d; }
+.dl-fallback {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0 0 20px;
+}
+html.ion-palette-dark .dl-fallback { color: #94a3b8; }
+.dl-fallback-link {
+  color: #34a853;
+  font-weight: 600;
+}
+html.ion-palette-dark .dl-fallback-link { color: #63cd77; }
+ion-button.pill.dl-got-it {
+  width: 100%;
+  --background: #34a853 !important;
+  --color: #ffffff !important;
+  --border-radius: 30px;
+  font-weight: 600;
+  margin: 0;
 }
 </style>

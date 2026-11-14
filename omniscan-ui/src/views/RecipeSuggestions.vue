@@ -1,6 +1,6 @@
 <template>
 	<ion-page>
-		<ion-header class="app-header-shell">
+		<ion-header v-if="!isDesktop" class="app-header-shell">
 			<AppHeader />
 		</ion-header>
 		<ion-content class="recipe-content">
@@ -172,6 +172,7 @@ import { apiFetch, ApiError } from '@/utils/api'
 import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import SkeletonCard from '@/components/SkeletonCard.vue'
+import { useBreakpoint } from '@/utils/useBreakpoint'
 
 interface SuggestedRecipe {
 	id: number
@@ -209,6 +210,8 @@ const TAB_DEFAULT_EMPTY_MESSAGE: Record<RecipeTab, string> = {
 	liked: "You haven't liked any recipes yet.",
 	made: "You haven't made any recipes yet.",
 }
+
+const { isDesktop } = useBreakpoint()
 
 const activeTab = ref<RecipeTab>('all')
 const emptyMessage = ref<string>(TAB_DEFAULT_EMPTY_MESSAGE.all)

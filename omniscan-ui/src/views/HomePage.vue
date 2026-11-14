@@ -1,6 +1,6 @@
 <template>
 	<ion-page>
-		<ion-header class="app-header-shell">
+		<ion-header v-if="!isDesktop" class="app-header-shell">
 			<AppHeader />
 		</ion-header>
 		<ion-content :fullscreen="true" class="home-content">
@@ -249,8 +249,10 @@ import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import { usePantryList } from '@/composables/usePantryList'
 import SkeletonCard from '@/components/SkeletonCard.vue'
+import { useBreakpoint } from '@/utils/useBreakpoint'
 
 const router = useRouter()
+const { isDesktop } = useBreakpoint()
 
 interface Product {
 	id: number

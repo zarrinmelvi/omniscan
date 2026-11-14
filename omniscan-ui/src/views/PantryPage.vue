@@ -1,6 +1,6 @@
 <template>
 	<ion-page>
-		<ion-header class="app-header-shell">
+		<ion-header v-if="!isDesktop" class="app-header-shell">
 			<AppHeader />
 		</ion-header>
 		<!-- Fixed White Header Controls -->
@@ -290,6 +290,7 @@ import { syncExpiryReminders } from '@/utils/reminderScheduler'
 import AppHeader from '@/components/AppHeader.vue'
 import SkeletonCard from '@/components/SkeletonCard.vue'
 import { usePantryList } from '@/composables/usePantryList'
+import { useBreakpoint } from '@/utils/useBreakpoint'
 
 interface Product {
 	id: number
@@ -324,6 +325,7 @@ interface SortOptionItem {
 	value: SortOption
 }
 
+const { isDesktop } = useBreakpoint()
 const pantryList = usePantryList()
 const vPantryLazyImage = pantryList.pantryLazyImage
 const items = pantryList.items

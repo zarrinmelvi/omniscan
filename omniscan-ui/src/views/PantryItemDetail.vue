@@ -1,12 +1,12 @@
 <template>
 	<ion-page>
 		<!-- Top bar: brand/breadcrumb + theme toggle + notifications (desktop and mobile) -->
-		<ion-header class="app-header-shell">
+		<ion-header v-if="!isDesktop" class="app-header-shell">
 			<AppHeader :pageName="item?.product?.product_name ?? 'Item Detail'" :parentLabel="isDesktop ? 'Pantry' : undefined" parentPath="/tabs/pantry" />
 		</ion-header>
 
 		<!-- Drill-down bar: back arrow, item name, edit icon (desktop and mobile) -->
-		<ion-header class="ion-no-border detail-header" :class="{ 'detail-header--desktop': isDesktop }">
+		<ion-header v-if="!isDesktop" class="ion-no-border detail-header" :class="{ 'detail-header--desktop': isDesktop }">
 			<ion-toolbar class="detail-toolbar">
 				<ion-buttons slot="start">
 					<ion-back-button default-href="/tabs/pantry" text="" class="back-btn"></ion-back-button>

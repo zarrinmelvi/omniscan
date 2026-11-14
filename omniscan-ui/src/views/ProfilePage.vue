@@ -1,6 +1,6 @@
 ﻿<template>
 	<ion-page>
-		<ion-header class="app-header-shell">
+		<ion-header v-if="!isDesktop" class="app-header-shell">
 			<AppHeader />
 		</ion-header>
 		<ion-content class="profile-content">
@@ -367,9 +367,11 @@ import SkeletonCard from '@/components/SkeletonCard.vue'
 import AppDatePicker from '@/components/AppDatePicker.vue'
 import { BIRTHDAY_MIN, todayLocalISO, toISODate, ageFromISO } from '@/utils/dateUtils'
 import { useAuthStore } from '@/stores/authStore'
+import { useBreakpoint } from '@/utils/useBreakpoint'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { isDesktop } = useBreakpoint()
 
 const PREF_MAX = 5
 

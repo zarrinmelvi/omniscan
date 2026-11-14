@@ -123,20 +123,31 @@ watch(
 </script>
 
 <style>
-/* Force ion-app to fill the full viewport — Ionic web can center it by default */
-ion-app {
-	width: 100% !important;
+/* Override Ionic web's built-in centering/max-width on ion-app, ion-tabs,
+   ion-router-outlet and ion-page. On desktop these must fill 100% of the
+   available width — the sidebar handles the left offset, not a max-width. */
+ion-app,
+ion-tabs,
+ion-router-outlet,
+.ion-page,
+ion-page {
 	max-width: 100% !important;
-	margin: 0 !important;
-	left: 0 !important;
+	width: 100% !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
 }
 
 /* Neutralize Ionic's default safe-area indentation on desktop */
-ion-app.desktop-active {
+ion-app.desktop-active,
+ion-app.desktop-active ion-tabs,
+ion-app.desktop-active ion-router-outlet {
 	--ion-safe-area-left: 0px;
 	--ion-safe-area-right: 0px;
 	--ion-safe-area-top: 0px;
 	--ion-safe-area-bottom: 0px;
+	max-width: 100% !important;
+	width: 100% !important;
+	margin: 0 !important;
 }
 
 /* ── Desktop layout via CSS on ion-app.desktop-active ─────────── */

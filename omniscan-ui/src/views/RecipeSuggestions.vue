@@ -82,7 +82,15 @@
 						<p class="card-instructions">{{ recipe.instructions }}</p>
 
 						<div class="card-footer">
-							<span class="pantry-count">{{ recipe.matched_count }} in pantry</span>
+							<span v-if="recipe.matched_count > 0" class="pantry-count pantry-count--full">
+								{{ recipe.matched_count }} in pantry
+							</span>
+							<span v-else-if="(recipe.shortfall_ingredients?.length ?? 0) > 0" class="pantry-count pantry-count--partial">
+								{{ recipe.shortfall_ingredients!.length }} partial
+							</span>
+							<span v-else class="pantry-count pantry-count--full">
+								{{ recipe.matched_count }} in pantry
+							</span>
 						</div>
 					</div>
 				</div>
@@ -657,7 +665,12 @@ onMounted(() => {
 .pantry-count {
 	font-size: 0.78rem;
 	font-weight: 600;
+}
+.pantry-count--full {
 	color: #05c450;
+}
+.pantry-count--partial {
+	color: #f59e0b;
 }
 
 .form-error {

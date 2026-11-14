@@ -111,7 +111,9 @@
 						</div>
 						<div class="recipe-info">
 							<h3 class="recipe-title">{{ recipe.name }}</h3>
-							<p class="recipe-match">{{ recipe.matched_count }} in pantry</p>
+							<p v-if="recipe.matched_count > 0" class="recipe-match recipe-match--full">{{ recipe.matched_count }} in pantry</p>
+							<p v-else-if="(recipe.shortfall_ingredients?.length ?? 0) > 0" class="recipe-match recipe-match--partial">{{ recipe.shortfall_ingredients!.length }} partial</p>
+							<p v-else class="recipe-match recipe-match--full">{{ recipe.matched_count }} in pantry</p>
 						</div>
 						<ion-icon :icon="chevronForwardOutline" class="recipe-arrow" />
 					</div>
@@ -1053,9 +1055,14 @@ onIonViewWillEnter(() => {
 
 .recipe-match {
 	font-size: 0.75rem;
-	color: #22c55e;
 	font-weight: 500;
 	margin: 0;
+}
+.recipe-match--full {
+	color: #22c55e;
+}
+.recipe-match--partial {
+	color: #f59e0b;
 }
 
 .recipe-arrow {

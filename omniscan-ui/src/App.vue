@@ -7,24 +7,21 @@
 	</template>
 
 	<!-- User-facing routes: Ionic app with adaptive navigation -->
-	<ion-app v-else>
-		<!-- Desktop sidebar -->
+	<ion-app v-else :class="{ 'desktop-active': isDesktop && isTabsRoute }">
+		<!-- Desktop sidebar — CSS-hidden on mobile -->
 		<DesktopNav
 			v-if="isDesktop && isTabsRoute"
 			:userName="authStore.user?.name"
 			:userEmail="authStore.user?.email"
 			:userAvatarBase64="authStore.user?.avatar_base64 ?? null" />
 
-		<!-- Desktop: persistent fixed shell (header + scrollable outlet) -->
-		<div v-if="isDesktop && isTabsRoute" class="desktop-shell">
+		<!-- Persistent desktop header — fixed div, hidden on mobile via CSS -->
+		<div v-if="isDesktop && isTabsRoute" class="desktop-header-bar">
 			<AppHeader />
-			<div class="desktop-body">
-				<ion-router-outlet />
-			</div>
 		</div>
 
-		<!-- Mobile / non-tabs: normal Ionic layout -->
-		<ion-router-outlet v-else />
+		<!-- Single router outlet — always rendered, never conditionally swapped -->
+		<ion-router-outlet />
 	</ion-app>
 </template>
 
@@ -126,46 +123,49 @@ watch(
 </script>
 
 <style>
-/* ── Desktop shell ──────────────────────────────────────────────── */
-/* Covers the area to the right of the 180px sidebar. The header
-   sits at the top and never moves. The body below it scrolls. */
-.desktop-shell {
-	position: fixed;
-	top: 0;
+/* ── Desktop layout via CSS on ion-app.desktop-active ─────────── */
+
+/* Push outlet right of sidebar and down below the header bar */
+ion-app.desktop-active ion-router-outlet {
+	position: fixed !important;
+	top: 56px; /* height of the header bar */
 	right: 0;
 	bottom: 0;
+	left: 180px; /* width of the sidebar */
+	width: auto;
+}
+
+/* Persistent header bar — fixed above the outlet */
+.desktop-header-bar {
+	display: none; /* hidden by default (mobile) */
+}
+
+ion-app.desktop-active .desktop-header-bar {
+	display: block;
+	position: fixed;
+	top: 0;
 	left: 180px;
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
+	right: 0;
+	z-index: 100;
+	height: 56px;
 	background: var(--ion-background-color, #ffffff);
 }
 
-/* Scrollable content area beneath the persistent header */
-.desktop-body {
-	flex: 1;
-	overflow-y: auto;
-	overflow-x: hidden;
-	position: relative;
+/* ion-page inside the outlet on desktop: fill the fixed viewport */
+ion-app.desktop-active ion-router-outlet ion-page {
+	position: absolute !important;
+	inset: 0;
+	contain: layout style size !important;
 }
 
-/* Make ion-page flow naturally inside the scrollable body */
-.desktop-body ion-page {
-	position: relative !important;
-	min-height: 100%;
-	contain: none !important;
+/* ion-content scrolls internally */
+ion-app.desktop-active ion-router-outlet ion-page ion-content {
+	--overflow: auto;
 }
 
-/* ion-content should not add its own independent scroll on desktop */
-.desktop-body ion-content {
-	--overflow: visible;
-	overflow: visible;
-}
-
-/* Mobile outlet: Ionic handles everything normally */
-@media (max-width: 1023px) {
-	ion-router-outlet {
-		position: unset;
-	}
+/* On desktop, per-page ion-header AppHeaders are hidden —
+   the .desktop-header-bar above takes their place */
+ion-app.desktop-active ion-router-outlet ion-page ion-header.app-header-shell {
+	display: none !important;
 }
 </style>

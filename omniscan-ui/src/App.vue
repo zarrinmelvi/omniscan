@@ -8,23 +8,19 @@
 
 	<!-- User-facing routes: Ionic app with adaptive navigation -->
 	<ion-app v-else>
-		<!-- Desktop navigation sidebar (>= 1024px AND /tabs/ routes only) -->
+		<!-- Desktop sidebar — only shown on desktop tabs routes -->
 		<DesktopNav
 			v-if="isDesktop && isTabsRoute"
 			:userName="authStore.user?.name"
 			:userEmail="authStore.user?.email"
 			:userAvatarBase64="authStore.user?.avatar_base64 ?? null" />
 
-		<!-- Desktop: persistent shell with sticky header above scrollable content -->
-		<div v-if="isDesktop && isTabsRoute" class="desktop-shell">
-			<AppHeader />
-			<div class="desktop-page-body">
-				<ion-router-outlet />
-			</div>
-		</div>
-
-		<!-- Mobile: normal Ionic layout -->
-		<ion-router-outlet v-else />
+		<!-- Single router outlet — always rendered, one instance only.
+			CSS applies the desktop layout when .desktop-active is present. -->
+		<ion-router-outlet
+			:class="{
+				'desktop-outlet': isDesktop && isTabsRoute
+			}" />
 	</ion-app>
 </template>
 
@@ -37,7 +33,6 @@ import { StatusBar, Style } from '@capacitor/status-bar'
 import { App } from '@capacitor/app'
 import { useBreakpoint } from '@/utils/useBreakpoint'
 import DesktopNav from '@/components/DesktopNav.vue'
-import AppHeader from '@/components/AppHeader.vue'
 import AdminToast from '@/components/admin/AdminToast.vue'
 import { startSessionWatcher } from '@/composables/useSessionWatcher'
 import { useAuthStore } from '@/stores/authStore'
@@ -126,55 +121,21 @@ watch(
 </script>
 
 <style>
-/* Desktop shell: fixed height, header sticky, content scrolls */
-.desktop-shell {
-	position: fixed;
+/* Desktop outlet: offset from sidebar, fill viewport */
+ion-router-outlet.desktop-outlet {
+	position: fixed !important;
 	top: 0;
 	right: 0;
 	bottom: 0;
-	left: 180px; /* sidebar width */
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
+	left: 180px;
+	width: auto;
 }
 
-.desktop-page-body {
-	flex: 1;
-	overflow-y: auto;
-	overflow-x: hidden;
-	position: relative;
-}
-
-/* ion-page inside the scrollable body: let it be static flow, not Ionic's absolute */
-.desktop-page-body ion-page {
-	position: relative !important;
-	min-height: 100%;
-	contain: none !important;
-}
-
-/* Neutralize Ionic's internal safe-area top offset which can reserve space
-   even when the page header is hidden, causing unwanted spacing on desktop. */
-.desktop-page-body ion-page {
-	--ion-safe-area-top: 0px;
-}
-
-/* ion-content inside desktop pages should not scroll independently */
-.desktop-page-body ion-content {
-	--overflow: visible;
-	overflow: visible;
-}
-
-/* ion-header inside desktop pages is now redundant — hide it.
-   Use multiple strategies because ion-header is a custom web component whose
-   internal shadow DOM may still render/preserve layout when only `display:
-   none` is applied, causing a visible double header on some browsers. */
-.desktop-page-body ion-header,
-.desktop-page-body .app-header-shell {
-	display: none !important;
-	visibility: hidden !important;
-	height: 0 !important;
-	min-height: 0 !important;
-	overflow: hidden !important;
-	pointer-events: none !important;
+/* On mobile, outlet behaves normally */
+@media (max-width: 1023px) {
+	ion-router-outlet.desktop-outlet {
+		position: unset;
+		left: unset;
+	}
 }
 </style>

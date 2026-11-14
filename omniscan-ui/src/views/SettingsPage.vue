@@ -1,6 +1,8 @@
 <template>
 	<ion-page>
-		<AppHeader v-if="isDesktop" />
+		<ion-header class="app-header-shell">
+			<AppHeader />
+		</ion-header>
 
 		<ion-header v-if="!isDesktop" class="ion-no-border">
 			<ion-toolbar class="settings-toolbar">
@@ -224,8 +226,8 @@ import {
 	IonItem,
 	IonLabel,
 } from '@ionic/vue'
-import AppHeader from '@/components/AppHeader.vue'
 import { useBreakpoint } from '@/utils/useBreakpoint'
+import AppHeader from '@/components/AppHeader.vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { faqs } from '@/data/faqContent'
 import { termsIntro, termsSections, termsFooterLines } from '@/data/termsContent'

@@ -138,4 +138,18 @@ ion-router-outlet.desktop-outlet {
 		left: unset;
 	}
 }
+
+/* Desktop: ion-page must fill the fixed outlet as an absolute layer
+   so Ionic's sticky ion-header works correctly during tab navigation. */
+@media (min-width: 1024px) {
+	ion-router-outlet.desktop-outlet ion-page {
+		position: absolute !important;
+		inset: 0;
+		contain: layout style size !important;
+	}
+
+	ion-router-outlet.desktop-outlet ion-page ion-content {
+		--overflow: auto;
+	}
+}
 </style>

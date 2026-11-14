@@ -1908,6 +1908,15 @@ onBeforeRouteLeave(async (to, from, next) => {
 		padding: 32px 24px;
 	}
 }
+
+@media (min-width: 1024px) {
+	.profile-inner {
+		padding: 40px 48px;
+	}
+	.skeleton-card-wrap {
+		padding: 32px 48px;
+	}
+}
 </style>
 
 <style>

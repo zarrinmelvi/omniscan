@@ -819,15 +819,17 @@ html.ion-palette-dark .make-loading-sub {
 @media (min-width: 1024px) {
 	.header-container {
 		padding: 32px 48px 20px;
+		max-width: 1200px;
+		margin: 0 auto;
 	}
 
 	.header-inner {
-		max-width: 1100px;
+		max-width: 1200px;
 		margin: 0 auto;
 	}
 
 	.cards-list {
-		max-width: 1100px;
+		max-width: 1200px;
 		padding: 24px 48px 48px;
 		margin: 0 auto;
 		grid-template-columns: repeat(3, 1fr);

@@ -698,6 +698,17 @@ onIonViewWillEnter(() => {
 	padding: 14px 16px 24px;
 }
 
+@media (min-width: 1024px) {
+	.header-container {
+		padding: 16px 48px 10px;
+	}
+	.pantry-wrap {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 24px 48px 48px;
+	}
+}
+
 /* Search bar */
 .search-row {
 	margin-bottom: 12px;

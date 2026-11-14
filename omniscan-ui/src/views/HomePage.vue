@@ -112,7 +112,7 @@
 						<div class="recipe-info">
 							<h3 class="recipe-title">{{ recipe.name }}</h3>
 							<p v-if="recipe.matched_count > 0" class="recipe-match recipe-match--full">{{ recipe.matched_count }} in pantry</p>
-							<p v-else-if="(recipe.shortfall_ingredients?.length ?? 0) > 0" class="recipe-match recipe-match--partial">{{ recipe.shortfall_ingredients!.length }} partial</p>
+							<p v-else-if="(recipe.shortfall_ingredients?.length ?? 0) > 0" class="recipe-match recipe-match--partial">{{ (recipe.shortfall_ingredients ?? []).length }} partial</p>
 							<p v-else class="recipe-match recipe-match--full">{{ recipe.matched_count }} in pantry</p>
 						</div>
 						<ion-icon :icon="chevronForwardOutline" class="recipe-arrow" />

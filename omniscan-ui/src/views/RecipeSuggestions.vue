@@ -86,7 +86,7 @@
 								{{ recipe.matched_count }} in pantry
 							</span>
 							<span v-else-if="(recipe.shortfall_ingredients?.length ?? 0) > 0" class="pantry-count pantry-count--partial">
-								{{ recipe.shortfall_ingredients!.length }} partial
+								{{ (recipe.shortfall_ingredients ?? []).length }} partial
 							</span>
 							<span v-else class="pantry-count pantry-count--full">
 								{{ recipe.matched_count }} in pantry

@@ -681,12 +681,6 @@ onIonViewWillEnter(() => {
 	padding: 16px 16px 96px;
 }
 
-@media (min-width: 1024px) {
-	.home-wrap {
-		padding: 24px 32px 80px;
-	}
-}
-
 .greeting-row {
 	display: flex;
 	align-items: flex-start;

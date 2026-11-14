@@ -312,7 +312,7 @@ const nonFoodDetected = ref(false)
 const nonFoodMessage = ref('')
 
 const storageLocations = ['Fridge', 'Freezer', 'Cupboard'] as const
-const unitOptions = ['g', 'kg', 'ml', 'L', 'oz']
+const unitOptions = ['g', 'kg', 'ml', 'L', 'oz', 'cloves']
 const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
 
 // Same mapping as ScanResultModal.storageForCategory (duplicated; not shared)
@@ -507,13 +507,14 @@ async function goToStep2(): Promise<void> {
 		form.simplifiedIngredientsText = result.simplified_ingredients || ''
 		matchedUserAllergens.value = result.matched_user_allergens ?? []
 
-		const UNIT_OPTIONS = ['g', 'kg', 'ml', 'L', 'oz']
+		const UNIT_OPTIONS = ['g', 'kg', 'ml', 'L', 'oz', 'cloves']
 		const unitMap: Record<string, string> = { 
 			gram: 'g', grams: 'g', g: 'g',
 			kilogram: 'kg', kilograms: 'kg', kg: 'kg',
 			milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml', ml: 'ml',
 			liter: 'L', litre: 'L', liters: 'L', litres: 'L', L: 'L',
-			ounce: 'oz', ounces: 'oz', oz: 'oz'
+			ounce: 'oz', ounces: 'oz', oz: 'oz',
+			clove: 'cloves', cloves: 'cloves'
 		}
 		if (typeof result.net_quantity === 'number' && result.net_quantity > 0) {
 			form.netContent = result.net_quantity
@@ -521,6 +522,11 @@ async function goToStep2(): Promise<void> {
 		if (typeof result.net_unit === 'string' && result.net_unit.trim()) {
 			const normalized = unitMap[result.net_unit.trim().toLowerCase()] ?? result.net_unit.trim().toLowerCase()
 			if (UNIT_OPTIONS.includes(normalized)) form.netUnit = normalized
+		}
+		// Smart unit default: garlic → cloves
+		const rawName = (form.productName ?? '').toLowerCase()
+		if (rawName.includes('garlic')) {
+			form.netUnit = 'cloves'
 		}
 		form.piecesCount = 1
 		step.value = 2

@@ -51,7 +51,7 @@ export default defineEventHandler(async (event) => {
 			throw createError({ statusCode: 400, statusMessage: 'net_content must be a positive number no greater than 99999.' })
 		}
 		if (!net_unit || !isValidPantryUnit(net_unit)) {
-			throw createError({ statusCode: 400, statusMessage: 'net_unit must be one of: g, kg, ml, L, oz.' })
+			throw createError({ statusCode: 400, statusMessage: 'net_unit must be one of: g, kg, ml, L, oz, cloves.' })
 		}
 	}
 

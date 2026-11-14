@@ -2,6 +2,7 @@
 // Pieces count is tracked separately and always uses 'pcs' internally.
 export const PANTRY_UNITS = [
 	'g', 'kg', 'ml', 'L', 'oz', // weight / volume
+	'cloves', // count-based unit (e.g. garlic)
 ] as const
 export type PantryUnit = (typeof PANTRY_UNITS)[number]
 

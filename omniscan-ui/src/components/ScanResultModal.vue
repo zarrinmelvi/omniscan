@@ -355,7 +355,7 @@ watch(
 	},
 )
 
-const unitOptions = ['g', 'kg', 'ml', 'L', 'oz']
+const unitOptions = ['g', 'kg', 'ml', 'L', 'oz', 'cloves']
 const storageOptions = ['Fridge', 'Freezer', 'Cupboard']
 const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
 
@@ -443,16 +443,22 @@ function resetPantryForm() {
 	netContent.value = typeof detectedQty === 'number' && detectedQty > 0 ? detectedQty : null
 
 	const detectedUnit = product.value?.net_unit_detected
-	const UNIT_OPTIONS = ['g', 'kg', 'ml', 'L', 'oz']
+	const UNIT_OPTIONS = ['g', 'kg', 'ml', 'L', 'oz', 'cloves']
 	const unitMap: Record<string, string> = { 
 		gram: 'g', grams: 'g', g: 'g',
 		kilogram: 'kg', kilograms: 'kg', kg: 'kg',
 		milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml', ml: 'ml',
 		liter: 'L', litre: 'L', liters: 'L', litres: 'L', L: 'L',
-		ounce: 'oz', ounces: 'oz', oz: 'oz'
+		ounce: 'oz', ounces: 'oz', oz: 'oz',
+		clove: 'cloves', cloves: 'cloves'
 	}
 	const normalizedUnit = typeof detectedUnit === 'string' ? (unitMap[detectedUnit.toLowerCase()] ?? detectedUnit) : null
 	netUnit.value = normalizedUnit && UNIT_OPTIONS.includes(normalizedUnit) ? normalizedUnit : 'g'
+	// Smart unit default: garlic → cloves
+	const rawName = (product.value?.product_name ?? '').toLowerCase()
+	if (rawName.includes('garlic')) {
+		netUnit.value = 'cloves'
+	}
 	
 	piecesCount.value = 1
 

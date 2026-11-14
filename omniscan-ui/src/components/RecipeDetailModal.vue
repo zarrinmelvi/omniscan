@@ -83,6 +83,10 @@
 
 			<!-- Fixed Bottom Actions -->
 			<div class="detail-footer">
+				<p class="portion-disclaimer">
+					<ion-icon :icon="informationCircleOutline" class="disclaimer-icon" />
+					Portions and pantry deductions are estimates and may not precisely match your logged units.
+				</p>
 				<ion-button expand="block" class="make-btn" :disabled="making || hasShortfall" :title="hasShortfall ? 'You don\'t have enough of some ingredients' : undefined" @click="onMake(recipe)">
 					<ion-spinner v-if="making" name="crescent" slot="start" />
 					<ion-icon v-else :icon="restaurantOutline" slot="start" />
@@ -98,7 +102,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { IonModal, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
-import { closeOutline, heart, heartOutline, checkmarkCircle, bagHandleOutline, restaurantOutline, warningOutline, alertCircleOutline } from 'ionicons/icons'
+import { closeOutline, heart, heartOutline, checkmarkCircle, bagHandleOutline, restaurantOutline, warningOutline, alertCircleOutline, informationCircleOutline } from 'ionicons/icons'
 
 interface RecipeIngredientRef {
 	name: string
@@ -382,6 +386,24 @@ html.ion-palette-dark .amber-chip {
 	padding: 16px 20px;
 	background: #ffffff;
 	border-top: 1px solid #f3f4f6;
+}
+
+.portion-disclaimer {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	font-size: 0.72rem;
+	color: #9ca3af;
+	line-height: 1.4;
+	margin: 0 0 10px;
+	padding: 0 2px;
+}
+
+.disclaimer-icon {
+	font-size: 0.85rem;
+	flex-shrink: 0;
+	margin-top: 1px;
+	color: #9ca3af;
 }
 
 .make-btn {

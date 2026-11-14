@@ -107,8 +107,14 @@
 				class="custom-make-alert"
 				@didDismiss="isAlertOpen = false" />
 
-			<!-- Make Recipe progress indicator -->
-			<ion-loading :is-open="makingId !== null" message="Making recipe..." />
+			<!-- Branded make-recipe loading overlay -->
+			<div v-if="makingId !== null" class="make-loading-overlay" aria-live="polite" aria-busy="true">
+				<div class="make-loading-card">
+					<ion-spinner name="crescent" class="make-loading-spinner" />
+					<p class="make-loading-title">Updating your pantry…</p>
+					<p class="make-loading-sub">Deducting ingredients from pantry</p>
+				</div>
+			</div>
 
 			<!-- Result Modal -->
 			<ion-modal :is-open="isResultModalOpen" @didDismiss="isResultModalOpen = false">
@@ -164,7 +170,7 @@ import {
 	IonButton,
 	IonAlert,
 	IonModal,
-	IonLoading,
+	IonSpinner,
 	toastController,
 } from '@ionic/vue'
 import { restaurantOutline, closeOutline, heart, heartOutline, archiveOutline, checkmarkCircle, chevronForwardOutline } from 'ionicons/icons'
@@ -347,7 +353,13 @@ async function makeRecipe(recipeId: number): Promise<void> {
 
 		madeRecipeResult.value = data.recipe
 		archivedCount.value = data.archived_count ?? 0
-		const toast = await toastController.create({ message: 'Recipe marked as made!', duration: 2000, color: 'success', position: 'bottom' }); await toast.present()
+		const toast = await toastController.create({
+			message: '✓ Recipe marked as made! Ingredients deducted from your pantry.',
+			duration: 3000,
+			position: 'bottom',
+			cssClass: 'recipe-made-toast',
+		})
+		await toast.present()
 
 		const affected = recipes.value.find((r) => r.id === recipeId)
 		if (affected) {
@@ -695,6 +707,56 @@ onMounted(() => {
 	margin-top: 16px;
 }
 
+/* Make-recipe branded loading overlay */
+.make-loading-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	background: rgba(0, 0, 0, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	backdrop-filter: blur(3px);
+}
+.make-loading-card {
+	background: #ffffff;
+	border-radius: 20px;
+	padding: 32px 36px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+	min-width: 220px;
+	text-align: center;
+}
+.make-loading-spinner {
+	color: #05c450;
+	width: 40px;
+	height: 40px;
+}
+.make-loading-title {
+	font-size: 1rem;
+	font-weight: 700;
+	color: #111827;
+	margin: 0;
+}
+.make-loading-sub {
+	font-size: 0.8rem;
+	color: #6b7280;
+	margin: 0;
+}
+html.ion-palette-dark .make-loading-card {
+	background: #1e293b;
+	border: 1px solid #334155;
+}
+html.ion-palette-dark .make-loading-title {
+	color: #f1f5f9;
+}
+html.ion-palette-dark .make-loading-sub {
+	color: #94a3b8;
+}
+
 /* Header inner wrapper — full-width band on mobile, centered content on larger screens */
 .header-inner {
 	width: 100%;
@@ -764,5 +826,28 @@ onMounted(() => {
 		max-width: 1100px;
 		margin: 0 auto;
 	}
+}
+</style>
+
+<style>
+/* Styled "Recipe marked as made" toast */
+.recipe-made-toast {
+  --background: #05c450;
+  --color: #ffffff;
+  --border-radius: 14px;
+  --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  --max-width: 480px;
+  --min-width: 280px;
+  --start: auto;
+  --end: auto;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+@media (min-width: 768px) {
+  .recipe-made-toast {
+    --max-width: 420px;
+    margin: 0 auto 24px;
+  }
 }
 </style>

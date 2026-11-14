@@ -1,6 +1,6 @@
 <template>
 	<ion-page>
-		<ion-header class="app-header-shell">
+		<ion-header v-if="!isDesktop" class="app-header-shell">
 			<AppHeader />
 		</ion-header>
 		<ion-content class="recipe-content">

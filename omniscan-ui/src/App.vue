@@ -8,19 +8,23 @@
 
 	<!-- User-facing routes: Ionic app with adaptive navigation -->
 	<ion-app v-else>
-		<!-- Desktop sidebar — only shown on desktop tabs routes -->
+		<!-- Desktop sidebar -->
 		<DesktopNav
 			v-if="isDesktop && isTabsRoute"
 			:userName="authStore.user?.name"
 			:userEmail="authStore.user?.email"
 			:userAvatarBase64="authStore.user?.avatar_base64 ?? null" />
 
-		<!-- Single router outlet — always rendered, one instance only.
-			CSS applies the desktop layout when .desktop-active is present. -->
-		<ion-router-outlet
-			:class="{
-				'desktop-outlet': isDesktop && isTabsRoute
-			}" />
+		<!-- Desktop: persistent fixed shell (header + scrollable outlet) -->
+		<div v-if="isDesktop && isTabsRoute" class="desktop-shell">
+			<AppHeader />
+			<div class="desktop-body">
+				<ion-router-outlet />
+			</div>
+		</div>
+
+		<!-- Mobile / non-tabs: normal Ionic layout -->
+		<ion-router-outlet v-else />
 	</ion-app>
 </template>
 
@@ -33,6 +37,7 @@ import { StatusBar, Style } from '@capacitor/status-bar'
 import { App } from '@capacitor/app'
 import { useBreakpoint } from '@/utils/useBreakpoint'
 import DesktopNav from '@/components/DesktopNav.vue'
+import AppHeader from '@/components/AppHeader.vue'
 import AdminToast from '@/components/admin/AdminToast.vue'
 import { startSessionWatcher } from '@/composables/useSessionWatcher'
 import { useAuthStore } from '@/stores/authStore'
@@ -121,35 +126,46 @@ watch(
 </script>
 
 <style>
-/* Desktop outlet: offset from sidebar, fill viewport */
-ion-router-outlet.desktop-outlet {
-	position: fixed !important;
+/* ── Desktop shell ──────────────────────────────────────────────── */
+/* Covers the area to the right of the 180px sidebar. The header
+   sits at the top and never moves. The body below it scrolls. */
+.desktop-shell {
+	position: fixed;
 	top: 0;
 	right: 0;
 	bottom: 0;
 	left: 180px;
-	width: auto;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background: var(--ion-background-color, #ffffff);
 }
 
-/* On mobile, outlet behaves normally */
+/* Scrollable content area beneath the persistent header */
+.desktop-body {
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	position: relative;
+}
+
+/* Make ion-page flow naturally inside the scrollable body */
+.desktop-body ion-page {
+	position: relative !important;
+	min-height: 100%;
+	contain: none !important;
+}
+
+/* ion-content should not add its own independent scroll on desktop */
+.desktop-body ion-content {
+	--overflow: visible;
+	overflow: visible;
+}
+
+/* Mobile outlet: Ionic handles everything normally */
 @media (max-width: 1023px) {
-	ion-router-outlet.desktop-outlet {
+	ion-router-outlet {
 		position: unset;
-		left: unset;
-	}
-}
-
-/* Desktop: ion-page must fill the fixed outlet as an absolute layer
-   so Ionic's sticky ion-header works correctly during tab navigation. */
-@media (min-width: 1024px) {
-	ion-router-outlet.desktop-outlet ion-page {
-		position: absolute !important;
-		inset: 0;
-		contain: layout style size !important;
-	}
-
-	ion-router-outlet.desktop-outlet ion-page ion-content {
-		--overflow: auto;
 	}
 }
 </style>

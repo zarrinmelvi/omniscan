@@ -1,7 +1,7 @@
 <template>
 	<ion-page>
 		<!-- Top bar: brand/breadcrumb + theme toggle + notifications (desktop and mobile) -->
-		<ion-header class="app-header-shell">
+		<ion-header v-if="!isDesktop" class="app-header-shell">
 			<AppHeader :pageName="item?.product?.product_name ?? 'Item Detail'" :parentLabel="isDesktop ? 'Pantry' : undefined" parentPath="/tabs/pantry" />
 		</ion-header>
 

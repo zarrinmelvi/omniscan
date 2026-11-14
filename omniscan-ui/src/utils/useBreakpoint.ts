@@ -3,12 +3,17 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 export type Breakpoint = 'mobile' | 'tablet' | 'desktop';
 
 export function useBreakpoint() {
-  const breakpoint = ref<Breakpoint>('mobile');
-  const width = ref(window.innerWidth);
+  function getBreakpoint(w: number): Breakpoint {
+    if (w >= 1024) return 'desktop';
+    if (w >= 768) return 'tablet';
+    return 'mobile';
+  }
+  const width = ref(typeof window !== 'undefined' ? window.innerWidth : 0);
+  const breakpoint = ref<Breakpoint>(typeof window !== 'undefined' ? getBreakpoint(window.innerWidth) : 'mobile');
 
   const updateBreakpoint = () => {
     width.value = window.innerWidth;
-    
+
     if (width.value >= 1024) {
       breakpoint.value = 'desktop';
     } else if (width.value >= 768) {
@@ -19,7 +24,6 @@ export function useBreakpoint() {
   };
 
   onMounted(() => {
-    updateBreakpoint();
     window.addEventListener('resize', updateBreakpoint);
   });
 

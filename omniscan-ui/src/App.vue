@@ -168,7 +168,8 @@ watch(
    Use multiple strategies because ion-header is a custom web component whose
    internal shadow DOM may still render/preserve layout when only `display:
    none` is applied, causing a visible double header on some browsers. */
-.desktop-page-body ion-header {
+.desktop-page-body ion-header,
+.desktop-page-body .app-header-shell {
 	display: none !important;
 	visibility: hidden !important;
 	height: 0 !important;

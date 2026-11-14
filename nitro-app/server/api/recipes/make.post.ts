@@ -245,7 +245,7 @@ export default defineEventHandler(async (event) => {
 			if (adjustment.needsFullArchiveFallback) {
 				await prisma.pantryItem.update({
 					where: { id: pantryItemId },
-					data: { is_archived: true, quantity: 0 },
+					data: { is_archived: true, quantity: 0, pieces_count: 0 },
 				})
 				archivedCount++
 				continue
@@ -262,7 +262,7 @@ export default defineEventHandler(async (event) => {
 				if (remainingNetContent <= 0) {
 					await prisma.pantryItem.update({
 						where: { id: pantryItemId },
-						data: { is_archived: true, quantity: 0, net_content: 0 },
+						data: { is_archived: true, quantity: 0, net_content: 0, pieces_count: 0 },
 					})
 					archivedCount++
 				} else {
@@ -278,7 +278,7 @@ export default defineEventHandler(async (event) => {
 				if (remaining <= 0) {
 					await prisma.pantryItem.update({
 						where: { id: pantryItemId },
-						data: { is_archived: true, quantity: 0 },
+						data: { is_archived: true, quantity: 0, pieces_count: 0 },
 					})
 					archivedCount++
 				} else {

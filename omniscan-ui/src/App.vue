@@ -152,14 +152,28 @@ watch(
 	contain: none !important;
 }
 
+/* Neutralize Ionic's internal safe-area top offset which can reserve space
+   even when the page header is hidden, causing unwanted spacing on desktop. */
+.desktop-page-body ion-page {
+	--ion-safe-area-top: 0px;
+}
+
 /* ion-content inside desktop pages should not scroll independently */
 .desktop-page-body ion-content {
 	--overflow: visible;
 	overflow: visible;
 }
 
-/* ion-header inside desktop pages is now redundant — hide it */
+/* ion-header inside desktop pages is now redundant — hide it.
+   Use multiple strategies because ion-header is a custom web component whose
+   internal shadow DOM may still render/preserve layout when only `display:
+   none` is applied, causing a visible double header on some browsers. */
 .desktop-page-body ion-header {
 	display: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
 }
 </style>

@@ -149,6 +149,8 @@ export default defineEventHandler(async (event) => {
 					quantity: pieces_count,
 					portion_unit: 'pcs'
 				}),
+				// Manual archive (not expiry auto-archive): mark permanently consumed so restore guard blocks it
+				...(isNewlyConsumed && !is_auto_archived && { pieces_count: 0 }),
 				...(parsedExpirationDate !== undefined && { expiration_date: parsedExpirationDate }),
 				...(parsedBestBeforeDate !== undefined && { best_before_date: parsedBestBeforeDate }),
 				// Setting one date clears the other so only one stays active

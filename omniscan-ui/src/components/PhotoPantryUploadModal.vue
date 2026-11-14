@@ -199,12 +199,14 @@
 						<input
 							type="number"
 							min="0"
-							max="99999"
-							step="any"
+							max="9999"
+							step="0.01"
 							class="quantity-input"
 							v-model.number="form.netContent"
 							:disabled="isSubmitting"
-							placeholder="500" />
+							placeholder="500"
+							@keydown="(e) => ['-', '+', 'e', 'E', ','].includes(e.key) && e.preventDefault()"
+							@input="onNetContentInput" />
 						<select class="unit-select" v-model="form.netUnit" :disabled="isSubmitting">
 							<option v-for="opt in unitOptions" :key="opt" :value="opt">{{ opt }}</option>
 						</select>
@@ -216,10 +218,13 @@
 						type="number"
 						min="1"
 						max="999"
+						step="1"
 						class="pieces-input"
 						v-model.number="form.piecesCount"
 						:disabled="isSubmitting"
-						required />
+						required
+						@keydown="(e) => ['-', '+', 'e', 'E', ',', '.'].includes(e.key) && e.preventDefault()"
+						@input="onPiecesCountInput" />
 
 					<label class="field-label-brown">Category</label>
 					<select class="unit-select" v-model="form.category" :disabled="isSubmitting" style="width:100%">
@@ -373,7 +378,7 @@ const isFormValid = computed(() => {
 	if (pastDateError.value) return false
 	const hasName = form.productName.trim().length > 0
 	const hasValidPiecesCount = form.piecesCount >= 1 && form.piecesCount <= 999
-	const hasValidNetContent = !form.netContent || form.netContent <= 99999
+	const hasValidNetContent = !form.netContent || form.netContent <= 9999
 	const hasAtLeastOneDate = !!form.expirationDate || !!form.bestBeforeDate
 	const hasBothDates = !!form.expirationDate && !!form.bestBeforeDate
 	return hasName && hasValidPiecesCount && hasValidNetContent && hasAtLeastOneDate && !hasBothDates
@@ -627,6 +632,27 @@ async function handleSubmit(): Promise<void> {
 	} finally {
 		isSubmitting.value = false
 	}
+}
+
+function onNetContentInput(e: Event): void {
+	const el = e.target as HTMLInputElement
+	let v = el.value.replace(/[^0-9.]/g, '')
+	const parts = v.split('.')
+	if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('')
+	if (parts[1] !== undefined && parts[1].length > 2) v = parts[0] + '.' + parts[1].slice(0, 2)
+	if (v !== '' && Number(v) > 9999) v = '9999'
+	el.value = v
+	form.netContent = v === '' || v === '.' ? null : Number(v)
+}
+
+function onPiecesCountInput(e: Event): void {
+	const el = e.target as HTMLInputElement
+	let v = el.value.replace(/[^0-9]/g, '')
+	if (v.length > 1 && v.startsWith('0')) v = v.replace(/^0+/, '')
+	if (v !== '' && Number(v) > 999) v = '999'
+	if (v === '0' || v === '') v = ''
+	el.value = v
+	form.piecesCount = v === '' ? 1 : Number(v)
 }
 </script>
 

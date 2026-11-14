@@ -126,7 +126,7 @@
 					<label class="field-label">Net Content / Package Size (optional)</label>
 					<span class="field-hint">Package size printed on label (e.g. 500ml, 1kg)</span>
 					<div class="quantity-row">
-						<input type="number" min="0" max="99999" step="any" class="quantity-input" v-model.number="netContent" :disabled="submitting" placeholder="500" />
+						<input type="number" min="0" max="9999" step="0.01" class="quantity-input" v-model.number="netContent" :disabled="submitting" placeholder="500" @keydown="(e) => ['-', '+', 'e', 'E', ','].includes(e.key) && e.preventDefault()" @input="onNetContentInput" />
 						<select class="unit-select" v-model="netUnit" :disabled="submitting">
 							<option v-for="opt in unitOptions" :key="opt" :value="opt">{{ opt }}</option>
 						</select>
@@ -134,7 +134,7 @@
 
 					<label class="field-label">Quantity / Count (pcs) *</label>
 					<span class="field-hint">How many pieces do you have?</span>
-					<input type="number" min="1" max="999" class="pieces-input" v-model.number="piecesCount" :disabled="submitting" required />
+					<input type="number" min="1" max="999" step="1" class="pieces-input" v-model.number="piecesCount" :disabled="submitting" required @keydown="(e) => ['-', '+', 'e', 'E', ',', '.'].includes(e.key) && e.preventDefault()" @input="onPiecesCountInput" />
 
 					<label class="field-label field-label--strong">Category</label>
 					<select class="category-select" v-model="category" :disabled="submitting">
@@ -518,7 +518,7 @@ const isFormValid = computed(
 		!pastDateError.value &&
 		piecesCount.value >= 1 &&
 		piecesCount.value <= 999 &&
-		(!netContent.value || netContent.value <= 99999) &&
+		(!netContent.value || netContent.value <= 9999) &&
 		!!storageLocation.value &&
 		(!!expirationDate.value || !!bestBeforeDate.value) &&
 		!(!!expirationDate.value && !!bestBeforeDate.value)
@@ -646,6 +646,27 @@ async function handleDismiss() {
 	}
 
 	forceDismiss()
+}
+
+function onNetContentInput(e: Event): void {
+	const el = e.target as HTMLInputElement
+	let v = el.value.replace(/[^0-9.]/g, '')
+	const parts = v.split('.')
+	if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('')
+	if (parts[1] !== undefined && parts[1].length > 2) v = parts[0] + '.' + parts[1].slice(0, 2)
+	if (v !== '' && Number(v) > 9999) v = '9999'
+	el.value = v
+	netContent.value = v === '' || v === '.' ? null : Number(v)
+}
+
+function onPiecesCountInput(e: Event): void {
+	const el = e.target as HTMLInputElement
+	let v = el.value.replace(/[^0-9]/g, '')
+	if (v.length > 1 && v.startsWith('0')) v = v.replace(/^0+/, '')
+	if (v !== '' && Number(v) > 999) v = '999'
+	if (v === '0' || v === '') v = ''
+	el.value = v
+	piecesCount.value = v === '' ? 1 : Number(v)
 }
 
 function forceDismiss() {

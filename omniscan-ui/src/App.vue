@@ -152,14 +152,37 @@ ion-app.desktop-active ion-router-outlet {
 
 /* ── Desktop layout via CSS on ion-app.desktop-active ─────────── */
 
-/* Push outlet right of sidebar and down below the header bar */
-ion-app.desktop-active ion-router-outlet {
+/* Only the DIRECT child outlet of ion-app gets the fixed positioning.
+   The inner outlet inside ion-tabs must NOT be offset. */
+ion-app.desktop-active > ion-router-outlet {
 	position: fixed !important;
 	top: 56px; /* height of the header bar */
 	right: 0;
 	bottom: 0;
 	left: 180px; /* width of the sidebar */
 	width: auto;
+}
+
+/* Inner outlet inside ion-tabs: fill its parent naturally, no extra offset */
+ion-app.desktop-active ion-tabs > ion-router-outlet {
+	position: absolute !important;
+	top: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	width: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+/* ion-tabs itself must fill the outer outlet */
+ion-app.desktop-active ion-tabs {
+	position: absolute !important;
+	inset: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
 }
 
 /* Persistent header bar — fixed above the outlet */
@@ -178,21 +201,22 @@ ion-app.desktop-active .desktop-header-bar {
 	background: var(--ion-background-color, #ffffff);
 }
 
-/* ion-page inside the outlet on desktop: fill the fixed viewport */
-ion-app.desktop-active ion-router-outlet ion-page {
+/* ion-page inside the inner outlet on desktop: fill the fixed viewport */
+ion-app.desktop-active ion-tabs > ion-router-outlet .ion-page,
+ion-app.desktop-active ion-tabs > ion-router-outlet ion-page {
 	position: absolute !important;
 	inset: 0;
 	contain: layout style size !important;
 }
 
 /* ion-content scrolls internally */
-ion-app.desktop-active ion-router-outlet ion-page ion-content {
+ion-app.desktop-active ion-tabs > ion-router-outlet ion-page ion-content {
 	--overflow: auto;
 }
 
 /* On desktop, per-page ion-header AppHeaders are hidden —
    the .desktop-header-bar above takes their place */
-ion-app.desktop-active ion-router-outlet ion-page ion-header.app-header-shell {
+ion-app.desktop-active ion-tabs > ion-router-outlet ion-page ion-header.app-header-shell {
 	display: none !important;
 }
 </style>

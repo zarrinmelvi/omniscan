@@ -818,20 +818,15 @@ html.ion-palette-dark .make-loading-sub {
 /* ---------- DESKTOP (>=1024px) ---------- */
 @media (min-width: 1024px) {
 	.header-container {
-		padding: 32px 48px 20px;
-		max-width: 1200px;
-		margin: 0 auto;
+		padding: 24px 32px 16px;
 	}
 
 	.header-inner {
-		max-width: 1200px;
-		margin: 0 auto;
+		/* no max-width, no margin */
 	}
 
 	.cards-list {
-		max-width: 1200px;
-		padding: 24px 48px 48px;
-		margin: 0 auto;
+		padding: 20px 32px 48px;
 		grid-template-columns: repeat(3, 1fr);
 		gap: 20px;
 	}

@@ -700,12 +700,10 @@ onIonViewWillEnter(() => {
 
 @media (min-width: 1024px) {
 	.header-container {
-		padding: 16px 48px 10px;
+		padding: 16px 32px 10px;
 	}
 	.pantry-wrap {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 24px 48px 48px;
+		padding: 20px 32px 48px;
 	}
 }
 

@@ -831,9 +831,7 @@ onBeforeUnmount(() => {
 
 @media (min-width: 1024px) {
 	.page-container {
-		padding: 48px 24px;
-		max-width: 720px;
-		margin: 0 auto;
+		padding: 24px;
 		align-items: center;
 	}
 }

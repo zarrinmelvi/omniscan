@@ -683,9 +683,7 @@ onIonViewWillEnter(() => {
 
 @media (min-width: 1024px) {
 	.home-wrap {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 32px 48px 80px;
+		padding: 24px 32px 80px;
 	}
 }
 

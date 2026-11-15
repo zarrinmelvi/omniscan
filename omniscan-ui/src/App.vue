@@ -123,59 +123,39 @@ watch(
 </script>
 
 <style>
-/* Override Ionic web's built-in centering/max-width on ion-app, ion-tabs,
-   ion-router-outlet and ion-page. On desktop these must fill 100% of the
-   available width — the sidebar handles the left offset, not a max-width. */
-ion-app,
+/* ── Ion-app / ion-tabs baseline reset ──────────────────────────── */
+/* Prevent Ionic web from centering ion-app with a max-width. */
+ion-app {
+	max-width: 100% !important;
+	width: 100% !important;
+	margin: 0 !important;
+}
+
+/* ion-tabs and ion-page must not add extra width/margin. */
 ion-tabs,
-ion-router-outlet,
 .ion-page,
 ion-page {
 	max-width: 100% !important;
-	width: 100% !important;
-	margin-left: 0 !important;
-	margin-right: 0 !important;
-}
-
-/* Neutralize Ionic's default safe-area indentation on desktop */
-ion-app.desktop-active,
-ion-app.desktop-active ion-tabs,
-ion-app.desktop-active ion-router-outlet {
-	--ion-safe-area-left: 0px;
-	--ion-safe-area-right: 0px;
-	--ion-safe-area-top: 0px;
-	--ion-safe-area-bottom: 0px;
-	max-width: 100% !important;
-	width: 100% !important;
 	margin: 0 !important;
 }
 
-/* ── Desktop layout via CSS on ion-app.desktop-active ─────────── */
+/* ── Desktop layout (ion-app.desktop-active) ────────────────────── */
 
-/* Only the DIRECT child outlet of ion-app gets the fixed positioning.
-   The inner outlet inside ion-tabs must NOT be offset. */
+/* Outer ion-router-outlet: fixed to the viewport, right of the sidebar.
+   Use width: auto + right: 0 so width = calc(100vw - 180px) exactly.
+   Do NOT set width: 100% here — that would be 100vw and overflow. */
 ion-app.desktop-active > ion-router-outlet {
 	position: fixed !important;
-	top: 56px; /* height of the header bar */
+	top: 56px;    /* header bar height */
+	left: 180px;  /* sidebar width */
 	right: 0;
 	bottom: 0;
-	left: 180px; /* width of the sidebar */
-	width: auto;
+	width: auto !important;
+	max-width: none !important;
+	overflow: hidden;
 }
 
-/* Inner outlet inside ion-tabs: fill its parent naturally, no extra offset */
-ion-app.desktop-active ion-tabs > ion-router-outlet {
-	position: absolute !important;
-	top: 0 !important;
-	left: 0 !important;
-	right: 0 !important;
-	bottom: 0 !important;
-	width: 100% !important;
-	margin: 0 !important;
-	padding: 0 !important;
-}
-
-/* ion-tabs itself must fill the outer outlet */
+/* ion-tabs fills the outer outlet completely */
 ion-app.desktop-active ion-tabs {
 	position: absolute !important;
 	inset: 0 !important;
@@ -183,11 +163,48 @@ ion-app.desktop-active ion-tabs {
 	max-width: 100% !important;
 	margin: 0 !important;
 	padding: 0 !important;
+	overflow: hidden;
 }
 
-/* Persistent header bar — fixed above the outlet */
+/* Inner ion-router-outlet (inside ion-tabs) fills ion-tabs */
+ion-app.desktop-active ion-tabs > ion-router-outlet {
+	position: absolute !important;
+	inset: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden;
+}
+
+/* ion-page fills the inner outlet */
+ion-app.desktop-active ion-tabs > ion-router-outlet .ion-page,
+ion-app.desktop-active ion-tabs > ion-router-outlet ion-page {
+	position: absolute !important;
+	inset: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	contain: layout style size !important;
+	overflow: hidden;
+}
+
+/* ion-content scrolls internally */
+ion-app.desktop-active ion-tabs > ion-router-outlet ion-page ion-content {
+	--overflow: auto;
+	width: 100% !important;
+}
+
+/* Zero safe-area insets on desktop (sidebar handles the offset) */
+ion-app.desktop-active {
+	--ion-safe-area-left: 0px;
+	--ion-safe-area-right: 0px;
+	--ion-safe-area-top: 0px;
+	--ion-safe-area-bottom: 0px;
+}
+
+/* ── Persistent desktop header bar ─────────────────────────────── */
 .desktop-header-bar {
-	display: none; /* hidden by default (mobile) */
+	display: none;
 }
 
 ion-app.desktop-active .desktop-header-bar {
@@ -201,21 +218,7 @@ ion-app.desktop-active .desktop-header-bar {
 	background: var(--ion-background-color, #ffffff);
 }
 
-/* ion-page inside the inner outlet on desktop: fill the fixed viewport */
-ion-app.desktop-active ion-tabs > ion-router-outlet .ion-page,
-ion-app.desktop-active ion-tabs > ion-router-outlet ion-page {
-	position: absolute !important;
-	inset: 0;
-	contain: layout style size !important;
-}
-
-/* ion-content scrolls internally */
-ion-app.desktop-active ion-tabs > ion-router-outlet ion-page ion-content {
-	--overflow: auto;
-}
-
-/* On desktop, per-page ion-header AppHeaders are hidden —
-   the .desktop-header-bar above takes their place */
+/* ── Hide per-page AppHeader on desktop (shell header takes its place) ── */
 ion-app.desktop-active ion-tabs > ion-router-outlet ion-page ion-header.app-header-shell {
 	display: none !important;
 }

@@ -1,7 +1,5 @@
 <template>
 	<ion-page>
-		<AppHeader v-if="isDesktop" />
-
 		<ion-header v-if="!isDesktop" class="ion-no-border">
 			<ion-toolbar class="notif-toolbar">
 				<ion-buttons slot="start">
@@ -71,11 +69,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonIcon, IonSpinner } from '@ionic/vue'
-import AppHeader from '@/components/AppHeader.vue'
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonIcon, IonSpinner, onIonViewWillEnter } from '@ionic/vue'
 import { useBreakpoint } from '@/utils/useBreakpoint'
+import { useNotifCount } from '@/composables/useNotifCount'
 import {
 	chevronBackOutline,
 	alertCircleOutline,
@@ -88,6 +86,7 @@ import { apiFetch, ApiError } from '@/utils/api'
 
 const router = useRouter()
 const { isDesktop } = useBreakpoint()
+const { unreadNotifCount: sharedNotifCount } = useNotifCount()
 
 function goBackToProfile() {
 	if (window.history.length > 1) {
@@ -175,6 +174,7 @@ async function fetchNotifications() {
 		})
 		notifications.value = data.notifications
 		unreadCount.value = data.unread_count
+		sharedNotifCount.value = data.unread_count
 	} catch (err) {
 		loadError.value = err instanceof ApiError ? err.message : 'Failed to load notifications.'
 	} finally {
@@ -189,6 +189,7 @@ async function handleNotifClick(notif: NotificationDto) {
 		await apiFetch(`/api/notification/${notif.id}`, { method: 'PUT' })
 		notif.is_read = true
 		unreadCount.value = Math.max(0, unreadCount.value - 1)
+		sharedNotifCount.value = unreadCount.value
 	} catch {
 		// Non-critical — stays unread on failure
 	}
@@ -200,6 +201,7 @@ async function markAllRead() {
 		await apiFetch('/api/notification/mark-all-read', { method: 'PUT' })
 		notifications.value = notifications.value.map((n) => ({ ...n, is_read: true }))
 		unreadCount.value = 0
+		sharedNotifCount.value = 0
 	} catch {
 		// Non-critical — leave state as-is on failure
 	} finally {
@@ -207,7 +209,7 @@ async function markAllRead() {
 	}
 }
 
-onMounted(fetchNotifications)
+onIonViewWillEnter(fetchNotifications)
 </script>
 
 <style scoped>

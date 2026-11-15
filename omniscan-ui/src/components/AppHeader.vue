@@ -30,14 +30,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IonIcon } from '@ionic/vue'
 import { notificationsOutline, moonOutline, sunnyOutline } from 'ionicons/icons'
-import { apiFetch } from '@/utils/api'
-import { setBadge } from '@/utils/appBadge'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { useBreakpoint } from '@/utils/useBreakpoint'
+import { useNotifCount } from '@/composables/useNotifCount'
 
 const router = useRouter()
 const route = useRoute()
@@ -46,7 +45,7 @@ const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 const props = defineProps<{ pageName?: string; parentLabel?: string; parentPath?: string }>()
 
-const unreadNotifCount = ref(0)
+const { unreadNotifCount, fetchUnreadNotifs } = useNotifCount()
 
 const breadcrumbLabel = computed(() => {
 	if (props.pageName) return props.pageName
@@ -61,17 +60,6 @@ const breadcrumbLabel = computed(() => {
 	}
 	return map[route.path] ?? route.meta?.breadcrumb as string ?? ''
 })
-
-async function fetchUnreadNotifs(): Promise<void> {
-	try {
-		const res = await apiFetch<{ success: boolean; unread_count: number }>('/api/notification', { method: 'GET' })
-		unreadNotifCount.value = res.unread_count || 0
-	} catch {
-		unreadNotifCount.value = 0
-	}
-	// Update the app launcher badge with the unread count.
-	await setBadge(unreadNotifCount.value)
-}
 
 function goToNotifications(): void {
 	router.push('/tabs/notifications')

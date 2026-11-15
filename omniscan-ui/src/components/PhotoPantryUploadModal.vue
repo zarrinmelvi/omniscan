@@ -217,14 +217,15 @@
 					<input
 						type="number"
 						min="1"
-						max="999"
+						max="9999"
 						step="1"
 						class="pieces-input"
 						v-model.number="form.piecesCount"
 						:disabled="isSubmitting"
 						required
 						@keydown="(e) => ['-', '+', 'e', 'E', ',', '.'].includes(e.key) && e.preventDefault()"
-						@input="onPiecesCountInput" />
+						@input="onPiecesCountInput"
+						@blur="onPiecesCountBlur" />
 
 					<label class="field-label-brown">Category</label>
 					<select class="unit-select" v-model="form.category" :disabled="isSubmitting" style="width:100%">
@@ -377,7 +378,7 @@ const pastDateError = computed(() => isBeforeToday(form.expirationDate) || isBef
 const isFormValid = computed(() => {
 	if (pastDateError.value) return false
 	const hasName = form.productName.trim().length > 0
-	const hasValidPiecesCount = form.piecesCount >= 1 && form.piecesCount <= 999
+	const hasValidPiecesCount = form.piecesCount >= 1 && form.piecesCount <= 9999
 	const hasValidNetContent = !form.netContent || form.netContent <= 9999
 	const hasAtLeastOneDate = !!form.expirationDate || !!form.bestBeforeDate
 	const hasBothDates = !!form.expirationDate && !!form.bestBeforeDate
@@ -643,10 +644,12 @@ async function handleSubmit(): Promise<void> {
 function onNetContentInput(e: Event): void {
 	const el = e.target as HTMLInputElement
 	let v = el.value.replace(/[^0-9.]/g, '')
-	const parts = v.split('.')
-	if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('')
-	if (parts[1] !== undefined && parts[1].length > 2) v = parts[0] + '.' + parts[1].slice(0, 2)
-	if (v !== '' && Number(v) > 9999) v = '9999'
+	const dotIdx = v.indexOf('.')
+	if (dotIdx !== -1) v = v.slice(0, dotIdx + 1) + v.slice(dotIdx + 1).replace(/\./g, '')
+	const p = v.split('.')
+	if (p[0].length > 4) p[0] = p[0].slice(0, 4)
+	if (p[1] !== undefined && p[1].length > 2) p[1] = p[1].slice(0, 2)
+	v = p.length === 2 ? p[0] + '.' + p[1] : p[0]
 	el.value = v
 	form.netContent = v === '' || v === '.' ? null : Number(v)
 }
@@ -654,11 +657,18 @@ function onNetContentInput(e: Event): void {
 function onPiecesCountInput(e: Event): void {
 	const el = e.target as HTMLInputElement
 	let v = el.value.replace(/[^0-9]/g, '')
-	if (v.length > 1 && v.startsWith('0')) v = v.replace(/^0+/, '')
-	if (v !== '' && Number(v) > 999) v = '999'
-	if (v === '0' || v === '') v = ''
+	if (v.startsWith('0') && v.length > 1) v = v.replace(/^0+/, '')
+	if (v.length > 4) v = v.slice(0, 4)
 	el.value = v
-	form.piecesCount = v === '' ? 1 : Number(v)
+	form.piecesCount = v === '' ? 0 : Number(v)
+}
+
+function onPiecesCountBlur(e: Event): void {
+	const el = e.target as HTMLInputElement
+	if (!el.value || Number(el.value) < 1) {
+		el.value = '1'
+		form.piecesCount = 1
+	}
 }
 </script>
 

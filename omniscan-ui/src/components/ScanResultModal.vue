@@ -134,7 +134,7 @@
 
 					<label class="field-label">Quantity / Count (pcs) *</label>
 					<span class="field-hint">How many pieces do you have?</span>
-					<input type="number" min="1" max="999" step="1" class="pieces-input" v-model.number="piecesCount" :disabled="submitting" required @keydown="(e) => ['-', '+', 'e', 'E', ',', '.'].includes(e.key) && e.preventDefault()" @input="onPiecesCountInput" />
+					<input type="number" min="1" max="9999" step="1" class="pieces-input" v-model.number="piecesCount" :disabled="submitting" required @keydown="(e) => ['-', '+', 'e', 'E', ',', '.'].includes(e.key) && e.preventDefault()" @input="onPiecesCountInput" @blur="onPiecesCountBlur" />
 
 					<label class="field-label field-label--strong">Category</label>
 					<select class="category-select" v-model="category" :disabled="submitting">
@@ -523,7 +523,7 @@ const isFormValid = computed(
 	() =>
 		!pastDateError.value &&
 		piecesCount.value >= 1 &&
-		piecesCount.value <= 999 &&
+		piecesCount.value <= 9999 &&
 		(!netContent.value || netContent.value <= 9999) &&
 		!!storageLocation.value &&
 		(!!expirationDate.value || !!bestBeforeDate.value) &&
@@ -657,10 +657,16 @@ async function handleDismiss() {
 function onNetContentInput(e: Event): void {
 	const el = e.target as HTMLInputElement
 	let v = el.value.replace(/[^0-9.]/g, '')
-	const parts = v.split('.')
-	if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('')
-	if (parts[1] !== undefined && parts[1].length > 2) v = parts[0] + '.' + parts[1].slice(0, 2)
-	if (v !== '' && Number(v) > 9999) v = '9999'
+	// Keep at most one decimal point
+	const dotIdx = v.indexOf('.')
+	if (dotIdx !== -1) {
+		v = v.slice(0, dotIdx + 1) + v.slice(dotIdx + 1).replace(/\./g, '')
+	}
+	// Limit integer part to 4 digits, decimal part to 2 digits
+	const p = v.split('.')
+	if (p[0].length > 4) p[0] = p[0].slice(0, 4)
+	if (p[1] !== undefined && p[1].length > 2) p[1] = p[1].slice(0, 2)
+	v = p.length === 2 ? p[0] + '.' + p[1] : p[0]
 	el.value = v
 	netContent.value = v === '' || v === '.' ? null : Number(v)
 }
@@ -668,11 +674,20 @@ function onNetContentInput(e: Event): void {
 function onPiecesCountInput(e: Event): void {
 	const el = e.target as HTMLInputElement
 	let v = el.value.replace(/[^0-9]/g, '')
-	if (v.length > 1 && v.startsWith('0')) v = v.replace(/^0+/, '')
-	if (v !== '' && Number(v) > 999) v = '999'
-	if (v === '0' || v === '') v = ''
+	if (v.startsWith('0') && v.length > 1) v = v.replace(/^0+/, '')
+	if (v.length > 4) v = v.slice(0, 4)
 	el.value = v
-	piecesCount.value = v === '' ? 1 : Number(v)
+	// Allow empty while typing; onPiecesCountBlur enforces minimum of 1
+	piecesCount.value = v === '' ? 0 : Number(v)
+}
+
+function onPiecesCountBlur(e: Event): void {
+	const el = e.target as HTMLInputElement
+	const n = Number(el.value)
+	if (!el.value || n < 1) {
+		el.value = '1'
+		piecesCount.value = 1
+	}
 }
 
 function forceDismiss() {

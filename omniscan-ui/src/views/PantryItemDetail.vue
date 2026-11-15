@@ -262,12 +262,13 @@
 						v-model.number="editForm.pieces_count"
 						type="number"
 						min="1"
-						max="999"
+						max="9999"
 						step="1"
 						class="edit-pieces-input"
 						required
 						@keydown="(e) => ['-', '+', 'e', 'E', ',', '.'].includes(e.key) && e.preventDefault()"
-						@input="onPiecesCountInput" />
+						@input="onPiecesCountInput"
+						@blur="onPiecesCountBlur" />
 
 					<!-- Category -->
 					<label class="field-label-brown">Category</label>
@@ -546,7 +547,7 @@ const editPastDateError = computed(() => {
 const isEditFormValid = computed(() => {
   const hasExp = !!editForm.expiration_date
   const hasBbd = !!editForm.best_before_date
-  const validPiecesCount = editForm.pieces_count >= 1 && editForm.pieces_count <= 999
+  const validPiecesCount = editForm.pieces_count >= 1 && editForm.pieces_count <= 9999
   // Net content is optional: blank ('' from v-model.number) or null is valid
   const nc = editForm.net_content as number | null | ''
   const validNetContent = nc === null || nc === '' || nc === undefined || (Number(nc) > 0 && Number(nc) <= 9999 && !!editForm.net_unit)
@@ -705,10 +706,12 @@ onIonViewWillEnter(() => fetchItem())
 function onNetContentInput(e: Event): void {
 	const el = e.target as HTMLInputElement
 	let v = el.value.replace(/[^0-9.]/g, '')
-	const parts = v.split('.')
-	if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('')
-	if (parts[1] !== undefined && parts[1].length > 2) v = parts[0] + '.' + parts[1].slice(0, 2)
-	if (v !== '' && Number(v) > 9999) v = '9999'
+	const dotIdx = v.indexOf('.')
+	if (dotIdx !== -1) v = v.slice(0, dotIdx + 1) + v.slice(dotIdx + 1).replace(/\./g, '')
+	const p = v.split('.')
+	if (p[0].length > 4) p[0] = p[0].slice(0, 4)
+	if (p[1] !== undefined && p[1].length > 2) p[1] = p[1].slice(0, 2)
+	v = p.length === 2 ? p[0] + '.' + p[1] : p[0]
 	el.value = v
 	editForm.net_content = v === '' || v === '.' ? null : Number(v)
 }
@@ -716,11 +719,18 @@ function onNetContentInput(e: Event): void {
 function onPiecesCountInput(e: Event): void {
 	const el = e.target as HTMLInputElement
 	let v = el.value.replace(/[^0-9]/g, '')
-	if (v.length > 1 && v.startsWith('0')) v = v.replace(/^0+/, '')
-	if (v !== '' && Number(v) > 999) v = '999'
-	if (v === '0' || v === '') v = ''
+	if (v.startsWith('0') && v.length > 1) v = v.replace(/^0+/, '')
+	if (v.length > 4) v = v.slice(0, 4)
 	el.value = v
-	editForm.pieces_count = v === '' ? 1 : Number(v)
+	editForm.pieces_count = v === '' ? 0 : Number(v)
+}
+
+function onPiecesCountBlur(e: Event): void {
+	const el = e.target as HTMLInputElement
+	if (!el.value || Number(el.value) < 1) {
+		el.value = '1'
+		editForm.pieces_count = 1
+	}
 }
 </script>
 

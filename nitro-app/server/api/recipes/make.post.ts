@@ -124,7 +124,7 @@ export default defineEventHandler(async (event) => {
 		const [pantryItems, userWithProfile] = await Promise.all([
 			prisma.pantryItem.findMany({
 				where: { user_id: authUser.id, is_archived: false },
-				select: { id: true, category: true, quantity: true, portion_unit: true, net_content: true, net_unit: true, product: { select: { product_name: true } } },
+				select: { id: true, category: true, quantity: true, portion_unit: true, net_content: true, net_unit: true, pieces_count: true, product: { select: { product_name: true } } },
 			}),
 			prisma.user.findUnique({
 				where: { id: authUser.id },
@@ -173,6 +173,7 @@ export default defineEventHandler(async (event) => {
 			portion_unit: p.portion_unit,
 			net_content: p.net_content !== null && p.net_content !== undefined ? Number(p.net_content) : null,
 			net_unit: p.net_unit ?? null,
+			pieces_count: Number(p.pieces_count ?? 1),
 		}))
 		const { deductions, missingIngredientNames } = matchIngredientsToPantryForDeduction(ingredients, pantryProducts)
 
@@ -181,7 +182,7 @@ export default defineEventHandler(async (event) => {
 			id: p.id,
 			product_name: p.product_name,
 			category: p.category,
-			pieces_count: p.quantity,
+			pieces_count: p.pieces_count,
 			net_content: p.net_content,
 			net_unit: p.net_unit,
 		}))
@@ -257,14 +258,32 @@ export default defineEventHandler(async (event) => {
 
 			if (hasNetUnit) {
 				const currentNetContent = pantryItem.net_content ?? 0
+				const currentPieces = pantryItem.pieces_count ?? 1
+				const originalNetContentPerPiece = currentNetContent // net_content on the item = content of ONE piece
 				const remainingNetContent = currentNetContent - adjustment.deductAmount
 
 				if (remainingNetContent <= 0) {
-					await prisma.pantryItem.update({
-						where: { id: pantryItemId },
-						data: { is_archived: true, quantity: 0, net_content: 0, pieces_count: 0 },
-					})
-					archivedCount++
+					// This piece is fully consumed — deduct one piece
+					const remainingPieces = currentPieces - 1
+					if (remainingPieces <= 0) {
+						// All pieces gone — archive
+						await prisma.pantryItem.update({
+							where: { id: pantryItemId },
+							data: { is_archived: true, quantity: 0, net_content: 0, pieces_count: 0 },
+						})
+						archivedCount++
+					} else {
+						// Still have more pieces — deduct 1 piece and reset net_content to the per-piece amount
+						await prisma.pantryItem.update({
+							where: { id: pantryItemId },
+							data: {
+								pieces_count: remainingPieces,
+								quantity: remainingPieces,
+								net_content: originalNetContentPerPiece, // reset to original per-piece content
+							},
+						})
+						deductedCount++
+					}
 				} else {
 					await prisma.pantryItem.update({
 						where: { id: pantryItemId },

@@ -257,37 +257,31 @@ export default defineEventHandler(async (event) => {
 			const hasNetUnit = pantryItem.net_unit && pantryItem.net_unit.trim()
 
 			if (hasNetUnit) {
-				const currentNetContent = pantryItem.net_content ?? 0
+				// net_content = per-piece content (constant, never modified).
+				// Deduct whole pieces: how many pieces does this recipe use?
+				const netContentPerPiece = pantryItem.net_content ?? 0
 				const currentPieces = pantryItem.pieces_count ?? 1
-				const originalNetContentPerPiece = currentNetContent // net_content on the item = content of ONE piece
-				const remainingNetContent = currentNetContent - adjustment.deductAmount
 
-				if (remainingNetContent <= 0) {
-					// This piece is fully consumed — deduct one piece
-					const remainingPieces = currentPieces - 1
-					if (remainingPieces <= 0) {
-						// All pieces gone — archive
-						await prisma.pantryItem.update({
-							where: { id: pantryItemId },
-							data: { is_archived: true, quantity: 0, net_content: 0, pieces_count: 0 },
-						})
-						archivedCount++
-					} else {
-						// Still have more pieces — deduct 1 piece and reset net_content to the per-piece amount
-						await prisma.pantryItem.update({
-							where: { id: pantryItemId },
-							data: {
-								pieces_count: remainingPieces,
-								quantity: remainingPieces,
-								net_content: originalNetContentPerPiece, // reset to original per-piece content
-							},
-						})
-						deductedCount++
-					}
-				} else {
+				// Calculate pieces to consume: ceil(needed / per_piece).
+				// e.g. 8 cloves needed, 8 per head → 1 piece; 9 cloves needed, 8 per head → 2 pieces.
+				const piecesToConsume = netContentPerPiece > 0
+					? Math.ceil(adjustment.deductAmount / netContentPerPiece)
+					: 1
+
+				const remainingPieces = currentPieces - piecesToConsume
+
+				if (remainingPieces <= 0) {
+					// All pieces consumed — archive
 					await prisma.pantryItem.update({
 						where: { id: pantryItemId },
-						data: { net_content: remainingNetContent },
+						data: { is_archived: true, quantity: 0, pieces_count: 0 },
+					})
+					archivedCount++
+				} else {
+					// Some pieces remain — only update pieces_count, leave net_content untouched
+					await prisma.pantryItem.update({
+						where: { id: pantryItemId },
+						data: { pieces_count: remainingPieces, quantity: remainingPieces },
 					})
 					deductedCount++
 				}

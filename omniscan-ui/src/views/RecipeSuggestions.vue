@@ -187,6 +187,7 @@ import RecipeDetailModal from '@/components/RecipeDetailModal.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import SkeletonCard from '@/components/SkeletonCard.vue'
 import { useBreakpoint } from '@/utils/useBreakpoint'
+import { usePantryList } from '@/composables/usePantryList'
 
 interface SuggestedRecipe {
 	id: number
@@ -226,6 +227,7 @@ const TAB_DEFAULT_EMPTY_MESSAGE: Record<RecipeTab, string> = {
 }
 
 const { isDesktop } = useBreakpoint()
+const { invalidate: invalidatePantryList } = usePantryList()
 
 const activeTab = ref<RecipeTab>('all')
 const emptyMessage = ref<string>(TAB_DEFAULT_EMPTY_MESSAGE.all)
@@ -361,22 +363,27 @@ async function makeRecipe(recipeId: number): Promise<void> {
 
 		madeRecipeResult.value = data.recipe
 		archivedCount.value = data.archived_count ?? 0
-		const toast = await toastController.create({
-			message: '✓ Recipe marked as made! Ingredients deducted from your pantry.',
-			duration: 3000,
-			position: 'bottom',
-			cssClass: 'recipe-made-toast',
-		})
-		await toast.present()
 
+		// Close modal and update affected recipe immediately
+		isDetailModalOpen.value = false
 		const affected = recipes.value.find((r) => r.id === recipeId)
 		if (affected) {
 			affected.made = data.made ?? true
 			affected.liked = data.liked ?? affected.liked
 		}
-
 		madeTotal.value++
-		await fetchSuggestions()
+
+		// Kick off refresh and pantry invalidation immediately (don't block on toast)
+		invalidatePantryList()
+		void fetchSuggestions()
+
+		// Show toast in background — do not await
+		toastController.create({
+			message: '✓ Recipe marked as made! Ingredients deducted from your pantry.',
+			duration: 3000,
+			position: 'bottom',
+			cssClass: 'recipe-made-toast',
+		}).then((t) => t.present()).catch(() => {})
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to update pantry after making this recipe.'
 		console.error('Make recipe error:', err)

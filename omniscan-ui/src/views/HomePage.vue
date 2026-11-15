@@ -331,6 +331,7 @@ let hasDashboardLoaded = false
 const userName = ref('')
 const avatarBase64 = ref<string | null>(null)
 const pantryList = usePantryList()
+const { invalidate: invalidatePantryList } = pantryList
 const vPantryLazyImage = pantryList.pantryLazyImage
 const pantryItems = pantryList.items
 const recommendedRecipes = ref<SuggestedRecipe[]>([])
@@ -522,21 +523,26 @@ async function makeRecipe(recipeId: number): Promise<void> {
 
 		madeRecipeResult.value = data.recipe
 		archivedCount.value = data.archived_count ?? 0
-		const toast = await toastController.create({
-			message: '✓ Recipe marked as made! Ingredients deducted from your pantry.',
-			duration: 3000,
-			position: 'bottom',
-			cssClass: 'recipe-made-toast',
-		})
-		await toast.present()
 
+		// Close modal immediately
+		isDetailModalOpen.value = false
 		const affected = recommendedRecipes.value.find((r) => r.id === recipeId)
 		if (affected) {
 			affected.made = data.made ?? true
 			affected.liked = data.liked ?? affected.liked
 		}
 
-		await loadDashboard()
+		// Invalidate pantry cache and kick off refresh immediately (don't block on toast)
+		invalidatePantryList()
+		void loadDashboard()
+
+		// Show toast in background — do not await
+		toastController.create({
+			message: '✓ Recipe marked as made! Ingredients deducted from your pantry.',
+			duration: 3000,
+			position: 'bottom',
+			cssClass: 'recipe-made-toast',
+		}).then((t) => t.present()).catch(() => {})
 	} catch (err) {
 		loadError.value = err instanceof ApiError ? err.message : 'Failed to update pantry after making this recipe.'
 	} finally {

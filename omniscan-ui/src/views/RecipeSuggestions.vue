@@ -165,7 +165,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import {
 	IonPage,
 	IonHeader,
@@ -180,6 +180,7 @@ import {
 	IonModal,
 	IonSpinner,
 	toastController,
+	onIonViewWillEnter,
 } from '@ionic/vue'
 import { restaurantOutline, closeOutline, heart, heartOutline, archiveOutline, checkmarkCircle, chevronForwardOutline } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
@@ -406,7 +407,7 @@ async function unmakeRecipe(recipeId: number): Promise<void> {
 	}
 }
 
-onMounted(() => {
+onIonViewWillEnter(() => {
 	fetchSuggestions()
 })
 </script>

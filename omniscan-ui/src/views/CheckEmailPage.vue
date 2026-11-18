@@ -179,6 +179,10 @@ async function checkVerificationStatus() {
 				}
 			}
 
+			// Clear any stale error banner before transitioning so it doesn't
+			// linger alongside the success state.
+			errorMessage.value = ''
+
 			// Step A: Show "Verifying your email…"
 			syncState.value = 'verifying'
 
@@ -213,7 +217,37 @@ async function handleResend() {
 		successMessage.value = 'Verification email sent! Please check your inbox.'
 		startCooldown(60)
 	} catch (err: any) {
-		if (err?.status === 429) {
+		if (err?.status === 400 && err?.message?.toLowerCase().includes('already verified')) {
+			// The email was already verified (likely in another tab/device).
+			// Treat this as a success signal: stop polling, fetch the session
+			// token, and transition to the verified state so the user can
+			// proceed to Step 2 without being stuck on the error banner.
+			if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
+			errorMessage.value = ''
+			syncState.value = 'verifying'
+
+			try {
+				const res = await apiFetch<{
+					email_verified?: boolean
+					verified?: boolean
+					token?: string
+					user?: AuthUser
+				}>(
+					`/api/auth/me?email=${encodeURIComponent(email.value)}`,
+					{ method: 'GET', skipAuth: true }
+				)
+				if (res?.token) {
+					localStorage.setItem(TOKEN_KEY, res.token)
+					authStore.token = res.token
+					if (res.user) authStore.user = res.user
+				}
+			} catch {
+				// If the one-shot fetch fails the token may already be in
+				// localStorage from a prior poll — the transition still proceeds.
+			}
+
+			setTimeout(() => { syncState.value = 'verified' }, 1200)
+		} else if (err?.status === 429) {
 			const match = err?.message?.match(/(\d+) second/)
 			const remaining = match ? parseInt(match[1]) : 60
 			startCooldown(remaining)

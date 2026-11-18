@@ -29,10 +29,13 @@ export default defineEventHandler(async (event) => {
 			return { email_verified: false, verified: false }
 		}
 
-		// Issue the active session token only during the initial onboarding window
-		// (newly verified user who has not completed Step 2 allergen/halal setup yet)
+		// Issue the active session token for any verified account that still needs Step 2
+		// setup (allergen/halal), up to the 7-day account deletion window. The needsSetup
+		// guard already prevents token issuance once the user has completed onboarding,
+		// so widening from 30 minutes to 7 days is safe and fixes the case where the
+		// original browser/APK polls after the old 30-minute window had expired.
 		let onboardingToken: string | undefined
-		const verifiedRecently = Date.now() - new Date(userByEmail.updated_at).getTime() < 30 * 60 * 1000
+		const verifiedRecently = Date.now() - new Date(userByEmail.updated_at).getTime() < 7 * 24 * 60 * 60 * 1000
 		const needsSetup = !userByEmail.halal_pref && userByEmail.allergens.length === 0
 
 		if (userByEmail.email_verified && userByEmail.session_token && verifiedRecently && needsSetup) {

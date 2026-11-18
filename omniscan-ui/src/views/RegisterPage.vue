@@ -1011,28 +1011,20 @@ async function completeSetup(): Promise<void> {
 	prefsError.value = ''
 	setupError.value = ''
 
-	// On native, checkAuth() calls GET /api/auth/me which can fail and wipe
-	// the token even though it was just saved. Trust the token in localStorage
-	// directly on native instead of making a network call.
-	const { Capacitor: Cap } = await import('@capacitor/core')
-	if (Cap.isNativePlatform()) {
-		const token = localStorage.getItem('omniscan_token')
-		if (!token) {
-			prefsError.value = 'Your verification session expired. Please sign in to continue.'
-			setTimeout(() => { router.push('/login') }, 1500)
-			isSavingPrefs.value = false
-			return
-		}
-		if (!authStore.token) authStore.token = token
-	} else {
-		await authStore.checkAuth()
-		if (!authStore.isAuthenticated) {
-			prefsError.value = 'Your verification session expired. Please sign in to continue.'
-			setTimeout(() => { router.push('/login') }, 1500)
-			isSavingPrefs.value = false
-			return
-		}
+	// Trust the token in localStorage directly on both web and native.
+	// On web: the token was written by VerifyEmailPage into localStorage when
+	// the user clicked the email link. The check-email tab navigates here via
+	// window.location.href and shares the same localStorage origin, so the
+	// token is available. Calling checkAuth() (GET /api/auth/me) is unnecessary
+	// here and can fail on native, wiping the token before setup completes.
+	const token = localStorage.getItem('omniscan_token')
+	if (!token) {
+		prefsError.value = 'Your verification session expired. Please sign in to continue.'
+		setTimeout(() => { router.push('/login') }, 1500)
+		isSavingPrefs.value = false
+		return
 	}
+	if (!authStore.token) authStore.token = token
 
 	const customPrefTags = allergenCatalog.value
 		.filter((a) => selectedAllergenIds.value.includes(a.id))

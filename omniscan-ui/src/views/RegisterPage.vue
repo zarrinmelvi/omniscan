@@ -64,12 +64,18 @@
 							<div class="name-row">
 								<div class="form-group">
 									<label class="input-label">First name</label>
-									<input v-model="firstName" type="text" placeholder="First name" maxlength="16" class="custom-input" :class="{ 'input-error': fieldErrors.firstName }" @input="clearFieldError('firstName')" />
+									<input v-model="firstName" type="text" placeholder="First name" class="custom-input" :class="{ 'input-error': fieldErrors.firstName }" @input="clearFieldError('firstName')" />
 								</div>
 								<div class="form-group">
 									<label class="input-label">Last name</label>
-									<input v-model="lastName" type="text" placeholder="Last name" maxlength="25" class="custom-input" :class="{ 'input-error': fieldErrors.lastName }" @input="clearFieldError('lastName')" />
+									<input v-model="lastName" type="text" placeholder="Last name" class="custom-input" :class="{ 'input-error': fieldErrors.lastName }" @input="clearFieldError('lastName')" />
 								</div>
+							</div>
+							<button type="button" class="add-middle-link" @click="showMiddleName = !showMiddleName">
+								{{ showMiddleName ? '- Remove middle name' : '+ Add middle name (optional)' }}
+							</button>
+							<div v-if="showMiddleName" class="form-group">
+								<input v-model="middleName" type="text" placeholder="Middle name" class="custom-input" />
 							</div>
 
 							<div class="form-group">
@@ -79,8 +85,6 @@
 								v-model="username"
 								type="text"
 								placeholder="Choose a username"
-								minlength="4"
-								maxlength="15"
 								class="custom-input"
 								:class="{ 
 									'input-error': fieldErrors.username || (usernameValidation.isAvailable === false && username.trim()),
@@ -98,8 +102,7 @@
 							</div>
 							</div>
 
-							<div class="name-row margin-top">
-							<div class="form-group">
+							<div class="form-group margin-top">
 								<label class="input-label">Gender</label>
 								<select 
 									v-model="gender" 
@@ -116,17 +119,14 @@
 
 							<div class="form-group">
 								<label class="input-label">Birthday</label>
-								<AppDatePicker
-									v-model="birthday"
-									:min="BIRTHDAY_MIN"
+								<input 
+									v-model="birthday" 
+									type="date"
 									:max="maxBirthdayDate"
-									placeholder="Select your birthday"
-									aria-label="Birthday"
 									class="custom-input"
 									:class="{ 'input-error': fieldErrors.birthday || ageError }"
-									@change="clearFieldError('birthday')" />
+									@input="clearFieldError('birthday')" />
 								<div v-if="ageError" class="field-error-text">{{ ageError }}</div>
-							</div>
 							</div>
 
 							<div class="form-group margin-top">
@@ -136,13 +136,11 @@
 										v-model="email"
 										type="text"
 										placeholder="your@email.com"
-										maxlength="31"
 										class="custom-input"
 										:class="{ 'input-error': fieldErrors.email }"
 										:disabled="isGooglePending"
 										@input="clearFieldError('email')" />
 								</div>
-								<p v-if="!isGooglePending" class="verify-disclaimer switch-auth">Verify your email within 7 days or your account will be automatically deleted.</p>
 							</div>
 
 							<div v-if="!isGooglePending" class="form-group">
@@ -152,8 +150,7 @@
 										v-model="password"
 										:type="showPassword ? 'text' : 'password'"
 										placeholder="Create a password"
-										maxlength="30"
-										class="custom-input has-toggle"
+										class="custom-input"
 										:class="{ 'input-error': fieldErrors.password }"
 										@input="clearFieldError('password')" />
 									<ion-icon
@@ -193,8 +190,7 @@
 										v-model="confirmPassword"
 										:type="showConfirmPassword ? 'text' : 'password'"
 										placeholder="Re-enter your password"
-										maxlength="30"
-										class="custom-input has-toggle"
+										class="custom-input"
 										:class="{ 'input-error': fieldErrors.confirmPassword }"
 										@input="clearFieldError('confirmPassword')" />
 									<ion-icon
@@ -213,7 +209,11 @@
 								expand="block"
 								type="submit"
 								class="submit-button"
-							:disabled="isSubmitting">
+							:disabled="isSubmitting || 
+									(!isGooglePending && (!isPasswordValid || password !== confirmPassword)) ||
+									usernameValidation.isAvailable !== true || 
+									!gender || 
+									!isBirthdayValid">
 								<ion-spinner v-if="isSubmitting" name="crescent" class="btn-spinner" />
 								<span v-else>Continue</span>
 							</ion-button>
@@ -241,7 +241,7 @@
 
 					<!-- STEP 2: Allergens / Dietary Preferences -->
 					<template v-else>
-						<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified!' : 'Almost There!' }}</span>
+						<span class="brand-label">{{ route.query.step === '2' ? 'Email Verified! 🎉' : 'Almost There!' }}</span>
 						<h1 class="auth-title">Your allergens</h1>
 						<p class="auth-subtitle">Choose up to 5. We flag them on every scan. You can change them later in your profile.</p>
 
@@ -292,7 +292,7 @@
 						<div v-if="prefsError" class="form-error">{{ prefsError }}</div>
 						<div v-if="setupError" class="form-error">{{ setupError }}</div>
 
-						<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs || !hasValidSelection" @click="completeSetup">
+						<ion-button expand="block" class="submit-button" :disabled="isSavingPrefs" @click="completeSetup">
 							<ion-spinner v-if="isSavingPrefs" name="crescent" class="btn-spinner" />
 							<span v-else>Finish</span>
 						</ion-button>
@@ -310,35 +310,48 @@
 			</ion-header>
 			<ion-content class="terms-modal-content" ref="termsContentRef" :scroll-events="true" @ionScroll="onTermsScroll">
 				<div class="terms-modal-body">
-					<p style="font-size: 0.75rem; color: #6b7280; font-weight: 600; margin-bottom: 16px;">Last Updated: November 12, 2026</p>
+					<p class="terms-updated">Last Updated: September 7, 2026</p>
 
-					<p v-for="(para, pi) in termsIntro" :key="'ti-' + pi">{{ para }}</p>
+					<p>Welcome to OmniScan, a cross-platform pantry management and food information system developed as part of a Bachelor of Science in Information Technology capstone project at STI College San Jose Del Monte.</p>
+					<p>These Terms &amp; Conditions ("Terms") govern your access to and use of the OmniScan web application and mobile application ("Application" or "System"). By creating an account, accessing, or using OmniScan, you acknowledge that you have read, understood, and agreed to these Terms.</p>
+					<p>If you do not agree with any part of these Terms, please discontinue your use of the Application.</p>
 
-					<template v-for="section in termsSections" :key="section.title">
-						<h4>{{ section.title }}</h4>
-						<template v-for="(block, bi) in section.blocks" :key="bi">
-							<p v-if="block.type === 'p'">{{ block.text }}</p>
-							<p v-else-if="block.type === 'strong'"><strong>{{ block.text }}</strong></p>
-							<ul v-else>
-								<li v-for="(item, ii) in block.items" :key="ii">{{ item }}</li>
-							</ul>
-						</template>
-					</template>
+					<h4>1. Purpose of OmniScan</h4>
+					<p>OmniScan is designed to assist users in making more informed food purchasing and household food management decisions.</p>
+					<p>The Application provides features that may include:</p>
+					<ul>
+						<li>Food product scanning and image uploading;</li>
+						<li>Ingredient text extraction and interpretation;</li>
+						<li>Potential allergen detection;</li>
+						<li>Halal logo and dietary compliance checking;</li>
+						<li>Color-coded food safety alerts;</li>
+						<li>Alternative product recommendations;</li>
+						<li>Digital pantry management;</li>
+						<li>Expiration and best-before date reminders;</li>
+						<li>AI-generated recipe recommendations; and</li>
+						<li>Personalized dietary profiles.</li>
+					</ul>
+					<p>OmniScan uses technologies such as Optical Character Recognition (OCR), computer vision, artificial intelligence, and reference databases to provide these features.</p>
 
-					<div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-						<p style="font-weight: 600; margin-bottom: 4px; font-size: 0.9rem;">OmniScan</p>
-						<p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 2px;">A Cross-Platform Pantry Manager with Computer Vision for Allergen and Halal Detection and Artificial Intelligence Recommendations</p>
-						<p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 2px;">Developed as a Capstone Project</p>
-						<p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 2px;">STI College San Jose Del Monte</p>
-						<p style="font-size: 0.8rem; color: #6b7280;">Bachelor of Science in Information Technology</p>
-					</div>
+					<h4>2. Eligibility and Account Registration</h4>
+					<p>Users may be required to create an account to access certain features of OmniScan.</p>
+
+					<h4>3. Dietary Profile Information</h4>
+					<p>OmniScan allows users to create and manage personalized dietary profiles, including food allergies, allergen sensitivities, and Halal preferences.</p>
+
+					<h4>4. Food Scanning and AI Analysis</h4>
+					<p>OmniScan may analyze uploaded or scanned food product images using OCR, computer vision, artificial intelligence, and reference databases.</p>
+
+					<h4>5. Food Safety Disclaimer</h4>
+					<p>OmniScan does not guarantee that a food product is completely safe, allergen-free, Halal-certified, or suitable for a particular individual.</p>
 				</div>
 			</ion-content>
 			<ion-footer class="ion-no-border terms-modal-footer">
-				<div v-if="!termsScrolledToBottom" class="terms-scroll-prompt">
-					<button class="terms-scroll-link" @click="scrollTermsToBottom">
-						↓ Scroll to Bottom
-					</button>
+				<div v-if="!termsScrolledToBottom" class="terms-scroll-hint">
+					<ion-button fill="clear" size="small" class="terms-scroll-btn" @click="scrollTermsToBottom">
+						<ion-icon :icon="arrowDownOutline" slot="start" />
+						Scroll to Bottom
+					</ion-button>
 				</div>
 				<div class="terms-action-row">
 					<ion-button expand="block" class="terms-agree-btn" :disabled="!termsScrolledToBottom" @click="acceptTerms">
@@ -362,25 +375,26 @@ import { Capacitor } from '@capacitor/core'
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useAuthStore } from '@/stores/authStore'
 import { apiFetch, ApiError, API_BASE_URL } from '@/utils/api'
-import { termsIntro, termsSections } from '@/data/termsContent'
-import AppDatePicker from '@/components/AppDatePicker.vue'
-import { BIRTHDAY_MIN, todayLocalISO, toISODate, ageFromISO } from '@/utils/dateUtils'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-function decodeJwtPayload<T = Record<string, unknown>>(token: string): T {
-	const part = token.split('.')[1]
-	if (!part) throw new Error('Malformed token')
-	const b64 = part.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(part.length / 4) * 4, '=')
-	const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))
-	return JSON.parse(new TextDecoder().decode(bytes)) as T
-}
-
 const PREF_MAX = 5
 const step = ref<1 | 2>(route.query.step === '2' ? 2 : 1)
 const isGoogleSubmitting = ref(false)
+
+function parseJwtPayload(token: string) {
+	const base64Url = token.split('.')[1]
+	if (!base64Url) throw new Error('Invalid token structure')
+	const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+	const jsonPayload = decodeURIComponent(
+		window.atob(base64).split('').map(function (c) {
+			return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+		}).join('')
+	)
+	return JSON.parse(jsonPayload)
+}
 
 async function showToast(message: string, color: 'success' | 'danger' | 'warning' = 'success') {
 	const toast = await toastController.create({
@@ -400,7 +414,7 @@ async function handleGoogleSignIn(): Promise<void> {
 		isGoogleSubmitting.value = true
 		try {
 			await GoogleSignIn.initialize({
-				clientId: '394571296954-2nkqagdbfjujgdei1aoiq78fg3p9i7nv.apps.googleusercontent.com',
+				clientId: '394571296954-s5pjiqq3fg7hhcsm0i0tn6l4mfs69s7m.apps.googleusercontent.com',
 			})
 
 			const result = await GoogleSignIn.signIn()
@@ -417,21 +431,21 @@ async function handleGoogleSignIn(): Promise<void> {
 				requiresRegistration: boolean
 			}>('/api/auth/google/verify', {
 				method: 'POST',
-				body: { idToken, intent: 'register' },
+				body: { idToken },
 				skipAuth: true,
 			})
 
 			if (verifyResponse.requiresRegistration && verifyResponse.pendingToken) {
 				// New user - pre-fill form
-				const payload = decodeJwtPayload<any>(verifyResponse.pendingToken)
-				const suggestedUsername = payload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 15) || 'user'
+				const payload = parseJwtPayload(verifyResponse.pendingToken)
+				const generatedUsername = payload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 15) || 'user'
 
 				authStore.setPendingGoogleData({
 					email: payload.email,
 					firstName: payload.firstName,
 					lastName: payload.lastName,
 					googleId: payload.googleId,
-					username: suggestedUsername,
+					username: generatedUsername,
 					pendingToken: verifyResponse.pendingToken,
 				})
 
@@ -439,37 +453,25 @@ async function handleGoogleSignIn(): Promise<void> {
 				firstName.value = payload.firstName
 				lastName.value = payload.lastName
 				email.value = payload.email
-				username.value = suggestedUsername
+				username.value = generatedUsername
 
-				await checkUsernameAvailability(suggestedUsername)
+				await checkUsernameAvailability(generatedUsername)
+				await showToast('Please complete your registration', 'success')
 			} else if (verifyResponse.token) {
-				// skipCheck=true: don't call checkAuth here — it can fail on native
-				// before the HTTP layer is ready and wipe the token.
-				await authStore.loginWithOAuthToken(verifyResponse.token, true)
-				window.location.replace('/tabs/home')
+				// Existing user - log in directly
+				await authStore.loginWithOAuthToken(verifyResponse.token)
+				router.push('/tabs/home')
 			}
 		} catch (error: any) {
 			console.error('Native Google Sign-In failed:', error)
-			if (error instanceof ApiError && error.status === 409) {
-				handleGoogleAccountExists()
-				return
-			}
-			isGooglePending.value = false
 			const errMsg = error?.message || 'Google sign-in failed. Please try again.'
 			void showToast(errMsg, 'danger')
 		} finally {
 			isGoogleSubmitting.value = false
 		}
 	} else {
-		window.location.href = `${API_BASE_URL}/api/auth/google?state=register`
+		window.location.href = `${API_BASE_URL}/api/auth/google`
 	}
-}
-
-// Google sign-up hit an existing account: no token stored, stay on /register.
-function handleGoogleAccountExists(): void {
-	authStore.clearPendingGoogleData()
-	isGooglePending.value = false
-	void showToast('Account already exist', 'danger')
 }
 
 watch(
@@ -477,10 +479,7 @@ watch(
 	async (newStep) => {
 		if (newStep === '2') {
 			step.value = 2
-			// Skip checkAuth on native — it calls GET /api/auth/me which can
-			// fail and wipe the token. The token is already saved from account creation.
-			const { Capacitor } = await import('@capacitor/core')
-			if (!Capacitor.isNativePlatform()) {
+			if (!authStore.isAuthenticated) {
 				await authStore.checkAuth()
 			}
 			fetchAllergenCatalog()
@@ -489,6 +488,7 @@ watch(
 )
 
 const firstName = ref('')
+const middleName = ref('')
 const lastName = ref('')
 const username = ref('')
 const email = ref('')
@@ -499,6 +499,7 @@ const birthday = ref('')
 const isGooglePending = ref(false)
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+const showMiddleName = ref(false)
 const isSubmitting = ref(false)
 const isTermsOpen = ref(false)
 const errorMessage = ref<string | null>(null)
@@ -570,17 +571,19 @@ const passCriteria = computed(() => {
 
 const isPasswordValid = computed(() => {
 	const c = passCriteria.value
-	return c.length && c.upper && c.lower && c.number && c.special && password.value.length <= 30
+	return c.length && c.upper && c.lower && c.number && c.special
 })
 
-// Picker upper bound is today (local time); the under-16 rule is a validation error below.
-const maxBirthdayDate = computed(() => todayLocalISO())
+const maxBirthdayDate = computed(() => {
+	const date = new Date()
+	date.setFullYear(date.getFullYear() - 16)
+	return date.toISOString().split('T')[0]
+})
 
 const ageError = computed(() => {
 	if (!birthday.value) return ''
-	const iso = toISODate(birthday.value)
-	if (!iso || iso < BIRTHDAY_MIN || iso > maxBirthdayDate.value) return 'Please enter a valid birthday'
-	return ageFromISO(iso) < 16 ? 'You must be at least 16 years old to register' : ''
+	const age = (Date.now() - new Date(birthday.value).getTime()) / (1000 * 60 * 60 * 24 * 365.25)
+	return age < 16 ? 'You must be at least 16 years old to register' : ''
 })
 
 const isBirthdayValid = computed(() => birthday.value && !ageError.value)
@@ -700,42 +703,22 @@ const prefLimitWarning = ref(false)
 
 const allergenCount = computed(() => selectedAllergenIds.value.length)
 
-const hasValidSelection = computed(() => {
-	return selectedAllergenIds.value.length > 0 || halalSelected.value
-})
-
 function formatAllergenName(name: string): string {
 	return name.replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
-async function handleBack(): Promise<void> {
-	// Clear any pending Google sign-up data so it doesn't pre-fill the form
-	// if the user starts a new Google sign-up flow after going back.
-	authStore.clearPendingGoogleData()
-	// Also clear the local form refs so the fields are visually empty
-	// when the user returns to this page.
-	firstName.value = ''
-	lastName.value = ''
-	email.value = ''
-	username.value = ''
-	isGooglePending.value = false
-	// On native, stay within the WebView to preserve the native bridge.
-	const { Capacitor } = await import('@capacitor/core')
-	if (Capacitor.isNativePlatform()) {
+function handleBack(): void {
+	if (window.history.length <= 1) {
 		router.replace('/')
 	} else {
-		window.location.href = 'https://omniscan.website'
+		router.back()
 	}
 }
 
 async function redirectIfAlreadyAuthenticated(): Promise<boolean> {
-	// If there is pending Google data in the store, the user just came back
-	// from the Google account picker — do NOT call checkAuth() here. Calling
-	// checkAuth fires GET /api/auth/me with no valid session, gets a 401, and
-	// handleUnauthorized navigates away, losing the pending registration data.
-	if (authStore.pendingGoogleData) return false
-
-	await authStore.checkAuth()
+	if (!authStore.isAuthenticated) {
+		await authStore.checkAuth()
+	}
 	if (authStore.isAuthenticated) {
 		step.value = 2
 		fetchAllergenCatalog()
@@ -745,11 +728,6 @@ async function redirectIfAlreadyAuthenticated(): Promise<boolean> {
 		return true
 	}
 	return false
-}
-
-async function revealError() {
-	await nextTick()
-	document.querySelector('.auth-card .form-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
 async function handleRegister(): Promise<void> {
@@ -780,61 +758,20 @@ async function handleRegister(): Promise<void> {
 	if (!birthday.value) { fieldErrors.birthday = true; hasEmptyField = true }
 	
 	if (hasEmptyField) {
-		const onlyGenderBirthdayMissing =
-			!fieldErrors.firstName && !fieldErrors.lastName && !fieldErrors.username &&
-			!fieldErrors.email && !fieldErrors.password && !fieldErrors.confirmPassword
-		if (onlyGenderBirthdayMissing && fieldErrors.gender && fieldErrors.birthday) {
-			errorMessage.value = 'Please select your gender and birthday.'
-		} else if (onlyGenderBirthdayMissing && fieldErrors.gender) {
-			errorMessage.value = 'Please select your gender.'
-		} else if (onlyGenderBirthdayMissing && fieldErrors.birthday) {
-			errorMessage.value = 'Please enter your birthday.'
-		} else {
-			errorMessage.value = 'Please fill in all required fields.'
-		}
-		void revealError()
+		errorMessage.value = 'Please fill in all required fields.'
 		return
 	}
 
-	const USERNAME_RE = /^[a-zA-Z0-9_]{4,15}$/
+	const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 	if (!USERNAME_RE.test(username.value.trim())) {
 		fieldErrors.username = true
-		errorMessage.value = 'Username must be 4–15 characters, letters, numbers, and underscores only.'
-		void revealError()
-		return
-	}
-
-	// Username availability
-	if (usernameValidation.value.isAvailable === null && !usernameValidation.value.isChecking) {
-		void checkUsernameAvailability(username.value)
-	}
-	if (usernameValidation.value.isChecking) {
-		fieldErrors.username = true
-		errorMessage.value = 'Still checking if that username is available. Please wait a moment and try again.'
-		void revealError()
-		return
-	}
-	if (usernameValidation.value.isAvailable !== true) {
-		fieldErrors.username = true
-		errorMessage.value =
-			usernameValidation.value.message && usernameValidation.value.isAvailable === false
-				? usernameValidation.value.message
-				: 'Please choose a different username.'
-		void revealError()
-		return
-	}
-
-	if (!isGooglePending.value && email.value.length > 31) {
-		fieldErrors.email = true
-		errorMessage.value = 'Email must be 31 characters or less.'
-		void revealError()
+		errorMessage.value = 'Username must be 3-20 characters, letters, numbers, and underscores only.'
 		return
 	}
 
 	if (!EMAIL_RE.test(email.value) || !isAllowedEmailDomain(email.value)) {
 		fieldErrors.email = true
 		errorMessage.value = 'Only @gmail.com, @outlook.com, @hotmail.com, and @yahoo.com emails are accepted.'
-		void revealError()
 		return
 	}
 
@@ -843,7 +780,6 @@ async function handleRegister(): Promise<void> {
 		if (!isPasswordValid.value) {
 			fieldErrors.password = true
 			errorMessage.value = 'Please ensure your password meets all safety criteria.'
-			void revealError()
 			return
 		}
 
@@ -851,7 +787,6 @@ async function handleRegister(): Promise<void> {
 			fieldErrors.password = true
 			fieldErrors.confirmPassword = true
 			errorMessage.value = 'Passwords do not match.'
-			void revealError()
 			return
 		}
 	}
@@ -860,7 +795,6 @@ async function handleRegister(): Promise<void> {
 	if (ageError.value) {
 		fieldErrors.birthday = true
 		errorMessage.value = ageError.value
-		void revealError()
 		return
 	}
 
@@ -886,6 +820,8 @@ async function completeGoogleRegistration(): Promise<void> {
 			birthday.value
 		)
 
+		await showToast('Account created successfully!', 'success')
+
 		step.value = 2
 		fetchAllergenCatalog()
 		router.replace({ path: '/register', query: { step: '2' } })
@@ -904,7 +840,7 @@ async function submitPasswordRegistration(): Promise<void> {
 	isSubmitting.value = true
 	try {
 		const response = await authStore.register(
-			firstName.value.trim(),
+			[firstName.value.trim(), middleName.value.trim()].filter(Boolean).join(' '),
 			lastName.value.trim(),
 			username.value.trim(),
 			email.value,
@@ -941,11 +877,11 @@ async function submitPasswordRegistration(): Promise<void> {
 }
 
 function disagreeTerms(): void {
-	// Just close the T&C modal. Do NOT clear the form or sign out — the user
-	// disagreed with the T&C but may still want to review their info or try
-	// again. Fields are only cleared when they explicitly go back to the
-	// Welcome page via the back button (handleBack).
 	isTermsOpen.value = false
+	
+	if (isGooglePending.value) {
+		handleGoogleSignUpCancellation()
+	}
 }
 
 async function handleGoogleSignUpCancellation(): Promise<void> {
@@ -954,12 +890,12 @@ async function handleGoogleSignUpCancellation(): Promise<void> {
 		if (isNative) {
 			await GoogleSignIn.signOut()
 		}
-		// For web, Google session expires naturally
 
 		authStore.clearPendingGoogleData()
 
 		// Clear all form fields
 		firstName.value = ''
+		middleName.value = ''
 		lastName.value = ''
 		username.value = ''
 		email.value = ''
@@ -1011,27 +947,25 @@ async function completeSetup(): Promise<void> {
 	prefsError.value = ''
 	setupError.value = ''
 
-	// On native, checkAuth() calls GET /api/auth/me which can fail and wipe
-	// the token even though it was just saved. Trust the token in localStorage
-	// directly on native instead of making a network call.
-	const { Capacitor: Cap } = await import('@capacitor/core')
-	if (Cap.isNativePlatform()) {
-		const token = localStorage.getItem('omniscan_token')
-		if (!token) {
-			prefsError.value = 'Your verification session expired. Please sign in to continue.'
-			setTimeout(() => { router.push('/login') }, 1500)
-			isSavingPrefs.value = false
-			return
+	// Hydrate token from localStorage if the page reloaded on Step 2
+	if (!authStore.token) {
+		const storedToken = localStorage.getItem('omniscan_token')
+		if (storedToken) {
+			authStore.token = storedToken
 		}
-		if (!authStore.token) authStore.token = token
-	} else {
+	}
+
+	if (!authStore.isAuthenticated && authStore.token) {
 		await authStore.checkAuth()
-		if (!authStore.isAuthenticated) {
-			prefsError.value = 'Your verification session expired. Please sign in to continue.'
-			setTimeout(() => { router.push('/login') }, 1500)
-			isSavingPrefs.value = false
-			return
-		}
+	}
+
+	if (!authStore.token) {
+		prefsError.value = 'Your verification session expired. Please sign in to continue.'
+		setTimeout(() => {
+			router.push('/login')
+		}, 1500)
+		isSavingPrefs.value = false
+		return
 	}
 
 	const customPrefTags = allergenCatalog.value
@@ -1047,10 +981,9 @@ async function completeSetup(): Promise<void> {
 				custom_preferences: customPrefTags,
 			},
 		})
-		// On native use replace to stay within the WebView.
-		const { Capacitor } = await import('@capacitor/core')
+
 		if (Capacitor.isNativePlatform()) {
-			window.location.replace('/tabs/home')
+			await router.replace('/tabs/home')
 		} else {
 			window.location.href = '/tabs/home'
 		}
@@ -1062,84 +995,45 @@ async function completeSetup(): Promise<void> {
 }
 
 function onWindowFocus(): void {
-	// Do not trigger checkAuth when the window regains focus if there is pending
-	// Google data — the Google account picker returning to the app fires this,
-	// which would call checkAuth, 401, and navigate away before the sign-in
-	// flow completes.
-	if (step.value === 1 && !authStore.pendingGoogleData) {
+	if (step.value === 1) {
 		redirectIfAlreadyAuthenticated()
 	}
 }
 
 onMounted(async () => {
-	if (route.query.oauth_error === 'account_exists') {
-		handleGoogleAccountExists()
-		router.replace({ path: '/register', query: {} })
-	}
-
-	// If LoginPage already set pendingGoogleData in the store (native Google
-	// sign-in on the Login screen for a new account), pre-fill the form from
-	// the store directly — no query string needed.
-	if (authStore.pendingGoogleData && !route.query.oauth_pending) {
-		const pending = authStore.pendingGoogleData
-		isGooglePending.value = true
-		firstName.value = pending.firstName
-		lastName.value = pending.lastName
-		email.value = pending.email
-		username.value = pending.username
-		await checkUsernameAvailability(pending.username)
-	}
-
-	// Check for oauth_pending token from Google OAuth (web flow)
+	// Check for oauth_pending token from Google OAuth
 	const pendingToken = route.query.oauth_pending as string
 	if (pendingToken) {
 		try {
-			const payload = decodeJwtPayload<any>(pendingToken)
+			const payload = parseJwtPayload(pendingToken)
 			if (payload.type !== 'google_pending') throw new Error('Invalid token')
 
-			if (payload.exp && payload.exp * 1000 < Date.now()) {
-				isGooglePending.value = false
-				await showToast('Google sign-up session expired. Please try again.', 'danger')
-			} else {
-				const suggestedUsername = payload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 15) || 'user'
-				authStore.setPendingGoogleData({
-					email: payload.email,
-					firstName: payload.firstName,
-					lastName: payload.lastName,
-					googleId: payload.googleId,
-					username: suggestedUsername,
-					pendingToken,
-				})
+			const generatedUsername = payload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 15) || 'user'
+			authStore.setPendingGoogleData({
+				email: payload.email,
+				firstName: payload.firstName,
+				lastName: payload.lastName,
+				googleId: payload.googleId,
+				username: generatedUsername,
+				pendingToken,
+			})
 
-				isGooglePending.value = true
-				firstName.value = payload.firstName
-				lastName.value = payload.lastName
-				email.value = payload.email
-				username.value = suggestedUsername
+			isGooglePending.value = true
+			firstName.value = payload.firstName
+			lastName.value = payload.lastName
+			email.value = payload.email
+			username.value = generatedUsername
 
-				await checkUsernameAvailability(suggestedUsername)
-				router.replace({ path: '/register', query: {} })
-			}
+			await checkUsernameAvailability(generatedUsername)
+			router.replace({ path: '/register', query: {} })
 		} catch (err) {
-			console.error('Failed to load Google pending token:', err)
-			isGooglePending.value = false
-			const isTokenProblem = err instanceof Error && (err.message === 'Invalid token' || err.message === 'Malformed token')
-				|| err instanceof SyntaxError
-				|| (typeof DOMException !== 'undefined' && err instanceof DOMException)
-			await showToast(
-				isTokenProblem
-					? 'Google sign-up session expired. Please try again.'
-					: "Couldn't load your Google details. Please try again.",
-				'danger'
-			)
+			console.error('Failed to decode pending token:', err)
+			await showToast('Google sign-up session expired. Please try again.', 'danger')
 		}
 	}
 
 	if (step.value === 2) {
-		// Skip checkAuth on native — it calls GET /api/auth/me which can
-		// fail and wipe the token. The token is already saved from account creation.
-		const { Capacitor } = await import('@capacitor/core')
-		if (!Capacitor.isNativePlatform()) {
+		if (!authStore.isAuthenticated) {
 			await authStore.checkAuth()
 		}
 		fetchAllergenCatalog()
@@ -1157,16 +1051,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Also carries .switch-auth so it inherits that class's existing dark colour (#94a3b8);
-   the Register dark-rule snapshot forbids adding a new dark rule here. */
-.verify-disclaimer.switch-auth {
-	margin: 6px 0 0;
-	font-size: 0.78rem;
-	line-height: 1.4;
-	text-align: left;
-	color: #6b7280;
-}
-
 .auth-content {
 	--background: #ffffff;
 	--overflow: auto;
@@ -1193,7 +1077,6 @@ onUnmounted(() => {
 	max-width: 380px;
 	margin: 0 auto;
 	padding: 12px 24px 140px;
-	padding-top: calc(12px + env(safe-area-inset-top));
 	background: #ffffff;
 	min-height: 100%;
 }
@@ -1343,9 +1226,8 @@ onUnmounted(() => {
 	border: 1px solid #fecaca;
 }
 
-
 .custom-select,
-.app-date-picker.custom-input {
+input[type="date"].custom-input {
 	color: #111827;
 }
 
@@ -1362,7 +1244,7 @@ onUnmounted(() => {
 }
 
 .name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0; }
-.custom-input.has-toggle { padding-right: 44px; }
+.add-middle-link { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #05c450; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0; margin: 4px 0 14px; }
 
 .pass-criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-top: 10px; padding: 12px 14px; background: #f9fafb; border-radius: 10px; margin-bottom: 14px; }
 .criteria-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #9ca3af; }
@@ -1479,7 +1361,6 @@ onUnmounted(() => {
 .halal-toggle-label { font-size: 0.9rem; font-weight: 600; color: #111827; margin: 0 0 2px; }
 .halal-toggle-sub { font-size: 0.78rem; color: #6b7280; margin: 0; line-height: 1.4; }
 
-
 .checkbox-container {
 	position: relative;
 	display: flex;
@@ -1546,7 +1427,7 @@ onUnmounted(() => {
 
 .terms-sheet-modal {
 	--height: 85%;
-	--border-radius: 20px;
+	--border-radius: 20px 20px 0 0;
 }
 
 .terms-modal-header {
@@ -1611,8 +1492,17 @@ onUnmounted(() => {
 	margin-bottom: 4px;
 }
 
+.terms-scroll-hint {
+	display: flex;
+	justify-content: center;
+	margin: 8px 0 4px;
+}
 
-
+.terms-scroll-btn {
+	--color: #05c450;
+	font-size: 0.82rem;
+	text-transform: none;
+}
 
 .terms-agree-btn[disabled] {
 	opacity: 0.5;
@@ -1623,27 +1513,6 @@ onUnmounted(() => {
 	flex-direction: column;
 	gap: 10px;
 	margin-top: 0;
-}
-
-.terms-scroll-prompt {
-	text-align: center;
-	margin-bottom: 12px;
-}
-
-.terms-scroll-link {
-	background: none;
-	border: none;
-	color: #05c450;
-	font-size: 0.9rem;
-	font-weight: 600;
-	cursor: pointer;
-	padding: 8px 12px;
-	transition: opacity 0.2s;
-	font-family: inherit;
-}
-
-.terms-scroll-link:hover {
-	opacity: 0.8;
 }
 
 .terms-modal-footer {
@@ -1671,22 +1540,22 @@ onUnmounted(() => {
 	text-transform: none;
 }
 
-html.ion-palette-dark .auth-content { --background: #0f172a; }
-html.ion-palette-dark .auth-card { background: #0f172a; }
-html.ion-palette-dark .auth-title { color: #f1f5f9; }
-html.ion-palette-dark .auth-subtitle { color: #94a3b8; }
-html.ion-palette-dark .input-label { color: #cbd5e1; }
+html.ion-palette-dark .auth-content { --background: #0b160b; }
+html.ion-palette-dark .auth-card { background: #0b160b; }
+html.ion-palette-dark .auth-title { color: #f9fafb; }
+html.ion-palette-dark .auth-subtitle { color: #9ca3af; }
+html.ion-palette-dark .input-label { color: #d1d5db; }
 html.ion-palette-dark .custom-input {
-	background: #1e293b !important;
-	background-color: #1e293b !important;
-	border-color: #334155 !important;
-	color: #f1f5f9 !important;
-	-webkit-text-fill-color: #f1f5f9 !important;
+	background: #172617 !important;
+	background-color: #172617 !important;
+	border-color: #2d4a2d !important;
+	color: #f9fafb !important;
+	-webkit-text-fill-color: #f9fafb !important;
 }
 html.ion-palette-dark .custom-input::placeholder { color: #6b7280 !important; }
 html.ion-palette-dark .username-feedback--checking {
-	background: #1e293b;
-	color: #94a3b8;
+	background: #1f2937;
+	color: #9ca3af;
 }
 html.ion-palette-dark .username-feedback--success {
 	background: #14532d;
@@ -1698,50 +1567,50 @@ html.ion-palette-dark .username-feedback--error {
 	color: #fca5a5;
 	border-color: #7f1d1d;
 }
-html.ion-palette-dark .pass-criteria-grid { background: #1e293b; }
+html.ion-palette-dark .pass-criteria-grid { background: #172617; }
 html.ion-palette-dark .criteria-item { color: #6b7280; }
-html.ion-palette-dark .allergen-chip { border-color: #334155; color: #cbd5e1; }
+html.ion-palette-dark .allergen-chip { border-color: #2d4a2d; color: #d1d5db; }
 html.ion-palette-dark .allergen-chip--selected { background: #15803d; border-color: #15803d; color: #fff; }
-html.ion-palette-dark .halal-toggle-card { background: #1e293b; border-color: #334155; }
-html.ion-palette-dark .halal-toggle-label { color: #f1f5f9; }
-html.ion-palette-dark .halal-toggle-sub { color: #94a3b8; }
-html.ion-palette-dark .back-to-home { color: #94a3b8; }
-html.ion-palette-dark .remember-label { color: #cbd5e1 !important; }
+html.ion-palette-dark .halal-toggle-card { background: #172617; border-color: #2d4a2d; }
+html.ion-palette-dark .halal-toggle-label { color: #f9fafb; }
+html.ion-palette-dark .halal-toggle-sub { color: #9ca3af; }
+html.ion-palette-dark .back-to-home { color: #9ca3af; }
+html.ion-palette-dark .remember-label { color: #d1d5db !important; }
 html.ion-palette-dark .custom-input:focus { border-color: #05c450 !important; }
 html.ion-palette-dark .custom-input.input-error { border-color: #ef4444 !important; }
 html.ion-palette-dark .custom-input:-webkit-autofill,
 html.ion-palette-dark .custom-input:-webkit-autofill:hover,
 html.ion-palette-dark .custom-input:-webkit-autofill:focus {
--webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
--webkit-text-fill-color: #f1f5f9 !important;
+-webkit-box-shadow: 0 0 0 1000px #172617 inset !important;
+-webkit-text-fill-color: #f9fafb !important;
 }
-html.ion-palette-dark .custom-checkbox-box { background-color: #1e293b !important; border-color: #334155 !important; }
+html.ion-palette-dark .custom-checkbox-box { background-color: #172617 !important; border-color: #2d4a2d !important; }
 html.ion-palette-dark .custom-checkbox-input:checked ~ .custom-checkbox-box { background-color: #05c450 !important; border-color: #05c450 !important; }
-html.ion-palette-dark .google-btn { background: #1e293b; border-color: #334155; color: #f1f5f9; }
-html.ion-palette-dark .google-btn:hover { background: #334155; border-color: #475569; }
+html.ion-palette-dark .google-btn { background: #172617; border-color: #2d4a2d; color: #f9fafb; }
+html.ion-palette-dark .google-btn:hover { background: #1e3a24; border-color: #3a5f3a; }
 html.ion-palette-dark .oauth-divider { color: #6b7280; }
-html.ion-palette-dark .oauth-divider::before, html.ion-palette-dark .oauth-divider::after { border-bottom-color: #334155; }
-html.ion-palette-dark .switch-auth { color: #94a3b8; }
-html.ion-palette-dark .password-toggle { color: #94a3b8; }
-html.ion-palette-dark .step-label { color: #94a3b8; }
-html.ion-palette-dark .progress-segment { background: #334155; }
+html.ion-palette-dark .oauth-divider::before, html.ion-palette-dark .oauth-divider::after { border-bottom-color: #2d4a2d; }
+html.ion-palette-dark .switch-auth { color: #9ca3af; }
+html.ion-palette-dark .password-toggle { color: #9ca3af; }
+html.ion-palette-dark .step-label { color: #9ca3af; }
+html.ion-palette-dark .progress-segment { background: #2d4a2d; }
 html.ion-palette-dark .progress-segment--filled { background: #05c450; }
 html.ion-palette-dark .criteria-item.valid { color: #4ade80; }
-html.ion-palette-dark .allergen-count-text { color: #cbd5e1; }
-html.ion-palette-dark .allergen-dot { background: #334155; }
+html.ion-palette-dark .allergen-count-text { color: #d1d5db; }
+html.ion-palette-dark .allergen-dot { background: #2d4a2d; }
 html.ion-palette-dark .allergen-dot--filled { background: #4ade80; }
-html.ion-palette-dark .back-button { color: #f1f5f9 !important; }
-html.ion-palette-dark .terms-sheet-modal { --background: #0f172a; }
-html.ion-palette-dark .terms-modal-header { background: #0f172a !important; border-bottom-color: #334155 !important; }
-html.ion-palette-dark .terms-modal-title { color: #f1f5f9 !important; }
-html.ion-palette-dark .terms-modal-content { --background: #0f172a; --color: #f1f5f9; }
-html.ion-palette-dark .terms-modal-body { background: #0f172a !important; color: #94a3b8 !important; }
-html.ion-palette-dark .terms-modal-body h4 { color: #f1f5f9 !important; }
-html.ion-palette-dark .terms-modal-body p, html.ion-palette-dark .terms-modal-body li { color: #94a3b8 !important; }
-html.ion-palette-dark .terms-updated, html.ion-palette-dark .terms-footer-meta p { color: #94a3b8 !important; }
-html.ion-palette-dark .terms-footer-meta { border-top-color: #334155 !important; }
-html.ion-palette-dark .terms-modal-footer { background: #0f172a !important; border-top-color: #334155 !important; }
-html.ion-palette-dark .terms-disagree-btn { --border-color: #334155; --color: #f1f5f9 !important; }
+html.ion-palette-dark .back-button { color: #f9fafb !important; }
+html.ion-palette-dark .terms-sheet-modal { --background: #0d1f13; }
+html.ion-palette-dark .terms-modal-header { background: #0d1f13 !important; border-bottom-color: #1a3322 !important; }
+html.ion-palette-dark .terms-modal-title { color: #eef4ed !important; }
+html.ion-palette-dark .terms-modal-content { --background: #0d1f13; --color: #eef4ed; }
+html.ion-palette-dark .terms-modal-body { background: #0d1f13 !important; color: #b8c8bc !important; }
+html.ion-palette-dark .terms-modal-body h4 { color: #eef4ed !important; }
+html.ion-palette-dark .terms-modal-body p, html.ion-palette-dark .terms-modal-body li { color: #b8c8bc !important; }
+html.ion-palette-dark .terms-updated, html.ion-palette-dark .terms-footer-meta p { color: #b8c8bc !important; }
+html.ion-palette-dark .terms-footer-meta { border-top-color: #1a3322 !important; }
+html.ion-palette-dark .terms-modal-footer { background: #0d1f13 !important; border-top-color: #1a3322 !important; }
+html.ion-palette-dark .terms-disagree-btn { --border-color: #1a3322; --color: #eef4ed !important; }
 
 @media (min-width: 768px) {
 	.auth-layout {
@@ -1827,13 +1696,13 @@ html.ion-palette-dark .terms-disagree-btn { --border-color: #334155; --color: #f
 	cursor: pointer;
 }
 
-.custom-select:disabled, .app-date-picker--disabled.custom-input {
+.custom-select:disabled, input[type="date"].custom-input:disabled {
 	background-color: #f3f4f6;
 	cursor: not-allowed;
 	color: #9ca3af;
 }
 
-.app-date-picker.custom-input {
+input[type="date"].custom-input {
 	cursor: pointer;
 }
 
@@ -1863,14 +1732,14 @@ html.ion-palette-dark .terms-disagree-btn { --border-color: #334155; --color: #f
 }
 
 html.ion-palette-dark .custom-select,
-html.ion-palette-dark .app-date-picker.custom-input {
-	color: #f1f5f9;
+html.ion-palette-dark input[type="date"].custom-input {
+	color: #f9fafb;
 }
 
 html.ion-palette-dark .custom-select {
-	background-color: #1e293b;
-	color: #f1f5f9;
-	border-color: #334155;
+	background-color: #1f2937;
+	color: #e5e7eb;
+	border-color: #374151;
 }
 
 html.ion-palette-dark .google-password-message {

@@ -124,30 +124,28 @@ export const useAuthStore = defineStore('auth', {
 				skipAuth: true,
 			})
 
-			// skipCheck=true: skip checkAuth on native — pass response.user directly so
-			// isAuthenticated stays true without risking a premature fetch wipe before Step 2.
-			await this.loginWithOAuthToken(response.token, true, response.user)
+			// skipCheck=true: skip checkAuth on native — the fetch can fail
+			// and wipe the token before the user reaches step 2 of registration.
+			await this.loginWithOAuthToken(response.token, true)
 			this.clearPendingGoogleData()
 			return response
 		},
 
-		async loginWithOAuthToken(token: string, skipCheck = false, user?: AuthUser | null): Promise<void> {
+		async loginWithOAuthToken(token: string, skipCheck = false): Promise<void> {
 			// Clear any admin session (cross-session isolation, same as password login)
-			sessionStorage.removeItem(ADMIN_TOKEN_KEY)
-			sessionStorage.removeItem(ADMIN_KEY)
+			sessionStorage.removeItem('omniscan_admin_token')
+			sessionStorage.removeItem('omniscan_admin')
 			const { useAdminAuthStore } = await import('@/stores/adminAuthStore')
 			const adminAuthStore = useAdminAuthStore()
 			adminAuthStore.admin = null
 			adminAuthStore.token = null
 
-			localStorage.setItem(TOKEN_KEY, token)
+			localStorage.setItem('omniscan_token', token)
 			this.token = token
-			if (user) {
-				this.user = user
-			}
 
 			// skipCheck=true on native: skip the /api/auth/me call here because
-			// the router guard will call checkAuth() on the next navigation instead,
+			// on Android the WebView fetch can fail and checkAuth clears the token.
+			// The router guard will call checkAuth() on the next navigation instead,
 			// by which point the native HTTP layer is fully ready.
 			if (!skipCheck) {
 				await this.checkAuth()
@@ -188,14 +186,12 @@ export const useAuthStore = defineStore('auth', {
 				const response = await apiFetch<MeResponse>('/api/auth/me', { method: 'GET' })
 				this.user = response.user
 			} catch (err) {
-				// Only clear the stored token when the server explicitly rejects it with 401
-				if (err instanceof ApiError && err.status === 401) {
-					this.user = null
-					this.token = null
-					localStorage.removeItem(TOKEN_KEY)
-				} else {
-					console.error('checkAuth failed:', err)
+				if (err instanceof ApiError && err.status !== 401) {
+					console.error('checkAuth failed:', err.message)
 				}
+				this.user = null
+				this.token = null
+				localStorage.removeItem(TOKEN_KEY)
 			}
 		},
 	},

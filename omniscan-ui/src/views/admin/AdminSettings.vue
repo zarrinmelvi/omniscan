@@ -62,7 +62,7 @@
 							<div class="gs-toggle-sub">A nudge to re-check the Halal Logo Library.</div>
 						</div>
 						<label class="toggle-switch">
-							<input v-model="form.monthlyLogoReminder" type="checkbox" />
+							<input v-model="form.monthlyLogoCheck" type="checkbox" />
 							<span class="slider"></span>
 						</label>
 					</div>
@@ -96,7 +96,7 @@ const signInTime = new Date().toLocaleTimeString('en-US', {
 const form = reactive({
 	emailOnSystemError: true,
 	dailySummaryReport: true,
-	monthlyLogoReminder: true,
+	monthlyLogoCheck: true,
 })
 
 // Editable admin profile fields (separate from the auto-saving preferences).
@@ -135,7 +135,7 @@ async function fetchSettings(): Promise<void> {
 		// (AI/thresholds) into the form object.
 		if (typeof data.emailOnSystemError === 'boolean') form.emailOnSystemError = data.emailOnSystemError
 		if (typeof data.dailySummaryReport === 'boolean') form.dailySummaryReport = data.dailySummaryReport
-		if (typeof data.monthlyLogoReminder === 'boolean') form.monthlyLogoReminder = data.monthlyLogoReminder
+		if (typeof data.monthlyLogoCheck === 'boolean') form.monthlyLogoCheck = data.monthlyLogoCheck
 	} catch (err) {
 		// Endpoint absent or unreachable — keep local default state.
 		console.warn('Could not load remote settings, using default state:', err)

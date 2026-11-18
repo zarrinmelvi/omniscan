@@ -15,6 +15,10 @@
 {
 "path": "/api/cron/daily-summary",
 "schedule": "0 8 * * *"
+},
+{
+"path": "/api/cron/monthly-logo-check",
+"schedule": "0 8 1 * *"
 }
 ]
 }

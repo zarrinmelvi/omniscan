@@ -1,6 +1,9 @@
 import { defineEventHandler, getQuery, createError } from 'h3'
+import jwt from 'jsonwebtoken'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-default-jwt-secret'
 
 export default defineEventHandler(async (event) => {
 	const query = getQuery(event)
@@ -10,17 +13,47 @@ export default defineEventHandler(async (event) => {
 	if (queryEmail && typeof queryEmail === 'string') {
 		const userByEmail = await prisma.user.findUnique({
 			where: { email: queryEmail.trim().toLowerCase() },
-			select: { id: true, name: true, email: true, email_verified: true },
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				email_verified: true,
+				session_token: true,
+				halal_pref: true,
+				allergens: { select: { id: true }, take: 1 },
+			},
 		})
 
 		if (!userByEmail) {
 			return { email_verified: false, verified: false }
 		}
 
+		// If the account is verified and still needs setup (Step 2 not done),
+		// return a fresh JWT so the check-email tab can store it and proceed.
+		// The session_token was written by verify/[token].get.ts when the user
+		// clicked the email link. The needsSetup guard ensures we stop issuing
+		// tokens once onboarding is complete.
+		let onboardingToken: string | undefined
+		const needsSetup = !userByEmail.halal_pref && userByEmail.allergens.length === 0
+
+		if (userByEmail.email_verified && userByEmail.session_token && needsSetup) {
+			onboardingToken = jwt.sign(
+				{ userId: userByEmail.id, email: userByEmail.email, sid: userByEmail.session_token },
+				JWT_SECRET,
+				{ expiresIn: '7d' }
+			)
+		}
+
 		return {
 			email_verified: userByEmail.email_verified,
 			verified: userByEmail.email_verified,
-			user: userByEmail,
+			...(onboardingToken ? { token: onboardingToken } : {}),
+			user: {
+				id: userByEmail.id,
+				name: userByEmail.name,
+				email: userByEmail.email,
+				email_verified: userByEmail.email_verified,
+			},
 		}
 	}
 

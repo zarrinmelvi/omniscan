@@ -115,10 +115,14 @@ import { useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import { mailOutline, checkmarkCircleOutline, alertCircleOutline } from 'ionicons/icons'
 import { apiFetch } from '@/utils/api'
+import { useAuthStore, type AuthUser } from '@/stores/authStore'
 
 type SyncState = 'idle' | 'verifying' | 'verified'
 
+const TOKEN_KEY = 'omniscan_token'
+
 const route = useRoute()
+const authStore = useAuthStore()
 const email = ref((route.query.email as string) || '')
 
 const syncState = ref<SyncState>('idle')
@@ -153,7 +157,12 @@ async function checkVerificationStatus() {
 	if (!email.value || syncState.value !== 'idle') return
 
 	try {
-		const res = await apiFetch<{ email_verified?: boolean; verified?: boolean }>(
+		const res = await apiFetch<{
+			email_verified?: boolean
+			verified?: boolean
+			token?: string
+			user?: AuthUser
+		}>(
 			`/api/auth/me?email=${encodeURIComponent(email.value)}`,
 			{ method: 'GET', skipAuth: true }
 		)
@@ -161,11 +170,23 @@ async function checkVerificationStatus() {
 		if (res && (res.email_verified || res.verified)) {
 			if (pollTimer) clearInterval(pollTimer)
 
+			// Store the session token so the check-email tab has it in
+			// localStorage before navigating to Step 2. This covers the case
+			// where the email link was opened in a different browser or
+			// incognito window and localStorage was not shared.
+			if (res.token) {
+				localStorage.setItem(TOKEN_KEY, res.token)
+				authStore.token = res.token
+				if (res.user) authStore.user = res.user
+			}
+
+			// Clear any stale error banner before transitioning.
+			errorMessage.value = ''
+
 			// Step A: Show "Verifying your email…"
 			syncState.value = 'verifying'
 
-			// Step B: Transition to "Email Verified!" — the user continues in the
-			// tab where they opened the verification link (that tab holds the session).
+			// Step B: Transition to "Email Verified!"
 			setTimeout(() => {
 				syncState.value = 'verified'
 			}, 1200)

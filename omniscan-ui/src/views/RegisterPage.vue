@@ -1011,23 +1011,27 @@ async function completeSetup(): Promise<void> {
 	prefsError.value = ''
 	setupError.value = ''
 
-	// Hydrate token from localStorage if missing in store
-	if (!authStore.token) {
-		const storedToken = localStorage.getItem('omniscan_token')
-		if (storedToken) {
-			authStore.token = storedToken
+	// On native, checkAuth() calls GET /api/auth/me which can fail and wipe
+	// the token even though it was just saved. Trust the token in localStorage
+	// directly on native instead of making a network call.
+	const { Capacitor: Cap } = await import('@capacitor/core')
+	if (Cap.isNativePlatform()) {
+		const token = localStorage.getItem('omniscan_token')
+		if (!token) {
+			prefsError.value = 'Your verification session expired. Please sign in to continue.'
+			setTimeout(() => { router.push('/login') }, 1500)
+			isSavingPrefs.value = false
+			return
 		}
-	}
-
-	if (!authStore.isAuthenticated && authStore.token) {
+		if (!authStore.token) authStore.token = token
+	} else {
 		await authStore.checkAuth()
-	}
-
-	if (!authStore.token) {
-		prefsError.value = 'Your verification session expired. Please sign in to continue.'
-		setTimeout(() => { router.push('/login') }, 1500)
-		isSavingPrefs.value = false
-		return
+		if (!authStore.isAuthenticated) {
+			prefsError.value = 'Your verification session expired. Please sign in to continue.'
+			setTimeout(() => { router.push('/login') }, 1500)
+			isSavingPrefs.value = false
+			return
+		}
 	}
 
 	const customPrefTags = allergenCatalog.value

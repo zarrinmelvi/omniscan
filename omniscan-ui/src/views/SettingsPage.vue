@@ -327,7 +327,7 @@ onMounted(async () => {
 .settings-toolbar {
 	--background: #f8f9fa;
 	--border-width: 0;
-	padding-top: 8px;
+	padding-top: calc(8px + env(safe-area-inset-top));
 }
 
 .header-title {
@@ -535,7 +535,7 @@ onMounted(async () => {
 /* Custom Styled Full Modals (Terms, FAQ & About Us) */
 .modal-header-custom {
 	background: #ffffff;
-	padding: 18px 20px 8px;
+	padding: calc(18px + env(safe-area-inset-top)) 20px 8px;
 	border-bottom: 1px solid #f3f4f6;
 }
 

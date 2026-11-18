@@ -216,7 +216,7 @@ onIonViewWillEnter(fetchNotifications)
 .notif-toolbar {
 	--background: #ffffff;
 	--border-width: 0;
-	padding-top: 6px;
+	padding-top: calc(6px + env(safe-area-inset-top));
 	padding-bottom: 2px;
 }
 .notif-header-title {

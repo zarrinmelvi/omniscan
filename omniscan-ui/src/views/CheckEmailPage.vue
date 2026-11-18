@@ -111,6 +111,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { Capacitor } from '@capacitor/core'
 import { useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import { mailOutline, checkmarkCircleOutline, alertCircleOutline } from 'ionicons/icons'
@@ -240,11 +241,24 @@ function handleVisibilityChange() {
 	}
 }
 
-onMounted(() => {
+let appStateHandle: { remove: () => Promise<void> } | null = null
+
+onMounted(async () => {
 	startCooldown(60)
 	if (email.value) {
 		pollTimer = setInterval(checkVerificationStatus, 2500)
 		window.addEventListener('visibilitychange', handleVisibilityChange)
+
+		// On Android, visibilitychange is unreliable when the user returns from
+		// an external browser (e.g. clicking the email link in Chrome).
+		// Use Capacitor's appStateChange instead, which fires when the APK
+		// comes back to the foreground.
+		if (Capacitor.isNativePlatform()) {
+			const { App } = await import('@capacitor/app')
+			appStateHandle = await App.addListener('appStateChange', ({ isActive }) => {
+				if (isActive) checkVerificationStatus()
+			})
+		}
 	}
 })
 
@@ -252,6 +266,10 @@ onUnmounted(() => {
 	if (cooldownTimer) clearInterval(cooldownTimer)
 	if (pollTimer) clearInterval(pollTimer)
 	window.removeEventListener('visibilitychange', handleVisibilityChange)
+	if (appStateHandle) {
+		appStateHandle.remove().catch(() => {})
+		appStateHandle = null
+	}
 })
 </script>
 

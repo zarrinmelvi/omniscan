@@ -924,3 +924,122 @@ function buildDailySummaryEmailHtml(details: {
 </body>
 </html>`
 }
+
+/**
+ * Send the admin a monthly report of Halal logos that need re-verification.
+ * Logos are considered overdue when last_checked_at is NULL or older than 30 days.
+ * Gated by the `monthlyLogoCheck` admin setting.
+ * Defensive: never throws, always returns an EmailResult.
+ */
+export async function sendMonthlyLogoCheckNotification(details: {
+	overdueCount: number
+	totalActive: number
+	overdueLogos: { certifier: string; full_name: string; country: string | null; last_checked_at: Date | null }[]
+}): Promise<EmailResult> {
+	try {
+		const settings = await getAdminSettings()
+		if (!settings.monthlyLogoCheck) {
+			return { success: false, error: 'disabled' }
+		}
+
+		const recipient = await resolveAdminRecipient()
+		if (!recipient) {
+			console.warn('[email] Monthly logo check skipped — no admin email configured.')
+			return { success: false, error: 'no admin email' }
+		}
+
+		const { error } = await resend.emails.send({
+			from: EMAIL_FROM,
+			to: recipient.email,
+			subject: `🔍 Monthly Halal Logo Check — ${details.overdueCount} logo(s) need verification`,
+			html: buildMonthlyLogoCheckEmailHtml(details),
+		})
+
+		if (error) {
+			console.error('[email] Resend API error (monthly logo check):', error)
+			return { success: false, error: error.message }
+		}
+
+		console.log(`[email] Monthly logo check notification sent to ${recipient.email}`)
+		return { success: true }
+	} catch (err: any) {
+		console.error('[email] Failed to send monthly logo check notification:', err)
+		return { success: false, error: err?.message ?? 'Unknown error' }
+	}
+}
+
+function buildMonthlyLogoCheckEmailHtml(details: {
+	overdueCount: number
+	totalActive: number
+	overdueLogos: { certifier: string; full_name: string; country: string | null; last_checked_at: Date | null }[]
+}): string {
+	const logoRows = details.overdueLogos
+		.map(
+			(l) => `
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #eeeeee;font-size:14px;color:#333333;font-weight:600;">${l.certifier}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #eeeeee;font-size:14px;color:#555555;">${l.full_name}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #eeeeee;font-size:14px;color:#555555;">${l.country ?? '—'}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #eeeeee;font-size:14px;color:#888888;">${l.last_checked_at ? new Date(l.last_checked_at).toISOString().slice(0, 10) : 'Never checked'}</td>
+      </tr>`,
+		)
+		.join('')
+
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monthly Halal Logo Check</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table role="presentation" width="640" cellpadding="0" cellspacing="0"
+               style="background:#ffffff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
+          <tr>
+            <td style="padding:32px 40px;border-bottom:3px solid #05c450;text-align:center;">
+              <h1 style="margin:0;font-size:24px;color:#333333;">🔍 Monthly Halal Logo Check</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px 40px;">
+              <p style="margin:0 0 20px;font-size:15px;color:#555555;line-height:1.6;">
+                This is your monthly reminder to verify that the Halal certification logos in your library are still valid and current.
+              </p>
+              <p style="margin:0 0 8px;font-size:14px;color:#777777;">Summary</p>
+              <p style="margin:0 0 24px;font-size:17px;font-weight:bold;color:#333333;">
+                ${details.overdueCount} of ${details.totalActive} active logo(s) need re-verification
+              </p>
+              ${details.overdueLogos.length > 0 ? `
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                     style="border:1px solid #eeeeee;border-radius:6px;overflow:hidden;margin-bottom:24px;">
+                <thead>
+                  <tr style="background:#f8f8f8;">
+                    <th style="padding:10px 12px;text-align:left;font-size:12px;color:#999999;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">Code</th>
+                    <th style="padding:10px 12px;text-align:left;font-size:12px;color:#999999;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">Full Name</th>
+                    <th style="padding:10px 12px;text-align:left;font-size:12px;color:#999999;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">Country</th>
+                    <th style="padding:10px 12px;text-align:left;font-size:12px;color:#999999;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">Last Checked</th>
+                  </tr>
+                </thead>
+                <tbody>${logoRows}</tbody>
+              </table>` : '<p style="color:#888888;font-size:14px;">All logos are up to date.</p>'}
+              <p style="margin:0;padding-top:24px;border-top:1px solid #eeeeee;font-size:13px;color:#999999;line-height:1.6;">
+                You are receiving this because "Monthly Logo Check" is enabled in Admin Settings.<br />
+                Visit the Admin Portal → Manage Product Data → Halal Library to review and update logos.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:24px 40px;background-color:#f8f8f8;border-top:1px solid #eeeeee;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#aaaaaa;">&copy; ${new Date().getFullYear()} OmniScan. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}

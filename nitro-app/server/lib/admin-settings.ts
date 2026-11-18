@@ -16,6 +16,7 @@ export interface AdminSettings {
 	emailOnNewFlag: boolean
 	emailOnSystemError: boolean
 	dailySummaryReport: boolean
+	monthlyLogoCheck: boolean
 }
 
 export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
@@ -29,6 +30,7 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
 	emailOnNewFlag: true,
 	emailOnSystemError: true,
 	dailySummaryReport: true,
+	monthlyLogoCheck: true,
 }
 
 function clampPct(n: unknown, fallback: number): number {
@@ -63,6 +65,7 @@ export function normalizeAdminSettings(input: Partial<AdminSettings> | null | un
 		emailOnNewFlag: asBool(src.emailOnNewFlag, d.emailOnNewFlag),
 		emailOnSystemError: asBool(src.emailOnSystemError, d.emailOnSystemError),
 		dailySummaryReport: asBool(src.dailySummaryReport, d.dailySummaryReport),
+		monthlyLogoCheck: asBool(src.monthlyLogoCheck, d.monthlyLogoCheck),
 	}
 }
 

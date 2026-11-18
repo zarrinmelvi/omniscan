@@ -1,9 +1,6 @@
 import { defineEventHandler, getQuery, createError } from 'h3'
-import jwt from 'jsonwebtoken'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-default-jwt-secret'
 
 export default defineEventHandler(async (event) => {
 	const query = getQuery(event)
@@ -13,49 +10,17 @@ export default defineEventHandler(async (event) => {
 	if (queryEmail && typeof queryEmail === 'string') {
 		const userByEmail = await prisma.user.findUnique({
 			where: { email: queryEmail.trim().toLowerCase() },
-			select: {
-				id: true,
-				name: true,
-				email: true,
-				email_verified: true,
-				session_token: true,
-				halal_pref: true,
-				updated_at: true,
-				allergens: { select: { id: true }, take: 1 },
-			},
+			select: { id: true, name: true, email: true, email_verified: true },
 		})
 
 		if (!userByEmail) {
 			return { email_verified: false, verified: false }
 		}
 
-		// Issue the active session token for any verified account that still needs Step 2
-		// setup (allergen/halal), up to the 7-day account deletion window. The needsSetup
-		// guard already prevents token issuance once the user has completed onboarding,
-		// so widening from 30 minutes to 7 days is safe and fixes the case where the
-		// original browser/APK polls after the old 30-minute window had expired.
-		let onboardingToken: string | undefined
-		const verifiedRecently = Date.now() - new Date(userByEmail.updated_at).getTime() < 7 * 24 * 60 * 60 * 1000
-		const needsSetup = !userByEmail.halal_pref && userByEmail.allergens.length === 0
-
-		if (userByEmail.email_verified && userByEmail.session_token && verifiedRecently && needsSetup) {
-			onboardingToken = jwt.sign(
-				{ userId: userByEmail.id, email: userByEmail.email, sid: userByEmail.session_token },
-				JWT_SECRET,
-				{ expiresIn: '7d' }
-			)
-		}
-
 		return {
 			email_verified: userByEmail.email_verified,
 			verified: userByEmail.email_verified,
-			...(onboardingToken ? { token: onboardingToken } : {}),
-			user: {
-				id: userByEmail.id,
-				name: userByEmail.name,
-				email: userByEmail.email,
-				email_verified: userByEmail.email_verified,
-			},
+			user: userByEmail,
 		}
 	}
 

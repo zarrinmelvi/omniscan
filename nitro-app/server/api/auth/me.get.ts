@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
 				email: true,
 				email_verified: true,
 				session_token: true,
-				halal_pref: true,
+				dietary_prof: { select: { halal_pref: true }, take: 1 },
 				allergens: { select: { id: true }, take: 1 },
 			},
 		})
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
 		// clicked the email link. The needsSetup guard ensures we stop issuing
 		// tokens once onboarding is complete.
 		let onboardingToken: string | undefined
-		const needsSetup = !userByEmail.halal_pref && userByEmail.allergens.length === 0
+		const needsSetup = (!userByEmail.dietary_prof[0]?.halal_pref) && userByEmail.allergens.length === 0
 
 		if (userByEmail.email_verified && userByEmail.session_token && needsSetup) {
 			onboardingToken = jwt.sign(

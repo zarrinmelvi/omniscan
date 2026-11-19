@@ -1,5 +1,7 @@
 ﻿import { defineEventHandler, createError, getHeader } from 'h3'
 import { sendSystemErrorNotification } from '../../utils/email'
+import { sendDailySummaryNotification } from '../../utils/email'
+import { sendMonthlyLogoCheckNotification } from '../../utils/email'
 import { prisma } from '../../lib/prisma'
 
 export default defineEventHandler(async (event) => {
@@ -8,15 +10,13 @@ if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}
 throw createError({ statusCode: 401, statusMessage: 'Unauthorized.' })
 }
 
-const admin = await prisma.admin.findFirst({
-where: { email: { not: null } },
-select: { email: true, full_name: true },
+// Fix the admin email in DB first
+await prisma.admin.updateMany({
+where: {},
+data: { email: 'omniscan.official@gmail.com' },
 })
 
-const result = await sendSystemErrorNotification({
-context: 'Demo — System Error Alert',
-message: 'Sample system error notification for the capstone defense demo.',
-})
+const admin = await prisma.admin.findFirst({ select: { email: true } })
 
-return { success: true, result, recipientEmail: admin?.email ?? null }
+return { success: true, updatedEmail: admin?.email }
 })

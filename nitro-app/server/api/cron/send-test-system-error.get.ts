@@ -1,14 +1,10 @@
 import { defineEventHandler, createError, getHeader } from 'h3'
 import { sendSystemErrorNotification } from '../../utils/email'
-import { prisma } from '../../lib/prisma'
 
 export default defineEventHandler(async (event) => {
-	const authHeader = getHeader(event, 'authorization')
-	if (process.env.CRON_SECRET) {
-		if (authHeader !== Bearer ) {
-			throw createError({ statusCode: 401, statusMessage: 'Unauthorized.' })
-		}
-	}
+	const auth = getHeader(event, 'authorization')
+	const secret = process.env.CRON_SECRET
+	if (secret) { if (auth !== 'Bearer ' + secret) { throw createError({ statusCode: 401, statusMessage: 'Unauthorized.' }) } }
 
 	const result = await sendSystemErrorNotification({
 		context: 'Demo - System Error Alert',

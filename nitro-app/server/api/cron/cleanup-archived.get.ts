@@ -133,6 +133,22 @@ export default defineEventHandler(async (event) => {
 
 		console.log(`[cleanup-archived] Permanently deleted ${deletedUsersCount} archived user account(s).`)
 
+		if (deletedUsersCount > 0) {
+			try {
+				const DELETED_COUNT_KEY = 'total_deleted_users_count'
+				const existing = await prisma.appSetting.findUnique({ where: { key: DELETED_COUNT_KEY } })
+				const prev =
+					typeof (existing?.value as any)?.count === 'number' ? (existing!.value as any).count : 0
+				await prisma.appSetting.upsert({
+					where: { key: DELETED_COUNT_KEY },
+					update: { value: { count: prev + deletedUsersCount } },
+					create: { key: DELETED_COUNT_KEY, value: { count: deletedUsersCount } },
+				})
+			} catch (err) {
+				console.error('[cleanup-archived] Failed to persist deleted-users count:', err)
+			}
+		}
+
 		// Transaction committed: notify each deleted user (failures are isolated)
 		for (const recipient of deletedRecipients) {
 			try {

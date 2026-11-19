@@ -104,7 +104,10 @@ export default defineEventHandler(async (event) => {
 			prisma.user.count({ where: { deleted_at: null, ...activeCond } }),
 			prisma.user.count({ where: { deleted_at: null, ...inactiveCond } }),
 			prisma.user.count({ where: { deleted_at: null, ...archivedCond } }),
-			prisma.user.count({ where: { deleted_at: { not: null } } }),
+			prisma.appSetting.findUnique({ where: { key: 'total_deleted_users_count' } }).then(row => {
+				const v = row?.value as any
+				return typeof v?.count === 'number' ? v.count : 0
+			}),
 		])
 		const totalPages = Math.max(1, Math.ceil(total / pageSize))
 		const page = Math.min(requestedPage, totalPages)
@@ -196,7 +199,7 @@ export default defineEventHandler(async (event) => {
 		}
 	} catch (err: any) {
 		if (err?.statusCode) throw err
-		console.error('Failed to fetch admin users:', err)
-		throw createError({ statusCode: 400, statusMessage: 'Failed to fetch users.' })
+		console.error('[admin/users] Failed to fetch admin users:', err?.message ?? err)
+		throw createError({ statusCode: 400, statusMessage: `Failed to fetch users: ${err?.message ?? 'unknown error'}` })
 	}
 })

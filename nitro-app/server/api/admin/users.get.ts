@@ -90,7 +90,7 @@ export default defineEventHandler(async (event) => {
 		if (statusKey === 'online') {
 			and.push(onlineWhere(now))
 		} else if (statusKey === 'offline') {
-			and.push({ OR: [{ session_token: null }, { last_active: null }, { last_active: { lt: onlineCutoff } }] })
+			and.push({ OR: [{ session_token: null }, { last_active: { lt: onlineCutoff } }] })
 		}
 		if (statusKey === 'active') and.push(activeCond)
 		else if (statusKey === 'inactive') and.push(inactiveCond)

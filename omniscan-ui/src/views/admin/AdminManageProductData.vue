@@ -1049,7 +1049,7 @@ async function saveProductEdit(): Promise<void> {
 
 // ─── Manage Categories modal ──────────────────────────────────────────────────
 interface CatRow { name: string; product_count: number; renaming: boolean; renameValue: string; justAdded: boolean }
-const catModal = ref<{ open: boolean; categories: CatRow[] }>({ open: false, categories: [] })
+const catModal = ref<{ open: boolean; newName: string; categories: CatRow[] }>({ open: false, newName: '', categories: [] })
 const catConfirm = ref<{ open: boolean; title: string; message: string; isDanger: boolean; busy: boolean; onConfirm: () => void }>({
 	open: false, title: '', message: '', isDanger: false, busy: false, onConfirm: () => {},
 })
@@ -1887,6 +1887,7 @@ async function saveModal(): Promise<void> {
 			allergen: '/api/allergen',
 			halal: '/api/halal_logo',
 			ingredient: '/api/ingredient_mapping',
+			products: '',
 		}
 		const endpoint = endpointMap[activeTab.value]
 		const payload: Record<string, any> = { ...form.value }
@@ -1956,6 +1957,7 @@ async function confirmDelete(): Promise<void> {
 		allergen: '/api/allergen',
 		halal: '/api/halal_logo',
 		ingredient: '/api/ingredient_mapping',
+		products: '',
 	}
 	deleting.value = true
 	try {

@@ -18,6 +18,7 @@ import { apiFetch } from '@/utils/api'
 export async function setBadge(count: number): Promise<void> {
 	if (!Capacitor.isNativePlatform()) return
 	try {
+		// @ts-ignore — native-only plugin, not available in web/SSR builds
 		const { Badge } = await import('@capawesome/capacitor-badge')
 		if (count > 0) {
 			await Badge.set({ count })
@@ -35,6 +36,7 @@ export async function setBadge(count: number): Promise<void> {
 export async function clearBadge(): Promise<void> {
 	if (!Capacitor.isNativePlatform()) return
 	try {
+		// @ts-ignore — native-only plugin, not available in web/SSR builds
 		const { Badge } = await import('@capawesome/capacitor-badge')
 		await Badge.clear()
 	} catch (err) {

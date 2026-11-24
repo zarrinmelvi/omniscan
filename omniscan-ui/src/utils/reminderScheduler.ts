@@ -27,12 +27,10 @@ import { useNotificationPrefs } from '@/composables/useNotificationPrefs'
 export async function cancelAllReminders(): Promise<void> {
 	if (!Capacitor.isNativePlatform()) return
 	try {
-		// @ts-ignore — native-only plugin, not available in web/SSR builds
 		const { LocalNotifications } = await import('@capacitor/local-notifications')
 		const pending = await LocalNotifications.getPending()
 		if (pending.notifications.length > 0) {
 			await LocalNotifications.cancel({
-				// @ts-ignore
 				notifications: pending.notifications.map((n) => ({ id: n.id })),
 			})
 		}
@@ -66,14 +64,13 @@ export async function syncExpiryReminders(): Promise<void> {
 	}
 
 	try {
-		// @ts-ignore — native-only plugin, not available in web/SSR builds
 		const { LocalNotifications } = await import('@capacitor/local-notifications')
 
 		// ── 1. Cancel all previously-scheduled reminders ──────────────────
 		const pending = await LocalNotifications.getPending()
 		if (pending.notifications.length > 0) {
 			await LocalNotifications.cancel({
-				notifications: pending.notifications.map((n: any) => ({ id: n.id })),
+				notifications: pending.notifications.map((n) => ({ id: n.id })),
 			})
 		}
 

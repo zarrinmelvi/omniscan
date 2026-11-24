@@ -2,7 +2,7 @@
 	<div class="manage-product-data">
 		<header class="page-header">
 			<h1>Manage Product Data</h1>
-			<p class="subtitle">Allergen dictionary · Halal certifier library · Ingredient mappings · Product catalog — all synced to the OmniScan knowledge base</p>
+			<p class="subtitle">Allergen dictionary · Halal certifier library · Ingredient mappings — all synced to the OmniScan knowledge base</p>
 		</header>
 
 		<!-- Tabs -->
@@ -28,15 +28,6 @@
 				</svg>
 				Ingredient Mappings
 				<span class="tab-count-badge">{{ ingredientTotal }}</span>
-			</button>
-			<button class="tab-button" :class="{ active: activeTab === 'products' }" @click="switchTab('products')">
-				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path>
-					<line x1="3" y1="6" x2="21" y2="6"></line>
-					<path d="M16 10a4 4 0 01-8 0"></path>
-				</svg>
-				Products
-				<span class="tab-count-badge">{{ productsTotal }}</span>
 			</button>
 		</div>
 
@@ -140,7 +131,7 @@
 								v-if="item !== '...'"
 								class="page-num"
 								:class="{ active: item === allergenPage }"
-								@click="goToAllergenPage(Number(item))"
+								@click="goToAllergenPage(item as number)"
 							>{{ item }}</button>
 							<span v-else class="page-ellipsis">…</span>
 						</template>
@@ -394,103 +385,6 @@
 			</template>
 		</div>
 
-		<!-- 4. PRODUCTS TAB -->
-		<template v-else-if="activeTab === 'products'">
-			<!-- Toolbar -->
-			<div class="controls-bar products-toolbar">
-				<span class="section-title">Product Catalog &amp; Pantry Categories</span>
-				<div class="action-controls">
-					<div class="search-box">
-						<svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-						<input v-model="productsSearch" type="text" placeholder="Search..." />
-					</div>
-					<select v-model="productsSort" class="prod-select">
-						<option value="most_used">Sort: Most used</option>
-						<option value="name_asc">Name A–Z</option>
-						<option value="name_desc">Name Z–A</option>
-					</select>
-					<select v-model="productsCategoryFilter" class="prod-select">
-						<option value="all">All categories</option>
-						<option v-for="cat in availableCategories" :key="cat" :value="cat">{{ cat }}</option>
-					</select>
-					<button class="btn-manage-cats" @click="openManageCategories">
-						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-						Manage Categories
-					</button>
-				</div>
-			</div>
-
-			<div v-if="productsLoading" class="table-wrap">
-				<table class="data-table prod-table">
-					<thead><tr><th class="col-id">ID</th><th>PRODUCT</th><th>CATEGORY</th><th>USAGE</th><th class="col-actions">ACTIONS</th></tr></thead>
-					<tbody>
-						<tr v-for="n in 8" :key="n" class="allergen-sk-row">
-							<td><div class="sk-cell shimmer" style="width:30px;height:12px"></div></td>
-							<td><div class="sk-cell shimmer" style="width:180px;height:14px"></div></td>
-							<td><div class="sk-cell shimmer" style="width:100px;height:20px;border-radius:9999px"></div></td>
-							<td><div class="sk-cell shimmer" style="width:70px;height:12px"></div></td>
-							<td><div class="sk-cell shimmer" style="width:60px;height:28px;border-radius:9999px"></div></td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<p v-else-if="productRows.length === 0" class="empty-note">No products found.</p>
-			<div v-else class="table-wrap">
-				<table class="data-table prod-table">
-					<thead>
-						<tr>
-							<th class="col-id">ID</th>
-							<th>PRODUCT</th>
-							<th>CATEGORY</th>
-							<th>USAGE</th>
-							<th class="col-actions">ACTIONS</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr
-							v-for="row in productRows"
-							:key="row.id"
-							:ref="(el) => setProductRowRef(row.id, el)"
-							:class="{ 'prod-row--highlight': highlightProductId === row.id }"
-						>
-							<td class="cell-id">#{{ row.id }}</td>
-							<td class="prod-name-cell">
-								<div class="prod-name-block">
-									<span class="prod-name">{{ row.product_name }}</span>
-									<div class="prod-badges">
-										<span v-if="row.halal_status.kind === 'certified'" class="halal-badge halal-ok">Halal</span>
-										<span v-else-if="row.halal_status.kind === 'unverified'" class="halal-badge halal-doubt">Unverified</span>
-										<span v-for="a in row.allergens" :key="a" class="allergen-mini-chip">{{ a }}</span>
-									</div>
-								</div>
-							</td>
-							<td>
-								<span class="prod-cat-chip">{{ row.category }}</span>
-							</td>
-							<td class="prod-usage">{{ row.usage }} {{ row.usage === 1 ? 'pantry' : 'pantries' }}</td>
-							<td class="col-actions">
-								<button class="btn-edit" @click="openProductEdit(row)">Edit</button>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-
-			<!-- Products pagination -->
-			<div v-if="productsTotalPages > 1" class="pagination-bar">
-				<span class="pagination-count">{{ productsRangeLabel }}</span>
-				<div class="pagination-controls">
-					<button class="page-nav" :disabled="productsPage === 1" @click="productsPage > 1 && productsPage--">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-					</button>
-					<span class="pagination-count">{{ productsPage }} / {{ productsTotalPages }}</span>
-					<button class="page-nav" :disabled="productsPage === productsTotalPages" @click="productsPage < productsTotalPages && productsPage++">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-					</button>
-				</div>
-			</div>
-		</template>
-
 		<!-- ══════════════════ CREATE / EDIT MODAL ══════════════════ -->
 		<Teleport to="body">
 			<div v-if="modalOpen" class="modal-overlay" @click.self="requestClose">
@@ -508,81 +402,19 @@
 					<div class="modal-body">
 						<!-- Allergen form -->
 						<template v-if="activeTab === 'allergen'">
-							<div class="field" style="position:relative">
-								<span class="field-label">Allergen name *</span>
-								<input
-									v-model="form.name"
-									type="text"
-									class="field-input"
-									:class="{ 'field-input--error': allergenNameConflict }"
-									placeholder="e.g. Gluten"
-									autocomplete="off"
-									@input="onAllergenNameInput"
-									@blur="hideAutocompleteSoon"
-									@focus="onAllergenNameInput"
-								/>
-								<!-- Autocomplete dropdown -->
-								<div v-if="acSuggestions.length > 0 && acOpen" class="ac-dropdown">
-									<button
-										v-for="s in acSuggestions"
-										:key="s.id !== null ? s.id : s.name"
-										type="button"
-										class="ac-item"
-										:class="{ 'ac-item--dataset': s.source === 'dataset' }"
-										@mousedown.prevent="pickSuggestion(s)"
-									>
-										<div class="ac-item-main">
-											<span class="ac-name">{{ s.name }}</span>
-											<span v-if="s.source === 'dataset'" class="ac-dataset-badge">Dataset</span>
-											<span v-else class="ac-db-badge">In dictionary</span>
-										</div>
-										<span class="ac-scientific">{{ s.scientific_name }}</span>
-										<span v-if="s.allergyType" class="ac-allergy-type">{{ s.allergyType }}</span>
-									</button>
-									<button
-										v-if="form.name && form.name.trim()"
-										type="button"
-										class="ac-item ac-item--new"
-										@mousedown.prevent="acOpen = false"
-									>+ Add "{{ form.name.trim() }}" as a new allergen</button>
-								</div>
-								<!-- Dataset entry info line (shown after picking a dataset suggestion) -->
-								<div v-if="acDatasetEntry && acFromDataset" class="ac-dataset-info">
-									<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-									<span>From dataset · {{ acDatasetEntry.allergyType || 'No allergy type' }} · {{ acDatasetEntry.category }}</span>
-									<button
-										type="button"
-										class="ac-import-btn"
-										:disabled="acImporting"
-										@click="importFromDataset(String(form.name))"
-									>{{ acImporting ? 'Importing…' : 'One-click import' }}</button>
-								</div>
-								<!-- Conflict banner -->
-								<div v-if="allergenNameConflict" class="ac-conflict">
-									<span class="ac-conflict-msg">{{ allergenNameConflict.name }} is already in the allergen dictionary.</span>
-									<div class="ac-conflict-card">
-										<span class="ac-conflict-id">#{{ allergenNameConflict.id }} {{ allergenNameConflict.name }}</span>
-										<span class="source-badge src-seed" v-if="allergenNameConflict.is_predefined" style="margin-left:6px">Predefined</span>
-										<span style="margin-left:6px;font-size:0.78rem;color:#64748b">{{ allergenNameConflict.mapping_count }} mappings</span>
-									</div>
-									<div class="ac-conflict-actions">
-										<button type="button" class="btn-edit" @click="editExistingAllergen">Edit existing allergen</button>
-										<button type="button" class="btn-modal-cancel" @click="useDifferentAllergenName">Use a different name</button>
-									</div>
-								</div>
-							</div>
 							<label class="field">
-								<span class="field-label">
-									Scientific name
-									<span v-if="acFromDataset" class="field-dataset-badge">From dataset</span>
-								</span>
+								<span class="field-label">Allergen name *</span>
+								<input v-model="form.name" type="text" class="field-input" placeholder="e.g. Gluten" />
+							</label>
+							<label class="field">
+								<span class="field-label">Scientific name</span>
 								<input v-model="form.scientific_name" type="text" class="field-input" placeholder="e.g. Triticum aestivum" />
 							</label>
 
 							<!-- Mappings / Aliases tag editor -->
 							<div class="field">
 								<span class="field-label">Mappings / Aliases ({{ aliasTags.length }})</span>
-								<div class="tag-input" @click="focusAliasField">
+								<div class="tag-input" @click="($refs.aliasField as HTMLInputElement)?.focus()">
 									<span v-for="(tag, idx) in aliasTags" :key="idx" class="tag-chip">
 										{{ tag }}
 										<button type="button" class="tag-remove" aria-label="Remove alias" @click.stop="removeAliasTag(idx)">
@@ -602,18 +434,6 @@
 									/>
 								</div>
 								<span class="field-hint">Press Enter or comma to add. These become ingredient mappings linked to this allergen.</span>
-								<!-- Dataset-suggested aliases (dashed chips) -->
-								<div v-if="acDatasetAliases.length > 0" class="ac-alias-suggestions">
-									<span class="ac-alias-label">Suggested from dataset:</span>
-									<button
-										v-for="alias in acDatasetAliases"
-										:key="alias"
-										type="button"
-										class="ac-alias-chip"
-										@click="addDatasetAlias(alias)"
-									>+ {{ alias }}</button>
-									<button type="button" class="ac-alias-add-all" @click="addAllDatasetAliases">Add all</button>
-								</div>
 							</div>
 
 							<label class="field-check">
@@ -783,132 +603,17 @@
 		<Teleport to="body">
 			<div v-if="halalToast.visible" class="product-toast">{{ halalToast.message }}</div>
 		</Teleport>
-
-		<!-- ══════════════════ PRODUCT EDIT MODAL ══════════════════ -->
-		<Teleport to="body">
-			<div v-if="productEditModal.open" class="modal-overlay" @click.self="productEditModal.open = false">
-				<div class="modal" role="dialog" aria-modal="true" style="max-width:420px">
-					<div class="modal-header">
-						<h2 class="modal-title">Edit product</h2>
-						<button class="modal-close" @click="productEditModal.open = false" aria-label="Close">
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-						</button>
-					</div>
-					<div class="modal-body">
-						<label class="field">
-							<span class="field-label">Product name</span>
-							<input v-model="productEditModal.product_name" type="text" class="field-input" />
-						</label>
-						<label class="field">
-							<span class="field-label">Brand</span>
-							<input v-model="productEditModal.brand_name" type="text" class="field-input" />
-						</label>
-						<label class="field">
-							<span class="field-label">Pantry category</span>
-							<select v-model="productEditModal.category" class="field-input">
-								<option v-for="cat in allCategoryNames" :key="cat" :value="cat">{{ cat }}</option>
-							</select>
-							<span class="field-hint">Categories come from Manage Categories</span>
-						</label>
-						<p v-if="productEditModal.error" class="modal-error">{{ productEditModal.error }}</p>
-					</div>
-					<div class="modal-footer">
-						<button class="btn-modal-cancel" :disabled="productEditModal.saving" @click="productEditModal.open = false">Cancel</button>
-						<button class="btn-modal-save" :disabled="productEditModal.saving" @click="saveProductEdit">
-							{{ productEditModal.saving ? 'Saving…' : 'Save changes' }}
-						</button>
-					</div>
-				</div>
-			</div>
-		</Teleport>
-
-		<!-- ══════════════════ MANAGE CATEGORIES MODAL ══════════════════ -->
-		<Teleport to="body">
-			<div v-if="catModal.open" class="modal-overlay" @click.self="catModal.open = false">
-				<div class="modal cat-modal" role="dialog" aria-modal="true" style="max-width:500px">
-					<div class="modal-header">
-						<h2 class="modal-title">Manage Categories</h2>
-						<button class="modal-close" @click="catModal.open = false" aria-label="Close">
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-						</button>
-					</div>
-					<div class="modal-body">
-						<!-- Add new category -->
-						<div class="cat-add-row">
-							<input v-model="catModal.newName" type="text" class="field-input cat-new-input" placeholder="+ New category name" @keydown.enter="requestAddCategory" />
-							<button class="btn-add cat-add-btn" :disabled="!catModal.newName.trim()" @click="requestAddCategory">Add</button>
-						</div>
-
-						<!-- Category list -->
-						<div class="cat-list-head">
-							<span>CATEGORY</span><span>PRODUCTS</span><span>ACTIONS</span>
-						</div>
-						<div v-for="cat in catModal.categories" :key="cat.name" class="cat-row" :class="{ 'cat-row--highlight': cat.justAdded }">
-							<!-- Rename inline editor -->
-							<template v-if="cat.renaming">
-								<input v-model="cat.renameValue" class="field-input cat-rename-input" @keydown.enter="requestRenameCategory(cat)" @keydown.escape="cat.renaming = false" />
-								<span class="cat-prod-count">{{ cat.product_count }}</span>
-								<div class="cat-actions">
-									<button class="btn-edit" @click="requestRenameCategory(cat)">Save</button>
-									<button class="btn-modal-cancel" style="font-size:0.78rem;padding:4px 10px" @click="cat.renaming = false">Cancel</button>
-								</div>
-							</template>
-							<template v-else>
-								<span class="cat-name" :class="{ 'cat-name--locked': cat.name === 'Uncategorized' }">{{ cat.name }}</span>
-								<span class="cat-prod-count">{{ cat.product_count }}</span>
-								<div class="cat-actions">
-									<template v-if="cat.name !== 'Uncategorized'">
-										<button class="btn-edit" @click="startRename(cat)">Rename</button>
-										<button class="btn-delete" @click="requestDeleteCategory(cat)" aria-label="Delete">
-											<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-										</button>
-									</template>
-									<span v-else class="cat-locked-label">Locked</span>
-								</div>
-							</template>
-						</div>
-						<p class="cat-footer-note">Counts are sample values. Uncategorized is the default and stays locked.</p>
-					</div>
-					<div class="modal-footer">
-						<button class="btn-modal-cancel" @click="catModal.open = false">Close</button>
-					</div>
-				</div>
-			</div>
-		</Teleport>
-
-		<!-- ══════════════════ CATEGORY CONFIRMATION ══════════════════ -->
-		<Teleport to="body">
-			<div v-if="catConfirm.open" class="modal-overlay" @click.self="catConfirm.open = false">
-				<div class="modal" role="dialog" aria-modal="true" style="max-width:380px">
-					<div class="modal-header">
-						<h2 class="modal-title">{{ catConfirm.title }}</h2>
-					</div>
-					<div class="modal-body">
-						<p style="font-size:0.9rem;color:#334155;margin:0">{{ catConfirm.message }}</p>
-					</div>
-					<div class="modal-footer">
-						<button class="btn-modal-cancel" :disabled="catConfirm.busy" @click="catConfirm.open = false">Cancel</button>
-						<button
-							class="btn-modal-save"
-							:class="{ 'btn-danger-solid': catConfirm.isDanger }"
-							:disabled="catConfirm.busy"
-							@click="catConfirm.onConfirm"
-						>{{ catConfirm.busy ? 'Saving…' : 'Confirm' }}</button>
-					</div>
-				</div>
-			</div>
-		</Teleport>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { apiFetch, ApiError } from '@/utils/api'
 import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal.vue'
 
-type TabType = 'allergen' | 'halal' | 'ingredient' | 'products'
+type TabType = 'allergen' | 'halal' | 'ingredient'
 
 interface AllergenMapping {
 	id: number
@@ -959,330 +664,6 @@ const searchQuery = ref('')
 const ingredientAllergenFilter = ref<'all' | number>('all')
 const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
-
-// ─── Products tab state ───────────────────────────────────────────────────────
-interface PantryProductRow {
-	id: number
-	brand_name: string
-	product_name: string
-	thumb: string | null
-	category: string
-	halal_status: { label: string; kind: 'certified' | 'unverified' | 'none' }
-	allergens: string[]
-	usage: number
-}
-const productRows = ref<PantryProductRow[]>([])
-const productsTotal = ref(0)
-const productsLoading = ref(false)
-const productsSearch = ref('')
-const productsSort = ref('most_used')
-const productsCategoryFilter = ref('all')
-const productsPage = ref(1)
-const PRODUCTS_PAGE_SIZE = 15
-const productsTotalPages = ref(1)
-const availableCategories = ref<string[]>([])
-const allCategoryNames = ref<string[]>(['Uncategorized'])
-const highlightProductId = ref<number | null>(null)
-const productRowRefs = ref<Record<number, HTMLElement | null>>({})
-
-function setProductRowRef(id: number, el: unknown): void {
-	productRowRefs.value[id] = (el as HTMLElement) ?? null
-}
-
-const productsRangeLabel = computed(() => {
-	if (productsTotal.value === 0) return 'No products'
-	const start = (productsPage.value - 1) * PRODUCTS_PAGE_SIZE + 1
-	const end = Math.min(productsPage.value * PRODUCTS_PAGE_SIZE, productsTotal.value)
-	return `Showing ${start}–${end} of ${productsTotal.value}`
-})
-
-async function fetchProducts(): Promise<void> {
-	productsLoading.value = true
-	try {
-		const params = new URLSearchParams({
-			page: String(productsPage.value),
-			limit: String(PRODUCTS_PAGE_SIZE),
-			sort: productsSort.value,
-		})
-		if (productsSearch.value.trim()) params.set('search', productsSearch.value.trim())
-		if (productsCategoryFilter.value !== 'all') params.set('category', productsCategoryFilter.value)
-		const data = await apiFetch<{
-			success: boolean
-			products: PantryProductRow[]
-			categories: string[]
-			total: number
-			total_pages: number
-		}>(`/api/admin/pantry-products?${params.toString()}`, { isAdmin: true })
-		productRows.value = data.products ?? []
-		availableCategories.value = data.categories ?? []
-		productsTotal.value = data.total ?? 0
-		productsTotalPages.value = data.total_pages ?? 1
-	} catch (err) {
-		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to load products.'
-	} finally {
-		productsLoading.value = false
-	}
-}
-
-let productsSearchTimer: ReturnType<typeof setTimeout> | null = null
-watch([productsSort, productsCategoryFilter], () => { productsPage.value = 1; void fetchProducts() })
-watch(productsSearch, () => {
-	if (productsSearchTimer) clearTimeout(productsSearchTimer)
-	productsSearchTimer = setTimeout(() => { productsPage.value = 1; void fetchProducts() }, 300)
-})
-watch(productsPage, () => { void fetchProducts() })
-
-// ─── Product Edit modal ───────────────────────────────────────────────────────
-const productEditModal = ref<{
-	open: boolean; saving: boolean; error: string | null
-	id: number | null; product_name: string; brand_name: string; category: string
-}>({ open: false, saving: false, error: null, id: null, product_name: '', brand_name: '', category: '' })
-
-function openProductEdit(row: PantryProductRow): void {
-	productEditModal.value = {
-		open: true, saving: false, error: null,
-		id: row.id, product_name: row.product_name, brand_name: row.brand_name, category: row.category,
-	}
-}
-
-async function saveProductEdit(): Promise<void> {
-	const m = productEditModal.value
-	if (!m.id) return
-	m.saving = true; m.error = null
-	try {
-		await apiFetch(`/api/admin/pantry-products/${m.id}`, {
-			method: 'PUT',
-			body: { product_name: m.product_name, brand_name: m.brand_name, category: m.category },
-			isAdmin: true,
-		})
-		m.open = false
-		void fetchProducts()
-	} catch (err) {
-		m.error = err instanceof ApiError ? err.message : 'Failed to save.'
-	} finally {
-		m.saving = false
-	}
-}
-
-// ─── Manage Categories modal ──────────────────────────────────────────────────
-interface CatRow { name: string; product_count: number; renaming: boolean; renameValue: string; justAdded: boolean }
-const catModal = ref<{ open: boolean; newName: string; categories: CatRow[] }>({ open: false, newName: '', categories: [] })
-const catConfirm = ref<{ open: boolean; title: string; message: string; isDanger: boolean; busy: boolean; onConfirm: () => void }>({
-	open: false, title: '', message: '', isDanger: false, busy: false, onConfirm: () => {},
-})
-
-async function fetchCategories(): Promise<void> {
-	const data = await apiFetch<{ success: boolean; categories: { name: string; product_count: number }[] }>(
-		'/api/admin/categories', { isAdmin: true }
-	)
-	catModal.value.categories = (data.categories ?? []).map((c) => ({
-		name: c.name, product_count: c.product_count,
-		renaming: false, renameValue: c.name, justAdded: false,
-	}))
-	allCategoryNames.value = (data.categories ?? []).map((c) => c.name)
-}
-
-function openManageCategories(): void {
-	void fetchCategories()
-	catModal.value.open = true
-}
-
-function requestAddCategory(): void {
-	const name = catModal.value.newName?.trim() ?? ''
-	if (!name) return
-	catConfirm.value = {
-		open: true,
-		title: `Add category "${name}"?`,
-		message: `It will show up for consumers in scan, upload, and Edit in pantry detail.`,
-		isDanger: false, busy: false,
-		onConfirm: () => doAddCategory(name),
-	}
-}
-
-async function doAddCategory(name: string): Promise<void> {
-	catConfirm.value.busy = true
-	try {
-		await apiFetch('/api/admin/categories', { method: 'POST', body: { name }, isAdmin: true })
-		catConfirm.value.open = false
-		;(catModal.value as any).newName = ''
-		await fetchCategories()
-		const added = catModal.value.categories.find((c) => c.name === name)
-		if (added) { added.justAdded = true; setTimeout(() => { added.justAdded = false }, 2000) }
-		void fetchProducts()
-	} catch (err) {
-		catConfirm.value.busy = false
-		catConfirm.value.open = false
-		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to add category.'
-	}
-}
-
-function startRename(cat: CatRow): void {
-	cat.renaming = true; cat.renameValue = cat.name
-}
-
-function requestRenameCategory(cat: CatRow): void {
-	const newName = cat.renameValue.trim()
-	if (!newName || newName === cat.name) { cat.renaming = false; return }
-	catConfirm.value = {
-		open: true,
-		title: `Rename ${cat.name} to ${newName}?`,
-		message: `Its ${cat.product_count} products and consumer pantries keep their category under the new name.`,
-		isDanger: false, busy: false,
-		onConfirm: () => doRenameCategory(cat, newName),
-	}
-}
-
-async function doRenameCategory(cat: CatRow, newName: string): Promise<void> {
-	catConfirm.value.busy = true
-	try {
-		await apiFetch(`/api/admin/categories/${encodeURIComponent(cat.name)}`, {
-			method: 'PUT', body: { new_name: newName }, isAdmin: true,
-		})
-		catConfirm.value.open = false
-		cat.renaming = false
-		await fetchCategories()
-		void fetchProducts()
-	} catch (err) {
-		catConfirm.value.busy = false
-		catConfirm.value.open = false
-		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to rename category.'
-	}
-}
-
-function requestDeleteCategory(cat: CatRow): void {
-	catConfirm.value = {
-		open: true,
-		title: `Delete ${cat.name}?`,
-		message: `${cat.product_count} products in this category will move to Uncategorized. Consumer pantries keep their items.`,
-		isDanger: true, busy: false,
-		onConfirm: () => doDeleteCategory(cat.name),
-	}
-}
-
-async function doDeleteCategory(name: string): Promise<void> {
-	catConfirm.value.busy = true
-	try {
-		await apiFetch(`/api/admin/categories/${encodeURIComponent(name)}`, { method: 'DELETE', isAdmin: true })
-		catConfirm.value.open = false
-		await fetchCategories()
-		void fetchProducts()
-	} catch (err) {
-		catConfirm.value.busy = false
-		catConfirm.value.open = false
-		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to delete category.'
-	}
-}
-
-// ─── Allergen autocomplete ────────────────────────────────────────────────────
-interface AcSuggestion {
-	id: number | null
-	name: string
-	scientific_name: string
-	is_predefined: boolean
-	mapping_count: number
-	allergyType?: string
-	category?: string
-	subcategory?: string
-	aliases: string[]
-	mappings: { id: number; scientific_term: string; simplified_term: string }[]
-	source: 'db' | 'dataset'
-}
-const acSuggestions = ref<AcSuggestion[]>([])
-const acOpen = ref(false)
-const acFromDataset = ref(false)
-const acDatasetAliases = ref<string[]>([])
-const allergenNameConflict = ref<AcSuggestion | null>(null)
-const acDatasetEntry = ref<{ allergyType: string; category: string; subcategory: string } | null>(null)
-const acImporting = ref(false)
-let acTimer: ReturnType<typeof setTimeout> | null = null
-
-function onAllergenNameInput(): void {
-	const q = (form.value.name as string | undefined)?.trim() ?? ''
-	allergenNameConflict.value = null
-	if (!q) { acSuggestions.value = []; acOpen.value = false; return }
-	if (acTimer) clearTimeout(acTimer)
-	acTimer = setTimeout(async () => {
-		try {
-			const data = await apiFetch<{ suggestions: AcSuggestion[] }>(`/api/allergen?q=${encodeURIComponent(q)}`, { isAdmin: true })
-			acSuggestions.value = data.suggestions ?? []
-			acOpen.value = acSuggestions.value.length > 0
-			// Check exact name match = conflict
-			const exact = acSuggestions.value.find((s) => s.name.toLowerCase() === q.toLowerCase())
-			if (exact) { allergenNameConflict.value = exact; acOpen.value = false }
-		} catch { acSuggestions.value = []; acOpen.value = false }
-	}, 200)
-}
-
-
-function editExistingAllergen(): void {
-if (allergenNameConflict.value) openEditModal(allergenNameConflict.value)
-allergenNameConflict.value = null
-}
-
-function useDifferentAllergenName(): void {
-form.value.name = ''
-allergenNameConflict.value = null
-}
-function hideAutocompleteSoon(): void {
-	setTimeout(() => { acOpen.value = false }, 150)
-}
-
-function pickSuggestion(s: AcSuggestion): void {
-	form.value.name = s.name
-	form.value.scientific_name = s.scientific_name
-	acFromDataset.value = s.source === 'dataset'
-	acOpen.value = false
-	// Pre-fill confirmed aliases as tags, remaining as dashed suggestions
-	const existing = aliasTags.value.map((t) => t.toLowerCase())
-	const allAliases = s.aliases ?? []
-	const toAdd = allAliases.filter((a) => !existing.includes(a.toLowerCase()))
-	const autoAdd = toAdd.slice(0, 3)
-	const suggestions = toAdd.slice(3)
-	for (const a of autoAdd) aliasTags.value.push(a)
-	acDatasetAliases.value = suggestions
-	allergenNameConflict.value = null
-	// Store dataset metadata for the info line under the form
-	if (s.source === 'dataset') {
-		acDatasetEntry.value = { allergyType: s.allergyType ?? '', category: s.category ?? '', subcategory: s.subcategory ?? '' }
-	} else {
-		acDatasetEntry.value = null
-	}
-}
-
-function addDatasetAlias(alias: string): void {
-	if (!aliasTags.value.some((t) => t.toLowerCase() === alias.toLowerCase())) aliasTags.value.push(alias)
-	acDatasetAliases.value = acDatasetAliases.value.filter((a) => a !== alias)
-}
-
-function addAllDatasetAliases(): void {
-	for (const a of acDatasetAliases.value) {
-		if (!aliasTags.value.some((t) => t.toLowerCase() === a.toLowerCase())) aliasTags.value.push(a)
-	}
-	acDatasetAliases.value = []
-}
-
-/** One-click import: calls POST /api/allergen/import-dataset, then refreshes and closes the modal. */
-async function importFromDataset(name: string): Promise<void> {
-	acImporting.value = true
-	try {
-		await apiFetch('/api/allergen/import-dataset', {
-			method: 'POST',
-			body: { name, is_predefined: form.value.is_predefined ?? false },
-			isAdmin: true,
-		})
-		modalOpen.value = false
-		await fetchTabContent('allergen')
-		await refreshAfterAllergenChange()
-		acDatasetEntry.value = null
-	} catch (err) {
-		modalError.value = err instanceof ApiError ? err.message : 'Failed to import from dataset.'
-	} finally {
-		acImporting.value = false
-	}
-}
-
-// ─── View in catalog highlight ────────────────────────────────────────────────
-const router = useRouter()
 
 // Full allergen list (unpaginated) — feeds dropdowns and the product filter.
 const allergens = ref<AllergenRow[]>([])
@@ -1353,11 +734,6 @@ const aliasTags = ref<string[]>([])
 const aliasInput = ref('')
 // Snapshot of the aliases as loaded, so we only PUT the mapping sync when changed.
 const aliasOriginal = ref<string[]>([])
-
-function focusAliasField(): void {
-	const el = document.querySelector('.tag-field') as HTMLInputElement | null
-	el?.focus()
-}
 
 function addAliasTag(): void {
 	const raw = aliasInput.value.trim().replace(/,+$/, '').trim()
@@ -1816,13 +1192,7 @@ function switchTab(tab: TabType): void {
 	ingredientAllergenFilter.value = 'all'
 	allergenPage.value = 1
 	ingredientPage.value = 1
-	if (tab === 'products') {
-		productsPage.value = 1
-		void fetchProducts()
-		void fetchCategories()
-	} else {
-		fetchTabContent(tab)
-	}
+	fetchTabContent(tab)
 }
 
 // ─── Modal open/close ─────────────────────────────────────────────────────────
@@ -1889,12 +1259,6 @@ function closeModal(): void {
 	if (saving.value) return
 	modalOpen.value = false
 	modalError.value = null
-	acSuggestions.value = []
-	acOpen.value = false
-	acFromDataset.value = false
-	acDatasetAliases.value = []
-	allergenNameConflict.value = null
-	acDatasetEntry.value = null
 }
 
 /**
@@ -1959,7 +1323,6 @@ async function saveModal(): Promise<void> {
 			allergen: '/api/allergen',
 			halal: '/api/halal_logo',
 			ingredient: '/api/ingredient_mapping',
-			products: '',
 		}
 		const endpoint = endpointMap[activeTab.value]
 		const payload: Record<string, any> = { ...form.value }
@@ -2029,7 +1392,6 @@ async function confirmDelete(): Promise<void> {
 		allergen: '/api/allergen',
 		halal: '/api/halal_logo',
 		ingredient: '/api/ingredient_mapping',
-		products: '',
 	}
 	deleting.value = true
 	try {
@@ -2053,24 +1415,6 @@ onMounted(() => {
 	if (tabParam === 'halal') {
 		initial = 'halal'
 		switchTab('halal')
-	} else if (tabParam === 'products') {
-		initial = 'products'
-		switchTab('products')
-		// If a highlight id was passed (from "View in catalog"), scroll to it
-		const highlightParam = route.query.highlight
-		const highlightId = highlightParam ? parseInt(String(highlightParam), 10) : NaN
-		if (!isNaN(highlightId)) {
-			highlightProductId.value = highlightId
-			// Wait for the table to render, then scroll
-			setTimeout(() => {
-				const el = productRowRefs.value[highlightId]
-				if (el && typeof el.scrollIntoView === 'function') {
-					el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-				}
-				// Remove highlight after 2.5s
-				setTimeout(() => { highlightProductId.value = null }, 2500)
-			}, 600)
-		}
 	} else {
 		fetchTabContent('allergen')
 	}
@@ -2514,139 +1858,4 @@ html.ion-palette-dark .cert-btn-delete:hover { background: rgba(220, 38, 38, 0.2
 .im-sk-group { margin-bottom: 16px; }
 .im-sk-group-header { height: 40px; border-radius: 0; margin-bottom: 2px; }
 .im-sk-row { height: 48px; border-bottom: 1px solid #f1f5f9; }
-</style>
-
-<style scoped>
-/* ── Products Tab ─────────────────────────────────────────────────── */
-.products-toolbar { flex-wrap: wrap; gap: 10px; }
-.prod-select {
-	height: 40px; padding: 0 12px; border: 1px solid #e2e8f0;
-	border-radius: 10px; font-size: 0.875rem; color: #334155;
-	background: #fff; cursor: pointer; white-space: nowrap;
-}
-.btn-manage-cats {
-	height: 40px; display: inline-flex; align-items: center; gap: 7px;
-	background: #fff; border: 1px solid #e2e8f0; color: #334155;
-	border-radius: 10px; padding: 0 14px; font-size: 0.875rem;
-	font-weight: 600; cursor: pointer; white-space: nowrap;
-}
-.btn-manage-cats:hover { background: #f1f5f9; }
-.prod-table { min-width: 700px; }
-.prod-name-cell { max-width: 300px; }
-.prod-name-block { display: flex; flex-direction: column; gap: 4px; }
-.prod-name { font-weight: 600; color: #0f172a; font-size: 0.88rem; }
-.prod-badges { display: flex; flex-wrap: wrap; gap: 4px; }
-.allergen-mini-chip {
-	background: #fef3c7; color: #b45309; border-radius: 9999px;
-	padding: 1px 7px; font-size: 0.7rem; font-weight: 600;
-}
-.prod-cat-chip {
-	background: #f1f5f9; color: #475569; border-radius: 6px;
-	padding: 3px 10px; font-size: 0.78rem; font-weight: 500;
-}
-.prod-usage { color: #64748b; font-size: 0.85rem; white-space: nowrap; }
-.prod-row--highlight td { background: #f0fdf4 !important; }
-/* ── Manage Categories modal ─────────────────────────────────────── */
-.cat-modal .modal-body { padding: 16px 20px; }
-.cat-add-row { display: flex; gap: 8px; margin-bottom: 16px; }
-.cat-new-input { flex: 1; }
-.cat-add-btn { flex-shrink: 0; height: 40px; }
-.cat-list-head {
-	display: grid; grid-template-columns: 1fr 80px 160px;
-	font-size: 0.72rem; font-weight: 700; color: #94a3b8;
-	letter-spacing: 0.05em; padding: 6px 10px 8px;
-	border-bottom: 1px solid #f1f5f9;
-}
-.cat-row {
-	display: grid; grid-template-columns: 1fr 80px 160px;
-	align-items: center; padding: 10px 10px;
-	border-bottom: 1px solid #f8fafc; gap: 8px;
-	transition: background 0.2s;
-}
-.cat-row--highlight { background: #f0fdf4; }
-.cat-name { font-size: 0.88rem; font-weight: 500; color: #0f172a; }
-.cat-name--locked { color: #94a3b8; }
-.cat-prod-count { font-size: 0.85rem; color: #64748b; }
-.cat-actions { display: flex; align-items: center; gap: 8px; }
-.cat-locked-label { font-size: 0.78rem; color: #94a3b8; font-weight: 600; }
-.cat-rename-input { height: 32px; font-size: 0.85rem; }
-.cat-footer-note { font-size: 0.74rem; color: #94a3b8; padding: 10px 10px 0; margin: 0; }
-.btn-danger-solid { background: #dc2626 !important; border-color: #dc2626 !important; color: #fff !important; }
-.btn-danger-solid:hover { background: #b91c1c !important; }
-/* ── Allergen Autocomplete ───────────────────────────────────────── */
-.ac-dropdown {
-	position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-	background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
-	box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 1000; overflow: hidden;
-}
-.ac-item {
-	display: flex; flex-direction: column; align-items: flex-start;
-	width: 100%; padding: 10px 14px; background: none; border: none;
-	text-align: left; cursor: pointer;
-	border-bottom: 1px solid #f1f5f9;
-}
-.ac-item:last-child { border-bottom: none; }
-.ac-item:hover { background: #f8fafc; }
-.ac-item--new { color: #008744; font-size: 0.85rem; font-weight: 600; }
-.ac-name { font-size: 0.88rem; font-weight: 600; color: #0f172a; }
-.ac-scientific { font-size: 0.75rem; color: #64748b; }
-.field-input--error { border-color: #dc2626 !important; }
-.ac-conflict {
-	margin-top: 8px; padding: 10px 12px;
-	background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;
-}
-.ac-conflict-msg { font-size: 0.82rem; color: #b91c1c; font-weight: 600; display: block; margin-bottom: 6px; }
-.ac-conflict-card {
-	display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
-	padding: 6px 10px; background: #fff; border: 1px solid #e2e8f0;
-	border-radius: 7px; margin-bottom: 8px;
-}
-.ac-conflict-id { font-size: 0.82rem; font-weight: 700; color: #0f172a; }
-.ac-conflict-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.field-dataset-badge {
-	background: #dbeafe; color: #1d4ed8; border-radius: 9999px;
-	padding: 1px 8px; font-size: 0.7rem; font-weight: 700; margin-left: 6px;
-}
-.ac-alias-suggestions { margin-top: 8px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-.ac-alias-label { font-size: 0.74rem; color: #64748b; font-weight: 600; }
-.ac-alias-chip {
-	border: 1.5px dashed #94a3b8; background: transparent; color: #475569;
-	border-radius: 9999px; padding: 2px 10px; font-size: 0.75rem;
-	font-weight: 600; cursor: pointer;
-}
-.ac-alias-chip:hover { border-color: #008744; color: #008744; }
-.ac-alias-add-all {
-	background: none; border: none; color: #008744;
-	font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0 4px;
-}
-.ac-alias-add-all:hover { text-decoration: underline; }
-</style>
-
-<style scoped>
-/* ── Dataset autocomplete enhancements ───────────────────────────── */
-.ac-item-main { display: flex; align-items: center; gap: 6px; }
-.ac-dataset-badge {
-	background: #ede9fe; color: #7c3aed; border-radius: 9999px;
-	padding: 1px 7px; font-size: 0.68rem; font-weight: 700;
-}
-.ac-db-badge {
-	background: #dcfce7; color: #15803d; border-radius: 9999px;
-	padding: 1px 7px; font-size: 0.68rem; font-weight: 700;
-}
-.ac-allergy-type { font-size: 0.72rem; color: #9ca3af; margin-top: 1px; }
-.ac-item--dataset { border-left: 2px solid #ede9fe; }
-.ac-dataset-info {
-	display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-	margin-top: 6px; padding: 7px 10px;
-	background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 8px;
-	font-size: 0.78rem; color: #5b21b6;
-}
-.ac-dataset-info svg { flex-shrink: 0; }
-.ac-import-btn {
-	margin-left: auto; background: #7c3aed; color: #fff;
-	border: none; border-radius: 7px; padding: 4px 12px;
-	font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap;
-}
-.ac-import-btn:hover:not(:disabled) { background: #6d28d9; }
-.ac-import-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>

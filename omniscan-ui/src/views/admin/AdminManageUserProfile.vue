@@ -95,11 +95,10 @@
 							<th>PANTRY ITEMS</th>
 							<th>CREATED</th>
 							<th>STATUS</th>
-							<th></th>
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="u in pagedUsers" :key="u.id" class="user-row-clickable" @click="openDetailModal(u)">
+						<tr v-for="u in pagedUsers" :key="u.id">
 							<td>
 								<div class="user-cell">
 									<div class="avatar bg-green">
@@ -129,9 +128,6 @@
 							<td class="date-cell">{{ formatShortDate(u.created_at) }}</td>
 							<td>
 								<span class="status-badge" :class="statusBadgeLabel(u).toLowerCase()">{{ statusBadgeLabel(u) }}</span>
-							</td>
-							<td>
-								<button class="view-btn" @click.stop="openDetailModal(u)">View</button>
 							</td>
 						</tr>
 					</tbody>
@@ -191,7 +187,7 @@
 				<div v-if="isLoading" class="data-table-wrap">
 					<table class="data-table">
 						<thead>
-							<tr><th>CONSUMER</th><th>EMAIL</th><th>LAST ACTIVE</th><th>ARCHIVED</th><th>DELETES</th><th>STATUS</th><th></th></tr>
+							<tr><th>CONSUMER</th><th>EMAIL</th><th>LAST ACTIVE</th><th>ARCHIVED</th><th>DELETES</th><th>STATUS</th></tr>
 						</thead>
 						<tbody>
 							<tr v-for="n in 5" :key="n" class="users-sk-row">
@@ -223,9 +219,9 @@
 					</thead>
 					<tbody>
 						<tr v-if="filteredUsers.length === 0">
-							<td colspan="7" class="empty-note">No archived accounts.</td>
+							<td colspan="6" class="empty-note">No archived accounts.</td>
 						</tr>
-						<tr v-for="u in filteredUsers" :key="u.id" v-else class="user-row-clickable" @click="openDetailModal(u)">
+						<tr v-for="u in filteredUsers" :key="u.id" v-else>
 							<td>
 								<div class="user-cell">
 									<div class="avatar bg-orange">
@@ -250,9 +246,6 @@
 							<td>
 								<span class="status-badge" :class="statusBadgeLabel(u).toLowerCase()">{{ statusBadgeLabel(u) }}</span>
 							</td>
-							<td>
-								<button class="view-btn" @click.stop="openDetailModal(u)">View</button>
-							</td>
 						</tr>
 					</tbody>
 				</table>
@@ -272,114 +265,12 @@
 			</aside>
 		</div>
 	</div>
-
-	<!-- ── Consumer Detail Modal ──────────────────────────────────────────── -->
-	<Teleport to="body">
-		<div v-if="detailModal.open" class="cdm-backdrop" @click.self="closeDetailModal">
-			<div class="cdm-panel" role="dialog" aria-modal="true">
-
-				<!-- Header -->
-				<div class="cdm-header">
-					<div class="cdm-avatar">{{ detailModal.initials }}</div>
-					<div class="cdm-title-block">
-						<div class="cdm-name">{{ detailModal.name }}</div>
-						<div class="cdm-username">@{{ detailModal.username || 'user' }}</div>
-					</div>
-					<span class="cdm-status-badge" :class="(detailModal.status || '').toLowerCase()">
-						{{ detailModal.status }}
-					</span>
-					<button class="cdm-close" @click="closeDetailModal" aria-label="Close">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-					</button>
-				</div>
-
-				<div v-if="detailModal.loading" class="cdm-loading">
-					<div class="cdm-sk shimmer" style="height:80px;border-radius:10px;margin-bottom:16px"></div>
-					<div class="cdm-sk shimmer" style="height:140px;border-radius:10px"></div>
-				</div>
-
-				<div v-else-if="detailModal.error" class="cdm-error">
-					{{ detailModal.error }}
-				</div>
-
-				<div v-else class="cdm-body">
-
-					<!-- Declared Allergens -->
-					<div class="cdm-section cdm-allergen-box">
-						<div class="cdm-section-label">Declared Allergens</div>
-
-						<div v-if="!detailModal.allergensRevealed" class="cdm-allergen-masked">
-							<div class="cdm-dots">
-								<span v-for="i in Math.max(1, detailModal.allergens.length)" :key="i" class="cdm-dot">•••••</span>
-							</div>
-							<button class="cdm-show-btn" @click="revealAllergens">Show Allergens</button>
-						</div>
-
-						<div v-else class="cdm-allergen-revealed">
-							<div class="cdm-allergen-tags">
-								<span v-if="detailModal.allergens.length === 0" class="cdm-no-allergens">No allergens declared</span>
-								<span v-for="a in detailModal.allergens" :key="a.id" class="cdm-allergen-tag">{{ a.name }}</span>
-							</div>
-							<button class="cdm-hide-btn" @click="detailModal.allergensRevealed = false">Hide Allergens</button>
-							<div class="cdm-viewed-note">
-								Viewed by {{ detailModal.viewedBy }} · recorded in System Logs at {{ detailModal.viewedTime }}
-							</div>
-						</div>
-					</div>
-
-					<!-- Pantry Inventory -->
-					<div class="cdm-section">
-						<div class="cdm-pantry-header">
-							<span class="cdm-section-label">Consumer Pantry Inventory ({{ detailModal.pantryCount }} / 100)</span>
-							<span class="cdm-readonly-badge">Read-Only</span>
-						</div>
-
-						<p v-if="detailModal.pantryItems.length === 0" class="cdm-empty-pantry">
-							No items in this consumer's pantry yet.
-						</p>
-
-						<table v-else class="cdm-pantry-table">
-							<thead>
-								<tr>
-									<th>PANTRY ITEM</th>
-									<th>CATEGORY</th>
-									<th>EXPIRY</th>
-									<th></th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr v-for="item in detailModal.pantryItems" :key="item.id">
-									<td class="cdm-item-name">{{ item.product_name }}</td>
-									<td>
-										<span class="cdm-cat-chip">{{ item.category }}</span>
-									</td>
-									<td class="cdm-expiry">{{ formatShortDate(item.expiration_date) }}</td>
-									<td>
-										<button class="cdm-catalog-link" @click="viewInCatalog(item.product_id)">
-											View in catalog ›
-										</button>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-
-				</div>
-
-				<div class="cdm-footer">
-					<button class="cdm-close-btn" @click="closeDetailModal">Close</button>
-				</div>
-
-			</div>
-		</div>
-	</Teleport>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { apiFetch, ApiError } from '@/utils/api'
-import { useAdminAuthStore } from '@/stores/adminAuthStore'
 
 interface ApiUserRow {
 	id: number
@@ -613,125 +504,6 @@ onMounted(fetchUsers)
 onBeforeUnmount(() => {
 	if (searchTimer) clearTimeout(searchTimer)
 })
-
-// ── Consumer Detail Modal ────────────────────────────────────────────────────
-
-const router = useRouter()
-const adminAuthStore = useAdminAuthStore()
-
-interface DetailAllergen { id: number; name: string }
-interface DetailPantryItem {
-	id: number
-	product_id: number
-	product_name: string
-	brand_name: string
-	category: string
-	expiration_date: string | null
-}
-
-const detailModal = ref<{
-	open: boolean
-	loading: boolean
-	error: string | null
-	userId: number | null
-	name: string
-	username: string | null
-	status: string
-	initials: string
-	allergens: DetailAllergen[]
-	allergensRevealed: boolean
-	viewedBy: string
-	viewedTime: string
-	pantryItems: DetailPantryItem[]
-	pantryCount: number
-}>({
-	open: false,
-	loading: false,
-	error: null,
-	userId: null,
-	name: '',
-	username: null,
-	status: '',
-	initials: '',
-	allergens: [],
-	allergensRevealed: false,
-	viewedBy: '',
-	viewedTime: '',
-	pantryItems: [],
-	pantryCount: 0,
-})
-
-async function openDetailModal(u: UserRow): Promise<void> {
-	detailModal.value = {
-		open: true,
-		loading: true,
-		error: null,
-		userId: u.id,
-		name: u.name,
-		username: u.username,
-		status: u.status,
-		initials: u.initials,
-		allergens: [],
-		allergensRevealed: false,
-		viewedBy: '',
-		viewedTime: '',
-		pantryItems: [],
-		pantryCount: 0,
-	}
-
-	try {
-		const data = await apiFetch<{
-			success: boolean
-			user: {
-				id: number
-				name: string
-				username: string | null
-				status: string
-				allergens: DetailAllergen[]
-				pantry_items: DetailPantryItem[]
-				pantry_count: number
-				pantry_max: number
-			}
-		}>(`/api/admin/users/${u.id}`, { isAdmin: true })
-
-		detailModal.value.allergens = data.user.allergens
-		detailModal.value.pantryItems = data.user.pantry_items
-		detailModal.value.pantryCount = data.user.pantry_count
-		detailModal.value.loading = false
-	} catch (err) {
-		detailModal.value.error = err instanceof ApiError ? err.message : 'Failed to load consumer details.'
-		detailModal.value.loading = false
-	}
-}
-
-function closeDetailModal(): void {
-	detailModal.value.open = false
-}
-
-async function revealAllergens(): Promise<void> {
-	const userId = detailModal.value.userId
-	if (!userId) return
-
-	try {
-		const res = await apiFetch<{ success: boolean; viewed_by: string; time_label: string }>(
-			`/api/admin/users/${userId}/log-allergen-view`,
-			{ method: 'POST', isAdmin: true },
-		)
-		detailModal.value.viewedBy = res.viewed_by || adminAuthStore.admin?.username || 'Admin'
-		detailModal.value.viewedTime = res.time_label || new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-	} catch {
-		// Log failure is non-blocking — still reveal
-		detailModal.value.viewedBy = adminAuthStore.admin?.username || 'Admin'
-		detailModal.value.viewedTime = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-	}
-
-	detailModal.value.allergensRevealed = true
-}
-
-function viewInCatalog(productId: number): void {
-	closeDetailModal()
-	void router.push(`/admin/productsdata?tab=products&highlight=${productId}`)
-}
 </script>
 
 <style scoped>
@@ -1200,128 +972,3 @@ td {
 	user-select: none;
 }
 </style>
-
-/* ── Consumer Detail Modal ───────────────────────────────────────────── */
-.cdm-backdrop {
-	position: fixed; inset: 0; background: rgba(15,23,42,0.45);
-	display: flex; align-items: center; justify-content: center;
-	z-index: 9999; padding: 20px;
-}
-.cdm-panel {
-	background: #fff; border-radius: 16px; width: 100%; max-width: 580px;
-	max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.18);
-	display: flex; flex-direction: column;
-}
-.cdm-header {
-	display: flex; align-items: center; gap: 12px;
-	padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9;
-}
-.cdm-avatar {
-	width: 40px; height: 40px; border-radius: 50%;
-	background: #008744; color: #fff;
-	display: flex; align-items: center; justify-content: center;
-	font-size: 0.9rem; font-weight: 700; flex-shrink: 0;
-}
-.cdm-title-block { flex: 1; min-width: 0; }
-.cdm-name { font-size: 1rem; font-weight: 700; color: #0f172a; }
-.cdm-username { font-size: 0.78rem; color: #94a3b8; }
-.cdm-status-badge {
-	padding: 3px 10px; border-radius: 9999px;
-	font-size: 0.74rem; font-weight: 600; flex-shrink: 0;
-}
-.cdm-status-badge.active { background: #dcfce7; color: #15803d; }
-.cdm-status-badge.inactive { background: #f1f5f9; color: #64748b; }
-.cdm-status-badge.archived { background: #ffedd5; color: #ea580c; }
-.cdm-close {
-	border: none; background: transparent; cursor: pointer;
-	color: #94a3b8; padding: 4px; border-radius: 6px; flex-shrink: 0;
-}
-.cdm-close:hover { background: #f1f5f9; color: #334155; }
-.cdm-loading { padding: 24px; }
-.cdm-sk { display: block; }
-.cdm-error { padding: 24px; color: #dc2626; font-size: 0.88rem; text-align: center; }
-.cdm-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
-.cdm-section { }
-.cdm-section-label {
-	font-size: 0.78rem; font-weight: 700; color: #64748b;
-	text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;
-}
-/* Allergen box */
-.cdm-allergen-box {
-	background: #fff8f1; border: 1px solid #fed7aa;
-	border-radius: 10px; padding: 14px 16px;
-}
-.cdm-allergen-masked {
-	display: flex; align-items: center; justify-content: space-between; gap: 12px;
-}
-.cdm-dots { display: flex; gap: 8px; flex-wrap: wrap; }
-.cdm-dot { font-size: 0.85rem; color: #9ca3af; letter-spacing: 2px; }
-.cdm-show-btn {
-	border: 1px solid #d1d5db; background: #fff; color: #374151;
-	border-radius: 7px; padding: 6px 14px; font-size: 0.8rem;
-	font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0;
-}
-.cdm-show-btn:hover { background: #f9fafb; }
-.cdm-allergen-revealed { display: flex; flex-direction: column; gap: 8px; }
-.cdm-allergen-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.cdm-allergen-tag {
-	background: #fff; border: 1px solid #fb923c;
-	color: #c2410c; border-radius: 9999px;
-	padding: 3px 12px; font-size: 0.8rem; font-weight: 600;
-}
-.cdm-no-allergens { font-size: 0.82rem; color: #9ca3af; font-style: italic; }
-.cdm-hide-btn {
-	align-self: flex-start; border: 1px solid #d1d5db; background: #fff;
-	color: #374151; border-radius: 7px; padding: 5px 12px;
-	font-size: 0.78rem; font-weight: 600; cursor: pointer;
-}
-.cdm-hide-btn:hover { background: #f9fafb; }
-.cdm-viewed-note { font-size: 0.74rem; color: #9ca3af; }
-/* Pantry inventory */
-.cdm-pantry-header {
-	display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
-}
-.cdm-readonly-badge {
-	background: #f1f5f9; color: #64748b; border-radius: 6px;
-	padding: 2px 8px; font-size: 0.72rem; font-weight: 600;
-}
-.cdm-empty-pantry { font-size: 0.85rem; color: #9ca3af; text-align: center; padding: 20px 0; }
-.cdm-pantry-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
-.cdm-pantry-table th {
-	text-align: left; padding: 8px 10px;
-	font-size: 0.7rem; font-weight: 700; color: #94a3b8;
-	letter-spacing: 0.04em; border-bottom: 1px solid #f1f5f9;
-}
-.cdm-pantry-table td { padding: 10px 10px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
-.cdm-item-name { font-weight: 500; color: #0f172a; }
-.cdm-cat-chip {
-	background: #f1f5f9; color: #475569;
-	border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 500;
-}
-.cdm-expiry { color: #64748b; white-space: nowrap; }
-.cdm-catalog-link {
-	background: none; border: none; color: #008744;
-	font-size: 0.8rem; font-weight: 600; cursor: pointer; padding: 0;
-	white-space: nowrap;
-}
-.cdm-catalog-link:hover { text-decoration: underline; }
-/* Footer */
-.cdm-footer {
-	padding: 16px 24px; border-top: 1px solid #f1f5f9;
-	display: flex; justify-content: flex-end;
-}
-.cdm-close-btn {
-	border: 1px solid #e2e8f0; background: #fff; color: #374151;
-	border-radius: 8px; padding: 8px 20px; font-size: 0.875rem;
-	font-weight: 600; cursor: pointer;
-}
-.cdm-close-btn:hover { background: #f8fafc; }
-/* Row + View button */
-.user-row-clickable { cursor: pointer; }
-.user-row-clickable:hover td { background: #f8fafc; }
-.view-btn {
-	border: 1px solid #e2e8f0; background: #fff; color: #374151;
-	border-radius: 7px; padding: 5px 14px; font-size: 0.78rem;
-	font-weight: 600; cursor: pointer; white-space: nowrap;
-}
-.view-btn:hover { background: #f1f5f9; }

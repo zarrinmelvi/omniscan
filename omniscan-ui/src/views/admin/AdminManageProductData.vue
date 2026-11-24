@@ -525,7 +525,7 @@
 								<div v-if="acSuggestions.length > 0 && acOpen" class="ac-dropdown">
 									<button
 										v-for="s in acSuggestions"
-										:key="s.id ?? s.name"
+										:key="s.id !== null ? s.id : s.name"
 										type="button"
 										class="ac-item"
 										:class="{ 'ac-item--dataset': s.source === 'dataset' }"

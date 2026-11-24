@@ -10,8 +10,57 @@ import { prisma } from '../../lib/prisma'
 // page / pageSize (1-100, default 10) / search honoured, and the response
 // becomes `{ allergens, pagination }`. Without `page` the bare array is
 // returned exactly as before.
+//
+// Autocomplete mode: when ?q=<text> is present (and ?page is absent), returns
+// up to 5 matching suggestions from the allergen database for the Add Allergen
+// type-ahead, shaped as { suggestions: AllergenSuggestion[] }.
 export default defineEventHandler(async (event) => {
 	const query = getQuery(event)
+
+	// ── Autocomplete mode ────────────────────────────────────────────────────
+	// Triggered by ?q= without ?page. Used by the Add Allergen modal type-ahead.
+	if (query.q !== undefined && query.page === undefined) {
+		const q = typeof query.q === 'string' ? query.q.trim() : ''
+		if (!q) return { suggestions: [] }
+
+		const matches = await prisma.allergen.findMany({
+			where: {
+				OR: [
+					{ name: { contains: q, mode: 'insensitive' } },
+					{ scientific_name: { contains: q, mode: 'insensitive' } },
+				],
+			},
+			orderBy: { name: 'asc' },
+			take: 5,
+			select: {
+				id: true,
+				name: true,
+				scientific_name: true,
+				is_predefined: true,
+				ingredient_mapping: {
+					orderBy: { id: 'asc' },
+					select: { id: true, scientific_term: true, simplified_term: true },
+				},
+			},
+		})
+
+		return {
+			suggestions: matches.map((a) => ({
+				id: a.id,
+				name: a.name,
+				scientific_name: a.scientific_name,
+				is_predefined: a.is_predefined,
+				aliases: a.ingredient_mapping.map((m) => m.scientific_term),
+				mappings: a.ingredient_mapping.map((m) => ({
+					id: m.id,
+					scientific_term: m.scientific_term,
+					simplified_term: m.simplified_term,
+				})),
+			})),
+		}
+	}
+	// ────────────────────────────────────────────────────────────────────────
+
 	const paginated = query.page !== undefined
 
 	try {

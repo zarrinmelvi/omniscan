@@ -525,13 +525,19 @@
 								<div v-if="acSuggestions.length > 0 && acOpen" class="ac-dropdown">
 									<button
 										v-for="s in acSuggestions"
-										:key="s.id"
+										:key="s.id ?? s.name"
 										type="button"
 										class="ac-item"
+										:class="{ 'ac-item--dataset': s.source === 'dataset' }"
 										@mousedown.prevent="pickSuggestion(s)"
 									>
-										<span class="ac-name">{{ s.name }}</span>
+										<div class="ac-item-main">
+											<span class="ac-name">{{ s.name }}</span>
+											<span v-if="s.source === 'dataset'" class="ac-dataset-badge">Dataset</span>
+											<span v-else class="ac-db-badge">In dictionary</span>
+										</div>
 										<span class="ac-scientific">{{ s.scientific_name }}</span>
+										<span v-if="s.allergyType" class="ac-allergy-type">{{ s.allergyType }}</span>
 									</button>
 									<button
 										v-if="form.name && form.name.trim()"
@@ -539,6 +545,17 @@
 										class="ac-item ac-item--new"
 										@mousedown.prevent="acOpen = false"
 									>+ Add "{{ form.name.trim() }}" as a new allergen</button>
+								</div>
+								<!-- Dataset entry info line (shown after picking a dataset suggestion) -->
+								<div v-if="acDatasetEntry && acFromDataset" class="ac-dataset-info">
+									<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+									<span>From dataset · {{ acDatasetEntry.allergyType || 'No allergy type' }} · {{ acDatasetEntry.category }}</span>
+									<button
+										type="button"
+										class="ac-import-btn"
+										:disabled="acImporting"
+										@click="importFromDataset(form.name as string)"
+									>{{ acImporting ? 'Importing…' : 'One-click import' }}</button>
 								</div>
 								<!-- Conflict banner -->
 								<div v-if="allergenNameConflict" class="ac-conflict">
@@ -1157,12 +1174,26 @@ async function doDeleteCategory(name: string): Promise<void> {
 }
 
 // ─── Allergen autocomplete ────────────────────────────────────────────────────
-interface AcSuggestion { id: number; name: string; scientific_name: string; is_predefined: boolean; mapping_count: number; aliases: string[]; mappings: { id: number; scientific_term: string; simplified_term: string }[] }
+interface AcSuggestion {
+	id: number | null
+	name: string
+	scientific_name: string
+	is_predefined: boolean
+	mapping_count: number
+	allergyType?: string
+	category?: string
+	subcategory?: string
+	aliases: string[]
+	mappings: { id: number; scientific_term: string; simplified_term: string }[]
+	source: 'db' | 'dataset'
+}
 const acSuggestions = ref<AcSuggestion[]>([])
 const acOpen = ref(false)
 const acFromDataset = ref(false)
 const acDatasetAliases = ref<string[]>([])
 const allergenNameConflict = ref<AcSuggestion | null>(null)
+const acDatasetEntry = ref<{ allergyType: string; category: string; subcategory: string } | null>(null)
+const acImporting = ref(false)
 let acTimer: ReturnType<typeof setTimeout> | null = null
 
 function onAllergenNameInput(): void {
@@ -1189,18 +1220,23 @@ function hideAutocompleteSoon(): void {
 function pickSuggestion(s: AcSuggestion): void {
 	form.value.name = s.name
 	form.value.scientific_name = s.scientific_name
-	acFromDataset.value = true
+	acFromDataset.value = s.source === 'dataset'
 	acOpen.value = false
 	// Pre-fill confirmed aliases as tags, remaining as dashed suggestions
 	const existing = aliasTags.value.map((t) => t.toLowerCase())
 	const allAliases = s.aliases ?? []
 	const toAdd = allAliases.filter((a) => !existing.includes(a.toLowerCase()))
-	// First 3 as tags, rest as suggestions
 	const autoAdd = toAdd.slice(0, 3)
 	const suggestions = toAdd.slice(3)
 	for (const a of autoAdd) aliasTags.value.push(a)
 	acDatasetAliases.value = suggestions
 	allergenNameConflict.value = null
+	// Store dataset metadata for the info line under the form
+	if (s.source === 'dataset') {
+		acDatasetEntry.value = { allergyType: s.allergyType ?? '', category: s.category ?? '', subcategory: s.subcategory ?? '' }
+	} else {
+		acDatasetEntry.value = null
+	}
 }
 
 function addDatasetAlias(alias: string): void {
@@ -1213,6 +1249,26 @@ function addAllDatasetAliases(): void {
 		if (!aliasTags.value.some((t) => t.toLowerCase() === a.toLowerCase())) aliasTags.value.push(a)
 	}
 	acDatasetAliases.value = []
+}
+
+/** One-click import: calls POST /api/allergen/import-dataset, then refreshes and closes the modal. */
+async function importFromDataset(name: string): Promise<void> {
+	acImporting.value = true
+	try {
+		await apiFetch('/api/allergen/import-dataset', {
+			method: 'POST',
+			body: { name, is_predefined: form.value.is_predefined ?? false },
+			isAdmin: true,
+		})
+		modalOpen.value = false
+		await fetchTabContent('allergen')
+		await refreshAfterAllergenChange()
+		acDatasetEntry.value = null
+	} catch (err) {
+		modalError.value = err instanceof ApiError ? err.message : 'Failed to import from dataset.'
+	} finally {
+		acImporting.value = false
+	}
 }
 
 // ─── View in catalog highlight ────────────────────────────────────────────────
@@ -1823,6 +1879,7 @@ function closeModal(): void {
 	acFromDataset.value = false
 	acDatasetAliases.value = []
 	allergenNameConflict.value = null
+	acDatasetEntry.value = null
 }
 
 /**
@@ -2548,4 +2605,33 @@ html.ion-palette-dark .cert-btn-delete:hover { background: rgba(220, 38, 38, 0.2
 	font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0 4px;
 }
 .ac-alias-add-all:hover { text-decoration: underline; }
+</style>
+
+<style scoped>
+/* ── Dataset autocomplete enhancements ───────────────────────────── */
+.ac-item-main { display: flex; align-items: center; gap: 6px; }
+.ac-dataset-badge {
+	background: #ede9fe; color: #7c3aed; border-radius: 9999px;
+	padding: 1px 7px; font-size: 0.68rem; font-weight: 700;
+}
+.ac-db-badge {
+	background: #dcfce7; color: #15803d; border-radius: 9999px;
+	padding: 1px 7px; font-size: 0.68rem; font-weight: 700;
+}
+.ac-allergy-type { font-size: 0.72rem; color: #9ca3af; margin-top: 1px; }
+.ac-item--dataset { border-left: 2px solid #ede9fe; }
+.ac-dataset-info {
+	display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+	margin-top: 6px; padding: 7px 10px;
+	background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 8px;
+	font-size: 0.78rem; color: #5b21b6;
+}
+.ac-dataset-info svg { flex-shrink: 0; }
+.ac-import-btn {
+	margin-left: auto; background: #7c3aed; color: #fff;
+	border: none; border-radius: 7px; padding: 4px 12px;
+	font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.ac-import-btn:hover:not(:disabled) { background: #6d28d9; }
+.ac-import-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>

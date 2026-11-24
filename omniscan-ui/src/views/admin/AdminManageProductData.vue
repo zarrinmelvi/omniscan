@@ -566,8 +566,8 @@
 										<span style="margin-left:6px;font-size:0.78rem;color:#64748b">{{ allergenNameConflict.mapping_count }} mappings</span>
 									</div>
 									<div class="ac-conflict-actions">
-										<button type="button" class="btn-edit" @click="openEditModal(allergenNameConflict); allergenNameConflict = null">Edit existing allergen</button>
-										<button type="button" class="btn-modal-cancel" @click="form.name = ''; allergenNameConflict = null">Use a different name</button>
+										<button type="button" class="btn-edit" @click="editExistingAllergen">Edit existing allergen</button>
+										<button type="button" class="btn-modal-cancel" @click="useDifferentAllergenName">Use a different name</button>
 									</div>
 								</div>
 							</div>
@@ -582,7 +582,7 @@
 							<!-- Mappings / Aliases tag editor -->
 							<div class="field">
 								<span class="field-label">Mappings / Aliases ({{ aliasTags.length }})</span>
-								<div class="tag-input" @click="($refs.aliasField as HTMLInputElement)?.focus()">
+								<div class="tag-input" @click="focusAliasField">
 									<span v-for="(tag, idx) in aliasTags" :key="idx" class="tag-chip">
 										{{ tag }}
 										<button type="button" class="tag-remove" aria-label="Remove alias" @click.stop="removeAliasTag(idx)">
@@ -1213,6 +1213,16 @@ function onAllergenNameInput(): void {
 	}, 200)
 }
 
+
+function editExistingAllergen(): void {
+if (allergenNameConflict.value) openEditModal(allergenNameConflict.value)
+allergenNameConflict.value = null
+}
+
+function useDifferentAllergenName(): void {
+form.value.name = ''
+allergenNameConflict.value = null
+}
 function hideAutocompleteSoon(): void {
 	setTimeout(() => { acOpen.value = false }, 150)
 }
@@ -1343,6 +1353,11 @@ const aliasTags = ref<string[]>([])
 const aliasInput = ref('')
 // Snapshot of the aliases as loaded, so we only PUT the mapping sync when changed.
 const aliasOriginal = ref<string[]>([])
+
+function focusAliasField(): void {
+	const el = document.querySelector('.tag-field') as HTMLInputElement | null
+	el?.focus()
+}
 
 function addAliasTag(): void {
 	const raw = aliasInput.value.trim().replace(/,+$/, '').trim()

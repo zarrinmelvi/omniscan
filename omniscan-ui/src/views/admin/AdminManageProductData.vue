@@ -140,7 +140,7 @@
 								v-if="item !== '...'"
 								class="page-num"
 								:class="{ active: item === allergenPage }"
-								@click="goToAllergenPage(item as number)"
+								@click="goToAllergenPage(Number(item))"
 							>{{ item }}</button>
 							<span v-else class="page-ellipsis">…</span>
 						</template>
@@ -554,7 +554,7 @@
 										type="button"
 										class="ac-import-btn"
 										:disabled="acImporting"
-										@click="importFromDataset(form.name as string)"
+										@click="importFromDataset(String(form.name))"
 									>{{ acImporting ? 'Importing…' : 'One-click import' }}</button>
 								</div>
 								<!-- Conflict banner -->

@@ -283,8 +283,25 @@
 </div>
 <div v-else-if="modal.error" class="cdm-error">{{ modal.error }}</div>
 <div v-else class="cdm-body">
-<div class="cdm-allergen-placeholder">
+<div class="cdm-allergen-box">
+<div class="cdm-allergen-header-row">
 <span class="cdm-allergen-label">Declared Allergens</span>
+<button v-if="!modal.allergensRevealed" class="cdm-allergen-btn" :disabled="modal.allergenLoading" @click="showAllergens">{{ modal.allergenLoading ? 'Loading...' : 'Show Allergens' }}</button>
+<button v-else class="cdm-allergen-btn" @click="hideAllergens">Hide Allergens</button>
+</div>
+<div v-if="!modal.allergensRevealed" class="cdm-allergen-masked">
+<span class="cdm-masked-pill">●●●●●</span>
+<span class="cdm-masked-pill">●●●●●</span>
+<span class="cdm-masked-pill">●●●●●</span>
+</div>
+<div v-else class="cdm-allergen-revealed">
+<div v-if="modal.allergens.length === 0" class="cdm-no-allergens">No declared allergens.</div>
+<div v-else class="cdm-allergen-tags">
+<span v-for="allergen in modal.allergens" :key="allergen" class="cdm-allergen-tag">{{ allergen }}</span>
+</div>
+<div class="cdm-allergen-note">Viewed by {{ modal.viewedBy }} · recorded in System Logs at {{ modal.viewedTime }}</div>
+</div>
+<div v-if="modal.allergenError" class="cdm-allergen-error">{{ modal.allergenError }}</div>
 </div>
 <div class="cdm-pantry-header">
 <span class="cdm-pantry-title">Consumer Pantry Inventory ({{ modal.pantryCount }} / 100)</span>
@@ -568,17 +585,18 @@ const modal = ref<{
 open: boolean
 loading: boolean
 error: string | null
+userId: number | null
 name: string
 username: string | null
 status: string
 statusClass: string
 initials: string
 pantryCount: number
-pantryItems: ModalPantryItem[]
+pantryItems: ModalPantryItem[]; allergensRevealed: boolean; allergens: string[]; allergenLoading: boolean; allergenError: string | null; viewedBy: string; viewedTime: string
 }>({
-open: false, loading: false, error: null,
+open: false, loading: false, error: null, userId: null,
 name: '', username: null, status: '', statusClass: '', initials: '',
-pantryCount: 0, pantryItems: [],
+pantryCount: 0, pantryItems: [], allergensRevealed: false, allergens: [], allergenLoading: false, allergenError: null, viewedBy: '', viewedTime: '',
 })
 
 function statusClassOf(s: string): string {
@@ -590,9 +608,9 @@ return 'cdm-status--inactive'
 
 async function openModal(userId: number): Promise<void> {
 modal.value = {
-open: true, loading: true, error: null,
+open: true, loading: true, error: null, userId: userId,
 name: '', username: null, status: '', statusClass: '', initials: '',
-pantryCount: 0, pantryItems: [],
+pantryCount: 0, pantryItems: [], allergensRevealed: false, allergens: [], allergenLoading: false, allergenError: null, viewedBy: '', viewedTime: '',
 }
 try {
 type DetailResponse = {
@@ -610,7 +628,7 @@ pantry_max: number
 const data = await apiFetch<DetailResponse>('/api/admin/users/' + userId, { isAdmin: true })
 const u = data.user
 modal.value = {
-open: true, loading: false, error: null,
+open: true, loading: false, error: null, userId: userId,
 name: u.name,
 username: u.username,
 status: u.status,
@@ -618,6 +636,7 @@ statusClass: statusClassOf(u.status),
 initials: initialsOf(u.name),
 pantryCount: u.pantry_count,
 pantryItems: u.pantry_items,
+allergensRevealed: false, allergens: [], allergenLoading: false, allergenError: null, viewedBy: '', viewedTime: '',
 }
 } catch (err) {
 modal.value.loading = false
@@ -627,6 +646,35 @@ modal.value.error = err instanceof ApiError ? err.message : 'Failed to load cons
 
 function closeModal(): void {
 modal.value.open = false
+}
+
+async function showAllergens(): Promise<void> {
+	const userId = modal.value.userId
+	if (!userId) return
+	modal.value.allergenLoading = true
+	modal.value.allergenError = null
+	try {
+		// Step 1: Write audit log — MUST succeed before allergens are revealed
+		type LogResponse = { success: boolean; viewed_by: string; time_label: string }
+		const logResult = await apiFetch<LogResponse>('/api/admin/users/' + userId + '/log-allergen-view', { method: 'POST', isAdmin: true })
+		// Step 2: Fetch allergens only if log succeeded
+		type AllergenResponse = { success: boolean; allergens: string[] }
+		const allergenResult = await apiFetch<AllergenResponse>('/api/admin/users/' + userId + '/allergens', { isAdmin: true })
+		modal.value.allergens = allergenResult.allergens
+		modal.value.viewedBy = logResult.viewed_by
+		modal.value.viewedTime = logResult.time_label
+		modal.value.allergensRevealed = true
+	} catch (err) {
+		modal.value.allergenError = err instanceof ApiError ? err.message : 'Failed to load allergens. Please try again.'
+	} finally {
+		modal.value.allergenLoading = false
+	}
+}
+
+function hideAllergens(): void {
+	modal.value.allergensRevealed = false
+	modal.value.allergens = []
+	modal.value.allergenError = null
 }
 
 function viewInCatalog(productId: number): void {
@@ -1122,7 +1170,6 @@ td {
 .cdm-sk { height: 72px; border-radius: 10px; }
 .cdm-error { padding: 24px; color: #dc2626; font-size: 0.88rem; text-align: center; }
 .cdm-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
-.cdm-allergen-placeholder { background: #fff8f1; border: 1px solid #fed7aa; border-radius: 10px; padding: 14px 16px; }
 .cdm-allergen-label { font-size: 0.88rem; font-weight: 700; color: #c2410c; }
 .cdm-pantry-header { display: flex; align-items: center; gap: 10px; }
 .cdm-pantry-title { font-size: 1rem; font-weight: 700; color: #0f172a; }
@@ -1139,4 +1186,18 @@ td {
 .cdm-catalog-btn:hover { text-decoration: underline; }
 .cdm-footer { padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; }
 .cdm-close-btn { border: 1px solid #e2e8f0; background: #fff; color: #374151; border-radius: 8px; padding: 8px 20px; font-size: 0.875rem; font-weight: 600; cursor: pointer; }
-.cdm-close-btn:hover { background: #f8fafc; }</style>
+.cdm-close-btn:hover { background: #f8fafc; }
+.cdm-allergen-box { background: #fff8f1; border: 1px solid #fed7aa; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.cdm-allergen-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cdm-allergen-label { font-size: 0.88rem; font-weight: 700; color: #c2410c; }
+.cdm-allergen-btn { border: 1px solid #d1d5db; background: #fff; color: #374151; border-radius: 7px; padding: 5px 14px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.cdm-allergen-btn:hover:not(:disabled) { background: #f9fafb; }
+.cdm-allergen-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.cdm-allergen-masked { display: flex; gap: 8px; flex-wrap: wrap; }
+.cdm-masked-pill { background: #f1f5f9; color: #94a3b8; border-radius: 9999px; padding: 3px 12px; font-size: 0.8rem; letter-spacing: 2px; }
+.cdm-allergen-revealed { display: flex; flex-direction: column; gap: 6px; }
+.cdm-allergen-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.cdm-allergen-tag { background: #fff; border: 1px solid #fb923c; color: #c2410c; border-radius: 9999px; padding: 3px 12px; font-size: 0.8rem; font-weight: 600; }
+.cdm-no-allergens { font-size: 0.82rem; color: #9ca3af; font-style: italic; }
+.cdm-allergen-note { font-size: 0.74rem; color: #9ca3af; }
+.cdm-allergen-error { font-size: 0.82rem; color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 6px 10px; }</style>

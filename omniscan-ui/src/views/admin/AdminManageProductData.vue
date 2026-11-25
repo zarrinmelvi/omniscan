@@ -946,15 +946,12 @@ async function onCategoriesChanged(): Promise<void> {
 }
 
 /** Called when AddAllergenModal emits 'created'. Refreshes the allergen tab. */
-async function onAllergenCreated(payload: { id: number; name: string }): Promise<void> {
+async function onAllergenCreated(_payload: { id: number; name: string }): Promise<void> {
 	showAddAllergen.value = false
 	await fetchTabContent('allergen')
 	await refreshAfterAllergenChange()
-	// Briefly highlight the new row — find it in allergenRows after refresh.
-	void nextTick(() => {
-		const row = allergenRows.value.find((r) => r.id === payload.id)
-		if (row) openEditModal(row)
-	})
+	// The new allergen now appears in the table. The admin can click Edit if needed.
+	// (Chaining openEditModal here caused a modal loop — intentionally removed.)
 }
 
 /** Called when AddAllergenModal emits 'edit-existing'. Opens the edit modal for that allergen. */

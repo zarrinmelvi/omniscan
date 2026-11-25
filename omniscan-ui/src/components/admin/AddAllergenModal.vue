@@ -165,6 +165,22 @@
 					</button>
 				</div>
 
+				<!-- ── Confirmation overlay ── -->
+				<transition name="aa-confirm-fade">
+					<div v-if="confirmOpen" class="aa-confirm-backdrop">
+						<div class="aa-confirm-card" role="alertdialog" aria-modal="true">
+							<h3 class="aa-confirm-title">Add allergen "{{ nameInput.trim() }}"?</h3>
+							<p class="aa-confirm-body">This will add it to the allergen dictionary and sync it to the OmniScan knowledge base immediately.</p>
+							<div class="aa-confirm-actions">
+								<button class="aa-confirm-cancel" :disabled="saving" @click="confirmOpen = false">Cancel</button>
+								<button class="aa-confirm-ok" :disabled="saving" @click="executeCreate">
+									{{ saving ? 'Creating…' : 'Confirm' }}
+								</button>
+							</div>
+						</div>
+					</div>
+				</transition>
+
 			</div>
 		</div>
 	</Teleport>
@@ -231,6 +247,7 @@ const duplicateRecord     = ref<AllergenRow | null>(null)
 // Save
 const saving              = ref(false)
 const saveError           = ref<string | null>(null)
+const confirmOpen         = ref(false)
 
 // ─── Lifecycle ───────────────────────────────────────────────────────────────
 watch(() => props.open, (val) => {
@@ -251,6 +268,7 @@ function resetState(): void {
 	activeSuggestionIdx.value = -1
 	selectedEntry.value       = null
 	saveError.value           = null
+	confirmOpen.value         = false
 	nextTick(() => nameInputEl.value?.focus())
 }
 
@@ -261,9 +279,14 @@ watch(nameInput, (val) => {
 		duplicateRecord.value = null
 		return
 	}
-	duplicateRecord.value = props.existingAllergens.find(
-		(a) => a.name.toLowerCase() === trimmed,
-	) ?? null
+	// Match exact name, OR existing name is typed name + 's', OR typed name is existing name + 's'.
+	// This catches "Peanut" vs existing "Peanuts" (and vice-versa).
+	duplicateRecord.value = props.existingAllergens.find((a) => {
+		const existing = a.name.toLowerCase()
+		return existing === trimmed
+			|| existing === trimmed + 's'
+			|| existing + 's' === trimmed
+	}) ?? null
 })
 
 // ─── Autocomplete ─────────────────────────────────────────────────────────────
@@ -398,11 +421,19 @@ function useDifferentName(): void {
 	nextTick(() => nameInputEl.value?.focus())
 }
 
-// ─── Save ─────────────────────────────────────────────────────────────────────
-async function save(): Promise<void> {
+// ─── Save — step 1: open confirmation dialog ─────────────────────────────────
+function save(): void {
 	const name = nameInput.value.trim()
 	if (!name || duplicateRecord.value) return
-	saving.value  = true
+	saveError.value = null
+	confirmOpen.value = true
+}
+
+// ─── Save — step 2: confirmed, fire the API ───────────────────────────────────
+async function executeCreate(): Promise<void> {
+	const name = nameInput.value.trim()
+	if (!name) return
+	saving.value    = true
 	saveError.value = null
 	try {
 		// 1. Create the allergen record
@@ -429,8 +460,10 @@ async function save(): Promise<void> {
 			})
 		}
 
+		confirmOpen.value = false
 		emit('created', { id: newId, name: created.allergen.name })
 	} catch (err) {
+		confirmOpen.value = false
 		saveError.value = err instanceof ApiError ? err.message : 'Failed to create allergen. Please try again.'
 	} finally {
 		saving.value = false
@@ -459,6 +492,7 @@ function requestClose(): void {
 
 /* ── Modal ── */
 .aa-modal {
+	position: relative;
 	background: #fff;
 	border-radius: 16px;
 	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
@@ -688,4 +722,61 @@ function requestClose(): void {
 .aa-btn-create:hover:not(:disabled) { background: #00753a; }
 .aa-btn-cancel:disabled,
 .aa-btn-create:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Confirmation overlay ── */
+.aa-confirm-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(15, 23, 42, 0.35);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 16px;
+	z-index: 20;
+	padding: 24px;
+}
+.aa-confirm-card {
+	background: #fff;
+	border-radius: 14px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
+	padding: 24px;
+	width: 100%;
+	max-width: 360px;
+}
+.aa-confirm-title {
+	font-size: 1rem;
+	font-weight: 700;
+	color: #0f172a;
+	margin: 0 0 10px;
+}
+.aa-confirm-body {
+	font-size: 0.875rem;
+	color: #334155;
+	margin: 0 0 20px;
+	line-height: 1.55;
+}
+.aa-confirm-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
+.aa-confirm-cancel {
+	height: 36px; padding: 0 18px;
+	background: #fff; border: 1px solid #e2e8f0; color: #64748b;
+	border-radius: 8px; font-size: 0.85rem; cursor: pointer; transition: background .12s;
+}
+.aa-confirm-cancel:hover:not(:disabled) { background: #f8fafc; }
+.aa-confirm-ok {
+	height: 36px; padding: 0 18px;
+	background: #008744; border: none; color: #fff;
+	border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+	cursor: pointer; transition: background .12s;
+}
+.aa-confirm-ok:hover:not(:disabled) { background: #00753a; }
+.aa-confirm-cancel:disabled,
+.aa-confirm-ok:disabled { opacity: 0.5; cursor: not-allowed; }
+.aa-confirm-fade-enter-active,
+.aa-confirm-fade-leave-active { transition: opacity 0.18s ease; }
+.aa-confirm-fade-enter-from,
+.aa-confirm-fade-leave-to    { opacity: 0; }
 </style>

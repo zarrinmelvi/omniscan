@@ -418,7 +418,8 @@ export const ModelName = {
   ProductHalalLogo: 'ProductHalalLogo',
   CatalogProductHalalLogo: 'CatalogProductHalalLogo',
   Admin: 'Admin',
-  AppSetting: 'AppSetting'
+  AppSetting: 'AppSetting',
+  ProductCategory: 'ProductCategory'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -434,7 +435,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "activityLog" | "auditEvent" | "user" | "dietaryProfile" | "notification" | "allergen" | "ingredientMapping" | "recipe" | "recipeInteraction" | "ingredient" | "product" | "halalLogo" | "pantryItem" | "scan" | "flaggedScan" | "catalogProduct" | "catalogIngredient" | "catalogProductIngredient" | "productHalalLogo" | "catalogProductHalalLogo" | "admin" | "appSetting"
+    modelProps: "activityLog" | "auditEvent" | "user" | "dietaryProfile" | "notification" | "allergen" | "ingredientMapping" | "recipe" | "recipeInteraction" | "ingredient" | "product" | "halalLogo" | "pantryItem" | "scan" | "flaggedScan" | "catalogProduct" | "catalogIngredient" | "catalogProductIngredient" | "productHalalLogo" | "catalogProductHalalLogo" | "admin" | "appSetting" | "productCategory"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2066,6 +2067,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProductCategory: {
+      payload: Prisma.$ProductCategoryPayload<ExtArgs>
+      fields: Prisma.ProductCategoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProductCategoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductCategoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProductCategoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductCategoryPayload>
+        }
+        findFirst: {
+          args: Prisma.ProductCategoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductCategoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProductCategoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductCategoryPayload>
+        }
+        findMany: {
+          args: Prisma.ProductCategoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductCategoryPayload>[]
+        }
+        create: {
+          args: Prisma.ProductCategoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductCategoryPayload>
+        }
+        createMany: {
+          args: Prisma.ProductCategoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProductCategoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductCategoryPayload>[]
+        }
+        delete: {
+          args: Prisma.ProductCategoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductCategoryPayload>
+        }
+        update: {
+          args: Prisma.ProductCategoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductCategoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProductCategoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProductCategoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProductCategoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductCategoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProductCategoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductCategoryPayload>
+        }
+        aggregate: {
+          args: Prisma.ProductCategoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProductCategory>
+        }
+        groupBy: {
+          args: Prisma.ProductCategoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductCategoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProductCategoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductCategoryCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2278,6 +2353,7 @@ export const ProductScalarFieldEnum = {
   is_verified: 'is_verified',
   image_base64: 'image_base64',
   image_base64_back: 'image_base64_back',
+  image_thumb_base64: 'image_thumb_base64',
   halal_logo_id: 'halal_logo_id',
   confirmed_not_halal: 'confirmed_not_halal',
   halal_unverified: 'halal_unverified',
@@ -2464,6 +2540,17 @@ export const AppSettingScalarFieldEnum = {
 } as const
 
 export type AppSettingScalarFieldEnum = (typeof AppSettingScalarFieldEnum)[keyof typeof AppSettingScalarFieldEnum]
+
+
+export const ProductCategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  is_locked: 'is_locked',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ProductCategoryScalarFieldEnum = (typeof ProductCategoryScalarFieldEnum)[keyof typeof ProductCategoryScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2783,6 +2870,7 @@ export type GlobalOmitConfig = {
   catalogProductHalalLogo?: Prisma.CatalogProductHalalLogoOmit
   admin?: Prisma.AdminOmit
   appSetting?: Prisma.AppSettingOmit
+  productCategory?: Prisma.ProductCategoryOmit
 }
 
 /* Types for Logging */

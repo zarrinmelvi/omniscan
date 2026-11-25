@@ -1,7 +1,7 @@
 import { defineEventHandler, readBody, getRouterParam, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
-import { isValidPantryUnit, isValidPantryCategory } from '../../lib/pantry-taxonomy'
+import { isValidPantryUnit } from '../../lib/pantry-taxonomy'
 
 interface UpdatePantryItemBody {
 	net_content?: number | null
@@ -59,7 +59,7 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'is_archived must be a boolean.' })
 	}
 
-	if (category !== undefined && !isValidPantryCategory(category)) {
+	if (category !== undefined && (typeof category !== 'string' || category.trim().length === 0 || category.trim().length > 50)) {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid category.' })
 	}
 

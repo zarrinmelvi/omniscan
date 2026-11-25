@@ -5,7 +5,7 @@ import { matchIngredientsToPantry, extractPantryKeywords, keywordSourceNames, ty
 import { buildCanonicalKey, findCanonicalProduct } from '../../lib/product-dedup'
 import { assertPantryQuotaAvailable } from '../../lib/quota'
 import { makeThumbDataUri } from '../../lib/image-thumb'
-import { isValidPantryUnit, isValidPantryCategory, inferCategory } from '../../lib/pantry-taxonomy'
+import { isValidPantryUnit, inferCategory } from '../../lib/pantry-taxonomy'
 
 interface CreatePantryItemBody {
 	product_id?: number
@@ -133,7 +133,7 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'storage_location must be one of: Fridge, Freezer, Cupboard.' })
 	}
 
-	if (category !== undefined && category !== null && !isValidPantryCategory(category)) {
+	if (category !== undefined && category !== null && (typeof category !== 'string' || category.trim().length === 0 || category.trim().length > 50)) {
 		throw createError({ statusCode: 400, statusMessage: 'Invalid category.' })
 	}
 
@@ -181,8 +181,10 @@ export default defineEventHandler(async (event) => {
 			product = created
 		}
 
-		const resolvedCategory = (category && isValidPantryCategory(category))
-			? category
+		// Accept any non-empty category string (admin-managed via ProductCategory table).
+		// Fall back to keyword-inferred category when none is supplied.
+		const resolvedCategory = (category && typeof category === 'string' && category.trim().length > 0)
+			? category.trim()
 			: inferCategory(product.product_name)
 
 		const newItem = await prisma.pantryItem.create({

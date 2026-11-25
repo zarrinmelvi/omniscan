@@ -415,7 +415,7 @@
 							<option value="all">All categories</option>
 							<option v-for="cat in PRODUCT_CATEGORIES" :key="cat" :value="cat">{{ cat }}</option>
 						</select>
-						<button class="btn-manage-categories">Manage Categories</button>
+						<button class="btn-manage-categories" @click="showManageCategories = true">Manage Categories</button>
 					</div>
 				</div>
 
@@ -755,6 +755,13 @@
 		<Teleport to="body">
 			<div v-if="halalToast.visible" class="product-toast">{{ halalToast.message }}</div>
 		</Teleport>
+
+		<!-- ══════════════════ MANAGE CATEGORIES MODAL ══════════════════ -->
+		<ManageCategoriesModal
+			:open="showManageCategories"
+			@close="showManageCategories = false"
+			@categories-changed="onCategoriesChanged"
+		/>
 	</div>
 </template>
 
@@ -764,6 +771,7 @@ import { useRoute } from 'vue-router'
 import { apiFetch, ApiError } from '@/utils/api'
 import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal.vue'
+import ManageCategoriesModal from '@/components/admin/ManageCategoriesModal.vue'
 
 type TabType = 'allergen' | 'halal' | 'ingredient' | 'products'
 
@@ -863,17 +871,39 @@ function setProductRowRef(id: number, el: unknown): void {
 	productRowRefs.value[id] = (el as HTMLElement) ?? null
 }
 
-// Canonical category list (mirrors server/lib/pantry-taxonomy.ts PANTRY_CATEGORIES)
-const PRODUCT_CATEGORIES = [
-	'Canned Goods',
-	'Instant Noodles',
-	'Condiments & Sauces',
-	'Dairy',
-	'Snacks',
-	'Beverages',
-	'Grains',
-	'Uncategorized',
-] as const
+// ─── Category list (dynamic — backed by GET /api/admin/categories) ────────────
+// Loaded on mount and refreshed after any Manage Categories change.
+// Falls back to the static list so the dropdown is never empty on a fetch error.
+const FALLBACK_CATEGORIES = [
+	'Canned Goods', 'Instant Noodles', 'Condiments & Sauces',
+	'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized',
+]
+const PRODUCT_CATEGORIES = ref<string[]>(FALLBACK_CATEGORIES)
+const showManageCategories = ref(false)
+
+async function fetchCategoryList(): Promise<void> {
+	try {
+		const data = await apiFetch<{ success: boolean; categories: Array<{ name: string; is_locked: boolean }> }>(
+			'/api/admin/categories',
+			{ isAdmin: true },
+		)
+		if (data.categories?.length) {
+			PRODUCT_CATEGORIES.value = data.categories.map((c) => c.name)
+		}
+	} catch {
+		// Non-fatal: the dropdown keeps working with whatever list it already has.
+	}
+}
+
+/** Called when ManageCategoriesModal emits 'categories-changed'. */
+async function onCategoriesChanged(): Promise<void> {
+	// Refresh the category dropdown options.
+	await fetchCategoryList()
+	// If the Products tab is currently visible, re-fetch to pick up new counts/names.
+	if (activeTab.value === 'products') {
+		void fetchProducts({ resetPage: false })
+	}
+}
 
 let productSearchTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -1729,6 +1759,8 @@ onMounted(() => {
 	void fetchTabCounts(initial)
 	// Full allergen list for dropdowns (the allergen tab loads it itself when empty).
 	if (initial !== 'allergen' && allergens.value.length === 0) void fetchAllergens().catch(() => undefined)
+	// Load the dynamic category list for the Products tab dropdown.
+	void fetchCategoryList()
 })
 </script>
 

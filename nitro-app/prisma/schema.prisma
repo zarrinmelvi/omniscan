@@ -500,3 +500,16 @@ model AppSetting {
 	updated_at DateTime @updatedAt
 	deleted_at DateTime?
 }
+
+// ─── Product/Pantry category registry ────────────────────────────────────────
+// Stores the admin-managed list of pantry categories shown to consumers in
+// scan, upload, and pantry-edit flows. Replaces the static PANTRY_CATEGORIES
+// const as the source of truth once this migration is applied.
+// is_locked = true means the category cannot be renamed or deleted (Uncategorized).
+model ProductCategory {
+	id         Int      @id @default(autoincrement())
+	name       String   @unique
+	is_locked  Boolean  @default(false)
+	created_at DateTime @default(now())
+	updated_at DateTime @updatedAt
+}

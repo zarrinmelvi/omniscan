@@ -151,3 +151,8 @@ export type Admin = Prisma.AdminModel
  * 
  */
 export type AppSetting = Prisma.AppSettingModel
+/**
+ * Model ProductCategory
+ * 
+ */
+export type ProductCategory = Prisma.ProductCategoryModel

@@ -42,6 +42,8 @@ interface ProductRow {
 	canonical_key: string | null
 	canonical_product_id: number | null
 	updated_at: Date
+	pantry_count: number
+	category: string
 }
 
 function deriveAllergens(scans: Array<{ flag_reason: string | null }>): string[] {
@@ -67,6 +69,10 @@ export default defineEventHandler(async (event) => {
 	const sort = typeof query.sort === 'string' ? query.sort : 'name_asc'
 	const page = Math.max(1, Number(query.page) || 1)
 	const limit = Math.max(1, Number(query.limit) || 10)
+	// Products tab extras
+	const pantryOnly = query.pantry_only === 'true' || query.pantry_only === '1'
+	const categoryFilter = typeof query.category_filter === 'string' ? query.category_filter.trim() : 'all'
+	const highlightId = query.highlight_id ? parseInt(String(query.highlight_id), 10) : null
 
 	try {
 		// Build the set of canonical_keys shared by >= 2 non-deleted products so we
@@ -102,6 +108,10 @@ export default defineEventHandler(async (event) => {
 				},
 				scan: { select: { id: true, safety_verdict: true, flag_reason: true } },
 				_count: { select: { scan: true } },
+				pantry_item: {
+					where: { deleted_at: null },
+					select: { category: true },
+				},
 			},
 		})
 
@@ -132,6 +142,22 @@ export default defineEventHandler(async (event) => {
 					: `data:image/jpeg;base64,${p.image_base64}`
 			}
 
+			// Derive pantry_count and most-common category from pantry_item rows
+			const pantryItems = p.pantry_item ?? []
+			const pantry_count = pantryItems.length
+
+			// Pick the most frequently used category among all pantry items for this product.
+			// Falls back to 'Uncategorized' when no pantry items or all categories are null.
+			let category = 'Uncategorized'
+			if (pantryItems.length > 0) {
+				const freq: Record<string, number> = {}
+				for (const item of pantryItems) {
+					const cat = item.category ?? 'Uncategorized'
+					freq[cat] = (freq[cat] ?? 0) + 1
+				}
+				category = Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0]
+			}
+
 			return {
 				id: p.id,
 				brand_name: p.brand_name,
@@ -144,6 +170,8 @@ export default defineEventHandler(async (event) => {
 				canonical_key: p.canonical_key,
 				canonical_product_id: p.canonical_product_id,
 				updated_at: p.updated_at,
+				pantry_count,
+				category,
 			}
 		})
 
@@ -157,34 +185,55 @@ export default defineEventHandler(async (event) => {
 			)
 			: mapped
 
-		// Filter-chip counts (computed after search, before the active filter)
-		const total = searched.length
-		const duplicates_count = searched.filter((r) => r.possible_duplicate).length
-		const unverified_count = searched.filter((r) => r.halal_status.kind === 'unverified').length
+		// pantry_only=true: only products that appear in at least one pantry item.
+		const pantryFiltered = pantryOnly
+			? searched.filter((r) => r.pantry_count > 0)
+			: searched
 
-		// Apply active filter
-		let filtered = searched
+		// Filter-chip counts (computed after search, before the active filter)
+		const total = pantryFiltered.length
+		const duplicates_count = pantryFiltered.filter((r) => r.possible_duplicate).length
+		const unverified_count = pantryFiltered.filter((r) => r.halal_status.kind === 'unverified').length
+
+		// Apply active filter (existing catalog-mgmt filters)
+		let filtered = pantryFiltered
 		if (filter === 'duplicates') {
-			filtered = searched.filter((r) => r.possible_duplicate)
+			filtered = pantryFiltered.filter((r) => r.possible_duplicate)
 		} else if (filter === 'unverified') {
-			filtered = searched.filter((r) => r.halal_status.kind === 'unverified')
+			filtered = pantryFiltered.filter((r) => r.halal_status.kind === 'unverified')
+		}
+
+		// Apply category filter (Products tab)
+		if (categoryFilter && categoryFilter !== 'all') {
+			filtered = filtered.filter((r) => r.category === categoryFilter)
 		}
 
 		// Apply sort
 		const sorted = [...filtered]
-		if (sort === 'name_desc') {
+		if (sort === 'most_used') {
+			sorted.sort((a, b) => b.pantry_count - a.pantry_count)
+		} else if (sort === 'name_desc') {
 			sorted.sort((a, b) => b.product_name.localeCompare(a.product_name))
 		} else if (sort === 'scans') {
 			sorted.sort((a, b) => b.scan_count - a.scan_count)
 		} else if (sort === 'newest') {
 			sorted.sort((a, b) => b.updated_at.getTime() - a.updated_at.getTime())
 		} else {
+			// default: name_asc
 			sorted.sort((a, b) => a.product_name.localeCompare(b.product_name))
 		}
 
 		const total_filtered = sorted.length
 		const start = (page - 1) * limit
 		const pageSlice = sorted.slice(start, start + limit)
+
+		// If a highlight_id was supplied, tell the client which page it lives on
+		// (given the current sort/filter) so the Products tab can jump there.
+		let highlight_page: number | null = null
+		if (highlightId != null && !Number.isNaN(highlightId)) {
+			const idx = sorted.findIndex((r) => r.id === highlightId)
+			if (idx >= 0) highlight_page = Math.floor(idx / limit) + 1
+		}
 
 		return {
 			success: true,
@@ -195,6 +244,7 @@ export default defineEventHandler(async (event) => {
 			unverified_count,
 			page,
 			limit,
+			highlight_page,
 		}
 	} catch (err: any) {
 		if (err?.statusCode) throw err

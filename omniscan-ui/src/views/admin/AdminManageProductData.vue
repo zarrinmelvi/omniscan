@@ -2,7 +2,7 @@
 	<div class="manage-product-data">
 		<header class="page-header">
 			<h1>Manage Product Data</h1>
-			<p class="subtitle">Allergen dictionary · Halal certifier library · Ingredient mappings — all synced to the OmniScan knowledge base</p>
+			<p class="subtitle">Allergen dictionary · Halal certifier library · Ingredient mappings · Product catalog — all synced to the OmniScan knowledge base</p>
 		</header>
 
 		<!-- Tabs -->
@@ -28,6 +28,15 @@
 				</svg>
 				Ingredient Mappings
 				<span class="tab-count-badge">{{ ingredientTotal }}</span>
+			</button>
+			<button class="tab-button" :class="{ active: activeTab === 'products' }" @click="switchTab('products')">
+				<svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+					<line x1="3" y1="6" x2="21" y2="6"></line>
+					<path d="M16 10a4 4 0 0 1-8 0"></path>
+				</svg>
+				Products
+				<span class="tab-count-badge">{{ productTotal }}</span>
 			</button>
 		</div>
 
@@ -383,6 +392,149 @@
 					</div>
 				</div>
 			</template>
+
+			<!-- 4. PRODUCTS TAB -->
+			<template v-else-if="activeTab === 'products'">
+				<!-- Toolbar -->
+				<div class="products-controls-bar">
+					<span class="section-title">Product Catalog &amp; Pantry Categories</span>
+					<div class="products-controls-right">
+						<div class="search-box">
+							<svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<circle cx="11" cy="11" r="8"></circle>
+								<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+							</svg>
+							<input v-model="productSearch" type="text" placeholder="Search..." />
+						</div>
+						<select v-model="productSort" class="products-select">
+							<option value="most_used">Sort: Most used</option>
+							<option value="name_asc">Sort: A → Z</option>
+							<option value="name_desc">Sort: Z → A</option>
+						</select>
+						<select v-model="productCategoryFilter" class="products-select">
+							<option value="all">All categories</option>
+							<option v-for="cat in PRODUCT_CATEGORIES" :key="cat" :value="cat">{{ cat }}</option>
+						</select>
+						<button class="btn-manage-categories">Manage Categories</button>
+					</div>
+				</div>
+
+				<!-- Error banner -->
+				<div v-if="productError" class="admin-error-banner">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+					<span>{{ productError }}</span>
+					<button class="admin-error-retry" @click="fetchProducts()">Try again</button>
+				</div>
+
+				<!-- Table -->
+				<div v-else class="table-wrap">
+					<table class="data-table products-table">
+						<thead>
+							<tr>
+								<th class="col-id">ID</th>
+								<th>PRODUCT</th>
+								<th>CATEGORY</th>
+								<th>USAGE</th>
+								<th class="col-actions">ACTIONS</th>
+							</tr>
+						</thead>
+						<tbody>
+							<!-- Loading skeletons -->
+							<template v-if="productIsLoading">
+								<tr v-for="n in 8" :key="'psk-' + n" class="product-sk-row">
+									<td><div class="sk-cell shimmer" style="width:36px;height:12px"></div></td>
+									<td>
+										<div class="sk-cell shimmer" style="width:160px;height:14px;margin-bottom:7px"></div>
+										<div class="sk-cell shimmer" style="width:110px;height:11px"></div>
+									</td>
+									<td><div class="sk-cell shimmer" style="width:90px;height:22px;border-radius:9999px"></div></td>
+									<td><div class="sk-cell shimmer" style="width:70px;height:12px"></div></td>
+									<td><div class="sk-cell shimmer" style="width:56px;height:28px;border-radius:20px"></div></td>
+								</tr>
+							</template>
+
+							<!-- Empty state -->
+							<template v-else-if="productRows.length === 0">
+								<tr>
+									<td colspan="5" class="products-empty-cell">
+										<div class="products-empty">
+											<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+												<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+												<line x1="3" y1="6" x2="21" y2="6"></line>
+												<path d="M16 10a4 4 0 0 1-8 0"></path>
+											</svg>
+											<p>{{ productSearch || productCategoryFilter !== 'all' ? 'No products match your search.' : 'No products found in any consumer pantry.' }}</p>
+										</div>
+									</td>
+								</tr>
+							</template>
+
+							<!-- Data rows -->
+							<template v-else>
+								<tr
+									v-for="row in productRows"
+									:key="row.id"
+									:ref="(el) => setProductRowRef(row.id, el)"
+									class="product-row"
+									:class="{ 'product-row--highlight': productHighlightId === row.id }"
+								>
+									<td class="cell-id">#{{ row.id }}</td>
+									<td class="product-cell-name">
+										<div class="product-name-line">
+											<span v-if="row.thumb" class="product-thumb-wrap">
+												<img :src="row.thumb" :alt="row.product_name" class="product-thumb" @error="(e) => ((e.target as HTMLImageElement).style.display = 'none')" />
+											</span>
+											<span v-else class="product-thumb-wrap product-thumb-placeholder"></span>
+											<span class="product-name-text">{{ row.product_name }}</span>
+										</div>
+										<div class="product-meta-line">
+											<span
+												class="halal-badge"
+												:class="{
+													'halal-ok': row.halal_status.kind === 'certified',
+													'halal-no': row.halal_status.kind === 'none',
+													'halal-doubt': row.halal_status.kind === 'unverified',
+												}"
+											>{{ row.halal_status.kind === 'certified' ? 'Halal' : row.halal_status.kind === 'unverified' ? 'Unverified' : 'No logo' }}</span>
+											<span v-if="row.allergens_detected.length" class="product-allergens">Allergens: {{ row.allergens_detected.join(', ') }}</span>
+											<span v-else class="product-allergens product-allergens--none">No allergens detected</span>
+										</div>
+									</td>
+									<td>
+										<span class="category-pill" :class="'cat--' + row.category.toLowerCase().replace(/[^a-z]/g, '-')">{{ row.category }}</span>
+									</td>
+									<td class="product-cell-usage">{{ row.pantry_count }} {{ row.pantry_count === 1 ? 'pantry' : 'pantries' }}</td>
+									<td class="col-actions">
+										<button class="btn-edit">
+											<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+												<path d="M12 20h9"></path>
+												<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+											</svg>
+											Edit
+										</button>
+									</td>
+								</tr>
+							</template>
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Pagination -->
+				<div v-if="!productIsLoading && productTotalPages > 1" class="pagination-bar">
+					<span class="pagination-count">
+						Showing {{ (productPage - 1) * PRODUCT_PAGE_SIZE + 1 }}–{{ Math.min(productPage * PRODUCT_PAGE_SIZE, productTotalFiltered) }} of {{ productTotalFiltered }}
+					</span>
+					<div class="pagination-controls">
+						<button class="page-nav" :disabled="productPage === 1" @click="productPage > 1 && productPage--" aria-label="Previous page">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+						</button>
+						<span class="pagination-count">{{ productPage }} / {{ productTotalPages }}</span>
+						<button class="page-nav" :disabled="productPage === productTotalPages" @click="productPage < productTotalPages && productPage++" aria-label="Next page">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+						</button>
+					</div>
+				</div>
+			</template>
 		</div>
 
 		<!-- ══════════════════ CREATE / EDIT MODAL ══════════════════ -->
@@ -607,13 +759,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiFetch, ApiError } from '@/utils/api'
 import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal.vue'
 
-type TabType = 'allergen' | 'halal' | 'ingredient'
+type TabType = 'allergen' | 'halal' | 'ingredient' | 'products'
+
+interface ProductCatalogRow {
+	id: number
+	brand_name: string
+	product_name: string
+	thumb: string | null
+	halal_status: { label: string; kind: 'certified' | 'unverified' | 'none' }
+	allergens_detected: string[]
+	pantry_count: number
+	category: string
+}
 
 interface AllergenMapping {
 	id: number
@@ -677,6 +840,42 @@ const ingredientMappings = ref<MappingRow[]>([])
 const allergenTotal = ref(0)
 const halalTotal = ref(0)
 const ingredientTotal = ref(0)
+const productTotal = ref(0)
+
+// ─── Products tab state ───────────────────────────────────────────────────────
+const PRODUCT_PAGE_SIZE = 15
+const productRows = ref<ProductCatalogRow[]>([])
+const productPage = ref(1)
+const productTotalFiltered = ref(0)
+const productTotalPages = computed(() => Math.max(1, Math.ceil(productTotalFiltered.value / PRODUCT_PAGE_SIZE)))
+const productSearch = ref('')
+const productSort = ref('most_used')
+const productCategoryFilter = ref('all')
+const productIsLoading = ref(false)
+const productError = ref<string | null>(null)
+// ID of the row to highlight (from ?highlight= URL param)
+const productHighlightId = ref<number | null>(null)
+// Ref map: id → row <tr> element, used for scroll-into-view
+const productRowRefs = ref<Record<number, HTMLElement | null>>({})
+let productHighlightTimer: ReturnType<typeof setTimeout> | null = null
+
+function setProductRowRef(id: number, el: unknown): void {
+	productRowRefs.value[id] = (el as HTMLElement) ?? null
+}
+
+// Canonical category list (mirrors server/lib/pantry-taxonomy.ts PANTRY_CATEGORIES)
+const PRODUCT_CATEGORIES = [
+	'Canned Goods',
+	'Instant Noodles',
+	'Condiments & Sauces',
+	'Dairy',
+	'Snacks',
+	'Beverages',
+	'Grains',
+	'Uncategorized',
+] as const
+
+let productSearchTimer: ReturnType<typeof setTimeout> | null = null
 
 interface PaginationInfo {
 	page: number
@@ -1103,8 +1302,71 @@ async function fetchMappings(): Promise<void> {
 	ingredientMappings.value = data.ingredient_mappings ?? []
 }
 
+/** Fetch a page of Products tab rows from the existing admin/products endpoint. */
+async function fetchProducts(opts: { resetPage?: boolean; highlightId?: number | null } = {}): Promise<void> {
+	if (opts.resetPage) productPage.value = 1
+	productIsLoading.value = true
+	productError.value = null
+	try {
+		const params = new URLSearchParams({
+			pantry_only: 'true',
+			sort: productSort.value,
+			page: String(productPage.value),
+			limit: String(PRODUCT_PAGE_SIZE),
+		})
+		if (productSearch.value.trim()) params.set('search', productSearch.value.trim())
+		if (productCategoryFilter.value && productCategoryFilter.value !== 'all') {
+			params.set('category_filter', productCategoryFilter.value)
+		}
+		// Ask the API which page the highlighted product lives on (first load only).
+		const hid = opts.highlightId ?? null
+		if (hid != null) params.set('highlight_id', String(hid))
+
+		const data = await apiFetch<{
+			success: boolean
+			products: ProductCatalogRow[]
+			total_filtered: number
+			total: number
+			page: number
+			limit: number
+			highlight_page: number | null
+		}>(`/api/admin/products?${params.toString()}`, { isAdmin: true })
+
+		productRows.value = data.products ?? []
+		productTotalFiltered.value = data.total_filtered ?? 0
+		productTotal.value = data.total ?? 0
+
+		// If the API told us the highlight lives on a different page, refetch that page.
+		if (hid != null && data.highlight_page != null && data.highlight_page !== productPage.value) {
+			productPage.value = data.highlight_page
+			// Re-fetch without passing highlightId again (page is now correct).
+			await fetchProducts()
+			return
+		}
+
+		// Scroll + highlight after the DOM has updated.
+		if (hid != null) {
+			nextTick(() => {
+				const el = productRowRefs.value[hid]
+				if (el && typeof el.scrollIntoView === 'function') {
+					el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+				}
+				productHighlightId.value = hid
+				if (productHighlightTimer) clearTimeout(productHighlightTimer)
+				productHighlightTimer = setTimeout(() => {
+					productHighlightId.value = null
+				}, 3500)
+			})
+		}
+	} catch (err) {
+		productError.value = err instanceof ApiError ? err.message : 'Failed to load product catalog.'
+	} finally {
+		productIsLoading.value = false
+	}
+}
+
 /**
- * Load all three tab badges in parallel (cheap one-row requests). Failures are
+ * Load all four tab badges in parallel (cheap one-row requests). Failures are
  * ignored per-tab so one bad endpoint never blocks the others. `skip` omits the
  * tab whose own fetch is already updating its total.
  */
@@ -1122,6 +1384,12 @@ async function fetchTabCounts(skip: TabType | null = null): Promise<void> {
 	if (skip !== 'ingredient') {
 		jobs.push(quiet(apiFetch<{ pagination: PaginationInfo }>('/api/ingredient_mapping?page=1&pageSize=1', { isAdmin: true })
 			.then((d) => { ingredientTotal.value = d.pagination?.total ?? ingredientTotal.value })))
+	}
+	if (skip !== 'products') {
+		jobs.push(quiet(
+			apiFetch<{ total: number }>('/api/admin/products?pantry_only=true&limit=1&page=1', { isAdmin: true })
+				.then((d) => { productTotal.value = d.total ?? productTotal.value }),
+		))
 	}
 	await Promise.all(jobs)
 }
@@ -1142,6 +1410,7 @@ async function fetchTabContent(tab: TabType): Promise<void> {
 				allergens.value.length ? Promise.resolve() : fetchAllergens(),
 			])
 		}
+		// 'products' is handled by fetchProducts() directly — not routed through here.
 	} catch (err) {
 		errorMessage.value = err instanceof ApiError ? err.message : 'Failed to fetch records from the knowledge base.'
 	} finally {
@@ -1185,6 +1454,27 @@ watch(ingredientPage, () => {
 	if (activeTab.value === 'ingredient') refetchActivePaginated()
 })
 
+// ─── Products tab watchers ────────────────────────────────────────────────────
+watch(productSearch, () => {
+	if (activeTab.value !== 'products') return
+	if (productSearchTimer) clearTimeout(productSearchTimer)
+	productSearchTimer = setTimeout(() => {
+		void fetchProducts({ resetPage: true })
+	}, 300)
+})
+watch(productCategoryFilter, () => {
+	if (activeTab.value !== 'products') return
+	void fetchProducts({ resetPage: true })
+})
+watch(productSort, () => {
+	if (activeTab.value !== 'products') return
+	void fetchProducts({ resetPage: true })
+})
+watch(productPage, () => {
+	if (activeTab.value !== 'products') return
+	void fetchProducts()
+})
+
 function switchTab(tab: TabType): void {
 	if (searchTimer) clearTimeout(searchTimer)
 	activeTab.value = tab
@@ -1192,7 +1482,14 @@ function switchTab(tab: TabType): void {
 	ingredientAllergenFilter.value = 'all'
 	allergenPage.value = 1
 	ingredientPage.value = 1
-	fetchTabContent(tab)
+	if (tab === 'products') {
+		productSearch.value = ''
+		productCategoryFilter.value = 'all'
+		productPage.value = 1
+		void fetchProducts()
+	} else {
+		fetchTabContent(tab)
+	}
 }
 
 // ─── Modal open/close ─────────────────────────────────────────────────────────
@@ -1323,6 +1620,7 @@ async function saveModal(): Promise<void> {
 			allergen: '/api/allergen',
 			halal: '/api/halal_logo',
 			ingredient: '/api/ingredient_mapping',
+			products: '/api/admin/products',
 		}
 		const endpoint = endpointMap[activeTab.value]
 		const payload: Record<string, any> = { ...form.value }
@@ -1392,6 +1690,7 @@ async function confirmDelete(): Promise<void> {
 		allergen: '/api/allergen',
 		halal: '/api/halal_logo',
 		ingredient: '/api/ingredient_mapping',
+		products: '/api/admin/products',
 	}
 	deleting.value = true
 	try {
@@ -1415,6 +1714,11 @@ onMounted(() => {
 	if (tabParam === 'halal') {
 		initial = 'halal'
 		switchTab('halal')
+	} else if (tabParam === 'products') {
+		initial = 'products'
+		activeTab.value = 'products'
+		const hid = route.query.highlight ? parseInt(String(route.query.highlight), 10) : null
+		void fetchProducts({ highlightId: !hid || isNaN(hid) ? null : hid })
 	} else {
 		fetchTabContent('allergen')
 	}
@@ -1858,4 +2162,141 @@ html.ion-palette-dark .cert-btn-delete:hover { background: rgba(220, 38, 38, 0.2
 .im-sk-group { margin-bottom: 16px; }
 .im-sk-group-header { height: 40px; border-radius: 0; margin-bottom: 2px; }
 .im-sk-row { height: 48px; border-bottom: 1px solid #f1f5f9; }
+
+/* ════════════════════════════════════════════════
+   Products Tab
+   ════════════════════════════════════════════════ */
+
+/* Toolbar */
+.products-controls-bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 24px;
+	border-bottom: 1px solid #f1f5f9;
+	flex-wrap: wrap;
+}
+.products-controls-right {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: 1;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+}
+.products-select {
+	height: 40px;
+	padding: 0 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	font-size: 0.85rem;
+	color: #334155;
+	background: #fff;
+	cursor: pointer;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+.btn-manage-categories {
+	height: 40px;
+	display: inline-flex;
+	align-items: center;
+	padding: 0 16px;
+	border: 1.5px solid #008744;
+	background: #fff;
+	color: #008744;
+	border-radius: 10px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	white-space: nowrap;
+	flex-shrink: 0;
+	transition: background 0.12s, color 0.12s;
+}
+.btn-manage-categories:hover { background: #f0fdf4; }
+
+/* Table layout */
+.products-table { min-width: 700px; }
+.products-table th { white-space: nowrap; }
+
+/* Product name + meta cell */
+.product-cell-name { vertical-align: middle; }
+.product-name-line {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 5px;
+}
+.product-thumb-wrap {
+	width: 36px;
+	height: 36px;
+	border-radius: 8px;
+	border: 1px solid #e2e8f0;
+	background: #f8fafc;
+	flex-shrink: 0;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.product-thumb-placeholder { background: #f1f5f9; }
+.product-thumb { width: 100%; height: 100%; object-fit: contain; }
+.product-name-text { font-weight: 600; color: #0f172a; font-size: 0.9rem; }
+.product-meta-line {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding-left: 46px; /* aligns under text, past the thumb */
+}
+.product-allergens { font-size: 0.75rem; color: #64748b; }
+.product-allergens--none { color: #94a3b8; font-style: italic; }
+.product-cell-usage { font-size: 0.88rem; color: #334155; white-space: nowrap; }
+
+/* Category pill — base */
+.category-pill {
+	display: inline-block;
+	padding: 3px 11px;
+	border-radius: 9999px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	white-space: nowrap;
+	/* default (Uncategorized / fallback) */
+	background: #f1f5f9;
+	color: #475569;
+}
+/* Per-category colour tokens — keyed to the CSS class generated in template */
+.cat--canned-goods        { background: #cffafe; color: #0e7490; }
+.cat--instant-noodles     { background: #fef3c7; color: #b45309; }
+.cat--condiments---sauces { background: #ffedd5; color: #c2410c; }
+.cat--dairy               { background: #fef9c3; color: #a16207; }
+.cat--snacks              { background: #ede9fe; color: #7c3aed; }
+.cat--beverages           { background: #dbeafe; color: #1d4ed8; }
+.cat--grains              { background: #dcfce7; color: #15803d; }
+.cat--uncategorized       { background: #f1f5f9; color: #64748b; }
+
+/* Green highlight row (deep-link from Ticket 1) */
+.product-row--highlight td {
+	background: #f0fdf4;
+}
+.product-row--highlight td:first-child {
+	border-left: 3px solid #22c55e;
+}
+
+/* Smooth fade-out: the class is removed after 3.5 s, transition carries the fade */
+.product-row td { transition: background 1.2s ease; }
+.product-row td:first-child { transition: background 1.2s ease, border-left-color 1.2s ease; }
+
+/* Empty state */
+.products-empty-cell { padding: 0 !important; border-bottom: none !important; }
+.products-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	padding: 48px 24px;
+	color: #94a3b8;
+}
+.products-empty p { margin: 0; font-size: 0.9rem; color: #64748b; }
+
+/* Skeleton rows */
+.product-sk-row td { padding: 14px 24px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
 </style>

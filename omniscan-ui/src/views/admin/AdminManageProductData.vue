@@ -505,7 +505,7 @@
 									</td>
 									<td class="product-cell-usage">{{ row.pantry_count }} {{ row.pantry_count === 1 ? 'pantry' : 'pantries' }}</td>
 									<td class="col-actions">
-										<button class="btn-edit">
+										<button class="btn-edit" @click="editingProduct = { id: row.id, product_name: row.product_name, brand_name: row.brand_name, category: row.category }">
 											<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 												<path d="M12 20h9"></path>
 												<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
@@ -762,6 +762,14 @@
 			@close="showManageCategories = false"
 			@categories-changed="onCategoriesChanged"
 		/>
+
+		<!-- ══════════════════ EDIT PRODUCT MODAL ══════════════════ -->
+		<EditProductModal
+			:open="!!editingProduct"
+			:product="editingProduct"
+			@close="editingProduct = null"
+			@saved="onProductSaved"
+		/>
 	</div>
 </template>
 
@@ -772,6 +780,7 @@ import { apiFetch, ApiError } from '@/utils/api'
 import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal.vue'
 import ManageCategoriesModal from '@/components/admin/ManageCategoriesModal.vue'
+import EditProductModal from '@/components/admin/EditProductModal.vue'
 
 type TabType = 'allergen' | 'halal' | 'ingredient' | 'products'
 
@@ -880,6 +889,26 @@ const FALLBACK_CATEGORIES = [
 ]
 const PRODUCT_CATEGORIES = ref<string[]>(FALLBACK_CATEGORIES)
 const showManageCategories = ref(false)
+
+// ─── Edit Product modal state ─────────────────────────────────────────────────
+interface EditableProduct {
+	id: number
+	product_name: string
+	brand_name: string
+	category: string
+}
+const editingProduct = ref<EditableProduct | null>(null)
+
+function onProductSaved(updated: { id: number; product_name: string; brand_name: string; category: string }): void {
+	// Update the row in-place so the table reflects the change without a full refetch.
+	const row = productRows.value.find((r) => r.id === updated.id)
+	if (row) {
+		row.product_name = updated.product_name
+		row.brand_name   = updated.brand_name
+		row.category     = updated.category
+	}
+	editingProduct.value = null
+}
 
 async function fetchCategoryList(): Promise<void> {
 	try {

@@ -79,6 +79,22 @@
 					</button>
 				</div>
 
+				<!-- ── Confirmation overlay ── -->
+				<transition name="ep-confirm-fade">
+					<div v-if="confirmOpen" class="ep-confirm-backdrop">
+						<div class="ep-confirm-card" role="alertdialog" aria-modal="true">
+							<h3 class="ep-confirm-title">Save changes to {{ form.product_name || props.product?.product_name }}?</h3>
+							<p class="ep-confirm-body">This will update the product details and reflect immediately in all consumer pantries holding this item.</p>
+							<div class="ep-confirm-actions">
+								<button class="ep-confirm-cancel" :disabled="saving" @click="confirmOpen = false">Cancel</button>
+								<button class="ep-confirm-ok" :disabled="saving" @click="executeConfirm">
+									{{ saving ? 'Saving…' : 'Confirm changes' }}
+								</button>
+							</div>
+						</div>
+					</div>
+				</transition>
+
 			</div>
 		</div>
 	</Teleport>
@@ -113,6 +129,7 @@ const form = ref({ product_name: '', brand_name: '', category: '' })
 const errors = ref<{ product_name?: string; brand_name?: string }>({})
 const apiError = ref<string | null>(null)
 const saving = ref(false)
+const confirmOpen = ref(false)
 
 const categories = ref<CategoryOption[]>([])
 const categoriesLoading = ref(false)
@@ -128,6 +145,7 @@ watch(() => props.open, (val) => {
 		}
 		errors.value  = {}
 		apiError.value = null
+		confirmOpen.value = false
 		void fetchCategories()
 	}
 })
@@ -163,9 +181,16 @@ function validate(): boolean {
 	return Object.keys(e).length === 0
 }
 
-// ─── Save ─────────────────────────────────────────────────────────────────────
-async function save(): Promise<void> {
+// ─── Save — step 1: validate then open confirmation ──────────────────────────
+function save(): void {
 	if (!validate() || !props.product) return
+	apiError.value = null
+	confirmOpen.value = true
+}
+
+// ─── Save — step 2: confirmed, fire the API ───────────────────────────────────
+async function executeConfirm(): Promise<void> {
+	if (!props.product) return
 	saving.value  = true
 	apiError.value = null
 	try {
@@ -182,6 +207,7 @@ async function save(): Promise<void> {
 			isAdmin: true,
 		})
 
+		confirmOpen.value = false
 		emit('saved', {
 			id:           res.product.id,
 			product_name: res.product.product_name,
@@ -189,6 +215,7 @@ async function save(): Promise<void> {
 			category:     res.product.category ?? form.value.category,
 		})
 	} catch (err) {
+		confirmOpen.value = false
 		apiError.value = err instanceof ApiError ? err.message : 'Failed to save. Please try again.'
 	} finally {
 		saving.value = false
@@ -217,6 +244,7 @@ function requestClose(): void {
 
 /* ── Modal shell ── */
 .ep-modal {
+	position: relative;
 	background: #fff;
 	border-radius: 16px;
 	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
@@ -374,4 +402,73 @@ function requestClose(): void {
 .ep-btn-save:hover:not(:disabled) { background: #00753a; }
 .ep-btn-cancel:disabled,
 .ep-btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Confirmation overlay ── */
+.ep-confirm-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(15, 23, 42, 0.35);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 16px;
+	z-index: 20;
+	padding: 24px;
+}
+.ep-confirm-card {
+	background: #fff;
+	border-radius: 14px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
+	padding: 24px;
+	width: 100%;
+	max-width: 360px;
+}
+.ep-confirm-title {
+	font-size: 1rem;
+	font-weight: 700;
+	color: #0f172a;
+	margin: 0 0 10px;
+}
+.ep-confirm-body {
+	font-size: 0.875rem;
+	color: #334155;
+	margin: 0 0 20px;
+	line-height: 1.55;
+}
+.ep-confirm-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
+.ep-confirm-cancel {
+	height: 36px;
+	padding: 0 18px;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	color: #64748b;
+	border-radius: 8px;
+	font-size: 0.85rem;
+	cursor: pointer;
+	transition: background 0.12s;
+}
+.ep-confirm-cancel:hover:not(:disabled) { background: #f8fafc; }
+.ep-confirm-ok {
+	height: 36px;
+	padding: 0 18px;
+	background: #008744;
+	border: none;
+	color: #fff;
+	border-radius: 8px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.12s;
+}
+.ep-confirm-ok:hover:not(:disabled) { background: #00753a; }
+.ep-confirm-cancel:disabled,
+.ep-confirm-ok:disabled { opacity: 0.5; cursor: not-allowed; }
+.ep-confirm-fade-enter-active,
+.ep-confirm-fade-leave-active { transition: opacity 0.18s ease; }
+.ep-confirm-fade-enter-from,
+.ep-confirm-fade-leave-to    { opacity: 0; }
 </style>

@@ -1339,23 +1339,26 @@ async function fetchProducts(opts: { resetPage?: boolean; highlightId?: number |
 		// If the API told us the highlight lives on a different page, refetch that page.
 		if (hid != null && data.highlight_page != null && data.highlight_page !== productPage.value) {
 			productPage.value = data.highlight_page
-			// Re-fetch without passing highlightId again (page is now correct).
-			await fetchProducts()
+			// Re-fetch on the correct page, carrying the highlightId so scroll+highlight still fires.
+			await fetchProducts({ highlightId: hid })
 			return
 		}
 
 		// Scroll + highlight after the DOM has updated.
 		if (hid != null) {
+			// Set the highlight ref immediately so Vue applies the class on the
+			// same render that paints the new rows. Use nextTick only for the
+			// scroll — by that point the <tr> ref is guaranteed to be in the DOM.
+			productHighlightId.value = hid
+			if (productHighlightTimer) clearTimeout(productHighlightTimer)
+			productHighlightTimer = setTimeout(() => {
+				productHighlightId.value = null
+			}, 3500)
 			nextTick(() => {
 				const el = productRowRefs.value[hid]
 				if (el && typeof el.scrollIntoView === 'function') {
 					el.scrollIntoView({ behavior: 'smooth', block: 'center' })
 				}
-				productHighlightId.value = hid
-				if (productHighlightTimer) clearTimeout(productHighlightTimer)
-				productHighlightTimer = setTimeout(() => {
-					productHighlightId.value = null
-				}, 3500)
 			})
 		}
 	} catch (err) {

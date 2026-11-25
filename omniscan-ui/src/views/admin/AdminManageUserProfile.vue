@@ -98,7 +98,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="u in pagedUsers" :key="u.id">
+						<tr v-for="u in pagedUsers" :key="u.id" class="row-clickable" tabindex="0" @click="openModal(u.id)" @keydown.enter="openModal(u.id)">
 							<td>
 								<div class="user-cell">
 									<div class="avatar bg-green">
@@ -221,7 +221,7 @@
 						<tr v-if="filteredUsers.length === 0">
 							<td colspan="6" class="empty-note">No archived accounts.</td>
 						</tr>
-						<tr v-for="u in filteredUsers" :key="u.id" v-else>
+						<tr v-for="u in filteredUsers" :key="u.id" v-else class="row-clickable" tabindex="0" @click="openModal(u.id)" @keydown.enter="openModal(u.id)">
 							<td>
 								<div class="user-cell">
 									<div class="avatar bg-orange">
@@ -265,6 +265,57 @@
 			</aside>
 		</div>
 	</div>
+<!-- Consumer Detail Modal (Ticket 1) -->
+<Teleport to="body">
+<div v-if="modal.open" class="cdm-backdrop" role="dialog" aria-modal="true" aria-labelledby="cdm-title" @click.self="closeModal">
+<div class="cdm-panel">
+<div class="cdm-header">
+<div class="cdm-avatar">{{ modal.initials }}</div>
+<div class="cdm-title-block">
+<span id="cdm-title" class="cdm-name">{{ modal.name }}</span>
+<span class="cdm-username">@{{ modal.username || 'user' }}</span>
+</div>
+<span class="cdm-status" :class="modal.statusClass">{{ modal.status }}</span>
+</div>
+<div v-if="modal.loading" class="cdm-loading">
+<div class="cdm-sk shimmer"></div>
+<div class="cdm-sk shimmer" style="margin-top:12px"></div>
+</div>
+<div v-else-if="modal.error" class="cdm-error">{{ modal.error }}</div>
+<div v-else class="cdm-body">
+<div class="cdm-allergen-placeholder">
+<span class="cdm-allergen-label">Declared Allergens</span>
+</div>
+<div class="cdm-pantry-header">
+<span class="cdm-pantry-title">Consumer Pantry Inventory ({{ modal.pantryCount }} / 100)</span>
+<span class="cdm-readonly-pill">Read-Only</span>
+</div>
+<p v-if="modal.pantryItems.length === 0" class="cdm-empty">No items in this consumer's pantry yet.</p>
+<table v-else class="cdm-table">
+<thead>
+<tr>
+<th>PANTRY ITEM</th>
+<th>CATEGORY</th>
+<th>EXPIRY</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr v-for="item in modal.pantryItems" :key="item.id">
+<td class="cdm-item-name">{{ item.product_name }}</td>
+<td><span class="cdm-cat-chip">{{ item.category }}</span></td>
+<td class="cdm-expiry">{{ formatShortDate(item.expiration_date) }}</td>
+<td><button class="cdm-catalog-btn" @click="viewInCatalog(item.product_id)">View in catalog ›</button></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="cdm-footer">
+<button class="cdm-close-btn" @click="closeModal">Close</button>
+</div>
+</div>
+</div>
+</Teleport>
 </template>
 
 <script setup lang="ts">
@@ -500,6 +551,88 @@ function formatShortDate(iso: string | null): string {
 }
 
 
+
+// -- Consumer Detail Modal (Ticket 1) -----------------------------------------
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+interface ModalPantryItem {
+id: number
+product_id: number
+product_name: string
+category: string
+expiration_date: string | null
+}
+
+const modal = ref<{
+open: boolean
+loading: boolean
+error: string | null
+name: string
+username: string | null
+status: string
+statusClass: string
+initials: string
+pantryCount: number
+pantryItems: ModalPantryItem[]
+}>({
+open: false, loading: false, error: null,
+name: '', username: null, status: '', statusClass: '', initials: '',
+pantryCount: 0, pantryItems: [],
+})
+
+function statusClassOf(s: string): string {
+const l = s.toLowerCase()
+if (l === 'active') return 'cdm-status--active'
+if (l === 'archived') return 'cdm-status--archived'
+return 'cdm-status--inactive'
+}
+
+async function openModal(userId: number): Promise<void> {
+modal.value = {
+open: true, loading: true, error: null,
+name: '', username: null, status: '', statusClass: '', initials: '',
+pantryCount: 0, pantryItems: [],
+}
+try {
+type DetailResponse = {
+success: boolean
+user: {
+id: number
+name: string
+username: string | null
+status: string
+pantry_items: ModalPantryItem[]
+pantry_count: number
+pantry_max: number
+}
+}
+const data = await apiFetch<DetailResponse>('/api/admin/users/' + userId, { isAdmin: true })
+const u = data.user
+modal.value = {
+open: true, loading: false, error: null,
+name: u.name,
+username: u.username,
+status: u.status,
+statusClass: statusClassOf(u.status),
+initials: initialsOf(u.name),
+pantryCount: u.pantry_count,
+pantryItems: u.pantry_items,
+}
+} catch (err) {
+modal.value.loading = false
+modal.value.error = err instanceof ApiError ? err.message : 'Failed to load consumer details.'
+}
+}
+
+function closeModal(): void {
+modal.value.open = false
+}
+
+function viewInCatalog(productId: number): void {
+closeModal()
+void router.push('/admin/productsdata?tab=products&highlight=' + productId)
+}
 onMounted(fetchUsers)
 onBeforeUnmount(() => {
 	if (searchTimer) clearTimeout(searchTimer)
@@ -971,4 +1104,39 @@ td {
 	font-weight: 600;
 	user-select: none;
 }
-</style>
+.row-clickable { cursor: pointer; }
+.row-clickable:hover td { background: #f8fafc; }
+.row-clickable:focus-visible { outline: 2px solid #008744; outline-offset: -2px; }
+.cdm-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
+.cdm-panel { background: #fff; border-radius: 16px; width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.cdm-header { display: flex; align-items: center; gap: 12px; padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9; }
+.cdm-avatar { width: 42px; height: 42px; border-radius: 50%; background: #c05328; color: #fff; font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.cdm-title-block { flex: 1; min-width: 0; }
+.cdm-name { display: block; font-size: 1.05rem; font-weight: 700; color: #0f172a; }
+.cdm-username { font-size: 0.8rem; color: #94a3b8; }
+.cdm-status { padding: 3px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
+.cdm-status--active { background: #dcfce7; color: #15803d; }
+.cdm-status--archived { background: #ffedd5; color: #ea580c; }
+.cdm-status--inactive { background: #f1f5f9; color: #64748b; }
+.cdm-loading { padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+.cdm-sk { height: 72px; border-radius: 10px; }
+.cdm-error { padding: 24px; color: #dc2626; font-size: 0.88rem; text-align: center; }
+.cdm-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
+.cdm-allergen-placeholder { background: #fff8f1; border: 1px solid #fed7aa; border-radius: 10px; padding: 14px 16px; }
+.cdm-allergen-label { font-size: 0.88rem; font-weight: 700; color: #c2410c; }
+.cdm-pantry-header { display: flex; align-items: center; gap: 10px; }
+.cdm-pantry-title { font-size: 1rem; font-weight: 700; color: #0f172a; }
+.cdm-readonly-pill { background: #f1f5f9; color: #64748b; border-radius: 9999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 600; }
+.cdm-empty { font-size: 0.85rem; color: #9ca3af; text-align: center; padding: 20px 0; margin: 0; border: 1px solid #f1f5f9; border-radius: 8px; }
+.cdm-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; border: 1px solid #f1f5f9; border-radius: 8px; overflow: hidden; }
+.cdm-table th { text-align: left; padding: 8px 12px; font-size: 0.7rem; font-weight: 700; color: #94a3b8; letter-spacing: 0.04em; border-bottom: 1px solid #f1f5f9; }
+.cdm-table td { padding: 10px 12px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+.cdm-table tbody tr:last-child td { border-bottom: none; }
+.cdm-item-name { font-weight: 500; color: #0f172a; }
+.cdm-cat-chip { background: #f1f5f9; color: #475569; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 500; }
+.cdm-expiry { color: #64748b; white-space: nowrap; }
+.cdm-catalog-btn { background: none; border: none; color: #008744; font-size: 0.8rem; font-weight: 600; cursor: pointer; padding: 0; white-space: nowrap; }
+.cdm-catalog-btn:hover { text-decoration: underline; }
+.cdm-footer { padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; }
+.cdm-close-btn { border: 1px solid #e2e8f0; background: #fff; color: #374151; border-radius: 8px; padding: 8px 20px; font-size: 0.875rem; font-weight: 600; cursor: pointer; }
+.cdm-close-btn:hover { background: #f8fafc; }</style>

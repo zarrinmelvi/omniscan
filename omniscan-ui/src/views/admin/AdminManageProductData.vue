@@ -770,6 +770,15 @@
 			@close="editingProduct = null"
 			@saved="onProductSaved"
 		/>
+
+		<!-- ══════════════════ ADD ALLERGEN MODAL ══════════════════ -->
+		<AddAllergenModal
+			:open="showAddAllergen"
+			:existing-allergens="allergens"
+			@close="showAddAllergen = false"
+			@created="onAllergenCreated"
+			@edit-existing="onAllergenEditExisting"
+		/>
 	</div>
 </template>
 
@@ -781,6 +790,7 @@ import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal.vue'
 import ManageCategoriesModal from '@/components/admin/ManageCategoriesModal.vue'
 import EditProductModal from '@/components/admin/EditProductModal.vue'
+import AddAllergenModal from '@/components/admin/AddAllergenModal.vue'
 
 type TabType = 'allergen' | 'halal' | 'ingredient' | 'products'
 
@@ -889,6 +899,7 @@ const FALLBACK_CATEGORIES = [
 ]
 const PRODUCT_CATEGORIES = ref<string[]>(FALLBACK_CATEGORIES)
 const showManageCategories = ref(false)
+const showAddAllergen = ref(false)
 
 // ─── Edit Product modal state ─────────────────────────────────────────────────
 interface EditableProduct {
@@ -931,6 +942,32 @@ async function onCategoriesChanged(): Promise<void> {
 	// If the Products tab is currently visible, re-fetch to pick up new counts/names.
 	if (activeTab.value === 'products') {
 		void fetchProducts({ resetPage: false })
+	}
+}
+
+/** Called when AddAllergenModal emits 'created'. Refreshes the allergen tab. */
+async function onAllergenCreated(payload: { id: number; name: string }): Promise<void> {
+	showAddAllergen.value = false
+	await fetchTabContent('allergen')
+	await refreshAfterAllergenChange()
+	// Briefly highlight the new row — find it in allergenRows after refresh.
+	void nextTick(() => {
+		const row = allergenRows.value.find((r) => r.id === payload.id)
+		if (row) openEditModal(row)
+	})
+}
+
+/** Called when AddAllergenModal emits 'edit-existing'. Opens the edit modal for that allergen. */
+function onAllergenEditExisting(id: number): void {
+	showAddAllergen.value = false
+	// allergenRows may not contain the row if it's on a different page; fetch it.
+	const existing = allergens.value.find((a) => a.id === id)
+	if (existing) {
+		openEditModal(existing)
+	} else {
+		// Fall back: navigate to page 1 and let the user find the row.
+		allergenPage.value = 1
+		void fetchTabContent('allergen')
 	}
 }
 
@@ -1560,10 +1597,9 @@ function openCreateModal(): void {
 	editingId.value = null
 	modalError.value = null
 	if (activeTab.value === 'allergen') {
-		form.value = { name: '', scientific_name: '', is_predefined: false }
-		aliasTags.value = []
-		aliasOriginal.value = []
-		aliasInput.value = ''
+		// Allergen create uses the dedicated AddAllergenModal component.
+		showAddAllergen.value = true
+		return
 	} else if (activeTab.value === 'halal') {
 		form.value = {
 			certifier: '',

@@ -38,7 +38,8 @@ const logs: LogEvent[] = []
 // Process start — used as a proxy for "instance uptime".
 const startedAt = Date.now()
 
-function pushBounded<T>(arr: T[], item: T, max: number): void {
+function pushBounded<T>(arr: T[] | undefined | null, item: T, max: number): void {
+	if (!arr) return
 	arr.push(item)
 	if (arr.length > max) arr.splice(0, arr.length - max)
 }
@@ -62,15 +63,15 @@ export function recordLog(event: LogEvent): void {
 }
 
 export function getRequests(): RequestSample[] {
-	return requests
+	return requests ?? []
 }
 
 export function getQueries(): QuerySample[] {
-	return queries
+	return queries ?? []
 }
 
 export function getLogs(): LogEvent[] {
-	return logs
+	return logs ?? []
 }
 
 export function getStartedAt(): number {

@@ -395,7 +395,10 @@ async function submitScan(front: File, back: File | null): Promise<void> {
 		await handleUpload(front, back)
 		hasScannedAtLeastOnce.value = true
 	} catch (err: any) {
-		if (err.name === 'AbortError') {
+		if (err.name === 'AbortError' && err.message === 'scan_timeout') {
+			analysisStatus.value = 'Scan took too long. Please try again with a smaller or clearer image.'
+			console.warn('Scan timed out.')
+		} else if (err.name === 'AbortError') {
 			console.log('Scan upload aborted by user navigation.')
 		} else {
 			analysisStatus.value = err instanceof Error ? err.message : 'Upload failed'
@@ -429,6 +432,16 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 	}
 	scanAbortController = new AbortController()
 
+	// 55-second client-side timeout — just under Vercel's 60s function limit.
+	// If the scan API takes longer (e.g. slow Ollama response + OCR fallback),
+	// we abort early with a named error rather than letting the browser hang
+	// silently until the serverless function drops the connection.
+	const SCAN_TIMEOUT_MS = 55_000
+	const timeoutId = setTimeout(() => {
+		const e = new DOMException('scan_timeout', 'AbortError')
+		scanAbortController?.abort(e)
+	}, SCAN_TIMEOUT_MS)
+
 	const response = await fetch(`${API_BASE_URL}/api/scan`, {
 		method: 'POST',
 		headers: {
@@ -437,6 +450,7 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 		body: formData,
 		signal: scanAbortController.signal,
 	})
+	clearTimeout(timeoutId)
 
 	if (!response.ok) {
 		if (response.status === 401) {

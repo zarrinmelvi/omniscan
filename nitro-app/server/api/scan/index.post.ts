@@ -5,7 +5,7 @@ import { OLLAMA_ENDPOINT, SCAN_VISION_MODEL } from '../../lib/ollama-models'
 import { findMatchedUserAllergens, matchUserAllergensSemantically, mergeMatchedAllergens } from '../../lib/allergen-matching'
 import { stripCodeFences } from '../../lib/ai-json'
 import { matchCatalogProduct, CATALOG_PRODUCT_SELECT } from '../../lib/catalog-matching'
-import { buildCanonicalKey, findCanonicalProduct } from '../../lib/product-dedup'
+import { buildCanonicalKey, findCanonicalProduct, findFuzzyProduct } from '../../lib/product-dedup'
 import { determineDisallowedCatalogIngredients } from '../../lib/alternative-reasoning'
 import { findAlternativeProducts } from '../../lib/alternative-matching'
 import { normalizeToDateStringOrNull } from '../../lib/date-parse'
@@ -380,8 +380,11 @@ export default defineEventHandler(async (event) => {
 	const frontBuffer = hasBackImage && extraction.front_image_index === 1 ? imageBackField!.data : imageField.data
 	const thumbTask = makeThumbDataUri(frontBuffer)
 	const canonicalTask = findCanonicalProduct(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
-	// Avoid an unhandled rejection if we throw (422 etc.) before awaiting it.
+	// Fuzzy fallback runs in parallel; only used when canonicalTask returns null.
+	const fuzzyTask = findFuzzyProduct(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
+	// Avoid unhandled rejections if we throw (422 etc.) before awaiting these.
 	canonicalTask.catch(() => {})
+	fuzzyTask.catch(() => {})
 
 	const [userWithAllergens, halalLogos, catalogProducts, adminSettings] = await Promise.all([
 		prisma.user.findUnique({
@@ -654,6 +657,9 @@ export default defineEventHandler(async (event) => {
 
 	const [canonicalMatch, thumb] = await Promise.all([canonicalTask, thumbTask])
 
+	// Use the fuzzy match when the exact canonical key found nothing.
+	const dedupMatch = canonicalMatch ?? await fuzzyTask
+
 	try {
 		const product = await prisma.product.create({
 			data: {
@@ -661,8 +667,8 @@ export default defineEventHandler(async (event) => {
 				product_name: extraction.product_name || imageField.filename,
 				// Inherit canonical ingredient text when the fresh extraction is empty,
 				// so a re-scan of a known product benefits from the earlier good read.
-				ingredient_text: extraction.ingredients_text.trim() || canonicalMatch?.ingredient_text || extraction.ingredients_text,
-				simplified_ingredients: extraction.simplified_ingredients.trim() || canonicalMatch?.simplified_ingredients || extraction.simplified_ingredients,
+				ingredient_text: extraction.ingredients_text.trim() || dedupMatch?.ingredient_text || extraction.ingredients_text,
+				simplified_ingredients: extraction.simplified_ingredients.trim() || dedupMatch?.simplified_ingredients || extraction.simplified_ingredients,
 				image_base64: mainProductImage,
 				image_base64_back: secondaryProductImage ?? undefined,
 				image_thumb_base64: thumb,
@@ -670,7 +676,7 @@ export default defineEventHandler(async (event) => {
 				...(matchedHalalLogo ? { halal_logo_id: matchedHalalLogo.id } : {}),
 				halal_unverified: halalUnverified,
 				canonical_key: canonicalKey,
-				...(canonicalMatch ? { canonical_product_id: canonicalMatch.id } : {}),
+				...(dedupMatch ? { canonical_product_id: dedupMatch.id } : {}),
 			},
 			// Do not read the full-size images back from Postgres.
 			select: {

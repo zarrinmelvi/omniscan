@@ -501,7 +501,7 @@ async function goToStep2(): Promise<void> {
 		if (
 			result.food_category &&
 			result.food_category !== 'Uncategorized' &&
-			categoryOptions.includes(result.food_category) &&
+			categoryNames.value.includes(result.food_category) &&
 			form.category === 'Uncategorized'
 		) {
 			form.category = result.food_category

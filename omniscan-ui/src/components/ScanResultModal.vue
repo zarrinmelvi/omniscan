@@ -466,7 +466,7 @@ function resetPantryForm() {
 
 	const detectedCat = product.value?.food_category
 	category.value =
-		typeof detectedCat === 'string' && detectedCat && categoryOptions.includes(detectedCat) && detectedCat !== 'Uncategorized'
+		typeof detectedCat === 'string' && detectedCat && categoryNames.value.includes(detectedCat) && detectedCat !== 'Uncategorized'
 			? detectedCat
 			: 'Uncategorized'
 
@@ -475,7 +475,7 @@ function resetPantryForm() {
 	if (detectedStorage && ['Fridge', 'Freezer', 'Cupboard'].includes(detectedStorage)) {
 		storageLocation.value = detectedStorage
 	} else {
-		const catForStorage = typeof detectedCat === 'string' && detectedCat && categoryOptions.includes(detectedCat) ? detectedCat : ''
+		const catForStorage = typeof detectedCat === 'string' && detectedCat && categoryNames.value.includes(detectedCat) ? detectedCat : ''
 		storageLocation.value = storageForCategory(catForStorage)
 	}
 	
@@ -492,7 +492,7 @@ watch(
 	() => product.value?.food_category,
 	(cat) => {
 		if (!cat) return
-		if (typeof cat === 'string' && cat && categoryOptions.includes(cat) && cat !== 'Uncategorized') {
+		if (typeof cat === 'string' && cat && categoryNames.value.includes(cat) && cat !== 'Uncategorized') {
 			category.value = cat
 			// Also update storage location based on the newly confirmed category
 			storageLocation.value = storageForCategory(cat)

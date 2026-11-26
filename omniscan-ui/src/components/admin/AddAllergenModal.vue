@@ -184,12 +184,22 @@
 			</div>
 		</div>
 	</Teleport>
+
+	<!-- ── Unsaved-changes guard ── -->
+	<ConfirmDiscardModal
+		:open="showDiscardConfirm"
+		discard-label="Discard Changes"
+		message="You have unsaved changes. If you close now, the allergen name and any mappings you've added will be lost."
+		@keep="onKeepEditing"
+		@discard="onDiscard"
+	/>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
 import { searchAllergenDataset, type AllergenDatasetEntry } from '@/data/allergenDataset'
+import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 
 // ─── Props / Emits ───────────────────────────────────────────────────────────
 interface AllergenRow {
@@ -248,6 +258,10 @@ const duplicateRecord     = ref<AllergenRow | null>(null)
 const saving              = ref(false)
 const saveError           = ref<string | null>(null)
 const confirmOpen         = ref(false)
+
+// Unsaved-changes guard
+const showDiscardConfirm  = ref(false)
+const hasUnsavedData      = computed(() => nameInput.value.trim() !== '' || aliasTags.value.length > 0)
 
 // ─── Lifecycle ───────────────────────────────────────────────────────────────
 watch(() => props.open, (val) => {
@@ -473,6 +487,19 @@ async function executeCreate(): Promise<void> {
 // ─── Close guard ─────────────────────────────────────────────────────────────
 function requestClose(): void {
 	if (saving.value) return
+	if (hasUnsavedData.value) {
+		showDiscardConfirm.value = true
+		return
+	}
+	emit('close')
+}
+
+function onKeepEditing(): void {
+	showDiscardConfirm.value = false
+}
+
+function onDiscard(): void {
+	showDiscardConfirm.value = false
 	emit('close')
 }
 </script>

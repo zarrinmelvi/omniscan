@@ -173,6 +173,7 @@ interface ScanResultDisplay {
 		halal_logo_id: number | null
 		image_base64: string | null
 		image_base64_back: string | null
+		expiration_date_detected: string | null
 		net_quantity_detected: number | null
 		net_unit_detected: string | null
 		food_category: string
@@ -551,6 +552,7 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 			halal_logo_id: scan.product.halal_logo_id ?? null,
 			image_base64: scan.product.image_base64 ?? null,
 			image_base64_back: scan.product.image_base64_back ?? null,
+			expiration_date_detected: scan.product.expiration_date_detected ?? null,
 			net_quantity_detected: scan.product.net_quantity_detected ?? null,
 			net_unit_detected: scan.product.net_unit_detected ?? null,
 			food_category: scan.product.food_category ?? '',

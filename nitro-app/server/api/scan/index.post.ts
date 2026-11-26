@@ -277,17 +277,6 @@ function resolveHalalLogoMatches(certifyingBodyText: string, logos: HalalLogoRec
 	const matches = new Map<number, HalalLogoRecord>()
 
 	for (const candidate of candidates) {
-		// ── Debug Point 2: log every candidate vs every DB certifier ──────
-		console.log('[halal-debug] resolveHalalLogoMatches candidate:', JSON.stringify({
-			candidate,
-			db_certifiers: logos.map((l) => ({
-				id:        l.certifier,
-				known:     l.certifier.trim().toLowerCase(),
-				passedA:   l.certifier.trim().toLowerCase().includes(candidate),
-				passedB:   candidate.includes(l.certifier.trim().toLowerCase()),
-			})),
-		}))
-
 		const found = logos.find((logo) => {
 			const known = logo.certifier.trim().toLowerCase()
 			if (!known) return false
@@ -453,20 +442,6 @@ export default defineEventHandler(async (event) => {
 	// the AI extraction field is ignored and the scan proceeds as a normal product scan.
 	const userWantsHalal = userWithAllergens?.dietary_prof?.[0]?.halal_pref ?? false
 
-	// ── Debug Point 1: raw AI extraction for halal fields ────────────────────
-	// Logged on every halal-enabled scan so we can diagnose certifier mismatches
-	// (e.g. IDCP being read as a different string) directly from Vercel logs.
-	if (userWantsHalal) {
-		console.log('[halal-debug] extraction:', JSON.stringify({
-			halal_logo_detected:         extraction.halal_logo_detected,
-			certifying_body:             extraction.certifying_body,
-			halal_certifier_confidence:  extraction.halal_certifier_confidence,
-			halal_logo_box:              extraction.halal_logo_box,
-			product_name:                extraction.product_name,
-			brand:                       extraction.brand,
-		}))
-	}
-
 	const aiMatchedHalalLogos = userWantsHalal && extraction.halal_logo_detected ? resolveHalalLogoMatches(extraction.certifying_body, halalLogos) : []
 	const catalogHalalLogos = userWantsHalal ? (catalogMatch?.halal_logos.map((link) => link.halal_logo) ?? []) : []
 	const matchedHalalLogos = aiMatchedHalalLogos.length > 0 ? aiMatchedHalalLogos : catalogHalalLogos
@@ -501,30 +476,24 @@ export default defineEventHandler(async (event) => {
 	}
 
 	// Automatic certifier resolution — no human selection allowed.
-	// If AI identified a certifier AND confidence >= 90% AND it matches a
-	// known HalalLogo in the DB → mark as AI-verified directly.
-	// If confidence < 90% OR logo detected but certifier unmatched → rescan required.
+	// Two-tier confidence threshold:
+	//   - Known logo (AI certifying_body matched a DB entry): 0.50 — the name
+	//     was identified correctly even if the AI's self-reported confidence is
+	//     moderate (e.g. IDCP on Lady's Choice Mayo at 0.6 → verified, not flagged).
+	//   - Unknown logo (no DB match): 0.90 — high bar keeps unverified certifiers
+	//     out of the verified column.
 	// This entire block is skipped when the user has halal_pref OFF.
-	const CERTIFIER_CONFIDENCE_THRESHOLD = AI_OCR_CONFIDENCE_THRESHOLD
+	const KNOWN_CERTIFIER_CONFIDENCE_THRESHOLD   = 0.50
+	const UNKNOWN_CERTIFIER_CONFIDENCE_THRESHOLD = AI_OCR_CONFIDENCE_THRESHOLD  // 0.90
 
-	const aiCertifierConfident = extraction.halal_certifier_confidence >= CERTIFIER_CONFIDENCE_THRESHOLD
+	const effectiveThreshold = matchedHalalLogos.length > 0
+		? KNOWN_CERTIFIER_CONFIDENCE_THRESHOLD
+		: UNKNOWN_CERTIFIER_CONFIDENCE_THRESHOLD
+
+	const aiCertifierConfident = extraction.halal_certifier_confidence >= effectiveThreshold
 	const halalUnverified = userWantsHalal && extraction.halal_logo_detected && (
 		matchedHalalLogos.length === 0 || !aiCertifierConfident
 	)
-
-	// ── Debug Point 3: log the full resolution outcome ───────────────────────
-	if (userWantsHalal && extraction.halal_logo_detected) {
-		console.log('[halal-debug] resolution outcome:', JSON.stringify({
-			aiMatchedCount:      aiMatchedHalalLogos.length,
-			catalogMatchCount:   catalogHalalLogos.length,
-			finalMatchCount:     matchedHalalLogos.length,
-			matchedCertifiers:   matchedHalalLogos.map((l) => l.certifier),
-			aiCertifierConfident,
-			certifierConfidence: extraction.halal_certifier_confidence,
-			confidenceThreshold: CERTIFIER_CONFIDENCE_THRESHOLD,
-			halalUnverified,
-		}))
-	}
 
 	// If a Halal logo was detected but not matched to a known certifier (whether the AI
 	// could not read it or read it confidently but it is not in the registry), reject
@@ -534,6 +503,43 @@ export default defineEventHandler(async (event) => {
 	// Skipped entirely when the user has halal_pref OFF.
 	const canonicalKey = buildCanonicalKey(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
 	let halalRescanExhausted = false
+
+	// ── OCR confidence override ───────────────────────────────────────────────
+	// When a logo matched the DB but the AI's self-confidence was below the
+	// threshold (halalUnverified=true via the !aiCertifierConfident path), run a
+	// focused OCR pass on the cropped logo. If OCR independently confirms the same
+	// certifier, treat it as fully verified — override halalUnverified to false.
+	// This handles the common case where the AI reads "IDCP" correctly but reports
+	// only 60% confidence because the logo is small or at an angle.
+	let ocrConfirmedKnownCertifier = false
+	if (userWantsHalal && extraction.halal_logo_detected && matchedHalalLogos.length > 0 && !aiCertifierConfident) {
+		const ocrLogoBox = extraction.halal_logo_box
+		if (ocrLogoBox) {
+			const ocrSource = ocrLogoBox.image_index === 1 && hasBackImage ? imageBackField!.data : imageField.data
+			const ocrCropDataUri = await cropLogo(ocrSource, ocrLogoBox.box)
+			if (ocrCropDataUri) {
+				const ocrText = await readLogoText(ocrCropDataUri).catch(() => null)
+				if (ocrText) {
+					const certifierNames = halalLogos.map((l) => l.certifier)
+					const ocrMatch = matchHalalFromText(ocrText, certifierNames)
+					// Accept only a named certifier match (not the bare 'HALAL' sentinel)
+					// that overlaps with what the first-pass AI already identified.
+					if (ocrMatch && ocrMatch !== 'HALAL') {
+						const ocrAlsoMatchesDb = halalLogos.some(
+							(l) =>
+								l.certifier.toUpperCase().includes(ocrMatch.toUpperCase()) ||
+								ocrMatch.toUpperCase().includes(l.certifier.toUpperCase()),
+						)
+						if (ocrAlsoMatchesDb) ocrConfirmedKnownCertifier = true
+					}
+				}
+			}
+		}
+	}
+
+	// Re-derive halalUnverified with the OCR override applied.
+	const halalVerifiedByOcr = ocrConfirmedKnownCertifier
+	const halalUnverifiedFinal = halalUnverified && !halalVerifiedByOcr
 
 	if (userWantsHalal && extraction.halal_logo_detected && matchedHalalLogos.length === 0) {
 		// ── OCR fallback ──────────────────────────────────────────────────────
@@ -713,7 +719,7 @@ export default defineEventHandler(async (event) => {
 				image_thumb_base64: thumb,
 				is_verified: false,
 				...(matchedHalalLogo ? { halal_logo_id: matchedHalalLogo.id } : {}),
-				halal_unverified: halalUnverified,
+				halal_unverified: halalUnverifiedFinal,
 				canonical_key: canonicalKey,
 				...(dedupMatch ? { canonical_product_id: dedupMatch.id } : {}),
 			},
@@ -822,7 +828,7 @@ export default defineEventHandler(async (event) => {
 		// 4. Confidence at or above the hardcoded threshold (high-priority auto-flag)
 		const belowReviewThreshold = confidencePct < hardcodedThresholdPct
 		const aboveAutoFlagThreshold = confidencePct >= hardcodedThresholdPct
-		const shouldAutoFlag = verdict === 'Red' || halalUnverified || belowReviewThreshold || aboveAutoFlagThreshold
+		const shouldAutoFlag = verdict === 'Red' || halalUnverifiedFinal || belowReviewThreshold || aboveAutoFlagThreshold
 
 		if (shouldAutoFlag) {
 			const flagReasonParts: string[] = []

@@ -982,7 +982,7 @@ async function fetchAllergenCatalog(): Promise<void> {
 
 	try {
 		const rawCatalog = await apiFetch<Allergen[]>('/api/allergen', { method: 'GET' })
-		allergenCatalog.value = rawCatalog.filter((a) => a.is_predefined)
+		allergenCatalog.value = rawCatalog
 	} catch (err) {
 		allergensLoadError.value = err instanceof ApiError ? err.message : 'Could not load allergen options.'
 	} finally {

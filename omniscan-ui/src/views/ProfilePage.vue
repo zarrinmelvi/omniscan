@@ -305,7 +305,7 @@
 							</p>
 							<div class="who-allergen-list">
 								<label
-									v-for="allergen in WHO_ALLERGENS"
+									v-for="allergen in allergenOptions"
 									:key="allergen.value"
 									class="who-allergen-item"
 									:class="{ 'who-allergen-item--disabled': isAtAllergenLimit && !form.customPreferences.includes(allergen.value) }">
@@ -375,55 +375,27 @@ const { isDesktop } = useBreakpoint()
 
 const PREF_MAX = 5
 
-const WHO_ALLERGENS = [
-	{ label: 'Cereals / Gluten', value: 'Wheat-free' },
-	{ label: 'Crustaceans', value: 'Crustaceans-free' },
-	{ label: 'Eggs', value: 'Eggs-free' },
-	{ label: 'Fish', value: 'Fish-free' },
-	{ label: 'Peanuts', value: 'Peanuts-free' },
-	{ label: 'Soybeans', value: 'Soy-free' },
-	{ label: 'Milk / Dairy', value: 'Milk-free' },
-	{ label: 'Tree Nuts', value: 'TreeNuts-Free' },
-	{ label: 'Celery', value: 'Celery-free' },
-	{ label: 'Mustard', value: 'Mustard-free' },
-	{ label: 'Sesame', value: 'Sesame-free' },
-	{ label: 'Sulphur Dioxide / Sulphites', value: 'Sulphites-free' },
-	{ label: 'Lupin', value: 'Lupin-free' },
-	{ label: 'Molluscs', value: 'Molluscs-free' },
-]
+// Derived dynamically from the live allergen catalog so any allergen the
+// admin adds or removes is immediately reflected here without a code change.
+// Each entry keeps the same { label, value } shape the template expects,
+// where `value` is the tag string stored in custom_preferences (e.g. "Peanuts-free").
+const allergenOptions = computed(() =>
+	allergenCatalog.value.map((a) => ({
+		id: a.id,
+		label: formatAllergenName(a.name),
+		value: `${formatAllergenName(a.name)}-free`,
+	})),
+)
 
 const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024
 
-const ALLERGEN_TAG_MAP: Record<string, string> = {
-	'Gluten-free': 'Wheat',
-	'Wheat-free': 'Wheat',
-	'Dairy-free': 'Milk',
-	'Milk-free': 'Milk',
-	'Egg-free': 'Eggs',
-	'Eggs-free': 'Eggs',
-	'Soy-free': 'Soy',
-	'Soybeans-free': 'Soy',
-	'Peanut-free': 'Peanuts',
-	'Peanuts-free': 'Peanuts',
-	'Tree Nut-free': 'Tree Nuts',
-	'TreeNuts-Free': 'Tree Nuts',
-	'Crustaceans-free': 'Crustaceans',
-	'Molluscs-free': 'Molluscs',
-	'Sesame-free': 'Sesame',
-	'Fish-free': 'Fish',
-	'Mustard-free': 'Mustard',
-	'Celery-free': 'Celery',
-	'Sulphites-free': 'Sulphur Dioxide / Sulphites',
-	'Sulphur Dioxide / Sulphites-free': 'Sulphur Dioxide / Sulphites',
-	'Lupin-free': 'Lupin',
-}
-
-function deriveAllergenIds(customPreferences: string[], catalog: Allergen[]): number[] {
+// Maps the tag strings stored in custom_preferences back to database IDs for saving.
+// Each tag is "{FormattedName}-free", so we match directly against allergenOptions
+// instead of a hardcoded name lookup table.
+function deriveAllergenIds(customPreferences: string[]): number[] {
 	const ids: number[] = []
 	for (const pref of customPreferences) {
-		const allergenName = ALLERGEN_TAG_MAP[pref]
-		if (!allergenName) continue
-		const match = catalog.find((a) => a.name === allergenName)
+		const match = allergenOptions.value.find((a) => a.value === pref)
 		if (match) ids.push(match.id)
 	}
 	return ids
@@ -856,7 +828,7 @@ async function saveProfile() {
 				birthday: form.birthday,
 				halal_pref: form.halalPref,
 				custom_preferences: form.customPreferences,
-				allergen_ids: deriveAllergenIds(form.customPreferences, allergenCatalog.value),
+				allergen_ids: deriveAllergenIds(form.customPreferences),
 				avatar_base64: form.avatarBase64,
 			},
 		})

@@ -277,6 +277,17 @@ function resolveHalalLogoMatches(certifyingBodyText: string, logos: HalalLogoRec
 	const matches = new Map<number, HalalLogoRecord>()
 
 	for (const candidate of candidates) {
+		// ── Debug Point 2: log every candidate vs every DB certifier ──────
+		console.log('[halal-debug] resolveHalalLogoMatches candidate:', JSON.stringify({
+			candidate,
+			db_certifiers: logos.map((l) => ({
+				id:        l.certifier,
+				known:     l.certifier.trim().toLowerCase(),
+				passedA:   l.certifier.trim().toLowerCase().includes(candidate),
+				passedB:   candidate.includes(l.certifier.trim().toLowerCase()),
+			})),
+		}))
+
 		const found = logos.find((logo) => {
 			const known = logo.certifier.trim().toLowerCase()
 			if (!known) return false
@@ -442,6 +453,20 @@ export default defineEventHandler(async (event) => {
 	// the AI extraction field is ignored and the scan proceeds as a normal product scan.
 	const userWantsHalal = userWithAllergens?.dietary_prof?.[0]?.halal_pref ?? false
 
+	// ── Debug Point 1: raw AI extraction for halal fields ────────────────────
+	// Logged on every halal-enabled scan so we can diagnose certifier mismatches
+	// (e.g. IDCP being read as a different string) directly from Vercel logs.
+	if (userWantsHalal) {
+		console.log('[halal-debug] extraction:', JSON.stringify({
+			halal_logo_detected:         extraction.halal_logo_detected,
+			certifying_body:             extraction.certifying_body,
+			halal_certifier_confidence:  extraction.halal_certifier_confidence,
+			halal_logo_box:              extraction.halal_logo_box,
+			product_name:                extraction.product_name,
+			brand:                       extraction.brand,
+		}))
+	}
+
 	const aiMatchedHalalLogos = userWantsHalal && extraction.halal_logo_detected ? resolveHalalLogoMatches(extraction.certifying_body, halalLogos) : []
 	const catalogHalalLogos = userWantsHalal ? (catalogMatch?.halal_logos.map((link) => link.halal_logo) ?? []) : []
 	const matchedHalalLogos = aiMatchedHalalLogos.length > 0 ? aiMatchedHalalLogos : catalogHalalLogos
@@ -486,6 +511,20 @@ export default defineEventHandler(async (event) => {
 	const halalUnverified = userWantsHalal && extraction.halal_logo_detected && (
 		matchedHalalLogos.length === 0 || !aiCertifierConfident
 	)
+
+	// ── Debug Point 3: log the full resolution outcome ───────────────────────
+	if (userWantsHalal && extraction.halal_logo_detected) {
+		console.log('[halal-debug] resolution outcome:', JSON.stringify({
+			aiMatchedCount:      aiMatchedHalalLogos.length,
+			catalogMatchCount:   catalogHalalLogos.length,
+			finalMatchCount:     matchedHalalLogos.length,
+			matchedCertifiers:   matchedHalalLogos.map((l) => l.certifier),
+			aiCertifierConfident,
+			certifierConfidence: extraction.halal_certifier_confidence,
+			confidenceThreshold: CERTIFIER_CONFIDENCE_THRESHOLD,
+			halalUnverified,
+		}))
+	}
 
 	// If a Halal logo was detected but not matched to a known certifier (whether the AI
 	// could not read it or read it confidently but it is not in the registry), reject
@@ -794,9 +833,12 @@ export default defineEventHandler(async (event) => {
 
 			// Crop the logo from the ORIGINAL uploaded image the model pointed at
 			// (index 0 = `image`, 1 = `image_back`; unaffected by the front/back swap above).
+			// Taken whenever a bounding box is available, not only on rescan exhaustion,
+			// so the Verification Panel always shows the extracted logo rather than the
+			// full product photo.
 			let logoCrop: string | null = null
 			const logoBox = extraction.halal_logo_box
-			if (halalRescanExhausted && extraction.halal_logo_detected && logoBox) {
+			if (extraction.halal_logo_detected && logoBox) {
 				const source = logoBox.image_index === 1 && hasBackImage ? imageBackField!.data : imageField.data
 				logoCrop = await cropLogo(source, logoBox.box)
 			}

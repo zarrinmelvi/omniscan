@@ -80,6 +80,8 @@ export async function readLogoText(cropBase64: string): Promise<string | null> {
 		const cleaned = raw.replace(/^```[a-z]*\n?/i, '').replace(/```$/m, '').trim()
 		const parsed = JSON.parse(cleaned) as { text?: unknown }
 		const text = typeof parsed.text === 'string' ? parsed.text : ''
+		// ── Debug Point 4: log exactly what the OCR pass read from the crop ──
+		console.log('[halal-debug] OCR text from logo crop:', JSON.stringify({ text: text || null }))
 		return text || null
 	} catch {
 		// Timeout, network error, or malformed JSON — treat as no-read.

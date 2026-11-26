@@ -12,7 +12,8 @@ import { normalizeToDateStringOrNull } from '../../lib/date-parse'
 import { getAdminSettings } from '../../lib/admin-settings'
 import { sendNewFlagNotification } from '../../utils/email'
 import { logAuditEvent } from '../../lib/audit-logger'
-import { cropLogo, type LogoBox } from '../../lib/logo-crop'
+import { cropLogo, analyseLogoQuality, type LogoBox } from '../../lib/logo-crop'
+import { readLogoText, matchHalalFromText } from '../../lib/halal-ocr'
 import { normalizeFoodCategory } from '../../lib/food-category'
 import { makeThumbDataUri } from '../../lib/image-thumb'
 
@@ -441,7 +442,9 @@ export default defineEventHandler(async (event) => {
 	const aiMatchedHalalLogos = userWantsHalal && extraction.halal_logo_detected ? resolveHalalLogoMatches(extraction.certifying_body, halalLogos) : []
 	const catalogHalalLogos = userWantsHalal ? (catalogMatch?.halal_logos.map((link) => link.halal_logo) ?? []) : []
 	const matchedHalalLogos = aiMatchedHalalLogos.length > 0 ? aiMatchedHalalLogos : catalogHalalLogos
-	const matchedHalalLogo = matchedHalalLogos[0] ?? null
+	// matchedHalalLogo is derived after OCR may extend matchedHalalLogos, so it is
+	// resolved lazily via a getter-style accessor later. Use let so it can be updated.
+	let matchedHalalLogo = matchedHalalLogos[0] ?? null
 
 	const combinedIngredientText = `${extraction.ingredients_text} ${extraction.simplified_ingredients}`
 	const stringMatches = findMatchedUserAllergens(combinedIngredientText, userWithAllergens?.allergens ?? [])
@@ -491,35 +494,124 @@ export default defineEventHandler(async (event) => {
 	let halalRescanExhausted = false
 
 	if (userWantsHalal && extraction.halal_logo_detected && matchedHalalLogos.length === 0) {
-		const windowStart = new Date(Date.now() - HALAL_ATTEMPT_WINDOW_DAYS * 24 * 60 * 60 * 1000)
-		const priorAttempts = await prisma.auditEvent.count({
-			where: {
-				event_type: 'HALAL_RESCAN_FAILED',
-				entity: 'Scan',
-				triggered_by_user_id: authUser.id,
-				created_at: { gte: windowStart },
-				metadata: { path: ['canonical_key'], equals: canonicalKey },
-			},
-		})
-		const attempt = priorAttempts + 1
+		// ── OCR fallback ──────────────────────────────────────────────────────
+		// Before counting a failed attempt, crop the logo region and ask the
+		// vision model to read the text directly. If it finds "HALAL" + a known
+		// certifier name, we match it against the DB and accept the scan.
+		// If it only finds "HALAL" (no identifiable certifier), we let the scan
+		// through as halal_unverified so it goes to the Verification Panel instead
+		// of forcing the user to rescan.
+		// The whole OCR path is fire-and-check: any failure falls through to the
+		// normal rescan logic below.
+		let ocrResolved = false
+		const ocrLogoBox = extraction.halal_logo_box
 
-		if (attempt < HALAL_MAX_ATTEMPTS) {
-			await logAuditEvent({
-				event_type: 'HALAL_RESCAN_FAILED',
-				entity: 'Scan',
-				triggered_by_user_id: authUser.id,
-				summary: `User #${authUser.id} halal logo unidentified for ${canonicalKey} (attempt ${attempt}/${HALAL_MAX_ATTEMPTS})`,
-				metadata: { canonical_key: canonicalKey, attempt },
-			})
-			throw createError({
-				statusCode: 422,
-				statusMessage: 'A Halal certification logo was detected but could not be matched to a known certifier. Please re-scan with a clearer view of the certification mark.',
-				data: { rescan_required: true, reason: 'halal_certifier_unidentified', attempt, max_attempts: HALAL_MAX_ATTEMPTS },
-			})
+		if (ocrLogoBox) {
+			const ocrSource = ocrLogoBox.image_index === 1 && hasBackImage ? imageBackField!.data : imageField.data
+			const ocrCropDataUri = await cropLogo(ocrSource, ocrLogoBox.box)
+
+			if (ocrCropDataUri) {
+				const ocrText = await readLogoText(ocrCropDataUri)
+
+				if (ocrText) {
+					const certifierNames = halalLogos.map((l) => l.certifier)
+					const ocrMatch = matchHalalFromText(ocrText, certifierNames)
+
+					if (ocrMatch && ocrMatch !== 'HALAL') {
+						// OCR identified a specific certifier — try to match it in the DB.
+						const dbMatches = halalLogos.filter((l) =>
+							l.certifier.toUpperCase().includes(ocrMatch.toUpperCase()) ||
+							ocrMatch.toUpperCase().includes(l.certifier.toUpperCase()),
+						)
+						if (dbMatches.length > 0) {
+							// Patch the matched list so the rest of the route treats this
+							// as a successfully identified logo.
+							matchedHalalLogos.push(...dbMatches)
+							matchedHalalLogo = matchedHalalLogos[0] ?? null
+							ocrResolved = true
+						}
+					} else if (ocrMatch === 'HALAL') {
+						// Logo confirmed as Halal but certifier unknown — accept the scan
+						// but mark it unverified so it surfaces in the Verification Panel.
+						// We do this by setting ocrResolved=true and leaving matchedHalalLogos
+						// empty; halalUnverified is already true from the block above.
+						ocrResolved = true
+					}
+				}
+			}
 		}
 
-		halalRescanExhausted = true
-	}
+		if (!ocrResolved) {
+			const windowStart = new Date(Date.now() - HALAL_ATTEMPT_WINDOW_DAYS * 24 * 60 * 60 * 1000)
+			const priorAttempts = await prisma.auditEvent.count({
+				where: {
+					event_type: 'HALAL_RESCAN_FAILED',
+					entity: 'Scan',
+					triggered_by_user_id: authUser.id,
+					created_at: { gte: windowStart },
+					metadata: { path: ['canonical_key'], equals: canonicalKey },
+				},
+			})
+			const attempt = priorAttempts + 1
+
+			if (attempt < HALAL_MAX_ATTEMPTS) {
+				// Analyse the logo crop for blur and glare so we can give the user
+				// actionable guidance rather than a generic re-scan message.
+				const logoBox = extraction.halal_logo_box
+				let rescanMessage = 'A Halal certification logo was detected but could not be matched to a known certifier. Please re-scan with a clearer view of the certification mark.'
+				let quality = { blurry: false, glare: false }
+
+				if (logoBox) {
+					const source = logoBox.image_index === 1 && hasBackImage ? imageBackField!.data : imageField.data
+					const cropBuffer = await (async () => {
+						try {
+							const { default: sharpLib } = await import('sharp')
+							const raw = typeof source === 'string'
+								? Buffer.from(source.replace(/^data:[^;]+;base64,/, ''), 'base64')
+								: source
+							const rotated = await sharpLib(raw).rotate().toBuffer()
+							const meta = await sharpLib(rotated).metadata()
+							if (!meta.width || !meta.height) return null
+							const [ymin, xmin, ymax, xmax] = logoBox.box
+							const left   = Math.max(0, Math.floor((xmin / 1000) * meta.width))
+							const top    = Math.max(0, Math.floor((ymin / 1000) * meta.height))
+							const width  = Math.min(meta.width  - left, Math.ceil(((xmax - xmin) / 1000) * meta.width))
+							const height = Math.min(meta.height - top,  Math.ceil(((ymax - ymin) / 1000) * meta.height))
+							if (width < 1 || height < 1) return null
+							return sharpLib(rotated).extract({ left, top, width, height }).toBuffer()
+						} catch { return null }
+					})()
+
+					if (cropBuffer) {
+						quality = await analyseLogoQuality(cropBuffer)
+					}
+				}
+
+				if (quality.blurry && quality.glare) {
+					rescanMessage = 'Halal logo found but the image is blurry and overexposed. Find better lighting and hold the phone steady.'
+				} else if (quality.blurry) {
+					rescanMessage = 'Halal logo found but the certification mark is blurry. Please move closer and hold the phone steady.'
+				} else if (quality.glare) {
+					rescanMessage = 'Halal logo found but glare is making the certification mark unreadable. Try tilting your phone slightly to reduce reflections.'
+				}
+
+				await logAuditEvent({
+					event_type: 'HALAL_RESCAN_FAILED',
+					entity: 'Scan',
+					triggered_by_user_id: authUser.id,
+					summary: `User #${authUser.id} halal logo unidentified for ${canonicalKey} (attempt ${attempt}/${HALAL_MAX_ATTEMPTS})`,
+					metadata: { canonical_key: canonicalKey, attempt, quality },
+				})
+				throw createError({
+					statusCode: 422,
+					statusMessage: rescanMessage,
+					data: { rescan_required: true, reason: 'halal_certifier_unidentified', attempt, max_attempts: HALAL_MAX_ATTEMPTS, quality },
+				})
+			}
+
+			halalRescanExhausted = true
+		} // end if (!ocrResolved)
+	} // end if (userWantsHalal && halal_logo_detected && no match)
 
 	// Ensure primary image saved to database is always the front packaging view
 	let mainProductImage = imageDataUri

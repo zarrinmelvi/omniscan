@@ -130,6 +130,7 @@ import { onBeforeRouteLeave } from 'vue-router'
 
 import { API_BASE_URL } from '@/utils/api'
 import { resizeImageForUpload } from '@/utils/imageResize'
+import { preprocessForUpload } from '@/utils/imagePreprocess'
 import { cameraOutline, closeOutline, scanOutline } from 'ionicons/icons'
 import { useCameraPermission } from '@/composables/useCameraPermission'
 import ScanResultModal from '../components/ScanResultModal.vue'
@@ -329,7 +330,10 @@ async function onFileSelected(event: Event): Promise<void> {
 	// Photos picked from the gallery/native camera can be several MB; downscale
 	// them first so the upload and the AI read are faster.
 	const optimizedFile = await resizeImageForUpload(file)
-	await processCapturedFile(optimizedFile)
+	// Apply contrast boost + unsharp-mask sharpening to improve AI OCR accuracy
+	// on ingredient text and Halal logo marks.
+	const processedFile = await preprocessForUpload(optimizedFile)
+	await processCapturedFile(processedFile)
 }
 
 async function processCapturedFile(file: File): Promise<void> {

@@ -310,8 +310,17 @@
 <span class="cdm-pantry-title">Consumer Pantry Inventory ({{ modal.pantryCount }} / 100)</span>
 <span class="cdm-readonly-pill">Read-Only</span>
 </div>
+<input
+	v-model="pantrySearch"
+	type="text"
+	class="cdm-pantry-search"
+	placeholder="Search items…"
+	aria-label="Search pantry items"
+/>
 <p v-if="modal.pantryItems.length === 0" class="cdm-empty">No items in this consumer's pantry yet.</p>
-<table v-else class="cdm-table">
+<p v-else-if="filteredPantryItems.length === 0" class="cdm-empty">No items match your search.</p>
+<template v-else>
+<table class="cdm-table">
 <thead>
 <tr>
 <th>PANTRY ITEM</th>
@@ -321,7 +330,7 @@
 </tr>
 </thead>
 <tbody>
-<tr v-for="item in modal.pantryItems" :key="item.id">
+<tr v-for="item in pagedPantryItems" :key="item.id">
 <td class="cdm-item-name">{{ item.product_name }}</td>
 <td><span class="cdm-cat-chip">{{ item.category }}</span></td>
 <td class="cdm-expiry">{{ formatShortDate(item.expiration_date) }}</td>
@@ -329,6 +338,12 @@
 </tr>
 </tbody>
 </table>
+<div v-if="pantryTotalPages > 1" class="cdm-pagination">
+	<button class="cdm-page-btn" :disabled="pantryPage === 1" @click="pantryPage--">‹ Prev</button>
+	<span class="cdm-page-label">Page {{ pantryPage }} of {{ pantryTotalPages }}</span>
+	<button class="cdm-page-btn" :disabled="pantryPage === pantryTotalPages" @click="pantryPage++">Next ›</button>
+</div>
+</template>
 </div>
 <div class="cdm-footer">
 <button class="cdm-close-btn" @click="closeModal">Close</button>
@@ -616,6 +631,8 @@ open: true, loading: true, error: null, userId: userId,
 name: '', username: null, status: '', statusClass: '', initials: '', avatarSrc: null,
 pantryCount: 0, pantryItems: [], allergensRevealed: false, allergens: [], allergenLoading: false, allergenError: null, viewedBy: '', viewedTime: '',
 }
+pantrySearch.value = ''
+pantryPage.value = 1
 try {
 type DetailResponse = {
 success: boolean
@@ -691,6 +708,31 @@ function viewInCatalog(productId: number): void {
 closeModal()
 void router.push('/admin/productsdata?tab=products&highlight=' + productId)
 }
+
+// ── Pantry search + pagination ────────────────────────────────────────────────
+const PANTRY_PAGE_SIZE = 5
+const pantrySearch = ref('')
+const pantryPage = ref(1)
+
+const filteredPantryItems = computed(() => {
+	const q = pantrySearch.value.trim().toLowerCase()
+	if (!q) return modal.value.pantryItems
+	return modal.value.pantryItems.filter((item) =>
+		item.product_name.toLowerCase().includes(q),
+	)
+})
+
+const pantryTotalPages = computed(() =>
+	Math.max(1, Math.ceil(filteredPantryItems.value.length / PANTRY_PAGE_SIZE)),
+)
+
+const pagedPantryItems = computed(() => {
+	const start = (pantryPage.value - 1) * PANTRY_PAGE_SIZE
+	return filteredPantryItems.value.slice(start, start + PANTRY_PAGE_SIZE)
+})
+
+watch(pantrySearch, () => { pantryPage.value = 1 })
+
 onMounted(fetchUsers)
 onBeforeUnmount(() => {
 	if (searchTimer) clearTimeout(searchTimer)
@@ -1186,6 +1228,13 @@ td {
 .cdm-pantry-title { font-size: 1rem; font-weight: 700; color: #0f172a; }
 .cdm-readonly-pill { background: #f1f5f9; color: #64748b; border-radius: 9999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 600; }
 .cdm-empty { font-size: 0.85rem; color: #9ca3af; text-align: center; padding: 20px 0; margin: 0; border: 1px solid #f1f5f9; border-radius: 8px; }
+.cdm-pantry-search { width: 100%; box-sizing: border-box; height: 36px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0 12px; font-size: 0.84rem; color: #1e293b; outline: none; font-family: inherit; }
+.cdm-pantry-search:focus { border-color: #008744; }
+.cdm-pagination { display: flex; align-items: center; justify-content: space-between; padding: 10px 0 0; gap: 8px; }
+.cdm-page-btn { border: 1px solid #e2e8f0; background: #fff; color: #374151; border-radius: 7px; padding: 5px 14px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background .12s; }
+.cdm-page-btn:hover:not(:disabled) { background: #f8fafc; }
+.cdm-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.cdm-page-label { font-size: 0.8rem; color: #64748b; white-space: nowrap; }
 .cdm-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; border: 1px solid #f1f5f9; border-radius: 8px; overflow: hidden; }
 .cdm-table th { text-align: left; padding: 8px 12px; font-size: 0.7rem; font-weight: 700; color: #94a3b8; letter-spacing: 0.04em; border-bottom: 1px solid #f1f5f9; }
 .cdm-table td { padding: 10px 12px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }

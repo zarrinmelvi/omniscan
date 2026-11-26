@@ -138,7 +138,7 @@
 
 					<label class="field-label field-label--strong">Category</label>
 					<select class="category-select" v-model="category" :disabled="submitting">
-						<option v-for="opt in categoryOptions" :key="opt" :value="opt">{{ opt }}</option>
+						<option v-for="opt in categoryNames" :key="opt" :value="opt">{{ opt }}</option>
 					</select>
 
 					<label class="field-label field-label--strong">Storage Location</label>
@@ -217,15 +217,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { IonModal, IonAlert, IonContent, IonIcon, IonButton, IonSpinner, alertController } from '@ionic/vue'
 import { apiFetch, ApiError } from '@/utils/api'
 import AppDatePicker from '@/components/AppDatePicker.vue'
 import { PANTRY_MAX, PAST_DATE_MESSAGE, isBeforeToday, todayLocalISO, toISODate } from '@/utils/dateUtils'
 import { showErrorToast, showSuccessToast } from '@/utils/toast'
 import { usePantryList } from '@/composables/usePantryList'
+import { useCategoryList } from '@/composables/useCategoryList'
 
 const { invalidate: invalidatePantryList } = usePantryList()
+const { categoryNames, fetchCategories } = useCategoryList()
+onMounted(fetchCategories)
 
 async function showQuotaModal(message: string): Promise<void> {
 	const alert = await alertController.create({
@@ -357,12 +360,11 @@ watch(
 
 const unitOptions = ['g', 'kg', 'ml', 'L', 'oz', 'cloves']
 const storageOptions = ['Fridge', 'Freezer', 'Cupboard']
-const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
 
 // Detected AI food category — only shown/pre-selected when it matches a valid pantry category.
 const detectedFoodCategory = computed(() => {
 	const cat = product.value?.food_category
-	return typeof cat === 'string' && cat && categoryOptions.includes(cat) ? cat : ''
+	return typeof cat === 'string' && cat && categoryNames.value.includes(cat) ? cat : ''
 })
 
 const netContent = ref<number | null>(null)

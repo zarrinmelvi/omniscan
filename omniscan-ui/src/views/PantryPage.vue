@@ -260,7 +260,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
 	IonPage,
@@ -290,6 +290,7 @@ import { syncExpiryReminders } from '@/utils/reminderScheduler'
 import AppHeader from '@/components/AppHeader.vue'
 import SkeletonCard from '@/components/SkeletonCard.vue'
 import { usePantryList } from '@/composables/usePantryList'
+import { useCategoryList } from '@/composables/useCategoryList'
 import { useBreakpoint } from '@/utils/useBreakpoint'
 
 interface Product {
@@ -327,6 +328,7 @@ interface SortOptionItem {
 
 const { isDesktop } = useBreakpoint()
 const pantryList = usePantryList()
+const { categoryNames, fetchCategories } = useCategoryList()
 const vPantryLazyImage = pantryList.pantryLazyImage
 const items = pantryList.items
 // Skeletons only on the cold first load; later visits show cached data and refresh silently.
@@ -338,7 +340,8 @@ const totalItemsScanned = ref(0)
 const view = ref<ViewMode>('active')
 const locationOptions: LocationFilter[] = ['All', 'Fridge', 'Freezer', 'Cupboard']
 const locationFilter = ref<LocationFilter>('All')
-const categoryOptions = ['All', 'Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized'] as const
+// Category filter pills are driven by the live DB list; 'All' is prepended as the default.
+const categoryOptions = computed(() => ['All', ...categoryNames.value])
 const categoryFilter = ref<string>('All')
 const sortOption = ref<SortOption>('expiring_soonest')
 const searchQuery = ref('')
@@ -671,6 +674,11 @@ onIonViewWillEnter(() => {
 	actionError.value = ''
 	void pantryList.refresh({ silent: true }).then(() => syncExpiryReminders())
 	fetchTotalItemsScanned()
+	fetchCategories()
+})
+
+onMounted(() => {
+	fetchCategories()
 })
 </script>
 

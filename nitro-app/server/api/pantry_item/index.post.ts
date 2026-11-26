@@ -2,7 +2,7 @@ import { defineEventHandler, readBody, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../utils/requireAuth'
 import { matchIngredientsToPantry, extractPantryKeywords, keywordSourceNames, type RawIngredient } from '../../lib/recipe-matching'
-import { buildCanonicalKey, findCanonicalProduct } from '../../lib/product-dedup'
+import { buildCanonicalKey, findCanonicalProduct, findFuzzyProduct } from '../../lib/product-dedup'
 import { assertPantryQuotaAvailable } from '../../lib/quota'
 import { makeThumbDataUri } from '../../lib/image-thumb'
 import { isValidPantryUnit, inferCategory } from '../../lib/pantry-taxonomy'
@@ -159,26 +159,38 @@ export default defineEventHandler(async (event) => {
 			}
 
 			const canonicalKey = buildCanonicalKey('Manually Added', product_name.trim())
+
+			// 1. Exact canonical_key match (same brand + normalised name).
 			const canonicalMatch = await findCanonicalProduct('Manually Added', product_name.trim())
 
-			const thumb = image_base64 ? await makeThumbDataUri(image_base64) : null
+			// 2. Fuzzy match — catches singular/plural variants and extra spaces.
+			//    Only run when exact match found nothing, to avoid an extra DB query.
+			const fuzzyMatch = canonicalMatch ? null : await findFuzzyProduct('Manually Added', product_name.trim())
 
-			const created = await prisma.product.create({
-				data: {
-					brand_name: 'Manually Added',
-					product_name: product_name.trim(),
-					ingredient_text: ingredient_text?.trim() || canonicalMatch?.ingredient_text || 'Unknown',
-					simplified_ingredients: simplified_ingredients?.trim() || canonicalMatch?.simplified_ingredients || ingredient_text?.trim() || 'Unknown',
-					image_base64: image_base64 || null,
-					image_thumb_base64: thumb,
-					is_verified: false,
-					halal_logo_id: null,
-					canonical_key: canonicalKey,
-					...(canonicalMatch ? { canonical_product_id: canonicalMatch.id } : {}),
-				},
-				select: { id: true, product_name: true },
-			})
-			product = created
+			// If either match found an existing canonical product, reuse its ID
+			// directly — no new Product row is created, no duplicate accumulates.
+			const existingProduct = canonicalMatch ?? fuzzyMatch
+			if (existingProduct) {
+				product = { id: existingProduct.id, product_name: existingProduct.product_name }
+			} else {
+				const thumb = image_base64 ? await makeThumbDataUri(image_base64) : null
+
+				const created = await prisma.product.create({
+					data: {
+						brand_name: 'Manually Added',
+						product_name: product_name.trim(),
+						ingredient_text: ingredient_text?.trim() || 'Unknown',
+						simplified_ingredients: simplified_ingredients?.trim() || ingredient_text?.trim() || 'Unknown',
+						image_base64: image_base64 || null,
+						image_thumb_base64: thumb,
+						is_verified: false,
+						halal_logo_id: null,
+						canonical_key: canonicalKey,
+					},
+					select: { id: true, product_name: true },
+				})
+				product = created
+			}
 		}
 
 		// Accept any non-empty category string (admin-managed via ProductCategory table).

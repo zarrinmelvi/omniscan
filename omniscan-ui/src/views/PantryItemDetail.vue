@@ -273,7 +273,7 @@
 					<!-- Category -->
 					<label class="field-label-brown">Category</label>
 					<select v-model="editForm.category" class="edit-unit-select" style="width:100%">
-						<option v-for="c in categoryOptions" :key="c" :value="c">{{ c }}</option>
+						<option v-for="c in editCategoryOptions" :key="c" :value="c">{{ c }}</option>
 					</select>
 
 					<!-- Expiration Date -->
@@ -356,6 +356,9 @@ import {
 	closeOutline,
 } from 'ionicons/icons'
 import { apiFetch, ApiError } from '@/utils/api'
+import { useCategoryList } from '@/composables/useCategoryList'
+
+const { categoryNames, fetchCategories } = useCategoryList()
 
 interface RecipeUsage {
 	recipe_id: number
@@ -427,7 +430,15 @@ const editSnapshot = ref('')
 let bypassEditGuard = false
 let isDiscardAlertOpen = false
 
-const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
+// The edit dropdown merges the live DB category list with the item's currently
+// stored category. If the admin later deletes a category the item is using, the
+// stored value still appears as a selectable option so it isn't silently overwritten.
+const editCategoryOptions = computed(() => {
+	const base = categoryNames.value.length > 0 ? categoryNames.value : ['Uncategorized']
+	const current = editForm.category
+	if (current && !base.includes(current)) return [...base, current]
+	return base
+})
 
 const matchedUserAllergens = computed(() => item.value?.matched_user_allergens ?? [])
 
@@ -701,7 +712,10 @@ async function fetchItem(silent = false): Promise<void> {
 	}
 }
 
-onIonViewWillEnter(() => fetchItem())
+onIonViewWillEnter(() => {
+	fetchItem()
+	fetchCategories()
+})
 
 function onNetContentInput(e: Event): void {
 	const el = e.target as HTMLInputElement

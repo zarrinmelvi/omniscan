@@ -229,7 +229,7 @@
 
 					<label class="field-label-brown">Category</label>
 					<select class="unit-select" v-model="form.category" :disabled="isSubmitting" style="width:100%">
-						<option v-for="opt in categoryOptions" :key="opt" :value="opt">{{ opt }}</option>
+						<option v-for="opt in categoryNames" :key="opt" :value="opt">{{ opt }}</option>
 					</select>
 
 					<ion-button expand="block" type="submit" class="primary-button" :disabled="!isFormValid || isSubmitting">
@@ -244,7 +244,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import {
 	IonModal,
 	IonIcon,
@@ -269,8 +269,11 @@ import AppDatePicker from '@/components/AppDatePicker.vue'
 import { PANTRY_MAX, PAST_DATE_MESSAGE, isBeforeToday, todayLocalISO, toISODate } from '@/utils/dateUtils'
 import { showErrorToast, showSuccessToast } from '@/utils/toast'
 import { usePantryList } from '@/composables/usePantryList'
+import { useCategoryList } from '@/composables/useCategoryList'
 
 const { invalidate: invalidatePantryList } = usePantryList()
+const { categoryNames, fetchCategories } = useCategoryList()
+onMounted(fetchCategories)
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 const DAILY_MAX_LIMIT = 7
@@ -314,7 +317,6 @@ const nonFoodMessage = ref('')
 
 const storageLocations = ['Fridge', 'Freezer', 'Cupboard'] as const
 const unitOptions = ['g', 'kg', 'ml', 'L', 'oz', 'cloves']
-const categoryOptions = ['Canned Goods', 'Instant Noodles', 'Condiments & Sauces', 'Dairy', 'Snacks', 'Beverages', 'Grains', 'Uncategorized']
 
 // Same mapping as ScanResultModal.storageForCategory (duplicated; not shared)
 function storageForCategory(cat: string): (typeof storageLocations)[number] {
@@ -489,7 +491,7 @@ async function goToStep2(): Promise<void> {
 		} else if (
 			result.food_category &&
 			result.food_category !== 'Uncategorized' &&
-			categoryOptions.includes(result.food_category) &&
+			categoryNames.value.includes(result.food_category) &&
 			form.storageLocation === 'Cupboard'
 		) {
 			// Fallback to category-based storage mapping

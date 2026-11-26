@@ -14,6 +14,11 @@ export default defineNitroConfig({
 	scheduledTasks: {
 		'0 8 * * *': ['notifications:check-expiring', 'notifications:daily-summary'],
 	},
+	vercel: {
+		functions: {
+			maxDuration: 60,
+		},
+	},
 	routeRules: {
 		'/api/**': {
 			// CORS headers are handled dynamically by server/middleware/cors.ts

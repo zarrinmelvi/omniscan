@@ -447,7 +447,33 @@ async function handleUpload(front: File, back: File | null): Promise<void> {
 				return
 			}
 
-			// Cleanly handle non-food/unrelated captures (including invalid second photos)
+			// rescan_required: the scan was valid but needs another attempt (e.g. unreadable
+			// halal logo certifier). Show a targeted alert with attempt progress so the user
+			// knows exactly what to do, then reset cleanly for a fresh scan — no loop.
+			if (errorBody?.data?.rescan_required) {
+				const attempt = errorBody.data.attempt as number | undefined
+				const maxAttempts = errorBody.data.max_attempts as number | undefined
+				const attemptSuffix = attempt && maxAttempts ? ` (attempt ${attempt} of ${maxAttempts})` : ''
+				const { Capacitor } = await import('@capacitor/core')
+				if (Capacitor.isNativePlatform()) {
+					const { alertController: ac } = await import('@ionic/vue')
+					const alert = await ac.create({
+						header: 'Rescan Needed',
+						message: errorMessage + attemptSuffix,
+						cssClass: 'custom-make-alert',
+						buttons: [{ text: 'OK', role: 'cancel' }],
+					})
+					await alert.present()
+				} else {
+					analysisStatus.value = errorMessage + attemptSuffix
+				}
+				captureStage.value = 'front'
+				frontFile.value = null
+				isBackCaptured.value = false
+				return
+			}
+
+			// Non-food / unrelated captures (including invalid second photos)
 			analysisResult.value = {
 				product: {
 					id: '0',

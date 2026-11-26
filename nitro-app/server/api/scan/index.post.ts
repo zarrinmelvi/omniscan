@@ -433,8 +433,13 @@ export default defineEventHandler(async (event) => {
 
 	let { verdict, reasons } = determineVerdict(extraction.ingredients_text)
 
-	const aiMatchedHalalLogos = extraction.halal_logo_detected ? resolveHalalLogoMatches(extraction.certifying_body, halalLogos) : []
-	const catalogHalalLogos = catalogMatch?.halal_logos.map((link) => link.halal_logo) ?? []
+	// Only run halal logo detection when the user has opted in to Halal checking.
+	// If halal_pref is OFF, skip certifier matching and the rescan loop entirely —
+	// the AI extraction field is ignored and the scan proceeds as a normal product scan.
+	const userWantsHalal = userWithAllergens?.dietary_prof?.[0]?.halal_pref ?? false
+
+	const aiMatchedHalalLogos = userWantsHalal && extraction.halal_logo_detected ? resolveHalalLogoMatches(extraction.certifying_body, halalLogos) : []
+	const catalogHalalLogos = userWantsHalal ? (catalogMatch?.halal_logos.map((link) => link.halal_logo) ?? []) : []
 	const matchedHalalLogos = aiMatchedHalalLogos.length > 0 ? aiMatchedHalalLogos : catalogHalalLogos
 	const matchedHalalLogo = matchedHalalLogos[0] ?? null
 
@@ -468,10 +473,11 @@ export default defineEventHandler(async (event) => {
 	// If AI identified a certifier AND confidence >= 90% AND it matches a
 	// known HalalLogo in the DB → mark as AI-verified directly.
 	// If confidence < 90% OR logo detected but certifier unmatched → rescan required.
+	// This entire block is skipped when the user has halal_pref OFF.
 	const CERTIFIER_CONFIDENCE_THRESHOLD = AI_OCR_CONFIDENCE_THRESHOLD
 
 	const aiCertifierConfident = extraction.halal_certifier_confidence >= CERTIFIER_CONFIDENCE_THRESHOLD
-	const halalUnverified = extraction.halal_logo_detected && (
+	const halalUnverified = userWantsHalal && extraction.halal_logo_detected && (
 		matchedHalalLogos.length === 0 || !aiCertifierConfident
 	)
 
@@ -480,10 +486,11 @@ export default defineEventHandler(async (event) => {
 	// the scan — do not store an ambiguous product record.
 	// The same product is re-scanned up to HALAL_MAX_ATTEMPTS times; only on the final
 	// failure is the scan saved and flagged for admin review instead of rejected.
+	// Skipped entirely when the user has halal_pref OFF.
 	const canonicalKey = buildCanonicalKey(extraction.brand || 'Unknown', extraction.product_name || imageField.filename)
 	let halalRescanExhausted = false
 
-	if (extraction.halal_logo_detected && matchedHalalLogos.length === 0) {
+	if (userWantsHalal && extraction.halal_logo_detected && matchedHalalLogos.length === 0) {
 		const windowStart = new Date(Date.now() - HALAL_ATTEMPT_WINDOW_DAYS * 24 * 60 * 60 * 1000)
 		const priorAttempts = await prisma.auditEvent.count({
 			where: {
@@ -526,7 +533,6 @@ export default defineEventHandler(async (event) => {
 	// Alternatives only depend on the user's dietary profile and the catalog match,
 	// not on the saved scan, so start them now and let them run alongside the
 	// database writes below. Awaited just before the response is built.
-	const halalPref = userWithAllergens?.dietary_prof?.[0]?.halal_pref ?? false
 	const alternativesTask: Promise<{
 		alternatives: Awaited<ReturnType<typeof findAlternativeProducts>>
 		alternativesMessage: string | null
@@ -536,14 +542,14 @@ export default defineEventHandler(async (event) => {
 		}
 		const dietaryProfile = {
 			allergens: userWithAllergens?.allergens ?? [],
-			halalPref,
+			halalPref: userWantsHalal,
 			customPreferences: userWithAllergens?.dietary_prof?.[0]?.custom_preferences ?? [],
 		}
 		const { disallowedIngredientNames } = await determineDisallowedCatalogIngredients(dietaryProfile)
 		const found = await findAlternativeProducts(disallowedIngredientNames, {
 			variantGroup: catalogMatch.variant_group,
 			excludeProductId: catalogMatch.id,
-			requireHalalCertified: halalPref,
+			requireHalalCertified: userWantsHalal,
 		})
 		return {
 			alternatives: found,

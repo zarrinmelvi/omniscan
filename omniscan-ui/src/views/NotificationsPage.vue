@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonIcon, IonSpinner, onIonViewWillEnter } from '@ionic/vue'
 import { useBreakpoint } from '@/utils/useBreakpoint'
@@ -209,6 +209,9 @@ async function markAllRead() {
 	}
 }
 
+// onMounted covers web routing (Vue Router pushes don't trigger onIonViewWillEnter).
+// onIonViewWillEnter covers native tab re-entry where the component stays mounted.
+onMounted(fetchNotifications)
 onIonViewWillEnter(fetchNotifications)
 </script>
 

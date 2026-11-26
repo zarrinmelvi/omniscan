@@ -270,7 +270,10 @@
 <div v-if="modal.open" class="cdm-backdrop" role="dialog" aria-modal="true" aria-labelledby="cdm-title" @click.self="closeModal">
 <div class="cdm-panel">
 <div class="cdm-header">
-<div class="cdm-avatar">{{ modal.initials }}</div>
+<div class="cdm-avatar">
+	<img v-if="modal.avatarSrc" :src="modal.avatarSrc" alt="" class="cdm-avatar-img" />
+	<template v-else>{{ modal.initials }}</template>
+</div>
 <div class="cdm-title-block">
 <span id="cdm-title" class="cdm-name">{{ modal.name }}</span>
 <span class="cdm-username">@{{ modal.username || 'user' }}</span>
@@ -591,11 +594,12 @@ username: string | null
 status: string
 statusClass: string
 initials: string
+avatarSrc: string | null
 pantryCount: number
 pantryItems: ModalPantryItem[]; allergensRevealed: boolean; allergens: string[]; allergenLoading: boolean; allergenError: string | null; viewedBy: string; viewedTime: string
 }>({
 open: false, loading: false, error: null, userId: null,
-name: '', username: null, status: '', statusClass: '', initials: '',
+name: '', username: null, status: '', statusClass: '', initials: '', avatarSrc: null,
 pantryCount: 0, pantryItems: [], allergensRevealed: false, allergens: [], allergenLoading: false, allergenError: null, viewedBy: '', viewedTime: '',
 })
 
@@ -609,7 +613,7 @@ return 'cdm-status--inactive'
 async function openModal(userId: number): Promise<void> {
 modal.value = {
 open: true, loading: true, error: null, userId: userId,
-name: '', username: null, status: '', statusClass: '', initials: '',
+name: '', username: null, status: '', statusClass: '', initials: '', avatarSrc: null,
 pantryCount: 0, pantryItems: [], allergensRevealed: false, allergens: [], allergenLoading: false, allergenError: null, viewedBy: '', viewedTime: '',
 }
 try {
@@ -620,6 +624,7 @@ id: number
 name: string
 username: string | null
 status: string
+avatar_base64: string | null
 pantry_items: ModalPantryItem[]
 pantry_count: number
 pantry_max: number
@@ -627,6 +632,10 @@ pantry_max: number
 }
 const data = await apiFetch<DetailResponse>('/api/admin/users/' + userId, { isAdmin: true })
 const u = data.user
+const rawAvatar = u.avatar_base64
+const avatarSrc = rawAvatar
+	? rawAvatar.startsWith('data:') ? rawAvatar : `data:image/jpeg;base64,${rawAvatar}`
+	: null
 modal.value = {
 open: true, loading: false, error: null, userId: userId,
 name: u.name,
@@ -634,6 +643,7 @@ username: u.username,
 status: u.status,
 statusClass: statusClassOf(u.status),
 initials: initialsOf(u.name),
+avatarSrc,
 pantryCount: u.pantry_count,
 pantryItems: u.pantry_items,
 allergensRevealed: false, allergens: [], allergenLoading: false, allergenError: null, viewedBy: '', viewedTime: '',
@@ -1159,6 +1169,7 @@ td {
 .cdm-panel { background: #fff; border-radius: 16px; width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
 .cdm-header { display: flex; align-items: center; gap: 12px; padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9; }
 .cdm-avatar { width: 42px; height: 42px; border-radius: 50%; background: #c05328; color: #fff; font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.cdm-avatar-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; display: block; }
 .cdm-title-block { flex: 1; min-width: 0; }
 .cdm-name { display: block; font-size: 1.05rem; font-weight: 700; color: #0f172a; }
 .cdm-username { font-size: 0.8rem; color: #94a3b8; }

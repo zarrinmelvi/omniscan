@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
 		where: { id: userId, deleted_at: null },
 		select: {
 			id: true, name: true, username: true, status: true,
+			avatar_base64: true,
 			pantry_item: {
 				where: { is_archived: false, deleted_at: null },
 				orderBy: { expiration_date: 'asc' },
@@ -39,6 +40,7 @@ export default defineEventHandler(async (event) => {
 		success: true,
 		user: {
 			id: user.id, name: user.name, username: user.username ?? null, status: user.status,
+			avatar_base64: user.avatar_base64 ?? null,
 			pantry_items: user.pantry_item.map((p) => ({
 				id: p.id,
 				product_id: p.product.id,

@@ -765,7 +765,8 @@ async function handleRegister(): Promise<void> {
 
 	let hasEmptyField = false
 	if (!firstName.value.trim()) { fieldErrors.firstName = true; hasEmptyField = true }
-	if (!lastName.value.trim()) { fieldErrors.lastName = true; hasEmptyField = true }
+	// Last name is optional for Google sign-ups (some Google accounts have no family name).
+	if (!isGooglePending.value && !lastName.value.trim()) { fieldErrors.lastName = true; hasEmptyField = true }
 	if (!username.value.trim()) { fieldErrors.username = true; hasEmptyField = true }
 	if (!email.value.trim()) { fieldErrors.email = true; hasEmptyField = true }
 	
@@ -792,6 +793,21 @@ async function handleRegister(): Promise<void> {
 		} else {
 			errorMessage.value = 'Please fill in all required fields.'
 		}
+		void revealError()
+		return
+	}
+
+	// Name fields: letters (including accented), spaces, hyphens, apostrophes only.
+	const NAME_RE = /^[a-zA-ZÀ-ÿ\u0100-\u024F' -]{1,50}$/
+	if (!NAME_RE.test(firstName.value.trim())) {
+		fieldErrors.firstName = true
+		errorMessage.value = 'First name may only contain letters, spaces, hyphens, and apostrophes.'
+		void revealError()
+		return
+	}
+	if (lastName.value.trim() && !NAME_RE.test(lastName.value.trim())) {
+		fieldErrors.lastName = true
+		errorMessage.value = 'Last name may only contain letters, spaces, hyphens, and apostrophes.'
 		void revealError()
 		return
 	}

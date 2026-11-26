@@ -22,11 +22,17 @@
 
 		<!-- Single router outlet — always rendered, never conditionally swapped -->
 		<ion-router-outlet />
+
+		<!-- Prompt Google users who registered without a last name -->
+		<CompleteProfileModal
+			:is-open="showCompleteProfile"
+			@done="showCompleteProfile = false"
+		/>
 	</ion-app>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { IonApp, IonRouterOutlet } from '@ionic/vue'
 import { Capacitor } from '@capacitor/core'
@@ -42,6 +48,7 @@ import { useDarkMode } from '@/composables/useDarkMode'
 import { refreshNotifBadge, clearBadge } from '@/utils/appBadge'
 import { syncExpiryReminders, cancelAllReminders } from '@/utils/reminderScheduler'
 import { useNotificationPrefs } from '@/composables/useNotificationPrefs'
+import CompleteProfileModal from '@/components/CompleteProfileModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -51,6 +58,9 @@ const { isDark } = useDarkMode()
 
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 const isTabsRoute = computed(() => route.path.startsWith('/tabs/'))
+
+// Show the "complete your profile" prompt for Google users who have no last name.
+const showCompleteProfile = ref(false)
 
 // Helper to update native status bar icons and background color based on dark mode state
 async function updateStatusBar(dark: boolean) {
@@ -114,6 +124,10 @@ watch(
 			await loadPrefs()
 			await refreshNotifBadge()
 			await syncExpiryReminders()
+			// Prompt Google users who registered without a last name.
+			if (authStore.user?.oauth_provider === 'google' && !authStore.user?.last_name) {
+				showCompleteProfile.value = true
+			}
 		} else if (wasAuthed) {
 			await clearBadge()
 			await cancelAllReminders()

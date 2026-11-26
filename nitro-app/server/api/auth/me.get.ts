@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
 
 	const user = await prisma.user.findUnique({
 		where: { id: authUser.id },
-		select: { id: true, name: true, email: true, email_verified: true, avatar_base64: true },
+		select: { id: true, name: true, email: true, email_verified: true, avatar_base64: true, first_name: true, last_name: true, username: true, oauth_provider: true },
 	})
 
 	if (!user) {

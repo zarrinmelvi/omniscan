@@ -13,6 +13,7 @@ export interface AuthUser {
 	last_name?: string | null
 	username?: string | null
 	avatar_base64?: string | null
+	oauth_provider?: string | null
 }
 
 interface LoginResponse {

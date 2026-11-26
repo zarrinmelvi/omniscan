@@ -60,8 +60,14 @@ export default defineEventHandler(async (event) => {
 	if (!firstName || typeof firstName !== 'string' || !firstName.trim()) {
 		throw createError({ statusCode: 400, statusMessage: 'First name is required.' })
 	}
-	if (!lastName || typeof lastName !== 'string' || !lastName.trim()) {
-		throw createError({ statusCode: 400, statusMessage: 'Last name is required.' })
+	// Last name is optional for Google accounts — some users have no family name.
+	// When present it must pass the same character-set rules as first name.
+	const NAME_RE = /^[a-zA-ZÀ-ÿ\u0100-\u024F' -]{1,50}$/
+	if (!NAME_RE.test(firstName.trim())) {
+		throw createError({ statusCode: 400, statusMessage: 'First name may only contain letters, spaces, hyphens, and apostrophes.' })
+	}
+	if (lastName && typeof lastName === 'string' && lastName.trim() && !NAME_RE.test(lastName.trim())) {
+		throw createError({ statusCode: 400, statusMessage: 'Last name may only contain letters, spaces, hyphens, and apostrophes.' })
 	}
 	if (!googleId || typeof googleId !== 'string' || !googleId.trim()) {
 		throw createError({ statusCode: 400, statusMessage: 'Google ID is required.' })
@@ -102,7 +108,7 @@ export default defineEventHandler(async (event) => {
 
 	const normalizedEmail = email.toLowerCase()
 	const normalizedUsername = username.trim()
-	const fullName = `${firstName.trim()} ${lastName.trim()}`
+	const fullName = [firstName.trim(), lastName?.trim()].filter(Boolean).join(' ')
 
 	try {
 		// Check if user already exists by email
@@ -147,7 +153,7 @@ export default defineEventHandler(async (event) => {
 				data: {
 					name: fullName,
 					first_name: firstName.trim(),
-					last_name: lastName.trim(),
+					last_name: lastName?.trim() || null,
 					username: normalizedUsername,
 					email: normalizedEmail,
 					password: null,

@@ -102,7 +102,14 @@ const { isDesktop } = useBreakpoint()
 const { unreadNotifCount: sharedNotifCount } = useNotifCount()
 
 function goBackToProfile() {
-	router.replace('/tabs/home')
+	// Vue Router sets window.history.state.back when it has a real previous
+	// entry. Use that to go back naturally; fall back to Home when the user
+	// landed directly on this page (deep link, cold start, etc.).
+	if (window.history.state?.back) {
+		router.back()
+	} else {
+		router.replace('/tabs/home')
+	}
 }
 
 type NotificationType = 'expiring' | 'recipe_suggestion' | 'pantry_match'

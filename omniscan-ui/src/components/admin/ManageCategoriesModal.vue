@@ -1,6 +1,6 @@
 <template>
 	<Teleport to="body">
-		<div v-if="open" class="mc-overlay" @click.self="requestClose">
+		<div v-if="open" class="mc-overlay" @click.self="requestClose" @keydown.escape="requestClose" tabindex="-1">
 			<div class="mc-modal" role="dialog" aria-modal="true" aria-labelledby="mc-title">
 
 				<!-- Header -->
@@ -141,11 +141,20 @@
 			</div>
 		</div>
 	</Teleport>
+
+	<ConfirmDiscardModal
+		:open="showDiscardConfirm"
+		discard-label="Discard Changes"
+		message="You have unsaved changes. If you close now, your typed input will be lost."
+		@keep="showDiscardConfirm = false"
+		@discard="onDiscard"
+	/>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
+import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 
 // ─── Props / Emits ───────────────────────────────────────────────────────────
 const props = defineProps<{ open: boolean }>()
@@ -188,6 +197,12 @@ const renamingId     = ref<number | null>(null)
 const renameValue    = ref('')
 const renameError    = ref<string | null>(null)
 const renameInputEl  = ref<HTMLInputElement | null>(null)
+
+// Discard-changes guard
+const showDiscardConfirm = ref(false)
+const hasUnsavedData = computed(() =>
+	newName.value.trim() !== '' || renamingId.value !== null,
+)
 
 // Row highlight (newly added)
 const highlightedId  = ref<number | null>(null)
@@ -386,10 +401,23 @@ function resetLocalState(): void {
 	confirm.value.open = false
 	toast.value        = { visible: false, message: '' }
 	highlightedId.value = null
+	showDiscardConfirm.value = false
 }
 
 function requestClose(): void {
 	if (busy.value) return
+	if (hasUnsavedData.value) {
+		showDiscardConfirm.value = true
+		return
+	}
+	emit('close')
+}
+
+function onDiscard(): void {
+	showDiscardConfirm.value = false
+	newName.value  = ''
+	addError.value = null
+	cancelRename()
 	emit('close')
 }
 </script>

@@ -1,6 +1,6 @@
 <template>
 	<Teleport to="body">
-		<div v-if="open" class="ep-overlay" @click.self="requestClose">
+		<div v-if="open" class="ep-overlay" @click.self="requestClose" @keydown.escape="requestClose" tabindex="-1">
 			<div class="ep-modal" role="dialog" aria-modal="true" aria-labelledby="ep-title">
 
 				<!-- Header -->
@@ -98,11 +98,20 @@
 			</div>
 		</div>
 	</Teleport>
+
+	<ConfirmDiscardModal
+		:open="showDiscardConfirm"
+		discard-label="Discard Changes"
+		message="You have unsaved changes. If you close now, your edits will be lost."
+		@keep="showDiscardConfirm = false"
+		@discard="onDiscard"
+	/>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { apiFetch, ApiError } from '@/utils/api'
+import ConfirmDiscardModal from '@/components/admin/ConfirmDiscardModal.vue'
 
 // ─── Props / Emits ───────────────────────────────────────────────────────────
 interface ProductProp {
@@ -130,6 +139,15 @@ const errors = ref<{ product_name?: string; brand_name?: string }>({})
 const apiError = ref<string | null>(null)
 const saving = ref(false)
 const confirmOpen = ref(false)
+const showDiscardConfirm = ref(false)
+
+// Snapshot of values as loaded — used to detect unsaved changes.
+const snapshot = ref({ product_name: '', brand_name: '', category: '' })
+const isDirty = computed(() =>
+	form.value.product_name !== snapshot.value.product_name ||
+	form.value.brand_name   !== snapshot.value.brand_name   ||
+	form.value.category     !== snapshot.value.category,
+)
 
 const categories = ref<CategoryOption[]>([])
 const categoriesLoading = ref(false)
@@ -143,9 +161,11 @@ watch(() => props.open, (val) => {
 			brand_name:   props.product.brand_name,
 			category:     props.product.category,
 		}
+		snapshot.value = { ...form.value }
 		errors.value  = {}
 		apiError.value = null
 		confirmOpen.value = false
+		showDiscardConfirm.value = false
 		void fetchCategories()
 	}
 })
@@ -225,6 +245,15 @@ async function executeConfirm(): Promise<void> {
 // ─── Close guard ─────────────────────────────────────────────────────────────
 function requestClose(): void {
 	if (saving.value) return
+	if (isDirty.value) {
+		showDiscardConfirm.value = true
+		return
+	}
+	emit('close')
+}
+
+function onDiscard(): void {
+	showDiscardConfirm.value = false
 	emit('close')
 }
 </script>

@@ -834,8 +834,17 @@ async function saveProfile() {
 		})
 
 		user.value = data.user
-		// Keep the auth store (used by the desktop sidebar) in sync with the new photo
-		if (authStore.user) authStore.user.avatar_base64 = data.user.avatar_base64
+		// Keep the auth store in sync so HomePage and any other store consumer
+		// (e.g. CompleteProfileModal) see the updated name and avatar immediately.
+		if (authStore.user) {
+			authStore.user = {
+				...authStore.user,
+				name:          data.user.name,
+				first_name:    data.user.first_name,
+				last_name:     data.user.last_name,
+				avatar_base64: data.user.avatar_base64,
+			}
+		}
 		resetPasswordFields()
 		isEditing.value = false
 		showSuccessToast.value = true

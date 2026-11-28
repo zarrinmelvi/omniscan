@@ -258,8 +258,10 @@ import AppHeader from '@/components/AppHeader.vue'
 import { usePantryList } from '@/composables/usePantryList'
 import SkeletonCard from '@/components/SkeletonCard.vue'
 import { useBreakpoint } from '@/utils/useBreakpoint'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const { isDesktop } = useBreakpoint()
 
 interface Product {
@@ -328,8 +330,10 @@ const isLoading = ref(true)
 const loadError = ref('')
 let hasDashboardLoaded = false
 
-const userName = ref('')
-const avatarBase64 = ref<string | null>(null)
+// Drive name and avatar directly from the store so any update to authStore.user
+// (e.g. CompleteProfileModal patching last_name) is reflected instantly.
+const userName    = computed(() => authStore.user?.name ?? '')
+const avatarBase64 = computed(() => authStore.user?.avatar_base64 ?? null)
 const pantryList = usePantryList()
 const { invalidate: invalidatePantryList } = pantryList
 const vPantryLazyImage = pantryList.pantryLazyImage
@@ -643,8 +647,14 @@ async function loadDashboard() {
 			pantryList.refresh({ silent: true }),
 		])
 
-		userName.value = userRes.user.name
-		avatarBase64.value = userRes.user.avatar_base64
+		// Sync the store so userName and avatarBase64 computeds update reactively.
+		if (authStore.user) {
+			authStore.user = {
+				...authStore.user,
+				name:          userRes.user.name,
+				avatar_base64: userRes.user.avatar_base64,
+			}
+		}
 		if (pantryList.loadError.value && pantryItems.value.length === 0) {
 			throw new Error(pantryList.loadError.value)
 		}

@@ -26,6 +26,19 @@
 
 		<ion-content class="ion-padding notif-content">
 			<div class="notif-inner">
+				<!-- Desktop / web page header — replaces the ion-header which is hidden on desktop -->
+				<div v-if="isDesktop" class="notif-web-header">
+					<h1 class="notif-web-title">
+						Notifications
+						<span v-if="unreadCount > 0" class="unread-badge">{{ unreadCount }}</span>
+					</h1>
+					<button
+						class="notif-web-mark-all"
+						:disabled="unreadCount === 0 || isMarkingAll"
+						@click="markAllRead">
+						{{ isMarkingAll ? 'Marking…' : 'Mark all read' }}
+					</button>
+				</div>
 				<div v-if="isLoading" class="state-block">
 					<ion-spinner name="crescent" />
 				</div>
@@ -382,5 +395,44 @@ onIonViewWillEnter(fetchNotifications)
 	.notif-inner {
 		max-width: 720px;
 	}
+}
+
+/* ── Desktop / web page header ── */
+.notif-web-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 20px;
+}
+
+.notif-web-title {
+	font-size: 1.35rem;
+	font-weight: 700;
+	color: #0f172a;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.notif-web-mark-all {
+	padding: 7px 16px;
+	border-radius: 20px;
+	border: none;
+	background: #008744;
+	color: #fff;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.15s, opacity 0.15s;
+}
+
+.notif-web-mark-all:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.notif-web-mark-all:not(:disabled):hover {
+	background: #006d36;
 }
 </style>

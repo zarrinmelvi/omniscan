@@ -10,7 +10,6 @@ import { determineDisallowedCatalogIngredients } from '../../lib/alternative-rea
 import { findAlternativeProducts } from '../../lib/alternative-matching'
 import { normalizeToDateStringOrNull } from '../../lib/date-parse'
 import { getAdminSettings } from '../../lib/admin-settings'
-import { sendNewFlagNotification } from '../../utils/email'
 import { logAuditEvent } from '../../lib/audit-logger'
 import { cropLogo, analyseLogoQuality, type LogoBox } from '../../lib/logo-crop'
 import { readLogoText, matchHalalFromText } from '../../lib/halal-ocr'
@@ -879,14 +878,9 @@ export default defineEventHandler(async (event) => {
 				}),
 			])
 
-			// Fire-and-forget admin notification (gated by the emailOnNewFlag
-			// setting inside sendNewFlagNotification). Non-blocking: the scan
-			// response must not wait on, or fail because of, email delivery.
-			sendNewFlagNotification({
-				productName: product.product_name,
-				flagReason: flagReasonParts.join(' | '),
-				scannedBy: authUser?.email ?? (authUser?.id != null ? `User #${authUser.id}` : undefined),
-			}).catch((err) => console.error('New-flag notification failed (non-blocking):', err))
+			// No email is sent from the scan flow — the in-app notification is
+			// the only channel. (The admin flag email was removed by request;
+			// flagged scans remain visible in the admin Flags queue.)
 		}
 
 		setResponseStatus(event, 201)

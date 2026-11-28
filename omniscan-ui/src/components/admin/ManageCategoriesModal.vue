@@ -233,10 +233,13 @@ async function fetchCategories(): Promise<void> {
 }
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
+const CATEGORY_NAME_RE = /^[A-Za-z\s\-&()]+$/
+
 function validateName(name: string, excludeId: number | null = null): string | null {
 	const trimmed = name.trim()
-	if (!trimmed)             return 'Category name is required.'
-	if (trimmed.length > 50)  return 'Maximum 50 characters.'
+	if (!trimmed)                          return 'Category name is required.'
+	if (trimmed.length > 50)               return 'Maximum 50 characters.'
+	if (!CATEGORY_NAME_RE.test(trimmed))   return 'Only letters, spaces, hyphens, & and () are allowed.'
 	const conflict = categories.value.find(
 		(c) => c.name.toLowerCase() === trimmed.toLowerCase() && c.id !== excludeId,
 	)

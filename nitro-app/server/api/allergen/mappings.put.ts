@@ -29,6 +29,9 @@ export default defineEventHandler(async (event) => {
 
 	// Normalise the incoming alias list: trim, drop empties, de-duplicate
 	// case-insensitively while preserving the first-seen original casing.
+	// Reject the whole request if any alias fails the character-set rule so the
+	// admin is forced to fix the data before it reaches the database.
+	const ALIAS_RE = /^[A-Za-z\s\-]+$/
 	const rawList = Array.isArray(body?.aliases) ? (body!.aliases as unknown[]) : []
 	const seen = new Set<string>()
 	const desired: string[] = []
@@ -36,6 +39,12 @@ export default defineEventHandler(async (event) => {
 		if (typeof item !== 'string') continue
 		const term = item.trim()
 		if (!term) continue
+		if (term.length > 50) {
+			throw createError({ statusCode: 400, statusMessage: `Alias "${term}" exceeds the 50-character limit.` })
+		}
+		if (!ALIAS_RE.test(term)) {
+			throw createError({ statusCode: 400, statusMessage: `Alias "${term}" may only contain letters, spaces, and hyphens.` })
+		}
 		const key = term.toLowerCase()
 		if (seen.has(key)) continue
 		seen.add(key)

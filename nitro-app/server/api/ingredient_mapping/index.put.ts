@@ -2,6 +2,17 @@ import { defineEventHandler, readBody, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAdminAuth } from '../../utils/requireAdminAuth'
 
+const MAPPING_TERM_RE = /^[A-Za-z\s\-]+$/
+
+function validateTerm(value: string, field: string): void {
+	if (value.length > 50) {
+		throw createError({ statusCode: 400, statusMessage: `${field} must be 50 characters or fewer.` })
+	}
+	if (!MAPPING_TERM_RE.test(value)) {
+		throw createError({ statusCode: 400, statusMessage: `${field} may only contain letters, spaces, and hyphens.` })
+	}
+}
+
 export default defineEventHandler(async (event) => {
 	requireAdminAuth(event)
 
@@ -11,6 +22,14 @@ export default defineEventHandler(async (event) => {
 
 	if (!body?.id || Number.isNaN(Number(body.id))) {
 		throw createError({ statusCode: 400, statusMessage: 'A valid ingredient mapping id is required.' })
+	}
+
+	// Validate only the fields being updated.
+	if (body.scientific_term !== undefined) {
+		validateTerm(body.scientific_term.trim(), 'Scientific / raw OCR term')
+	}
+	if (body.simplified_term !== undefined) {
+		validateTerm(body.simplified_term.trim(), 'Simplified consumer term')
 	}
 
 	try {

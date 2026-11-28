@@ -2,6 +2,8 @@ import { defineEventHandler, readBody, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAdminAuth } from '../../utils/requireAdminAuth'
 
+const ALLERGEN_NAME_RE = /^[A-Za-z\s\-]+$/
+
 export default defineEventHandler(async (event) => {
 	requireAdminAuth(event)
 
@@ -11,6 +13,20 @@ export default defineEventHandler(async (event) => {
 
 	if (!body?.id || Number.isNaN(Number(body.id))) {
 		throw createError({ statusCode: 400, statusMessage: 'A valid allergen id is required.' })
+	}
+
+	// Validate name only when it is being updated.
+	if (body.name !== undefined) {
+		const name = body.name.trim()
+		if (!name) {
+			throw createError({ statusCode: 400, statusMessage: 'Allergen name is required.' })
+		}
+		if (name.length > 50) {
+			throw createError({ statusCode: 400, statusMessage: 'Allergen name must be 50 characters or fewer.' })
+		}
+		if (!ALLERGEN_NAME_RE.test(name)) {
+			throw createError({ statusCode: 400, statusMessage: 'Allergen name may only contain letters, spaces, and hyphens.' })
+		}
 	}
 
 	try {

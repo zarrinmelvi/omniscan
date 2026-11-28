@@ -586,6 +586,7 @@
 									/>
 								</div>
 								<span class="field-hint">Press Enter or comma to add. These become ingredient mappings linked to this allergen.</span>
+								<p v-if="aliasError" class="modal-error">{{ aliasError }}</p>
 							</div>
 
 							<label class="field-check">
@@ -1021,18 +1022,31 @@ function snapshotOf(formVal: Record<string, any>, aliases: string[]): string {
 
 const isDirty = computed(() => snapshotOf(form.value, aliasTags.value) !== baselineSnapshot.value)
 
-// Alias/mapping editor state (Allergen modal only)
+// ─── Alias/mapping editor state (Allergen modal only)
 const aliasTags = ref<string[]>([])
 const aliasInput = ref('')
+const aliasError = ref<string | null>(null)
 // Snapshot of the aliases as loaded, so we only PUT the mapping sync when changed.
 const aliasOriginal = ref<string[]>([])
+
+const ALLERGEN_NAME_RE = /^[A-Za-z\s\-]+$/
+const ALIAS_RE         = /^[A-Za-z\s\-]+$/
 
 function addAliasTag(): void {
 	const raw = aliasInput.value.trim().replace(/,+$/, '').trim()
 	if (!raw) return
+	aliasError.value = null
 	// Support pasting a comma-separated batch.
 	const parts = raw.split(',').map((p) => p.trim()).filter(Boolean)
 	for (const p of parts) {
+		if (p.length > 50) {
+			aliasError.value = `"${p}" exceeds the 50-character limit.`
+			return
+		}
+		if (!ALIAS_RE.test(p)) {
+			aliasError.value = `"${p}" — only letters, spaces, and hyphens are allowed.`
+			return
+		}
 		if (!aliasTags.value.some((t) => t.toLowerCase() === p.toLowerCase())) {
 			aliasTags.value.push(p)
 		}
@@ -1610,6 +1624,7 @@ function openCreateModal(): void {
 	} else {
 		form.value = { scientific_term: '', simplified_term: '', allergen_id: undefined }
 	}
+	aliasError.value = null
 	baselineSnapshot.value = snapshotOf(form.value, aliasTags.value)
 	showDiscardConfirm.value = false
 	modalOpen.value = true
@@ -1629,6 +1644,7 @@ function openEditModal(item: any): void {
 		aliasTags.value = [...loaded]
 		aliasOriginal.value = [...loaded]
 		aliasInput.value = ''
+		aliasError.value = null
 	} else if (activeTab.value === 'halal') {
 		form.value = {
 			certifier: item.certifier,
@@ -1651,6 +1667,7 @@ function closeModal(): void {
 	if (saving.value) return
 	modalOpen.value = false
 	modalError.value = null
+	aliasError.value = null
 }
 
 /**
@@ -1682,11 +1699,28 @@ const discardLabel = computed(() => (modalMode.value === 'create' ? 'Discard Ite
 function validateForm(): string | null {
 	const text = (v: unknown): string => (typeof v === 'string' ? v.trim() : '')
 	if (activeTab.value === 'allergen') {
-		if (!text(form.value.name)) return 'Allergen name is required.'
+		const name = text(form.value.name)
+		if (!name) return 'Allergen name is required.'
+		if (name.length > 50) return 'Allergen name must be 50 characters or fewer.'
+		if (!ALLERGEN_NAME_RE.test(name)) return 'Allergen name may only contain letters, spaces, and hyphens.'
+		// Validate any alias currently staged in the input field but not yet committed.
+		if (aliasInput.value.trim()) {
+			const staged = aliasInput.value.trim()
+			if (staged.length > 50) return `Alias "${staged}" exceeds the 50-character limit.`
+			if (!ALIAS_RE.test(staged)) return `Alias "${staged}" — only letters, spaces, and hyphens are allowed.`
+		}
 	} else if (activeTab.value === 'halal') {
 		if (!text(form.value.certifier)) return 'Certifier code is required.'
 	} else if (activeTab.value === 'ingredient') {
-		if (!text(form.value.scientific_term)) return 'Scientific / raw OCR term is required.'
+		const sciTerm = text(form.value.scientific_term)
+		if (!sciTerm) return 'Scientific / raw OCR term is required.'
+		if (sciTerm.length > 50) return 'Scientific / raw OCR term must be 50 characters or fewer.'
+		if (!ALIAS_RE.test(sciTerm)) return 'Scientific / raw OCR term may only contain letters, spaces, and hyphens.'
+		const simpTerm = text(form.value.simplified_term)
+		if (simpTerm) {
+			if (simpTerm.length > 50) return 'Simplified consumer term must be 50 characters or fewer.'
+			if (!ALIAS_RE.test(simpTerm)) return 'Simplified consumer term may only contain letters, spaces, and hyphens.'
+		}
 		const id = Number(form.value.allergen_id)
 		if (!form.value.allergen_id || Number.isNaN(id) || id <= 0) return 'Please select an allergen.'
 	}

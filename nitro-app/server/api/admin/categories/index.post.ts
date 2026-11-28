@@ -4,6 +4,8 @@ import { requireAdminAuth } from '../../../utils/requireAdminAuth'
 
 type Action = 'add' | 'rename' | 'delete'
 
+const CATEGORY_NAME_RE = /^[A-Za-z\s\-&()]+$/
+
 interface AddBody    { action: 'add';    name: string }
 interface RenameBody { action: 'rename'; id: number; old_name: string; new_name: string }
 interface DeleteBody { action: 'delete'; id: number; name: string }
@@ -40,6 +42,7 @@ export default defineEventHandler(async (event) => {
 			const name = typeof body.name === 'string' ? body.name.trim() : ''
 			if (!name) throw createError({ statusCode: 400, statusMessage: 'Category name is required.' })
 			if (name.length > 50) throw createError({ statusCode: 400, statusMessage: 'Category name must be 50 characters or fewer.' })
+			if (!CATEGORY_NAME_RE.test(name)) throw createError({ statusCode: 400, statusMessage: 'Category name may only contain letters, spaces, hyphens, & and ().' })
 
 			// Case-insensitive duplicate check
 			const existing = await prisma.productCategory.findFirst({
@@ -60,6 +63,7 @@ export default defineEventHandler(async (event) => {
 
 			if (!newNameTrimmed) throw createError({ statusCode: 400, statusMessage: 'New category name is required.' })
 			if (newNameTrimmed.length > 50) throw createError({ statusCode: 400, statusMessage: 'Category name must be 50 characters or fewer.' })
+			if (!CATEGORY_NAME_RE.test(newNameTrimmed)) throw createError({ statusCode: 400, statusMessage: 'Category name may only contain letters, spaces, hyphens, & and ().' })
 			if (newNameTrimmed.toLowerCase() === (old_name ?? '').toLowerCase()) {
 				throw createError({ statusCode: 400, statusMessage: 'New name is the same as the current name.' })
 			}

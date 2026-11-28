@@ -2,6 +2,17 @@ import { defineEventHandler, readBody, createError } from 'h3'
 import { prisma } from '../../lib/prisma'
 import { requireAdminAuth } from '../../utils/requireAdminAuth'
 
+const MAPPING_TERM_RE = /^[A-Za-z\s\-]+$/
+
+function validateTerm(value: string, field: string): void {
+	if (value.length > 50) {
+		throw createError({ statusCode: 400, statusMessage: `${field} must be 50 characters or fewer.` })
+	}
+	if (!MAPPING_TERM_RE.test(value)) {
+		throw createError({ statusCode: 400, statusMessage: `${field} may only contain letters, spaces, and hyphens.` })
+	}
+}
+
 export default defineEventHandler(async (event) => {
 	requireAdminAuth(event)
 
@@ -16,11 +27,17 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 400, statusMessage: 'Please select an allergen.' })
 	}
 
+	const scientificTerm = body.scientific_term.trim()
+	const simplifiedTerm = (body.simplified_term ?? body.scientific_term).trim()
+
+	validateTerm(scientificTerm, 'Scientific / raw OCR term')
+	validateTerm(simplifiedTerm, 'Simplified consumer term')
+
 	try {
 		const mapping = await prisma.ingredientMapping.create({
 			data: {
-				scientific_term: body.scientific_term.trim(),
-				simplified_term: (body.simplified_term ?? body.scientific_term).trim(),
+				scientific_term: scientificTerm,
+				simplified_term: simplifiedTerm,
 				allergen_id: Number(body.allergen_id),
 			},
 		})

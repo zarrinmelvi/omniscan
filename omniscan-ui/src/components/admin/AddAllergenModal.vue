@@ -125,6 +125,7 @@
 							/>
 						</div>
 						<p class="aa-field-hint">Press Enter or comma to add.</p>
+						<p v-if="aliasError" class="aa-alias-error">{{ aliasError }}</p>
 
 						<!-- Dashed suggestion chips from dataset -->
 						<div v-if="suggestedAliases.length > 0" class="aa-suggested-row">
@@ -246,6 +247,7 @@ const scientificFromDataset = ref(false)
 const aliasTags           = ref<string[]>([])
 const aliasInput          = ref('')
 const aliasInputEl        = ref<HTMLInputElement | null>(null)
+const aliasError          = ref<string | null>(null)
 const suggestedAliases    = ref<string[]>([])
 
 // Predefined
@@ -274,6 +276,7 @@ function resetState(): void {
 	scientificFromDataset.value = false
 	aliasTags.value           = []
 	aliasInput.value          = ''
+	aliasError.value          = null
 	suggestedAliases.value    = []
 	isPredefined.value        = false
 	duplicateRecord.value     = null
@@ -379,6 +382,9 @@ function selectSuggestion(s: AnyS): void {
 }
 
 // ─── Alias chip management ────────────────────────────────────────────────────
+const ALLERGEN_NAME_RE = /^[A-Za-z\s\-]+$/
+const ALIAS_RE         = /^[A-Za-z\s\-]+$/
+
 function focusAliasInput(): void {
 	aliasInputEl.value?.focus()
 }
@@ -386,8 +392,17 @@ function focusAliasInput(): void {
 function commitAliasInput(): void {
 	const raw = aliasInput.value.trim().replace(/,+$/, '').trim()
 	if (!raw) return
+	aliasError.value = null
 	const parts = raw.split(',').map((p) => p.trim()).filter(Boolean)
 	for (const p of parts) {
+		if (p.length > 50) {
+			aliasError.value = `"${p}" exceeds the 50-character limit.`
+			return
+		}
+		if (!ALIAS_RE.test(p)) {
+			aliasError.value = `"${p}" — only letters, spaces, and hyphens are allowed.`
+			return
+		}
 		if (!aliasTags.value.some((t) => t.toLowerCase() === p.toLowerCase())) {
 			aliasTags.value.push(p)
 		}
@@ -440,6 +455,17 @@ function save(): void {
 	const name = nameInput.value.trim()
 	if (!name || duplicateRecord.value) return
 	saveError.value = null
+	if (name.length > 50) {
+		saveError.value = 'Allergen name must be 50 characters or fewer.'
+		return
+	}
+	if (!ALLERGEN_NAME_RE.test(name)) {
+		saveError.value = 'Allergen name may only contain letters, spaces, and hyphens.'
+		return
+	}
+	// Flush any uncommitted alias text before opening the confirmation dialog.
+	if (aliasInput.value.trim()) commitAliasInput()
+	if (aliasError.value) return
 	confirmOpen.value = true
 }
 
@@ -625,7 +651,8 @@ function onDiscard(): void {
 }
 
 /* ── Duplicate ── */
-.aa-dup-error { margin: 0; font-size: 0.82rem; color: #dc2626; font-weight: 500; }
+.aa-dup-error  { margin: 0; font-size: 0.82rem; color: #dc2626; font-weight: 500; }
+.aa-alias-error { margin: 4px 0 0; font-size: 0.82rem; color: #dc2626; font-weight: 500; }
 .aa-dup-card {
 	display: flex;
 	align-items: center;

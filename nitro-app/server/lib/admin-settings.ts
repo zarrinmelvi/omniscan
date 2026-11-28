@@ -13,7 +13,6 @@ export interface AdminSettings {
 	enableVisionScan: boolean
 	autoReviewLowRisk: boolean
 	// Notifications
-	emailOnNewFlag: boolean
 	emailOnSystemError: boolean
 	dailySummaryReport: boolean
 	monthlyLogoCheck: boolean
@@ -27,7 +26,6 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
 	autoFlagThreshold: 90,
 	enableVisionScan: true,
 	autoReviewLowRisk: false,
-	emailOnNewFlag: true,
 	emailOnSystemError: true,
 	dailySummaryReport: true,
 	monthlyLogoCheck: true,
@@ -62,7 +60,6 @@ export function normalizeAdminSettings(input: Partial<AdminSettings> | null | un
 		autoFlagThreshold: clampPct(src.autoFlagThreshold, d.autoFlagThreshold),
 		enableVisionScan: asBool(src.enableVisionScan, d.enableVisionScan),
 		autoReviewLowRisk: asBool(src.autoReviewLowRisk, d.autoReviewLowRisk),
-		emailOnNewFlag: asBool(src.emailOnNewFlag, d.emailOnNewFlag),
 		emailOnSystemError: asBool(src.emailOnSystemError, d.emailOnSystemError),
 		dailySummaryReport: asBool(src.dailySummaryReport, d.dailySummaryReport),
 		monthlyLogoCheck: asBool(src.monthlyLogoCheck, d.monthlyLogoCheck),

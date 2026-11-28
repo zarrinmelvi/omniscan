@@ -117,7 +117,7 @@ vi.mock('../lib/allergen-matching', () => ({
 vi.mock('../lib/admin-settings', () => ({
 	getAdminSettings: vi.fn(async () => ({ reviewConfidenceThreshold: 75, autoFlagThreshold: 90 })),
 }))
-vi.mock('../utils/email', () => ({ sendNewFlagNotification: vi.fn(async () => {}) }))
+vi.mock('../utils/email', () => ({}))
 vi.mock('../lib/audit-logger', () => ({ logAuditEvent: vi.fn(async () => {}) }))
 vi.mock('../lib/logo-crop', () => ({ cropLogo: vi.fn(async () => null) }))
 

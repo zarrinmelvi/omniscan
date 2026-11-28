@@ -102,11 +102,7 @@ const { isDesktop } = useBreakpoint()
 const { unreadNotifCount: sharedNotifCount } = useNotifCount()
 
 function goBackToProfile() {
-	if (window.history.length > 1) {
-		router.back()
-	} else {
-		router.replace('/tabs/home')
-	}
+	router.replace('/tabs/home')
 }
 
 type NotificationType = 'expiring' | 'recipe_suggestion' | 'pantry_match'
@@ -402,9 +398,12 @@ onIonViewWillEnter(fetchNotifications)
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	gap: 16px;
 	margin-bottom: 20px;
 }
 
+/* Title + badge grouped on the left; button sits on the right via
+   space-between. Title colour adapts to dark mode. */
 .notif-web-title {
 	font-size: 1.35rem;
 	font-weight: 700;
@@ -413,6 +412,14 @@ onIonViewWillEnter(fetchNotifications)
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	white-space: nowrap;
+}
+
+html.ion-palette-dark .notif-web-title,
+body.dark .notif-web-title,
+.ios.ion-palette-dark .notif-web-title,
+.md.ion-palette-dark .notif-web-title {
+	color: #f9fafb;
 }
 
 .notif-web-mark-all {
@@ -425,6 +432,7 @@ onIonViewWillEnter(fetchNotifications)
 	font-weight: 600;
 	cursor: pointer;
 	transition: background 0.15s, opacity 0.15s;
+	flex-shrink: 0;
 }
 
 .notif-web-mark-all:disabled {
